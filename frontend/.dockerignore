@@ -1,0 +1,8 @@
+dist
+yarn-error.log
+stats.json
+coverage
+storybook-static
+.DS_Store
+.idea
+node_modules

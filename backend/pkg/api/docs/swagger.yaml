@@ -1,0 +1,46 @@
+basePath: /
+definitions:
+  api.MapResponse:
+    additionalProperties:
+      type: string
+    type: object
+host: localhost:9898
+info:
+  contact:
+    name: Source Code
+    url: https://github.com/flacatus/qe-dashboard-backend
+  description: Go microservice template for Kubernetes.
+  license:
+    name: MIT License
+    url: https://github.com/flacatus/qe-dashboard-backend/blob/master/LICENSE
+  title: Quality Backend API
+  version: "2.0"
+paths:
+  /api/quality/repositories:
+    get:
+      description: returns all repository information founded in server configuration
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Quality Repositories
+      tags:
+      - HTTP API
+  /api/version:
+    get:
+      description: returns quality backend version
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.MapResponse'
+      summary: Version
+      tags:
+      - HTTP API
+schemes:
+- http
+- https
+swagger: "2.0"

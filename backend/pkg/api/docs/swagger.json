@@ -1,0 +1,69 @@
+{
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Go microservice template for Kubernetes.",
+        "title": "Quality Backend API",
+        "contact": {
+            "name": "Source Code",
+            "url": "https://github.com/flacatus/qe-dashboard-backend"
+        },
+        "license": {
+            "name": "MIT License",
+            "url": "https://github.com/flacatus/qe-dashboard-backend/blob/master/LICENSE"
+        },
+        "version": "2.0"
+    },
+    "host": "localhost:9898",
+    "basePath": "/",
+    "paths": {
+        "/api/quality/repositories": {
+            "get": {
+                "description": "returns all repository information founded in server configuration",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "HTTP API"
+                ],
+                "summary": "Quality Repositories",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/version": {
+            "get": {
+                "description": "returns quality backend version",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "HTTP API"
+                ],
+                "summary": "Version",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.MapResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "api.MapResponse": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            }
+        }
+    }
+}
