@@ -8,15 +8,37 @@ host: localhost:9898
 info:
   contact:
     name: Source Code
-    url: https://github.com/flacatus/qe-dashboard-backend
-  description: Go microservice template for Kubernetes.
+    url: https://github.com/redhat-appstudio/qe-dashboard-backend
+  description: Simple Api Rest server to monitor github repositories.
   license:
     name: MIT License
-    url: https://github.com/flacatus/qe-dashboard-backend/blob/master/LICENSE
+    url: https://github.com/redhat-appstudio/qe-dashboard-backend/blob/master/LICENSE
   title: Quality Backend API
-  version: "2.0"
+  version: 1.0.0
 paths:
-  /api/quality/repositories:
+  /api/quality/repositories/create:
+    post:
+      description: Create a new github repository to monitor
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Quality Repositories
+      tags:
+      - Github Repository API
+  /api/quality/repositories/delete:
+    delete:
+      description: delete a given repository from a organization
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Quality Repositories
+      tags:
+      - Github Repository API
+  /api/quality/repositories/list:
     get:
       description: returns all repository information founded in server configuration
       produces:
@@ -26,7 +48,18 @@ paths:
           description: ""
       summary: Quality Repositories
       tags:
-      - HTTP API
+      - Github Repository API
+  /api/quality/workflows/get:
+    get:
+      description: return github workflows from a given repository
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+      summary: Quality Repositories
+      tags:
+      - Github Repository API
   /api/version:
     get:
       description: returns quality backend version
@@ -39,7 +72,7 @@ paths:
             $ref: '#/definitions/api.MapResponse'
       summary: Version
       tags:
-      - HTTP API
+      - Version API
 schemes:
 - http
 - https

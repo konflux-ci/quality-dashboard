@@ -25,28 +25,25 @@ import (
 )
 
 // @title Quality Backend API
-// @version 2.0
-// @description Go microservice template for Kubernetes.
+// @version 1.0.0
+// @description Simple Api Rest server to monitor github repositories.
 
 // @contact.name Source Code
-// @contact.url https://github.com/flacatus/qe-dashboard-backend
+// @contact.url https://github.com/redhat-appstudio/qe-dashboard-backend
 
 // @license.name MIT License
-// @license.url https://github.com/flacatus/qe-dashboard-backend/blob/master/LICENSE
+// @license.url https://github.com/redhat-appstudio/qe-dashboard-backend/blob/master/LICENSE
 
 // @host localhost:9898
 // @BasePath /
 // @schemes http https
 
 type Config struct {
-	HttpClientTimeout         time.Duration `mapstructure:"http-client-timeout"`
 	HttpServerTimeout         time.Duration `mapstructure:"http-server-timeout"`
 	HttpServerShutdownTimeout time.Duration `mapstructure:"http-server-shutdown-timeout"`
 	Host                      string        `mapstructure:"host"`
 	Port                      string        `mapstructure:"port"`
-	Hostname                  string        `mapstructure:"hostname"`
 	H2C                       bool          `mapstructure:"h2c"`
-	RandomError               bool          `mapstructure:"random-error"`
 	Storage                   storage.Storage
 }
 
@@ -78,11 +75,10 @@ func NewServer(config *Config, logger *zap.Logger) (*Server, error) {
 	}
 
 	return srv, nil
-} //deleteRepositoryHandler
+}
 
 func (s *Server) registerHandlers() {
 	s.router.HandleFunc("/api/version", s.versionHandler).Methods("GET")
-	s.router.HandleFunc("/api/quality/repositories/get", s.repositoriesHandler).Methods("GET")
 	s.router.HandleFunc("/api/quality/workflows/get", s.listWorkflowsHandler).Methods("GET")
 	s.router.HandleFunc("/api/quality/repositories/list", s.listRepositoriesHandler).Methods("GET")
 	s.router.HandleFunc("/api/quality/repositories/create", s.repositoriesCreateHandler).Methods("POST")
@@ -117,7 +113,7 @@ func (s *Server) ListenAndServe(stopCh <-chan struct{}) {
 		AllowCredentials: true,
 		AllowedMethods:   []string{"POST", "GET", "DELETE"},
 		// Enable Debugging for testing, consider disabling in production
-		Debug: true,
+		Debug: false,
 	})
 	if s.config.H2C {
 		s.handler = h2c.NewHandler(s.router, &http2.Server{})

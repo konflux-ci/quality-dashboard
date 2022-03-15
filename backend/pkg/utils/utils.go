@@ -22,3 +22,9 @@ func GetPortEnv(key string, defaultVal uint16) uint16 {
 	}
 	return defaultVal
 }
+
+// CheckIfEnvironmentExists return true/false if the environment variable exists
+func CheckIfEnvironmentExists(env string) bool {
+	_, exist := os.LookupEnv(env)
+	return exist
+}

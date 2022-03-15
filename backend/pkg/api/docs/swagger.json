@@ -5,29 +5,80 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "Go microservice template for Kubernetes.",
+        "description": "Simple Api Rest server to monitor github repositories.",
         "title": "Quality Backend API",
         "contact": {
             "name": "Source Code",
-            "url": "https://github.com/flacatus/qe-dashboard-backend"
+            "url": "https://github.com/redhat-appstudio/qe-dashboard-backend"
         },
         "license": {
             "name": "MIT License",
-            "url": "https://github.com/flacatus/qe-dashboard-backend/blob/master/LICENSE"
+            "url": "https://github.com/redhat-appstudio/qe-dashboard-backend/blob/master/LICENSE"
         },
-        "version": "2.0"
+        "version": "1.0.0"
     },
     "host": "localhost:9898",
     "basePath": "/",
     "paths": {
-        "/api/quality/repositories": {
+        "/api/quality/repositories/create": {
+            "post": {
+                "description": "Create a new github repository to monitor",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Github Repository API"
+                ],
+                "summary": "Quality Repositories",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/quality/repositories/delete": {
+            "delete": {
+                "description": "delete a given repository from a organization",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Github Repository API"
+                ],
+                "summary": "Quality Repositories",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/quality/repositories/list": {
             "get": {
                 "description": "returns all repository information founded in server configuration",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "HTTP API"
+                    "Github Repository API"
+                ],
+                "summary": "Quality Repositories",
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/quality/workflows/get": {
+            "get": {
+                "description": "return github workflows from a given repository",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Github Repository API"
                 ],
                 "summary": "Quality Repositories",
                 "responses": {
@@ -44,7 +95,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "HTTP API"
+                    "Version API"
                 ],
                 "summary": "Version",
                 "responses": {

@@ -9,7 +9,7 @@ import (
 // Version godoc
 // @Summary Version
 // @Description returns quality backend version
-// @Tags HTTP API
+// @Tags Version API
 // @Produce json
 // @Router /api/version [get]
 // @Success 200 {object} api.MapResponse

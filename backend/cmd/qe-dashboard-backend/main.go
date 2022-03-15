@@ -60,7 +60,6 @@ func main() {
 		fs.PrintDefaults()
 		os.Exit(2)
 	case *versionFlag:
-		fmt.Println(version.VERSION)
 		os.Exit(0)
 	}
 

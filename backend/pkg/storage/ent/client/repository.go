@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/flacatus/qe-dashboard-backend/pkg/storage"
@@ -21,7 +20,6 @@ func (d *Database) CreateRepository(repository storage.Repository) (*db.Reposito
 	if err != nil {
 		return nil, convertDBError("create repository: %w", err)
 	}
-	fmt.Println(err)
 	return repo, nil
 }
 

@@ -49,8 +49,8 @@ func (s *Server) rotate() error {
 
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
-		// Setting these values to 4 hours is easier than having a flag indicating no rotation.
-		rotationFrequency: time.Minute * 1,
+		// Setting these values to 30 Minutes is easier than having a flag indicating no rotation.
+		rotationFrequency: time.Minute * 45,
 	}
 }
 

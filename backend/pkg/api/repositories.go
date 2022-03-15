@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/flacatus/qe-dashboard-backend/pkg/storage"
@@ -15,28 +14,15 @@ type RepositoryDeleteRequest struct {
 
 // Version godoc
 // @Summary Quality Repositories
-// @Description returns all repository information founded in server configuration
-// @Tags HTTP API
-// @Produce json
-// @Router /api/quality/repositories [get]
-// @Success 200
-func (s *Server) repositoriesHandler(w http.ResponseWriter, r *http.Request) {
-	// set a value with a cost of 1
-	s.JSONResponse(w, r, storage.Coverage{RepositoryName: "e2e"})
-}
-
-// Version godoc
-// @Summary Quality Repositories
-// @Description returns all repository information founded in server configuration
-// @Tags HTTP API
+// @Description Create a new github repository to monitor
+// @Tags Github Repository API
 // @Produce json
 // @Router /api/quality/repositories/create [post]
 // @Success 200
 func (s *Server) repositoriesCreateHandler(w http.ResponseWriter, r *http.Request) {
 	var repository GitRepositoryRequest
 	json.NewDecoder(r.Body).Decode(&repository)
-	fmt.Println(repository.GitOrganization)
-	fmt.Println(repository.GitRepository)
+
 	repoInfo, err := s.githubAPI.GetRepositoriesInformation(repository.GitOrganization, repository.GitRepository)
 	if err != nil {
 		s.logger.Sugar().Errorf("Failed to save repository %v", err)
@@ -101,9 +87,9 @@ func (s *Server) repositoriesCreateHandler(w http.ResponseWriter, r *http.Reques
 // Version godoc
 // @Summary Quality Repositories
 // @Description returns all repository information founded in server configuration
-// @Tags HTTP API
+// @Tags Github Repository API
 // @Produce json
-// @Router /api/quality/repositories [get]
+// @Router /api/quality/repositories/list [get]
 // @Success 200
 func (s *Server) listRepositoriesHandler(w http.ResponseWriter, r *http.Request) {
 	// set a value with a cost of 1
@@ -118,10 +104,10 @@ func (s *Server) listRepositoriesHandler(w http.ResponseWriter, r *http.Request)
 
 // Version godoc
 // @Summary Quality Repositories
-// @Description returns all repository information founded in server configuration
-// @Tags HTTP API
+// @Description return github workflows from a given repository
+// @Tags Github Repository API
 // @Produce json
-// @Router /api/quality/repositories [get]
+// @Router /api/quality/workflows/get [get]
 // @Success 200
 func (s *Server) listWorkflowsHandler(w http.ResponseWriter, r *http.Request) {
 	repositoryName := r.URL.Query()["repository_name"]
@@ -133,6 +119,13 @@ func (s *Server) listWorkflowsHandler(w http.ResponseWriter, r *http.Request) {
 	s.JSONResponse(w, r, workflows)
 }
 
+// Version godoc
+// @Summary Quality Repositories
+// @Description delete a given repository from a organization
+// @Tags Github Repository API
+// @Produce json
+// @Router /api/quality/repositories/delete [delete]
+// @Success 200
 func (s *Server) deleteRepositoryHandler(w http.ResponseWriter, r *http.Request) {
 	var repository RepositoryDeleteRequest
 	json.NewDecoder(r.Body).Decode(&repository)

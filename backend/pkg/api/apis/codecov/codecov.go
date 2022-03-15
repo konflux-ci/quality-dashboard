@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 )
@@ -64,7 +63,7 @@ func (c *API) GetCodeCovInfo(organization string, repo string) (repository GitHu
 	}
 	err = json.NewDecoder(response.Body).Decode(&gh)
 	if err != nil {
-		fmt.Println(err.Error())
+		return gh, err
 	}
 
 	return gh, nil

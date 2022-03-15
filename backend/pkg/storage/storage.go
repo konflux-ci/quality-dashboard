@@ -22,7 +22,6 @@ type Storage interface {
 	Close() error
 
 	// GET
-	//GetUser(email string) (User, error)
 	ListRepositories() ([]Repository, error)
 	ListWorkflowsByRepository(repositoryName string) (w []GithubWorkflows, err error)
 	ListRepositoriesQualityInfo() ([]RepositoryQualityInfo, error)
