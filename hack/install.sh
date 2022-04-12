@@ -25,27 +25,28 @@ do
     shift  # Shift each argument out after processing them
 done
 
+if [[ "${STORAGE_PASSWORD}" == "" ]]; then
+  echo "[ERROR] Storage password flag is missing. Use '--storage-password <value>' or '-p <value>' to create a storage password for the quality dashboard"
+  exit 1
+fi
+
+if [[ "${STORAGE_USER}" == "" ]]; then
+  echo "[ERROR] Storage database flag is missing. Use '--storage-user <value>' or '-u <value>' to create a storage database for the quality dashboard"
+  exit 1
+fi
+
+if [[ "${GITHUB_TOKEN}" == "" ]]; then
+  echo "[ERROR] Github Token flag is missing. Use '--github-token <value>' or '-g <value>' to allow quality dashboard to make request to github"
+  exit 1
+fi
+
 echo "[INFO] Starting Quality dashboard..."
 echo "   Storage Password   : "${STORAGE_PASSWORD}""
 echo "   Storage Database   : "${STORAGE_USER}""
 echo "   Github Token       : "${GITHUB_TOKEN}""
 echo ""
 
-if [[ "${STORAGE_PASSWORD}" == "" ]]; then
-  echo "[ERROR] Storage password flag is missing. Use '--storage-password=<value>' to create a storage password for the quality dashboard"
-  exit 1
-fi
-
-if [[ "${STORAGE_USER}" == "" ]]; then
-  echo "[ERROR] Storage database flag is missing. Use '--storage-user <value>' to create a storage database for the quality dashboard"
-  exit 1
-fi
-
-if [[ "${GITHUB_TOKEN}" == "" ]]; then
-  echo "[ERROR] Github Token flag is missing. Use '--github-token <value>' to allow quality dashboard to make request to github"
-  exit 1
-fi
-
+# Replace variables in /backend/deploy/openshift/secret.yaml
 cat "${WORKSPACE}/backend/deploy/openshift/secret.yaml" |
     sed -e "s#REPLACE_STORAGE_PASSWORD#${STORAGE_PASSWORD}#g" |
     sed -e "s#REPLACE_STORAGE_USER#${STORAGE_USER}#g" |
@@ -76,3 +77,6 @@ cat "${WORKSPACE}/frontend/deploy/openshift/deployment.yaml" |
 oc apply -f ${FRONTEND_DEPLOYMENT_TMP}
 oc apply -f "${WORKSPACE}/frontend/deploy/openshift/service.yaml"
 oc apply -f "${WORKSPACE}/frontend/deploy/openshift/route.yaml"
+
+echo ""
+echo "Frontend is accessible from: http://"$(oc get route/quality-frontend-route -n appstudio-qe -o go-template='{{.spec.host}}{{"\n"}}')""

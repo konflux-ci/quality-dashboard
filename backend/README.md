@@ -23,5 +23,5 @@ Environments used by the server:
 
 | Environment Name | Value | Default | Required |
 | -- | -- | -- | -- |
-| `GITHUB_TOKEN` | Github token to make requests | `` | true |
-| `CODECOV_TOKEN` | CodeCov token to make requests | `` | false |
+| `GITHUB_TOKEN` | Github token to make requests | `` | yes |
+| `CODECOV_TOKEN` | CodeCov token to make requests | `` | no |
