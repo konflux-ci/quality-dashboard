@@ -1,9 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { Repositories } from "@app/Repositories/Repositories";
 import axios, { AxiosResponse, AxiosError } from "axios";
+import _ from 'lodash';
 
 type ApiResponse = {
     code: number;
     data: any;
+};
+
+type RepositoriesApiResponse = {
+    code: number;
+    data: any;
+    all: any;
 };
 
 const API_URL = (process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898')
@@ -22,14 +30,22 @@ async function getVersion(){
     return result;
 }
 
-async function getRepositories(){
-    const result: ApiResponse = { code: 0, data: {} };
+async function getRepositories(perPage = 5){
+    const REPOS_IN_PAGE = perPage 
+    const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
     const subPath ='/api/quality/repositories/list';
     const uri = API_URL + subPath;
     await axios.get(uri, {
       }).then((res: AxiosResponse) => {
         result.code = res.status;
-        result.data = res.data;
+        result.all = res.data;
+        if(res.data.length >= REPOS_IN_PAGE){
+            result.data = _.chunk(res.data, REPOS_IN_PAGE);
+        }
+        else{
+            result.data = _.chunk(res.data, res.data.length)
+        }
+        console.log(res.data)
     }).catch((err) => {
         result.code = err.response.status;
         result.data = err.response.data;
@@ -66,6 +82,7 @@ async function deleteRepositoryAPI(data = {}){
         headers: {},
         data: data
       }).then((res: AxiosResponse) => {
+        console.log(res)
         result.code = res.status;
         result.data = res.data;
     }).catch((err) => {

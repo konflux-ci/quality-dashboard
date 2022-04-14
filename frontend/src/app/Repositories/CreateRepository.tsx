@@ -1,7 +1,8 @@
 import { createRepository } from "@app/utils/APIService";
 import { Button, ButtonVariant, Checkbox, Form, FormGroup, Modal, ModalVariant, Popover, TextArea, TextInput } from "@patternfly/react-core";
 import { HelpIcon } from "@patternfly/react-icons";
-import React from "react";
+import { Context } from '@app/store/store';
+import React, { useContext } from "react";
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const FormModal = ()=> {
@@ -28,7 +29,8 @@ export const FormModal = ()=> {
       setChecked(value);
     };
 
-    const onSubmit = () => {
+    const  onSubmit = async() => {
+      try{
       const data = {
         git_organization: gitOrganizationValue,
         repository_name : gitRepositoryValue,
@@ -40,8 +42,12 @@ export const FormModal = ()=> {
         artifacts: []
       }
       handleModalToggle()
-      createRepository(data)
+      await createRepository(data)
       window.location.reload();
+    }
+    catch (error) {
+      console.log(error)
+    }
   }
   
     return (
@@ -183,3 +189,4 @@ export const FormModal = ()=> {
       </React.Fragment>
     );
   };
+

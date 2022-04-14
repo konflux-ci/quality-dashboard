@@ -35,7 +35,7 @@ export const JobsComponent: React.FunctionComponent = () => {
   const { state, dispatch } = useContext(Context) 
   const [workflows, setWorkflows] = useState([])
 
-  const repositories: Repository[] = state.repositories
+  const repositories: Repository[] = state.Allrepositories
 
   const [, setFilteredItems] = useState(repositories);
   const [repos, setRepositories] = useState([])
@@ -45,6 +45,7 @@ export const JobsComponent: React.FunctionComponent = () => {
       if(res.code === 200) {
           const result = res.data;
           dispatch({ type: "SET_REPOSITORIES", data: result });
+          dispatch({type: "SET_REPOSITORIES_ALL", data: res.all});
       } else {
           dispatch({ type: "SET_ERROR", data: res });
       }

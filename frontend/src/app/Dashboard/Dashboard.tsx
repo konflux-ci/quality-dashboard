@@ -11,11 +11,10 @@ import {
   Title,
   DescriptionList, DescriptionListGroup, DescriptionListTerm, DescriptionListDescription
 } from '@patternfly/react-core';
-import { DashboardContent } from './DashboardContent';
+import { TableComponent } from '@app/Repositories/TableComponent';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 import { getVersion } from '@app/utils/APIService';
 import { Context } from "src/app/store/store";
-
 
 export const Dashboard = () => {
   const [dashboardVersion, setVersion] = useState('unknown')
@@ -89,7 +88,11 @@ export const Dashboard = () => {
             </Card>
           </Gallery>
           </PageSection>
-        <DashboardContent/>
+        <PageSection style={{
+        minHeight : "12%"
+      }}>
+        <TableComponent showCoverage showDiscription={false}></TableComponent>
+      </PageSection>
     </React.Fragment>
   );
 }

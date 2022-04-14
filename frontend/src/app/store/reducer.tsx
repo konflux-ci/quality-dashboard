@@ -6,6 +6,7 @@ export interface StateContext {
     version: string;
     repositories: []
     workflows: []
+    Allrepositories: []
 }
 
 const Reducer = (state, action) => {
@@ -24,6 +25,11 @@ const Reducer = (state, action) => {
             return {
                 ...state,
                 repositories: action.data
+            };
+        case 'SET_REPOSITORIES_ALL':
+            return {
+                ...state,
+                Allrepositories: action.data
             };
         case 'SET_WORKFLOWS':
             return {
