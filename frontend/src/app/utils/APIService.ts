@@ -45,7 +45,6 @@ async function getRepositories(perPage = 5){
         else{
             result.data = _.chunk(res.data, res.data.length)
         }
-        console.log(res.data)
     }).catch((err) => {
         result.code = err.response.status;
         result.data = err.response.data;

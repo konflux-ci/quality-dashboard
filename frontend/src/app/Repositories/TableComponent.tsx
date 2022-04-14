@@ -66,7 +66,6 @@ async function deleteRepository(gitOrg:string, repoName:string) {
     git_organization: gitOrg,
     repository_name : repoName,
   }
-  console.log(data)
   try {
     await deleteRepositoryAPI(data)
     window.location.reload();
@@ -81,8 +80,6 @@ export const TableComponent = ({showCoverage, showDiscription}: TableComponentPr
   const [repos, setRepositories] = useState<any>([])
   const [page, onPageset]= useState(1)
   const [allreps, setallreps] = useState<any>(state.Allrepositories);
-  
-  console.log(typeof(columnNames))
   
   function onPageselect(e, page){
     onPageset(page)
