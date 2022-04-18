@@ -11,7 +11,8 @@ const initialState = {
     error: 'error',
     alerts: [],
     version: '',
-    repositories: []
+    repositories: [],
+    Allrepositories: [],
 };
 
 export const Context = React.createContext({} as IContextProps);

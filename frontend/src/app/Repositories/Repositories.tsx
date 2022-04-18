@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {  PageSectionVariants, TextContent, Text, PageSection} from '@patternfly/react-core';
 import { FormModal } from './CreateRepository';
 import { TableComponent } from './TableComponent';
@@ -14,10 +14,10 @@ export const Repositories: React.FunctionComponent = () => {
           <Text component="h2">Red Hat App Studio Quality Dashboard</Text>
           <Text component="p">Repositories list</Text>
         </TextContent>
-        <FormModal/>
+        <FormModal />
       </PageSection>
       <PageSection>
-        <TableComponent/>
+        <TableComponent showCoverage={false} showDiscription/>
       </PageSection>
     </React.Fragment>
   );
