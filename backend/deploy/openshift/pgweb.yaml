@@ -1,0 +1,36 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: quality-backend-pg-web
+  namespace: appstudio-qe
+  labels:
+    app: quality-backend-pg-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quality-backend-pg-web
+  template:
+    metadata:
+      labels:
+        app: quality-backend-pg-web
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      containers:
+        - resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          name: quality-backend-pg-web
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          imagePullPolicy: Always
+          image: >-
+            quay.io/msawood/pg-web:latest
+

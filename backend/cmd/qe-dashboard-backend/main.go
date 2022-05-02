@@ -26,6 +26,8 @@ const (
 	PostgresEntDatabaseEnv = "POSTGRES_ENT_DATABASE"
 	PostgresEntUserEnv     = "POSTGRES_ENT_USER"
 	PostgresEntPasswordEnv = "POSTGRES_ENT_PASSWORD"
+	SSL = "MODE_SSL"
+	MAX_CONN = "MAX_CONNECTIONS"
 )
 
 type keyCacher struct {
@@ -164,9 +166,10 @@ func GetPostgresConnectionDetails() ent.Postgres {
 			Password: utils.GetEnv(PostgresEntPasswordEnv, "postgres"),
 			Host:     utils.GetEnv(PostgresEntHostEnv, "localhost"),
 			Port:     utils.GetPortEnv(PostgresEntPortEnv, 5432),
+			MaxOpenConns: utils.GetIntEnv(MAX_CONN, 5),
 		},
 		SSL: ent.SSL{
-			Mode: "disable", // Postgres container doesn't support SSL.
+			Mode: utils.GetEnv(SSL, "disable"), // Control This value by environment because RDS supports SSL
 		},
 	}
 }
