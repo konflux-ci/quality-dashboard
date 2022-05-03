@@ -26,8 +26,8 @@ const (
 	PostgresEntDatabaseEnv = "POSTGRES_ENT_DATABASE"
 	PostgresEntUserEnv     = "POSTGRES_ENT_USER"
 	PostgresEntPasswordEnv = "POSTGRES_ENT_PASSWORD"
-	SSL = "MODE_SSL"
-	MAX_CONN = "MAX_CONNECTIONS"
+	SSL                    = "MODE_SSL"
+	MAX_CONN               = "MAX_CONNECTIONS"
 )
 
 type keyCacher struct {
@@ -161,11 +161,11 @@ func initZap(logLevel string) (*zap.Logger, error) {
 func GetPostgresConnectionDetails() ent.Postgres {
 	return ent.Postgres{
 		NetworkDB: ent.NetworkDB{
-			Database: utils.GetEnv(PostgresEntDatabaseEnv, "postgres"),
-			User:     utils.GetEnv(PostgresEntUserEnv, "postgres"),
-			Password: utils.GetEnv(PostgresEntPasswordEnv, "postgres"),
-			Host:     utils.GetEnv(PostgresEntHostEnv, "localhost"),
-			Port:     utils.GetPortEnv(PostgresEntPortEnv, 5432),
+			Database:     utils.GetEnv(PostgresEntDatabaseEnv, "postgres"),
+			User:         utils.GetEnv(PostgresEntUserEnv, "postgres"),
+			Password:     utils.GetEnv(PostgresEntPasswordEnv, "postgres"),
+			Host:         utils.GetEnv(PostgresEntHostEnv, "localhost"),
+			Port:         utils.GetPortEnv(PostgresEntPortEnv, 5432),
 			MaxOpenConns: utils.GetIntEnv(MAX_CONN, 5),
 		},
 		SSL: ent.SSL{
