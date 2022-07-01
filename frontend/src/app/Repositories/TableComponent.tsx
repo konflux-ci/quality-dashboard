@@ -9,28 +9,25 @@ import {
   Td,
   ActionsColumn,
   IAction,
-  Caption
+  Caption,
+  ThProps
 } from '@patternfly/react-table';
-import { Alert, Pagination, PaginationVariant } from '@patternfly/react-core';
+import { 
+  Alert, Pagination, PaginationVariant, 
+  Button, ButtonVariant,
+  Toolbar, ToolbarItem, ToolbarContent,
+} from '@patternfly/react-core';
 import { Context } from '@app/store/store';
 import { deleteRepositoryAPI, getRepositories } from '@app/utils/APIService';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 import _ from 'lodash';
-import { element } from 'prop-types';
+import { useModalContext } from './CreateRepository';
+import { Repository } from './Repositories';
 
-type TableComponentProps = {
-  showCoverage: boolean
-  showDiscription: boolean
-}
-interface Coverage {
-  coverage_percentage: number
-}
-interface Repository {
-  git_organization: string;
-  repository_name: string;
-  git_url: string;
-  description: string;
-  code_coverage: Coverage;
+export interface TableComponentProps {
+  showCoverage?: boolean
+  showDiscription?: boolean
+  showTableToolbar?: boolean
 }
 
 const columnNames = {
@@ -43,7 +40,6 @@ const columnNames = {
 
 const rederCoverageEffects = (repo: Repository) => {
   const coveredFixed = repo.code_coverage.coverage_percentage
-  
   if (coveredFixed >= 0 && coveredFixed <= 33.33 ) {
     return <Alert title={coveredFixed.toFixed(2)+"%"} variant="danger" isInline isPlain />
   } else if (coveredFixed >= 33.33 && coveredFixed <= 66.66) {
@@ -52,41 +48,92 @@ const rederCoverageEffects = (repo: Repository) => {
   return <Alert title={coveredFixed.toFixed(2)+"%"} variant="success" isInline isPlain />
 }
 
-
-const defaultActions = (repo: Repository): IAction[] => [
-  {
-    title: 'Delete Repository',
-    onClick: () => deleteRepository(repo.git_organization, repo.repository_name)
-  },
-];
-
-async function deleteRepository(gitOrg:string, repoName:string) {
-
-  const data = {
-    git_organization: gitOrg,
-    repository_name : repoName,
-  }
-  try {
-    await deleteRepositoryAPI(data)
-    window.location.reload();
-  } catch (error) {
-    console.log(error)
-  }
-}
-
-export const TableComponent = ({showCoverage, showDiscription}: TableComponentProps) => {
+export const TableComponent = ({showCoverage, showDiscription, showTableToolbar}: TableComponentProps) => {
   const { state, dispatch } = useContext(Context) 
   const [perpage, onperpageset] = useState(10)
   const [repos, setRepositories] = useState<any>([])
   const [page, onPageset]= useState(1)
   const [allreps, setallreps] = useState<any>(state.Allrepositories);
+  const modalContext = useModalContext()
+
+  async function deleteRepository(gitOrg:string, repoName:string) {
+    const data = {
+      git_organization: gitOrg,
+      repository_name : repoName,
+    }
+    try {
+      await deleteRepositoryAPI(data)
+      window.location.reload();
+    } catch (error) {
+      console.log(error)
+    }
+  }
   
+  async function editRepository(repo: Repository) {
+    try {
+      modalContext.handleModalToggle(true, repo)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const defaultActions = (repo: Repository): IAction[] => [
+    {
+      title: 'Delete Repository',
+      onClick: () => deleteRepository(repo.git_organization, repo.repository_name)
+    },
+    {
+      title: 'Edit Repository',
+      onClick: () => editRepository(repo)
+    },
+  ];
+
   function onPageselect(e, page){
     onPageset(page)
   }
+
   function onperpageselect(e, Perpage){
     onperpageset(Perpage)
   }
+
+  // Sort helpers
+  const [activeSortIndex, setActiveSortIndex] = React.useState<number | null>(null);
+  const [activeSortDirection, setActiveSortDirection] = React.useState<'asc' | 'desc' | null>(null);
+  const getSortableRowValues = (repo: Repository): (string | number)[] => {
+    const { git_organization, repository_name, code_coverage } = repo;
+    return [git_organization, repository_name, code_coverage.coverage_percentage];
+  };
+  let sortedRepositories = repos;
+  if (activeSortIndex !== null) {
+    sortedRepositories = repos.sort((a, b) => {
+      const aValue = getSortableRowValues(a)[activeSortIndex];
+      const bValue = getSortableRowValues(b)[activeSortIndex];
+      if (typeof aValue === 'number') {
+        // Numeric sort
+        if (activeSortDirection === 'asc') {
+          return (aValue as number) - (bValue as number);
+        }
+        return (bValue as number) - (aValue as number);
+      } else {
+        // String sort
+        if (activeSortDirection === 'asc') {
+          return (aValue as string).localeCompare(bValue as string);
+        }
+        return (bValue as string).localeCompare(aValue as string);
+      }
+    });
+  }
+  const getSortParams = (columnIndex: number): ThProps['sort'] => ({
+    sortBy: {
+      index: activeSortIndex as number,
+      direction: activeSortDirection as any
+    },
+    onSort: (_event, index, direction) => {
+      setActiveSortIndex(index);
+      setActiveSortDirection(direction);
+    },
+    columnIndex
+  });
 
   useEffect(()=> {
     getRepositories(perpage).then((res)=> {
@@ -111,12 +158,23 @@ export const TableComponent = ({showCoverage, showDiscription}: TableComponentPr
 
   return (
     <React.Fragment>
+      {showTableToolbar && 
+        <Toolbar style={{marginBottom: "5px"}}>
+          <ToolbarContent>
+            <ToolbarItem>
+              <Button variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
+                Add Git Repository
+              </Button>
+            </ToolbarItem>
+          </ToolbarContent>
+        </Toolbar>
+      }
       <TableComposable aria-label="Actions table">
       <Caption>Repositories Summary</Caption>
         <Thead>
           <Tr>
-          <Th>{columnNames.organization}</Th>
-           <Th>{columnNames.repository}</Th>
+          <Th sort={getSortParams(0)}>{columnNames.organization}</Th>
+           <Th sort={getSortParams(1)}>{columnNames.repository}</Th>
            {showDiscription && 
            <Th>{columnNames.description}</Th>
            }
@@ -124,7 +182,7 @@ export const TableComponent = ({showCoverage, showDiscription}: TableComponentPr
             <Th>{columnNames.coverageType}</Th>
            }
            {showCoverage &&
-            <Th>{columnNames.coverage}</Th>
+            <Th sort={getSortParams(2)}>{columnNames.coverage}</Th>
            }  
           </Tr>
         </Thead>

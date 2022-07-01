@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/flacatus/qe-dashboard-backend/pkg/storage"
+	"github.com/gorilla/mux"
 )
 
 type RepositoryDeleteRequest struct {
@@ -100,6 +101,33 @@ func (s *Server) listRepositoriesHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	s.JSONResponse(w, r, repos)
+}
+
+// Version godoc
+// @Summary Quality Repositories
+// @Description return github repository given org and repo name
+// @Tags Github Repository API
+// @Produce json
+// @Router /api/quality/repositories/get/{gitOrg}/{repo_name} [get]
+// @Success 200
+func (s *Server) getRepositoryHandler(w http.ResponseWriter, r *http.Request) {
+	urlParameters := mux.Vars(r)
+	gitOrg := urlParameters["git_org"]
+	if len(gitOrg) <= 0 {
+		s.ErrorResponse(w, r, "GitOrg missing", 500)
+		return
+	}
+	repoName := urlParameters["repo_name"]
+	if len(repoName) <= 0 {
+		s.ErrorResponse(w, r, "Repository name missing", 500)
+		return
+	}
+	repository, err := s.config.Storage.GetRepository(repoName, gitOrg)
+	if err != nil {
+		s.ErrorResponse(w, r, "Failed to get repositories "+gitOrg+repoName, 500)
+		return
+	}
+	s.JSONResponse(w, r, repository)
 }
 
 // Version godoc
