@@ -12,10 +12,8 @@ export const RepositoriesTable = ({showCoverage, showDiscription, showTableToolb
     return (
         <ModalContext.Provider value={defaultModalContext}>
             <React.Fragment>
-                <PageSection>
-                    <TableComponent showCoverage={showCoverage} showDiscription={showDiscription} showTableToolbar={showTableToolbar}/>
-                    <FormModal></FormModal>
-                </PageSection>
+                <TableComponent showCoverage={showCoverage} showDiscription={showDiscription} showTableToolbar={showTableToolbar}/>
+                <FormModal></FormModal>
             </React.Fragment>
         </ModalContext.Provider>
     );
