@@ -25,7 +25,7 @@ import {
 } from '@patternfly/react-core';
 import { Context } from '@app/store/store';
 import { deleteRepositoryAPI, getRepositories } from '@app/utils/APIService';
-import { ExternalLinkAltIcon, FilterIcon } from '@patternfly/react-icons';
+import { ExternalLinkAltIcon, FilterIcon, PlusIcon } from '@patternfly/react-icons';
 import _ from 'lodash';
 import { useModalContext } from './CreateRepository';
 import { Repository } from './Repositories';
@@ -38,8 +38,8 @@ export interface TableComponentProps {
 }
 
 const columnNames = {
-  organization: 'GitHub Organization',
-  repository: 'Repository',
+  git_organization: 'GitHub Organization',
+  repository_name: 'Repository',
   description: 'Description',
   coverageType: 'Coverage Type',
   coverage: 'Code Covered',
@@ -291,6 +291,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
   }
 
   const toggleGroupItems = (
+
       <ToolbarGroup variant="filter-group">
       { enableFiltersOnTheseColumns!= undefined && enableFiltersOnTheseColumns.map((filter, f_idx) => { 
         if (true) {
@@ -313,7 +314,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
             selections={filters[filter].Filters}
             isCheckboxSelectionBadgeHidden
             isOpen={filters[filter].State}
-            placeholderText={filter}
+            placeholderText={"Filter by "+columnNames[filter]}
             aria-labelledby={"checkbox-select-id-"+filter}
           >
             {
@@ -372,13 +373,17 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
           collapseListedFiltersBreakpoint="xl"
           clearAllFilters={onClearAll}
         >
-        <ToolbarContent>
-          <ToolbarItem>
+        <ToolbarContent style={{paddingTop: "15px"}}>
+          <ToolbarItem alignment={{default: 'alignLeft'}}>
             <Button variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
-              Add Git Repository
+            <PlusIcon /> &nbsp; Add a repository
             </Button>
           </ToolbarItem>
-          {toolbarItems}
+          <ToolbarItem variant="separator"></ToolbarItem>
+          <ToolbarItem>
+            {toolbarItems}
+          </ToolbarItem>
+          
         </ToolbarContent>
       </Toolbar>
       }
@@ -386,8 +391,8 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
       <Caption>Repositories Summary</Caption>
         <Thead>
           <Tr>
-          <Th sort={getSortParams(0)}>{columnNames.organization}</Th>
-           <Th sort={getSortParams(1)}>{columnNames.repository}</Th>
+          <Th sort={getSortParams(0)}>{columnNames.git_organization}</Th>
+           <Th sort={getSortParams(1)}>{columnNames.repository_name}</Th>
            {showDiscription && 
            <Th>{columnNames.description}</Th>
            }
