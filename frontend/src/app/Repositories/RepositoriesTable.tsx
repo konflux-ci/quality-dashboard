@@ -12,7 +12,7 @@ export const RepositoriesTable = ({showCoverage, showDiscription, showTableToolb
     return (
         <ModalContext.Provider value={defaultModalContext}>
             <React.Fragment>
-                <TableComponent showCoverage={showCoverage} showDiscription={showDiscription} showTableToolbar={showTableToolbar}/>
+                <TableComponent showCoverage={showCoverage} showDiscription={showDiscription} showTableToolbar={showTableToolbar} enableFiltersOnTheseColumns={['repository_name', 'git_organization']}/>
                 <FormModal></FormModal>
             </React.Fragment>
         </ModalContext.Provider>

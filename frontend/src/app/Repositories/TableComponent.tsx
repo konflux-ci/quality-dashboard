@@ -10,16 +10,22 @@ import {
   ActionsColumn,
   IAction,
   Caption,
-  ThProps
+  ThProps,
 } from '@patternfly/react-table';
 import { 
   Alert, Pagination, PaginationVariant, 
   Button, ButtonVariant,
   Toolbar, ToolbarItem, ToolbarContent,
+  ToolbarFilter,
+  ToolbarToggleGroup,
+  ToolbarGroup,
+  Select,
+  SelectOption,
+  SelectVariant
 } from '@patternfly/react-core';
 import { Context } from '@app/store/store';
 import { deleteRepositoryAPI, getRepositories } from '@app/utils/APIService';
-import { ExternalLinkAltIcon } from '@patternfly/react-icons';
+import { ExternalLinkAltIcon, FilterIcon } from '@patternfly/react-icons';
 import _ from 'lodash';
 import { useModalContext } from './CreateRepository';
 import { Repository } from './Repositories';
@@ -28,6 +34,7 @@ export interface TableComponentProps {
   showCoverage?: boolean
   showDiscription?: boolean
   showTableToolbar?: boolean
+  enableFiltersOnTheseColumns?: Array<string>
 }
 
 const columnNames = {
@@ -48,7 +55,12 @@ const rederCoverageEffects = (repo: Repository) => {
   return <Alert title={coveredFixed.toFixed(2)+"%"} variant="success" isInline isPlain />
 }
 
-export const TableComponent = ({showCoverage, showDiscription, showTableToolbar}: TableComponentProps) => {
+type IFilterItem = {
+  State: Boolean;
+  Filters: Array<string>;
+}
+
+export const TableComponent = ({showCoverage, showDiscription, showTableToolbar, enableFiltersOnTheseColumns}: TableComponentProps) => {
   const { state, dispatch } = useContext(Context) 
   const [perpage, onperpageset] = useState(10)
   const [repos, setRepositories] = useState<any>([])
@@ -103,7 +115,9 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar}
     const { git_organization, repository_name, code_coverage } = repo;
     return [git_organization, repository_name, code_coverage.coverage_percentage];
   };
+
   let sortedRepositories = repos;
+
   if (activeSortIndex !== null) {
     sortedRepositories = repos.sort((a, b) => {
       const aValue = getSortableRowValues(a)[activeSortIndex];
@@ -123,6 +137,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar}
       }
     });
   }
+
   const getSortParams = (columnIndex: number): ThProps['sort'] => ({
     sortBy: {
       index: activeSortIndex as number,
@@ -134,6 +149,199 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar}
     },
     columnIndex
   });
+  // End of sort helpers
+
+  // Filters helpers
+
+  const InitFilters = () : Record<string, IFilterItem> | undefined => {
+    let newObj : Record<string, IFilterItem> = {}
+    if(enableFiltersOnTheseColumns != undefined){
+      for (let column of enableFiltersOnTheseColumns) {
+        newObj[column] = {State: false, Filters: []}
+      }
+    }
+    return newObj
+  };
+
+  const Filters = InitFilters()
+
+  const [filters, filtersDispatch] = React.useReducer(
+    // filters logic
+    (state, action) => {
+      switch (action.type) {
+        case "TOGGLE":
+          state[action.payload.type].State = action.payload.isOpen
+          return {
+            ...state
+          };
+  
+        case "SELECTION":
+          if (state[action.payload.type].Filters.indexOf(action.payload.selection) === -1) {
+            state[action.payload.type].Filters = [
+              ...state[action.payload.type].Filters,
+              action.payload.selection
+            ];
+          }
+          return { ...state };
+  
+        case "DELETE":
+          state[action.payload.type].Filters = state[action.payload.type].Filters.filter(function (value) {
+            return value !== action.payload.selection;
+          });
+          return { ...state };
+  
+        case "DELETE_ALL":
+          state[action.payload.type].Filters = [];
+          return { ...state };
+  
+        case "CLEAR_ALL":
+          Object.keys(state).forEach(key => {
+            state[key].Filters = []
+            state[key].State = false
+          });
+          return { ...state };
+
+        default:
+          return state;
+      }
+    },
+    Filters
+  )
+  
+  const onDelete = (category: string, chip: string) => {
+    console.log(state, category, chip)
+    filtersDispatch({
+      type: "DELETE",
+      payload: {
+        selection: chip,
+        type: category.toLocaleLowerCase()
+      }
+    });
+  };
+  
+  const onClearAll = () => {
+    filtersDispatch({
+      type: "CLEAR_ALL",
+      payload: {}
+    });
+  };
+  
+  const onDeleteGroup = (type: string) => {
+    filtersDispatch({
+      type: "DELETE_ALL",
+      payload: {
+        type: type.toLocaleLowerCase()
+      }
+    });
+  };
+  
+  const onToggle = (isOpen: Boolean, type: string) => {
+    filtersDispatch({
+      type: "TOGGLE",
+      payload: {
+        isOpen: isOpen,
+        type: type.toLocaleLowerCase()
+      }
+    });
+  };
+  
+  const onSelect = (event, selection, type) => {
+    if (!event.target.checked) {
+      filtersDispatch({
+        type: "DELETE",
+        payload: {
+          selection: selection,
+          type: type.toLocaleLowerCase()
+        }
+      });
+    } else {
+      filtersDispatch({
+        type: "SELECTION",
+        payload: {
+          selection: selection,
+          type: type.toLocaleLowerCase()
+        }
+      });
+    }
+  };
+
+  const filterData = () => {
+    const filteredRepos = repos.filter(function(record) {
+      let isFiltered = true;
+      Object.keys(filters).forEach(category => {
+        if(filters[category].Filters.length != 0){
+          isFiltered = filters[category].Filters.includes(record[category]) && isFiltered
+        }
+      });
+
+      return isFiltered
+    });
+
+    return filteredRepos
+  }
+
+  const filteringIsActive = () => {
+    let filterActive = false
+    Object.keys(filters).forEach(category => { filterActive = filterActive || filters[category].Filters.length !== 0})
+    return filterActive
+  }
+  
+  if (filteringIsActive()) {
+    sortedRepositories = filterData()
+  }
+
+  const toggleGroupItems = (
+      <ToolbarGroup variant="filter-group">
+      { enableFiltersOnTheseColumns!= undefined && enableFiltersOnTheseColumns.map((filter, f_idx) => { 
+        if (true) {
+        return <ToolbarFilter
+          key={"filter"+filter+f_idx}
+          chips={filters[filter].Filters}
+          deleteChip={(category, chip) =>
+            onDelete(category as string, chip as string)
+          }
+          deleteChipGroup={(category) => onDeleteGroup(category as string)}
+          categoryName={filter}
+        >
+          <Select
+            variant={SelectVariant.checkbox}
+            aria-label="Select Input"
+            onToggle={(isOpen) => onToggle(isOpen, filter)}
+            onSelect={(event, selection) =>
+              onSelect(event, selection, filter)
+            }
+            selections={filters[filter].Filters}
+            isCheckboxSelectionBadgeHidden
+            isOpen={filters[filter].State}
+            placeholderText={filter}
+            aria-labelledby={"checkbox-select-id-"+filter}
+          >
+            {
+              repos
+              .map((value, index) => {
+                return value[filter]
+              })
+              .filter((x, i, a) => a.indexOf(x) == i )
+              .sort((one, two) => (one < two ? -1 : 1))
+              .map((v, i) => {
+                return <SelectOption key={v} value={v} />
+              })
+            }
+          </Select>
+        </ToolbarFilter>
+        }
+      })}
+      </ToolbarGroup>
+  );
+  
+  const toolbarItems = (
+    <React.Fragment>
+      <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
+        {toggleGroupItems}
+      </ToolbarToggleGroup>
+    </React.Fragment>
+  );
+  // End of filters helpers 
 
   useEffect(()=> {
     getRepositories(perpage).then((res)=> {
@@ -159,15 +367,20 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar}
   return (
     <React.Fragment>
       {showTableToolbar && 
-        <Toolbar style={{marginBottom: "5px"}}>
-          <ToolbarContent>
-            <ToolbarItem>
-              <Button variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
-                Add Git Repository
-              </Button>
-            </ToolbarItem>
-          </ToolbarContent>
-        </Toolbar>
+        <Toolbar id="toolbar-with-filter"
+          className="pf-m-toggle-group-container"
+          collapseListedFiltersBreakpoint="xl"
+          clearAllFilters={onClearAll}
+        >
+        <ToolbarContent>
+          <ToolbarItem>
+            <Button variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
+              Add Git Repository
+            </Button>
+          </ToolbarItem>
+          {toolbarItems}
+        </ToolbarContent>
+      </Toolbar>
       }
       <TableComposable aria-label="Actions table">
       <Caption>Repositories Summary</Caption>
@@ -187,7 +400,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar}
           </Tr>
         </Thead>
         <Tbody>
-          {repos.map(repo => {
+          {sortedRepositories.map(repo => {
             const rowActions: IAction[] | null = defaultActions(repo);
             return (
               <Tr key={repo.repository_name}>
@@ -221,7 +434,6 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar}
         variant={PaginationVariant.bottom}
         onSetPage={onPageselect}
         onPerPageSelect={onperpageselect}
-        
       />
     </React.Fragment>
   );
