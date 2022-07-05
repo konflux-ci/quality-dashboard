@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import React, { useContext, useEffect, useState } from 'react';
+import * as ts from "typescript";
 import {
   TableComposable,
   Thead,
@@ -42,8 +43,9 @@ const columnNames = {
   repository_name: 'Repository',
   description: 'Description',
   coverageType: 'Coverage Type',
-  coverage: 'Code Covered',
+  coverage_percentage: 'Code Covered',
 };
+
 
 const rederCoverageEffects = (repo: Repository) => {
   const coveredFixed = repo.code_coverage.coverage_percentage
@@ -57,7 +59,7 @@ const rederCoverageEffects = (repo: Repository) => {
 
 type IFilterItem = {
   State: Boolean;
-  Filters: Array<string>;
+  Filters: Array<string | Number>;
 }
 
 export const TableComponent = ({showCoverage, showDiscription, showTableToolbar, enableFiltersOnTheseColumns}: TableComponentProps) => {
@@ -209,7 +211,6 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
   )
   
   const onDelete = (category: string, chip: string) => {
-    console.log(state, category, chip)
     filtersDispatch({
       type: "DELETE",
       payload: {
@@ -246,6 +247,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
   };
   
   const onSelect = (event, selection, type) => {
+    console.log(typeof selection)
     if (!event.target.checked) {
       filtersDispatch({
         type: "DELETE",
@@ -270,7 +272,8 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
       let isFiltered = true;
       Object.keys(filters).forEach(category => {
         if(filters[category].Filters.length != 0){
-          isFiltered = filters[category].Filters.includes(record[category]) && isFiltered
+          let val = category.toString().split('.').reduce((o,i)=> o[i], record)
+          isFiltered = filters[category].Filters.includes(val.toString()) && isFiltered
         }
       });
 
@@ -294,9 +297,9 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
 
       <ToolbarGroup variant="filter-group">
       { enableFiltersOnTheseColumns!= undefined && enableFiltersOnTheseColumns.map((filter, f_idx) => { 
-        if (true) {
+        let f = filter.split('.').pop() || filter;
         return <ToolbarFilter
-          key={"filter"+filter+f_idx}
+          key={"filter"+f+f_idx}
           chips={filters[filter].Filters}
           deleteChip={(category, chip) =>
             onDelete(category as string, chip as string)
@@ -314,13 +317,13 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
             selections={filters[filter].Filters}
             isCheckboxSelectionBadgeHidden
             isOpen={filters[filter].State}
-            placeholderText={"Filter by "+columnNames[filter]}
+            placeholderText={"Filter by "+(columnNames[f]|| filter)}
             aria-labelledby={"checkbox-select-id-"+filter}
           >
             {
               repos
               .map((value, index) => {
-                return value[filter]
+                 return filter.split('.').reduce((o,i)=> o[i], value).toString()
               })
               .filter((x, i, a) => a.indexOf(x) == i )
               .sort((one, two) => (one < two ? -1 : 1))
@@ -330,7 +333,6 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
             }
           </Select>
         </ToolbarFilter>
-        }
       })}
       </ToolbarGroup>
   );
@@ -400,7 +402,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
             <Th>{columnNames.coverageType}</Th>
            }
            {showCoverage &&
-            <Th sort={getSortParams(2)}>{columnNames.coverage}</Th>
+            <Th sort={getSortParams(2)}>{columnNames.coverage_percentage}</Th>
            }  
           </Tr>
         </Thead>

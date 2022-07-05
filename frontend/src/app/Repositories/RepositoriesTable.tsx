@@ -5,14 +5,14 @@ import { FormModal, ModalContext, useDefaultModalContextState } from './CreateRe
 
 interface RepositoriesTableProps extends TableComponentProps {}
 
-export const RepositoriesTable = ({showCoverage, showDiscription, showTableToolbar} : RepositoriesTableProps) => {
+export const RepositoriesTable = ({showCoverage, showDiscription, showTableToolbar, enableFiltersOnTheseColumns} : RepositoriesTableProps) => {
 
     const defaultModalContext = useDefaultModalContextState()
 
     return (
         <ModalContext.Provider value={defaultModalContext}>
             <React.Fragment>
-                <TableComponent showCoverage={showCoverage} showDiscription={showDiscription} showTableToolbar={showTableToolbar} enableFiltersOnTheseColumns={['repository_name', 'git_organization']}/>
+                <TableComponent showCoverage={showCoverage} showDiscription={showDiscription} showTableToolbar={showTableToolbar} enableFiltersOnTheseColumns={enableFiltersOnTheseColumns}/>
                 <FormModal></FormModal>
             </React.Fragment>
         </ModalContext.Provider>
