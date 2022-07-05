@@ -37,6 +37,22 @@ func (d *Database) ListRepositories() ([]storage.Repository, error) {
 	return storageRepositories, nil
 }
 
+// GetRepository returns a git repo given its url
+func (d *Database) GetRepository(repositoryName string, gitOrganizationName string) (*storage.RepositoryQualityInfo, error) {
+	repository, err := d.client.Repository.Query().
+		Where(repository.RepositoryName(repositoryName)).Where(repository.GitOrganization(gitOrganizationName)).Only(context.TODO())
+
+	w, _ := d.client.Repository.QueryWorkflows(repository).All(context.TODO())
+	c, _ := d.client.Repository.QueryCodecov(repository).Only(context.TODO())
+	storageRepository := toStorageRepositoryAllInfo(repository, w, c)
+
+	if err != nil {
+		return nil, convertDBError("get repository: %w", err)
+	}
+
+	return &storageRepository, nil
+}
+
 // ListRepositoriesQualityInfo extracts an array of repositories from the database.
 func (d *Database) ListRepositoriesQualityInfo() ([]storage.RepositoryQualityInfo, error) {
 	repositories, err := d.client.Repository.Query().All(context.TODO())

@@ -98,55 +98,58 @@ export const JobsComponent: React.FunctionComponent = () => {
   }
 
   return (
-    <div style = {{backgroundColor: "white"}}>
-      <div style = {{ margin : "10px"}}>
-        <ContextSelector
-          toggleText={selected}
-          onSearchInputChange={onSearchInputChange}
-          isOpen={isOpen}
-          searchInputValue={searchValue}
-          onToggle={onToggle}
-          onSelect={onSelect}
-          onSearchButtonClick={onSearchButtonClick}
-          screenReaderLabel="Selected Project:"
-          isPlain
-          isText
-        >
-          {repositories.map((item, index) => {
-            const [text] = (typeof item === 'string')
-              ? [item]
-              : [item];
-            return <ContextSelectorItem key={index}>{text.repository_name}</ContextSelectorItem>;
-          })}
-        </ContextSelector>
+    <PageSection>
+      <div style = {{backgroundColor: "white", paddingTop: "5px"}}>
+        <div style = {{ padding : "10px"}}>
+          <ContextSelector
+            toggleText={selected}
+            onSearchInputChange={onSearchInputChange}
+            isOpen={isOpen}
+            searchInputValue={searchValue}
+            onToggle={onToggle}
+            onSelect={onSelect}
+            onSearchButtonClick={onSearchButtonClick}
+            screenReaderLabel="Selected Project:"
+            isPlain
+            isText
+          >
+            {repositories.map((item, index) => {
+              const [text] = (typeof item === 'string')
+                ? [item]
+                : [item];
+              return <ContextSelectorItem key={index}>{text.repository_name}</ContextSelectorItem>;
+            })}
+          </ContextSelector>
         </div>
         <hr />
-        <TableComposable aria-label="Actions table" style={{margin: "10px"}}>
-        <Caption>All Github Actions available in the repository {selected}</Caption>
-          <Thead>
-            <Tr>
-              <Th>{columnNames.name}</Th>
-              <Th>{columnNames.state}</Th>
-              <Th>{columnNames.badge}</Th>
-              <Th>{columnNames.html_url}</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {workflows.map(workf => {
-              //const rowActions: IAction[] | null = defaultActions(repo);
-              const workflow: Workflows = workf
-              return (
-                <Tr key={workflow.workflow_name || ""}>
-                  <Td dataLabel={columnNames.name}>{workflow.workflow_name || ""}</Td>
-                  <Td dataLabel={columnNames.state}>{workflow.state || ""}</Td>
-                  <Td dataLabel={columnNames.badge}><img src={workflow.badge_url}></img></Td>
-                  <Td dataLabel={columnNames.html_url}><a href={workflow.html_url}><ExternalLinkAltIcon>Link</ExternalLinkAltIcon>Go to job</a></Td>
-                </Tr>
+        <TableComposable aria-label="Actions table" style={{padding: "10px"}}>
+          <Caption>All Github Actions available in the repository {selected}</Caption>
+            <Thead>
+              <Tr>
+                <Th>{columnNames.name}</Th>
+                <Th>{columnNames.state}</Th>
+                <Th>{columnNames.badge}</Th>
+                <Th>{columnNames.html_url}</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {workflows.map(workf => {
+                //const rowActions: IAction[] | null = defaultActions(repo);
+                const workflow: Workflows = workf
+                return (
+                  <Tr key={workflow.workflow_name || ""}>
+                    <Td dataLabel={columnNames.name}>{workflow.workflow_name || ""}</Td>
+                    <Td dataLabel={columnNames.state}>{workflow.state || ""}</Td>
+                    <Td dataLabel={columnNames.badge}><img src={workflow.badge_url}></img></Td>
+                    <Td dataLabel={columnNames.html_url}><a href={workflow.html_url}><ExternalLinkAltIcon>Link</ExternalLinkAltIcon>Go to job</a></Td>
+                  </Tr>
 
-              );
-            })}
-          </Tbody>
+                );
+              })}
+            </Tbody>
         </TableComposable>
-        </div>
+      </div>
+    </PageSection>
+
   );
 };
