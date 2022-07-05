@@ -27,7 +27,7 @@ export const Repositories: React.FunctionComponent = () => {
         </TextContent>
       </PageSection>
       <PageSection>
-        <RepositoriesTable showTableToolbar={true} showCoverage={true} showDiscription={true} enableFiltersOnTheseColumns={['repository_name', 'git_organization', 'code_coverage.coverage_percentage']}></RepositoriesTable>
+        <RepositoriesTable showTableToolbar={true} showCoverage={false} showDiscription={true} enableFiltersOnTheseColumns={['repository_name', 'git_organization']}></RepositoriesTable>
       </PageSection>
     </React.Fragment>
   );
