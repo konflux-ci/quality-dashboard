@@ -29,3 +29,31 @@ When running the install script, you need to specify these parameters:
 | `github-token` | Github token to read repositories | yes | --github-token ghp_xxxxx |
 | `storage-user` | Database user name | yes | --storage-user admin |
 | `storage-password` | Database user password | yes | --storage-password adminPassword |
+
+## Install quality dashboard locally
+
+Steps to install quality dashboard locally for development purposes
+
+1. Start a postgres instance
+
+```bash
+    <container-engine> run -p 5432:5432 --name some-postgres -e POSTGRES_PASSWORD=postgres -d postgres # docker-engine is docker or podman
+```
+
+2.Open a new terminal and follow backend [instructions](./backend/README.md) to install binaries
+
+3.Start the backend
+
+```bash
+    cd backend
+    make build
+    ./bin/qe-dashboard-backend
+```
+
+4.Open a new terminal and install the frontend
+
+```bash
+    cd frontend
+    yarn # to install the dependencies
+    yarn start:dev
+```
