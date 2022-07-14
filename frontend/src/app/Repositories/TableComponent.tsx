@@ -414,21 +414,14 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
           })}
         </Tbody>
       </TableComposable>
-      <Pagination
-        itemCount={allreps.length}
-        perPage={perpage}
-        page={page}
-        variant={PaginationVariant.bottom}
-        onSetPage={onPageselect}
-        onPerPageSelect={onperpageselect}
-      />
       {showTableToolbar &&
         <Toolbar id="toolbar-with-filter"
           className="pf-m-toggle-group-container"
           collapseListedFiltersBreakpoint="xl"
           clearAllFilters={onClearAll}
         >
-        <ToolbarContent style={{paddingTop: "15px"}}>
+
+        <ToolbarContent style={{marginleft: "5%"}}>
           <ToolbarItem alignment={{default: 'alignLeft'}}>
             <Button variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
             <PlusIcon /> &nbsp; Add a repository
@@ -438,10 +431,20 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
           <ToolbarItem>
             {toolbarItems}
           </ToolbarItem>
-
+          <ToolbarItem alignment={{default: 'alignRight'}}>
+          <Pagination
+            itemCount={allreps.length}
+            perPage={perpage}
+            page={page}
+            variant={PaginationVariant.bottom}
+            onSetPage={onPageselect}
+            onPerPageSelect={onperpageselect}
+          />
+          </ToolbarItem>
         </ToolbarContent>
       </Toolbar>
       }
+
     </React.Fragment>
   );
 };
