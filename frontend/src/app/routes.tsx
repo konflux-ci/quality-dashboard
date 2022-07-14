@@ -42,13 +42,6 @@ const routes: AppRouteConfig[] = [
         path: '/home/overview',
         title: 'Quality Dashboard | Overview',
       },
-      {
-        component: Repositories,
-        exact: true,
-        label: 'Repositories',
-        path: '/home/repositories',
-        title: 'Quality Dashboard | Repositories',
-      },
     ],
   },
 

@@ -369,26 +369,6 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
 
   return (
     <React.Fragment>
-      {showTableToolbar &&
-        <Toolbar id="toolbar-with-filter"
-          className="pf-m-toggle-group-container"
-          collapseListedFiltersBreakpoint="xl"
-          clearAllFilters={onClearAll}
-        >
-        <ToolbarContent style={{paddingTop: "15px"}}>
-          <ToolbarItem alignment={{default: 'alignLeft'}}>
-            <Button variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
-            <PlusIcon /> &nbsp; Add a repository
-            </Button>
-          </ToolbarItem>
-          <ToolbarItem variant="separator"></ToolbarItem>
-          <ToolbarItem>
-            {toolbarItems}
-          </ToolbarItem>
-
-        </ToolbarContent>
-      </Toolbar>
-      }
       <TableComposable aria-label="Actions table">
       <Caption>Repositories Summary</Caption>
         <Thead>
@@ -442,6 +422,26 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
         onSetPage={onPageselect}
         onPerPageSelect={onperpageselect}
       />
+      {showTableToolbar &&
+        <Toolbar id="toolbar-with-filter"
+          className="pf-m-toggle-group-container"
+          collapseListedFiltersBreakpoint="xl"
+          clearAllFilters={onClearAll}
+        >
+        <ToolbarContent style={{paddingTop: "15px"}}>
+          <ToolbarItem alignment={{default: 'alignLeft'}}>
+            <Button variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
+            <PlusIcon /> &nbsp; Add a repository
+            </Button>
+          </ToolbarItem>
+          <ToolbarItem variant="separator"></ToolbarItem>
+          <ToolbarItem>
+            {toolbarItems}
+          </ToolbarItem>
+
+        </ToolbarContent>
+      </Toolbar>
+      }
     </React.Fragment>
   );
 };
