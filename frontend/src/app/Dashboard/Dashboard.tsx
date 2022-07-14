@@ -19,12 +19,12 @@ import { RepositoriesTable } from '@app/Repositories/RepositoriesTable';
 
 export const Dashboard = () => {
   const [dashboardVersion, setVersion] = useState('unknown')
-  const {state, dispatch} = useContext(Context) // required to access the global state 
+  const {state, dispatch} = useContext(Context) // required to access the global state
   useEffect(()=> {
     getVersion().then((res) => { // making the api call here
       if(res.code === 200){
           const result = res.data;
-          dispatch({ type: "SET_Version", data: result['version'] }); 
+          dispatch({ type: "SET_Version", data: result['version'] });
           // not really required to store it in the global state , just added it to make it better understandable
           setVersion(result['version'])
       } else {
@@ -92,7 +92,7 @@ export const Dashboard = () => {
         <PageSection style={{
         minHeight : "12%"
       }}>
-        <RepositoriesTable showTableToolbar={false} showCoverage={true} showDiscription={false}></RepositoriesTable>
+        <RepositoriesTable showTableToolbar={true} showCoverage={false} showDiscription={true} enableFiltersOnTheseColumns={['repository_name', 'git_organization']}></RepositoriesTable>
       </PageSection>
     </React.Fragment>
   );
