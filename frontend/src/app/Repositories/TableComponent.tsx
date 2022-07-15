@@ -13,8 +13,8 @@ import {
   Caption,
   ThProps,
 } from '@patternfly/react-table';
-import { 
-  Alert, Pagination, PaginationVariant, 
+import {
+  Alert, Pagination, PaginationVariant,
   Button, ButtonVariant,
   Toolbar, ToolbarItem, ToolbarContent,
   ToolbarFilter,
@@ -63,7 +63,7 @@ type IFilterItem = {
 }
 
 export const TableComponent = ({showCoverage, showDiscription, showTableToolbar, enableFiltersOnTheseColumns}: TableComponentProps) => {
-  const { state, dispatch } = useContext(Context) 
+  const { state, dispatch } = useContext(Context)
   const [perpage, onperpageset] = useState(10)
   const [repos, setRepositories] = useState<any>([])
   const [page, onPageset]= useState(1)
@@ -82,7 +82,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
       console.log(error)
     }
   }
-  
+
   async function editRepository(repo: Repository) {
     try {
       modalContext.handleModalToggle(true, repo)
@@ -176,7 +176,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
           return {
             ...state
           };
-  
+
         case "SELECTION":
           if (state[action.payload.type].Filters.indexOf(action.payload.selection) === -1) {
             state[action.payload.type].Filters = [
@@ -185,17 +185,17 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
             ];
           }
           return { ...state };
-  
+
         case "DELETE":
           state[action.payload.type].Filters = state[action.payload.type].Filters.filter(function (value) {
             return value !== action.payload.selection;
           });
           return { ...state };
-  
+
         case "DELETE_ALL":
           state[action.payload.type].Filters = [];
           return { ...state };
-  
+
         case "CLEAR_ALL":
           Object.keys(state).forEach(key => {
             state[key].Filters = []
@@ -209,7 +209,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
     },
     Filters
   )
-  
+
   const onDelete = (category: string, chip: string) => {
     filtersDispatch({
       type: "DELETE",
@@ -219,14 +219,14 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
       }
     });
   };
-  
+
   const onClearAll = () => {
     filtersDispatch({
       type: "CLEAR_ALL",
       payload: {}
     });
   };
-  
+
   const onDeleteGroup = (type: string) => {
     filtersDispatch({
       type: "DELETE_ALL",
@@ -235,7 +235,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
       }
     });
   };
-  
+
   const onToggle = (isOpen: Boolean, type: string) => {
     filtersDispatch({
       type: "TOGGLE",
@@ -245,7 +245,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
       }
     });
   };
-  
+
   const onSelect = (event, selection, type) => {
     console.log(typeof selection)
     if (!event.target.checked) {
@@ -288,7 +288,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
     Object.keys(filters).forEach(category => { filterActive = filterActive || filters[category].Filters.length !== 0})
     return filterActive
   }
-  
+
   if (filteringIsActive()) {
     sortedRepositories = filterData()
   }
@@ -296,7 +296,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
   const toggleGroupItems = (
 
       <ToolbarGroup variant="filter-group">
-      { enableFiltersOnTheseColumns!= undefined && enableFiltersOnTheseColumns.map((filter, f_idx) => { 
+      { enableFiltersOnTheseColumns!= undefined && enableFiltersOnTheseColumns.map((filter, f_idx) => {
         let f = filter.split('.').pop() || filter;
         return <ToolbarFilter
           key={"filter"+f+f_idx}
@@ -336,7 +336,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
       })}
       </ToolbarGroup>
   );
-  
+
   const toolbarItems = (
     <React.Fragment>
       <ToolbarToggleGroup toggleIcon={<FilterIcon />} breakpoint="xl">
@@ -344,7 +344,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
       </ToolbarToggleGroup>
     </React.Fragment>
   );
-  // End of filters helpers 
+  // End of filters helpers
 
   useEffect(()=> {
     getRepositories(perpage).then((res)=> {
@@ -369,33 +369,13 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
 
   return (
     <React.Fragment>
-      {showTableToolbar && 
-        <Toolbar id="toolbar-with-filter"
-          className="pf-m-toggle-group-container"
-          collapseListedFiltersBreakpoint="xl"
-          clearAllFilters={onClearAll}
-        >
-        <ToolbarContent style={{paddingTop: "15px"}}>
-          <ToolbarItem alignment={{default: 'alignLeft'}}>
-            <Button variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
-            <PlusIcon /> &nbsp; Add a repository
-            </Button>
-          </ToolbarItem>
-          <ToolbarItem variant="separator"></ToolbarItem>
-          <ToolbarItem>
-            {toolbarItems}
-          </ToolbarItem>
-          
-        </ToolbarContent>
-      </Toolbar>
-      }
       <TableComposable aria-label="Actions table">
       <Caption>Repositories Summary</Caption>
         <Thead>
           <Tr>
           <Th sort={getSortParams(0)}>{columnNames.git_organization}</Th>
            <Th sort={getSortParams(1)}>{columnNames.repository_name}</Th>
-           {showDiscription && 
+           {showDiscription &&
            <Th>{columnNames.description}</Th>
            }
            {showCoverage &&
@@ -403,7 +383,10 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
            }
            {showCoverage &&
             <Th sort={getSortParams(2)}>{columnNames.coverage_percentage}</Th>
-           }  
+           }
+           {!showCoverage &&
+             <Th></Th>
+           }
           </Tr>
         </Thead>
         <Tbody>
@@ -413,13 +396,13 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
               <Tr key={repo.repository_name}>
                 <Td>{repo.git_organization}</Td>
                 <Td><a href= {repo.git_url}>{repo.repository_name}</a><a href={repo.git_url}><ExternalLinkAltIcon style={{marginLeft: "1%"}}></ExternalLinkAltIcon></a></Td>
-                {showDiscription && 
-                <Td>{repo.description}</Td>
+                {showDiscription &&
+                  <Caption>{repo.description}</Caption>
                 }
-                {showCoverage && 
+                {showCoverage &&
                   <Td><a href={`https://app.codecov.io/gh/${repo.git_organization}/${repo.repository_name}`}>CodeCov<ExternalLinkAltIcon style={{marginLeft: "0.5%"}}></ExternalLinkAltIcon></a></Td>
                 }
-                {showCoverage && 
+                {showCoverage &&
                   <Td>{rederCoverageEffects(repo)}</Td>
                 }
                 <Td>
@@ -434,14 +417,37 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
           })}
         </Tbody>
       </TableComposable>
-      <Pagination
-        itemCount={allreps.length}
-        perPage={perpage}
-        page={page}
-        variant={PaginationVariant.bottom}
-        onSetPage={onPageselect}
-        onPerPageSelect={onperpageselect}
-      />
+      {showTableToolbar &&
+        <Toolbar id="toolbar-with-filter"
+          className="pf-m-toggle-group-container"
+          collapseListedFiltersBreakpoint="xl"
+          clearAllFilters={onClearAll}
+        >
+
+        <ToolbarContent style={{marginleft: "5%"}}>
+          <ToolbarItem alignment={{default: 'alignLeft'}}>
+            <Button variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
+            <PlusIcon /> &nbsp; Add a repository
+            </Button>
+          </ToolbarItem>
+          <ToolbarItem variant="separator"></ToolbarItem>
+          <ToolbarItem>
+            {toolbarItems}
+          </ToolbarItem>
+          <ToolbarItem alignment={{default: 'alignRight'}}>
+          <Pagination
+            itemCount={allreps.length}
+            perPage={perpage}
+            page={page}
+            variant={PaginationVariant.bottom}
+            onSetPage={onPageselect}
+            onPerPageSelect={onperpageselect}
+          />
+          </ToolbarItem>
+        </ToolbarContent>
+      </Toolbar>
+      }
+
     </React.Fragment>
   );
 };
