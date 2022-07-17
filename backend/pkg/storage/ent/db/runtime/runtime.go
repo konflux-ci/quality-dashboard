@@ -2,7 +2,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/runtime.go
+// The schema-stitching logic is generated in github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/runtime.go
 
 const (
 	Version = "(devel)" // Version of ent codegen.

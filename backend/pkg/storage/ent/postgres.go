@@ -12,9 +12,9 @@ import (
 	"time"
 
 	entSQL "entgo.io/ent/dialect/sql"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/client"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/client"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 )
 
 // nolint

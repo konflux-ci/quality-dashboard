@@ -3,8 +3,8 @@ package storage
 import (
 	"errors"
 
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db"
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 )
 
 var (
@@ -12,7 +12,7 @@ var (
 	ErrNotFound = errors.New("not found")
 
 	// ErrAlreadyExists is the error returned by storages if a resource ID is taken during a create.
-	ErrAlreadyExists = errors.New("ID already exists")
+	ErrAlreadyExists = errors.New("Already exists")
 )
 
 // Storage is the storage interface used by the server. Implementations are

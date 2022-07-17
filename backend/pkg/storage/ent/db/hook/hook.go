@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 )
 
 // The CodeCovFunc type is an adapter to allow the use of ordinary

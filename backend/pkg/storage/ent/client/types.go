@@ -1,8 +1,8 @@
 package client
 
 import (
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 )
 
 func toStorageRepository(p *db.Repository) storage.Repository {

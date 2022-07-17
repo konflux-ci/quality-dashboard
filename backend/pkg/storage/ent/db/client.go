@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/migrate"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/migrate"
 	"github.com/google/uuid"
 
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/codecov"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/repository"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/workflows"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"

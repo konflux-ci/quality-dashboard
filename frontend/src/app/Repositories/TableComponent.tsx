@@ -58,8 +58,8 @@ const rederCoverageEffects = (repo: Repository) => {
 }
 
 type IFilterItem = {
-  State: Boolean;
-  Filters: Array<string | Number>;
+  State: boolean;
+  Filters: Array<string | number>;
 }
 
 export const TableComponent = ({showCoverage, showDiscription, showTableToolbar, enableFiltersOnTheseColumns}: TableComponentProps) => {
@@ -156,9 +156,9 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
   // Filters helpers
 
   const InitFilters = () : Record<string, IFilterItem> | undefined => {
-    let newObj : Record<string, IFilterItem> = {}
+    const newObj : Record<string, IFilterItem> = {}
     if(enableFiltersOnTheseColumns != undefined){
-      for (let column of enableFiltersOnTheseColumns) {
+      for (const column of enableFiltersOnTheseColumns) {
         newObj[column] = {State: false, Filters: []}
       }
     }
@@ -236,7 +236,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
     });
   };
 
-  const onToggle = (isOpen: Boolean, type: string) => {
+  const onToggle = (isOpen: boolean, type: string) => {
     filtersDispatch({
       type: "TOGGLE",
       payload: {
@@ -272,7 +272,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
       let isFiltered = true;
       Object.keys(filters).forEach(category => {
         if(filters[category].Filters.length != 0){
-          let val = category.toString().split('.').reduce((o,i)=> o[i], record)
+          const val = category.toString().split('.').reduce((o,i)=> o[i], record)
           isFiltered = filters[category].Filters.includes(val.toString()) && isFiltered
         }
       });
@@ -297,7 +297,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
 
       <ToolbarGroup variant="filter-group">
       { enableFiltersOnTheseColumns!= undefined && enableFiltersOnTheseColumns.map((filter, f_idx) => {
-        let f = filter.split('.').pop() || filter;
+        const f = filter.split('.').pop() || filter;
         return <ToolbarFilter
           key={"filter"+f+f_idx}
           chips={filters[filter].Filters}
@@ -351,7 +351,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
       if(res.code === 200) {
         const result = res.data;
         setallreps(res.all)
-        let repositories: any = result
+        const repositories: any = result
         const repos = repositories[page-1]
         const ress : any = []
         _.each(repos, function(ele, index, array){

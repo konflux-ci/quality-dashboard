@@ -24,9 +24,9 @@ export const Dashboard = () => {
     getVersion().then((res) => { // making the api call here
       if(res.code === 200){
           const result = res.data;
-          dispatch({ type: "SET_Version", data: result['version'] });
+          dispatch({ type: "SET_Version", data: result['serverAPIVersion'] });
           // not really required to store it in the global state , just added it to make it better understandable
-          setVersion(result['version'])
+          setVersion(result['serverAPIVersion'])
       } else {
           dispatch({ type: "SET_ERROR", data: res });
       }
@@ -92,7 +92,7 @@ export const Dashboard = () => {
         <PageSection style={{
         minHeight : "12%"
       }}>
-        <RepositoriesTable showTableToolbar={true} showCoverage={false} showDiscription={true} enableFiltersOnTheseColumns={['repository_name', 'git_organization']}></RepositoriesTable>
+        <RepositoriesTable showTableToolbar={true} showCoverage={true} showDiscription={true} enableFiltersOnTheseColumns={['repository_name', 'git_organization']}></RepositoriesTable>
       </PageSection>
     </React.Fragment>
   );

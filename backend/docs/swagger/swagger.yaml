@@ -1,0 +1,338 @@
+basePath: /api/quality/
+definitions:
+  db.CodeCov:
+    properties:
+      coverage_percentage:
+        description: CoveragePercentage holds the value of the "coverage_percentage"
+          field.
+        type: number
+      edges:
+        $ref: '#/definitions/db.CodeCovEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the CodeCovQuery when eager-loading is set.
+      git_organization:
+        description: GitOrganization holds the value of the "git_organization" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      repository_name:
+        description: RepositoryName holds the value of the "repository_name" field.
+        type: string
+    type: object
+  db.CodeCovEdges:
+    properties:
+      codecov:
+        $ref: '#/definitions/db.Repository'
+        description: Codecov holds the value of the codecov edge.
+    type: object
+  db.Repository:
+    properties:
+      description:
+        description: Description holds the value of the "description" field.
+        type: string
+      edges:
+        $ref: '#/definitions/db.RepositoryEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the RepositoryQuery when eager-loading is set.
+      git_organization:
+        description: GitOrganization holds the value of the "git_organization" field.
+        type: string
+      git_url:
+        description: GitURL holds the value of the "git_url" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      repository_name:
+        description: RepositoryName holds the value of the "repository_name" field.
+        type: string
+    type: object
+  db.RepositoryEdges:
+    properties:
+      codecov:
+        description: Codecov holds the value of the codecov edge.
+        items:
+          $ref: '#/definitions/db.CodeCov'
+        type: array
+      workflows:
+        description: Workflows holds the value of the workflows edge.
+        items:
+          $ref: '#/definitions/db.Workflows'
+        type: array
+    type: object
+  db.Workflows:
+    properties:
+      badge_url:
+        description: BadgeURL holds the value of the "badge_url" field.
+        type: string
+      edges:
+        $ref: '#/definitions/db.WorkflowsEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the WorkflowsQuery when eager-loading is set.
+      html_url:
+        description: HTMLURL holds the value of the "html_url" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: integer
+      job_url:
+        description: JobURL holds the value of the "job_url" field.
+        type: string
+      state:
+        description: State holds the value of the "state" field.
+        type: string
+      workflow_id:
+        description: WorkflowID holds the value of the "workflow_id" field.
+        type: string
+      workflow_name:
+        description: WorkflowName holds the value of the "workflow_name" field.
+        type: string
+    type: object
+  db.WorkflowsEdges:
+    properties:
+      workflows:
+        $ref: '#/definitions/db.Repository'
+        description: Workflows holds the value of the workflows edge.
+    type: object
+  repositories.ErrorResponse:
+    properties:
+      message:
+        description: |-
+          The error message.
+          Required: true
+        type: string
+      statusCode:
+        description: |-
+          The error message.
+          Required: false
+        type: integer
+    type: object
+  repositories.GitRepositoryRequest:
+    properties:
+      artifacts:
+        items:
+          type: string
+        type: array
+      git_organization:
+        type: string
+      jobs:
+        $ref: '#/definitions/repositories.JobSpec'
+      repository_name:
+        type: string
+    type: object
+  repositories.GithubActionsSpec:
+    properties:
+      monitor:
+        type: boolean
+    type: object
+  repositories.JobSpec:
+    properties:
+      github_actions:
+        $ref: '#/definitions/repositories.GithubActionsSpec'
+      openshift_ci:
+        $ref: '#/definitions/repositories.OpenshiftCISpec'
+    type: object
+  repositories.OpenshiftCISpec:
+    properties:
+      monitor:
+        type: boolean
+    type: object
+  repositories.SuccessResponse:
+    properties:
+      message:
+        description: |-
+          The error message.
+          Required: true
+        type: string
+    type: object
+  storage.Coverage:
+    properties:
+      coverage_percentage:
+        type: number
+      git_organization:
+        type: string
+      repository_name:
+        description: RepositoryName identify an github repository
+        type: string
+    type: object
+  storage.GithubWorkflows:
+    properties:
+      badge_url:
+        type: string
+      html_url:
+        type: string
+      job_url:
+        type: string
+      state:
+        type: string
+      workflow_name:
+        description: RepositoryName identify an github repository
+        type: string
+    type: object
+  storage.RepositoryQualityInfo:
+    properties:
+      code_coverage:
+        $ref: '#/definitions/storage.Coverage'
+      description:
+        type: string
+      git_organization:
+        type: string
+      git_url:
+        type: string
+      github_actions:
+        description: Coverage
+        items:
+          $ref: '#/definitions/storage.GithubWorkflows'
+        type: array
+      repository_name:
+        description: RepositoryName identify an github repository
+        type: string
+    type: object
+  version.Version:
+    properties:
+      apiMaturity:
+        type: string
+      buildDate:
+        type: string
+      gitCommit:
+        type: string
+      goArch:
+        type: string
+      goOs:
+        type: string
+      goVersion:
+        type: string
+      serverAPIVersion:
+        type: string
+    type: object
+host: 127.0.0.1:9898
+info:
+  contact:
+    name: Source Code
+    url: https://github.com/redhat-appstudio/quality-studio
+  description: Go microservice API for Quality Studio Server.
+  license:
+    name: MIT License
+    url: https://github.com/redhat-appstudio/quality-studio/blob/main/LICENSE
+  title: Quality Studio API
+  version: v1alpha
+paths:
+  /repositories/create:
+    post:
+      consumes:
+      - application/json
+      description: returns the Server information as a JSON
+      parameters:
+      - description: repository name
+        in: body
+        name: repository
+        required: true
+        schema:
+          $ref: '#/definitions/repositories.GitRepositoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.Repository'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repositories.ErrorResponse'
+      summary: Github repositories info
+      tags:
+      - Github Repositories API
+  /repositories/delete:
+    delete:
+      description: delete a given repository from a organization
+      parameters:
+      - description: repository name
+        in: body
+        name: repository
+        required: true
+        schema:
+          $ref: '#/definitions/repositories.GitRepositoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/repositories.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repositories.ErrorResponse'
+      summary: Github repositories info
+      tags:
+      - Github Repositories API
+  /repositories/list:
+    get:
+      consumes:
+      - application/json
+      description: returns all repository information stored in database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/storage.RepositoryQualityInfo'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repositories.ErrorResponse'
+      summary: Github repositories info
+      tags:
+      - Github Repositories API
+  /server/info:
+    get:
+      consumes:
+      - application/json
+      description: returns the Server information as a JSON
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/version.Version'
+      summary: API Server info
+      tags:
+      - Server API
+  /workflows/get:
+    get:
+      description: return github workflows from a given repository
+      parameters:
+      - description: string example
+        example: string
+        in: query
+        name: repository_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/storage.GithubWorkflows'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/repositories.ErrorResponse'
+      summary: Quality Repositories Workflow
+      tags:
+      - Github Workflows API
+schemes:
+- http
+- https
+swagger: "2.0"

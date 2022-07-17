@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Repositories } from "@app/Repositories/Repositories";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import _ from 'lodash';
 
@@ -18,7 +17,7 @@ const API_URL = (process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898'
 
 async function getVersion(){
     const result: ApiResponse = { code: 0, data: {} };
-    const subPath ='/api/version';
+    const subPath ='/api/quality/server/info';
     const uri = API_URL + subPath;
     await axios.get(uri).then((res: AxiosResponse) => {
         result.code = res.status;
