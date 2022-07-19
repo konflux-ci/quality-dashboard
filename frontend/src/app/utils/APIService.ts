@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Repositories } from "@app/Repositories/Repositories";
+//import { Repositories } from "@app/Repositories/Repositories";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import _ from 'lodash';
 
@@ -109,4 +109,8 @@ async function createRepository(data = {}) {
     return result;
 }
 
+<<<<<<< Updated upstream
 export { getVersion, getRepositories, createRepository, deleteRepositoryAPI, getWorkflowByRepositoryName }
+=======
+export { getVersion, getRepositories, createRepository, deleteRepositoryAPI, getWorkflowByRepositoryName, getJiras }
+>>>>>>> Stashed changes

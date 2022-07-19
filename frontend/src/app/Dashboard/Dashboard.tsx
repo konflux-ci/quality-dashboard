@@ -33,6 +33,20 @@ export const Dashboard = () => {
     });
   }, [dashboardVersion, setVersion, dispatch])
 
+<<<<<<< Updated upstream
+=======
+  useEffect(() => {
+    getJiras().then((res) =>{
+      if(res.code === 200){
+        const result = res.data;
+        dispatch({ type: "SET_JIRAS", data: result }); 
+        //setJiras(result)
+      } else {
+        dispatch({ type: "SET_ERROR", data: res });
+      }
+    });
+  }, [dispatch])
+>>>>>>> Stashed changes
   return (
     <React.Fragment>
         <PageSection style={{
