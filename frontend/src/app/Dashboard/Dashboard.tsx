@@ -92,7 +92,7 @@ export const Dashboard = () => {
         <PageSection style={{
         minHeight : "12%"
       }}>
-        <RepositoriesTable showTableToolbar={true} showCoverage={false} showDiscription={true} enableFiltersOnTheseColumns={['repository_name', 'git_organization']}></RepositoriesTable>
+        <RepositoriesTable showTableToolbar={true} showCoverage={true} showDiscription={true} enableFiltersOnTheseColumns={['repository_name', 'git_organization']}></RepositoriesTable>
       </PageSection>
     </React.Fragment>
   );
