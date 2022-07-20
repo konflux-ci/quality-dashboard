@@ -376,7 +376,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
           <Th sort={getSortParams(0)}>{columnNames.git_organization}</Th>
            <Th sort={getSortParams(1)}>{columnNames.repository_name}</Th>
            {showDiscription &&
-           <Th>{columnNames.description}</Th>
+           <Tr><Th>{columnNames.description}</Th></Tr>
            }
            {showCoverage &&
             <Th>{columnNames.coverageType}</Th>
@@ -424,7 +424,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
           clearAllFilters={onClearAll}
         >
 
-        <ToolbarContent style={{marginleft: "5%"}}>
+        <ToolbarContent>
           <ToolbarItem alignment={{default: 'alignLeft'}}>
             <Button variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
             <PlusIcon /> &nbsp; Add a repository

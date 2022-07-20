@@ -12,7 +12,7 @@ import {
   DescriptionList, DescriptionListGroup, DescriptionListTerm, DescriptionListDescription
 } from '@patternfly/react-core';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
-import { getVersion } from '@app/utils/APIService';
+import { getVersion, getJiras } from '@app/utils/APIService';
 import { Context } from "src/app/store/store";
 import { RepositoriesTable } from '@app/Repositories/RepositoriesTable';
 
@@ -32,21 +32,20 @@ export const Dashboard = () => {
       }
     });
   }, [dashboardVersion, setVersion, dispatch])
-
-<<<<<<< Updated upstream
-=======
+  
+  const [E2E_known_issues, setJiras] = useState('unknown')
   useEffect(() => {
     getJiras().then((res) =>{
       if(res.code === 200){
         const result = res.data;
         dispatch({ type: "SET_JIRAS", data: result }); 
-        //setJiras(result)
+        setJiras(result)
       } else {
         dispatch({ type: "SET_ERROR", data: res });
       }
     });
-  }, [dispatch])
->>>>>>> Stashed changes
+  }, [E2E_known_issues, setJiras, dispatch])
+  
   return (
     <React.Fragment>
         <PageSection style={{
@@ -61,7 +60,7 @@ export const Dashboard = () => {
             <Text component="p">This is a demo that show app studio quality status.</Text>
           </TextContent>
         </PageSection>
-          <PageSection >
+          <PageSection>
           <Gallery hasGutter style={{ display:"flex" }}>
             <Card style={{width: "35%"}}>
               <CardTitle>

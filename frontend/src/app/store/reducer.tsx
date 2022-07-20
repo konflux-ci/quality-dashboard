@@ -1,6 +1,7 @@
 
 export interface StateContext {
     APIData: [];
+    E2E_known_issues: [];
     error: string;
     alerts: [];
     version: string;
@@ -16,6 +17,11 @@ const Reducer = (state, action) => {
                 ...state,
                 APIData: action.data
             };
+        case 'SET_JIRAS':
+            return {
+                ...state,
+                E2E_known_issues: action.data
+            }
         case 'SET_Version':
             return {
                 ...state,
