@@ -6,7 +6,6 @@ import (
 	_ "net/http/pprof"
 	"time"
 
-	"github.com/dgraph-io/ristretto"
 	"github.com/flacatus/qe-dashboard-backend/pkg/api/apis/codecov"
 	"github.com/flacatus/qe-dashboard-backend/pkg/api/apis/github"
 	_ "github.com/flacatus/qe-dashboard-backend/pkg/api/docs"
@@ -22,6 +21,8 @@ import (
 
 	// Register postgres driver.
 	_ "github.com/lib/pq"
+
+	jiraFactory "github.com/flacatus/qe-dashboard-backend/pkg/api/apis/jira"
 )
 
 // @title Quality Backend API
@@ -51,27 +52,24 @@ type Server struct {
 	router     *mux.Router
 	logger     *zap.Logger
 	config     *Config
-	cache      *ristretto.Cache
 	githubAPI  *github.API
+	JiraApi    jiraFactory.Jira
 	codecovAPI *codecov.API
 	handler    http.Handler
 }
 
 func NewServer(config *Config, logger *zap.Logger) (*Server, error) {
-	cache, _ := ristretto.NewCache(&ristretto.Config{
-		NumCounters: 1e7,     // number of keys to track frequency of (10M).
-		MaxCost:     1 << 30, // maximum cost of cache (1GB).
-		BufferItems: 64,      // number of keys per Get buffer.
-	})
 	gh := github.NewGitubClient()
 	codecov := codecov.NewCodeCoverageClient()
+	factory := jiraFactory.NewJiraConfig()
+
 	srv := &Server{
 		router:     mux.NewRouter(),
 		logger:     logger,
 		config:     config,
-		cache:      cache,
 		githubAPI:  gh,
 		codecovAPI: codecov,
+		JiraApi:    factory,
 	}
 
 	return srv, nil
@@ -79,6 +77,7 @@ func NewServer(config *Config, logger *zap.Logger) (*Server, error) {
 
 func (s *Server) registerHandlers() {
 	s.router.HandleFunc("/api/version", s.versionHandler).Methods("GET")
+	s.router.HandleFunc("/api/jira/e2e-known/get", s.getE2eKnownIssues).Methods("GET")
 	s.router.HandleFunc("/api/quality/workflows/get", s.listWorkflowsHandler).Methods("GET")
 	s.router.HandleFunc("/api/quality/repositories/list", s.listRepositoriesHandler).Methods("GET")
 	s.router.HandleFunc("/api/quality/repositories/get/{git_org}/{repo_name}", s.getRepositoryHandler).Methods("GET")
@@ -125,6 +124,7 @@ func (s *Server) ListenAndServe(stopCh <-chan struct{}) {
 
 	str := staticRotationStrategy()
 	s.startUpdateStorage(context.TODO(), str, time.Now)
+
 	// create the http server
 	srv := s.startServer()
 
@@ -151,7 +151,6 @@ func (s *Server) ListenAndServe(stopCh <-chan struct{}) {
 func (s *Server) startServer() *http.Server {
 	// determine if the port is specified
 	if s.config.Port == "0" {
-
 		// move on immediately
 		return nil
 	}

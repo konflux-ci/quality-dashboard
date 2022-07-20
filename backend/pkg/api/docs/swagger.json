@@ -20,6 +20,26 @@
     "host": "localhost:9898",
     "basePath": "/",
     "paths": {
+        "/api/jira/e2e-known/get": {
+            "get": {
+                "description": "returns a list of jira issues which contain the label appstudio-e2e-tests-known-issues",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Version API"
+                ],
+                "summary": "Jira",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.MapResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/quality/repositories/create": {
             "post": {
                 "description": "Create a new github repository to monitor",

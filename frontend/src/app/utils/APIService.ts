@@ -32,7 +32,7 @@ async function getVersion(){
 
 async function getJiras(){
     const result: ApiResponse = { code: 0, data: {} };
-    const subPath ='/api/utils/APIService';
+    const subPath ='/api/jira/e2e-known/get';
     const uri = API_URL + subPath;
     await axios.get(uri).then((res: AxiosResponse) => {
         result.code = res.status;

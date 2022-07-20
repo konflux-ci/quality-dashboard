@@ -16,6 +16,19 @@ info:
   title: Quality Backend API
   version: 1.0.0
 paths:
+  /api/jira/e2e-known/get:
+    get:
+      description: returns a list of jira issues which contain the label appstudio-e2e-tests-known-issues
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.MapResponse'
+      summary: Jira
+      tags:
+      - Version API
   /api/quality/repositories/create:
     post:
       description: Create a new github repository to monitor

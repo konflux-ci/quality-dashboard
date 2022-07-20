@@ -376,7 +376,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
           <Th sort={getSortParams(0)}>{columnNames.git_organization}</Th>
            <Th sort={getSortParams(1)}>{columnNames.repository_name}</Th>
            {showDiscription &&
-           <Tr><Th>{columnNames.description}</Th></Tr>
+            <Th>{columnNames.description}</Th>
            }
            {showCoverage &&
             <Th>{columnNames.coverageType}</Th>
@@ -384,9 +384,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
            {showCoverage &&
             <Th sort={getSortParams(2)}>{columnNames.coverage_percentage}</Th>
            }
-           {!showCoverage &&
-             <Th></Th>
-           }
+           
           </Tr>
         </Thead>
         <Tbody>
@@ -397,7 +395,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
                 <Td>{repo.git_organization}</Td>
                 <Td><a href= {repo.git_url}>{repo.repository_name}</a><a href={repo.git_url}><ExternalLinkAltIcon style={{marginLeft: "1%"}}></ExternalLinkAltIcon></a></Td>
                 {showDiscription &&
-                  <Caption>{repo.description}</Caption>
+                  <Td>{repo.description}</Td>
                 }
                 {showCoverage &&
                   <Td><a href={`https://app.codecov.io/gh/${repo.git_organization}/${repo.repository_name}`}>CodeCov<ExternalLinkAltIcon style={{marginLeft: "0.5%"}}></ExternalLinkAltIcon></a></Td>

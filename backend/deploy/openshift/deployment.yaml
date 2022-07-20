@@ -66,6 +66,11 @@ spec:
                 secretKeyRef:
                   name: quality-dashboard-secrets
                   key: github-token
+            - name: JIRA_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: quality-dashboard-secrets
+                  key: jira-token
           args:
             - "--port=8080"
           securityContext:

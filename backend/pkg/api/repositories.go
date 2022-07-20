@@ -25,12 +25,13 @@ func (s *Server) repositoriesCreateHandler(w http.ResponseWriter, r *http.Reques
 	json.NewDecoder(r.Body).Decode(&repository)
 
 	repoInfo, err := s.githubAPI.GetRepositoriesInformation(repository.GitOrganization, repository.GitRepository)
-	if err != nil {
-		s.logger.Sugar().Errorf("Failed to save repository %v", err)
+	if err != nil || repoInfo.HTMLUrl == "" {
+		s.logger.Sugar().Errorf("Failed to save repository %v, %v", repository.GitRepository, err)
 		s.ErrorResponse(w, r, "Failed to obtain repositories. There are no repository cached", 500)
 
 		return
 	}
+
 	repo, err := s.config.Storage.CreateRepository(storage.Repository{
 		RepositoryName:  repoInfo.RepositoryName,
 		GitOrganization: repository.GitOrganization,
