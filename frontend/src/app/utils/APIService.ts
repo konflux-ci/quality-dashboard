@@ -23,6 +23,7 @@ async function getVersion(){
     await axios.get(uri).then((res: AxiosResponse) => {
         result.code = res.status;
         result.data = res.data;
+        console.log(result.data)
     }).catch((err) => {
         result.code = err.response.status;
         result.data = err.response.data;
@@ -37,6 +38,7 @@ async function getJiras(){
     await axios.get(uri).then((res: AxiosResponse) => {
         result.code = res.status;
         result.data = res.data;
+        
     }).catch((err) => {
         result.code = err.response.status;
         result.data = err.response.data;

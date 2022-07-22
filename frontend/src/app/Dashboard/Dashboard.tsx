@@ -55,16 +55,22 @@ export const Dashboard = () => {
   const JIRA_MAJOR = "Major"
 
   function computeJiraIssueCount(type){
-    return jiras.filter(j => j["fields"]["priority"]["name"] == type).length
+    try { return jiras.filter(j => j["fields"]["priority"]["name"] == type).length
+    } catch(nullError) { 
+      return 0 
+    }
   }
 
   const JiraIssuesList = () => (
     <List isPlain isBordered>
-      { computeJiraIssueCount(jiraType) == 0 && <div style={{textAlign: "center", margin: "10px auto", minHeight:"500px"}}><i>No issues here</i></div>}
-      {jiras.filter(j => j["fields"]["priority"]["name"] == jiraType).map(j => (
-        <ListItem style={{marginTop: "5px"}}>
-          <strong style={{textDecoration: "underline", color: "blue"}}><a href={`https://issues.redhat.com/browse/${j["key"]}`}>{j["key"]}</a></strong>
-          : &nbsp;
+      { computeJiraIssueCount(jiraType) == 0 && 
+        <div style={{textAlign: "center", margin: "10px auto", minHeight:"500px"}}><i>No issues here</i></div>
+      }
+      { computeJiraIssueCount(jiraType) > 0 && 
+        jiras.filter(j => j["fields"]["priority"]["name"] == jiraType).map(j => (
+          <ListItem style={{marginTop: "5px"}}>
+            <strong style={{textDecoration: "underline", color: "blue"}}><a href={`https://issues.redhat.com/browse/${j["key"]}`}>{j["key"]}</a></strong>
+            : &nbsp;
           {j["fields"]["summary"]}
         </ListItem>
       ))}
@@ -166,8 +172,8 @@ export const Dashboard = () => {
             </Card>
             <Card isRounded isCompact style={{width: "65%"}}>
               <CardTitle>
-                <Title headingLevel="h2" size="xl">
-                Red Hat AppStudio E2E jira issues
+                <Title headingLevel="h2" size="xl" >
+                Active jira Issues
                 </Title>
               </CardTitle>
               <Grid md={4} style={{margin: "auto 5px"}}>
@@ -210,7 +216,7 @@ export const Dashboard = () => {
           <PageSection style={{
               minHeight : "12%"
           }}>
-            <RepositoriesTable showTableToolbar={true} showCoverage={true} showDiscription={true} enableFiltersOnTheseColumns={['git_organization']}></RepositoriesTable>
+            <RepositoriesTable showTableToolbar={true} showCoverage={true} showDiscription={false} enableFiltersOnTheseColumns={['git_organization']}></RepositoriesTable>
             <React.Fragment>
             </React.Fragment>
           </PageSection>

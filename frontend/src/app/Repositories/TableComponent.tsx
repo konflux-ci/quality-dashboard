@@ -11,7 +11,7 @@ import {
   ActionsColumn,
   IAction,
   Caption,
-  ThProps,
+  ThProps
 } from '@patternfly/react-table';
 import {
   Alert, Pagination, PaginationVariant,
@@ -22,7 +22,8 @@ import {
   ToolbarGroup,
   Select,
   SelectOption,
-  SelectVariant
+  SelectVariant,
+  Title
 } from '@patternfly/react-core';
 import { Context } from '@app/store/store';
 import { deleteRepositoryAPI, getRepositories } from '@app/utils/APIService';
@@ -375,14 +376,14 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
           <Tr>
           <Th sort={getSortParams(0)}>{columnNames.git_organization}</Th>
            <Th sort={getSortParams(1)}>{columnNames.repository_name}</Th>
-           {showDiscription &&
-            <Th>{columnNames.description}</Th>
-           }
            {showCoverage &&
-            <Th>{columnNames.coverageType}</Th>
+            <Th>{columnNames.coverageType}</Th> 
            }
            {showCoverage &&
             <Th sort={getSortParams(2)}>{columnNames.coverage_percentage}</Th>
+           }
+           {showDiscription &&
+            <Th>{columnNames.description}</Th>
            }
            
           </Tr>
@@ -390,19 +391,36 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
         <Tbody>
           {sortedRepositories.map(repo => {
             const rowActions: IAction[] | null = defaultActions(repo);
+            const org_url = repo.git_url.substring(0, repo.git_url.lastIndexOf('/'));
             return (
               <Tr key={repo.repository_name}>
-                <Td>{repo.git_organization}</Td>
-                <Td><a href= {repo.git_url}>{repo.repository_name}</a><a href={repo.git_url}><ExternalLinkAltIcon style={{marginLeft: "1%"}}></ExternalLinkAltIcon></a></Td>
-                {showDiscription &&
-                  <Td>{repo.description}</Td>
-                }
+                <Td>
+                  <a href= {org_url}>
+                    {repo.git_organization}
+                  </a>
+                  <a href={org_url}>
+                  <ExternalLinkAltIcon style={{marginLeft: "1%"}}></ExternalLinkAltIcon>
+                  </a>
+                </Td>
+                <Td>
+                  <a href= {repo.git_url}>
+                  <span title= {repo.description}>{repo.repository_name}</span>
+                  </a>
+                  <a href={repo.git_url}>
+                  <ExternalLinkAltIcon style={{marginLeft: "1%"}}></ExternalLinkAltIcon>
+                  </a>
+                </Td> 
+                
                 {showCoverage &&
                   <Td><a href={`https://app.codecov.io/gh/${repo.git_organization}/${repo.repository_name}`}>CodeCov<ExternalLinkAltIcon style={{marginLeft: "0.5%"}}></ExternalLinkAltIcon></a></Td>
                 }
                 {showCoverage &&
                   <Td>{rederCoverageEffects(repo)}</Td>
                 }
+                {showDiscription && 
+                  <Td>{repo.description}</Td> 
+                } 
+                
                 <Td>
                   {rowActions ? (
                     <ActionsColumn
