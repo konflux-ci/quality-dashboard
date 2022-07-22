@@ -30,6 +30,29 @@ var (
 			},
 		},
 	}
+	// ProwsColumns holds the columns for the "prows" table.
+	ProwsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "job_id", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "name", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "status", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "time", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "repository_prow", Type: field.TypeUUID, Nullable: true},
+	}
+	// ProwsTable holds the schema information for the "prows" table.
+	ProwsTable = &schema.Table{
+		Name:       "prows",
+		Columns:    ProwsColumns,
+		PrimaryKey: []*schema.Column{ProwsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "prows_repositories_prow",
+				Columns:    []*schema.Column{ProwsColumns[5]},
+				RefColumns: []*schema.Column{RepositoriesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// RepositoriesColumns holds the columns for the "repositories" table.
 	RepositoriesColumns = []*schema.Column{
 		{Name: "repo_id", Type: field.TypeUUID, Unique: true},
@@ -72,6 +95,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CodeCovsTable,
+		ProwsTable,
 		RepositoriesTable,
 		WorkflowsTable,
 	}
@@ -79,5 +103,6 @@ var (
 
 func init() {
 	CodeCovsTable.ForeignKeys[0].RefTable = RepositoriesTable
+	ProwsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	WorkflowsTable.ForeignKeys[0].RefTable = RepositoriesTable
 }

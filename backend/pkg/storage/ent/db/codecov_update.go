@@ -4,16 +4,15 @@ package db
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
-	"github.com/google/uuid"
 )
 
 // CodeCovUpdate is the builder for updating CodeCov entities.
@@ -148,7 +147,7 @@ func (ccu *CodeCovUpdate) ExecX(ctx context.Context) {
 func (ccu *CodeCovUpdate) check() error {
 	if v, ok := ccu.mutation.RepositoryName(); ok {
 		if err := codecov.RepositoryNameValidator(v); err != nil {
-			return &ValidationError{Name: "repository_name", err: fmt.Errorf(`db: validator failed for field "CodeCov.repository_name": %w`, err)}
+			return &ValidationError{Name: "repository_name", err: fmt.Errorf("db: validator failed for field \"repository_name\": %w", err)}
 		}
 	}
 	return nil
@@ -380,7 +379,7 @@ func (ccuo *CodeCovUpdateOne) ExecX(ctx context.Context) {
 func (ccuo *CodeCovUpdateOne) check() error {
 	if v, ok := ccuo.mutation.RepositoryName(); ok {
 		if err := codecov.RepositoryNameValidator(v); err != nil {
-			return &ValidationError{Name: "repository_name", err: fmt.Errorf(`db: validator failed for field "CodeCov.repository_name": %w`, err)}
+			return &ValidationError{Name: "repository_name", err: fmt.Errorf("db: validator failed for field \"repository_name\": %w", err)}
 		}
 	}
 	return nil
@@ -399,7 +398,7 @@ func (ccuo *CodeCovUpdateOne) sqlSave(ctx context.Context) (_node *CodeCov, err 
 	}
 	id, ok := ccuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "id", err: errors.New(`db: missing "CodeCov.id" for update`)}
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing CodeCov.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if fields := ccuo.fields; len(fields) > 0 {

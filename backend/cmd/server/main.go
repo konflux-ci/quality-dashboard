@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"net"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/redhat-appstudio/quality-studio/api/apis/codecov"
@@ -12,6 +15,8 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent"
 	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -21,11 +26,13 @@ const (
 	PostgresEntDatabaseEnv = "POSTGRES_ENT_DATABASE"
 	PostgresEntUserEnv     = "POSTGRES_ENT_USER"
 	PostgresEntPasswordEnv = "POSTGRES_ENT_PASSWORD"
+	DefaultGithubTokenEnv  = "GITHUB_TOKEN"
 )
+
+const DEFAULT_SERVER_PORT = 9898
 
 var (
 	listener net.Listener
-	err      error
 )
 
 type keyCacher struct {
@@ -35,12 +42,41 @@ type keyCacher struct {
 }
 
 func main() {
+	// flags definition
+	fs := pflag.NewFlagSet("default", pflag.ContinueOnError)
+	fs.Int("port", DEFAULT_SERVER_PORT, "HTTP port to bind service to")
+
+	versionFlag := fs.BoolP("version", "v", false, "get version number")
+
+	// parse flags
+	err := fs.Parse(os.Args[1:])
+	switch {
+	case err == pflag.ErrHelp:
+		os.Exit(0)
+	case err != nil:
+		fmt.Fprintf(os.Stderr, "Error: %s\n\n", err.Error())
+		fs.PrintDefaults()
+		os.Exit(2)
+	case *versionFlag:
+		fmt.Println(version.ServerVersion)
+		os.Exit(0)
+	}
+
+	// bind flags and environment variables
+	viper.BindPFlags(fs)
+
+	// validate port
+	if _, err := strconv.Atoi(viper.GetString("port")); err != nil {
+		port, _ := fs.GetInt("port")
+		viper.Set("port", strconv.Itoa(port))
+	}
+
 	logger, _ := logger.InitZap("level")
 	defer logger.Sync()
 	stdLog := zap.RedirectStdLog(logger)
 	defer stdLog()
 
-	listener, err = net.Listen("tcp", ":9898")
+	listener, err = net.Listen("tcp", fmt.Sprintf(":%s", viper.GetString("port")))
 	if err != nil {
 		logger.Fatal("tcp listen fail")
 	}
@@ -52,9 +88,7 @@ func main() {
 		logger.Fatal("Server fail to initialize database connection", zap.Error(err))
 	}
 
-	githubAPI := github.NewGithubClient("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")
-	codecovApi := codecov.NewCodeCoverageClient()
-	server := server.New(&server.Config{Logger: logger, Version: version.ServerVersion, Storage: newKeyCacher(storage, time.Now), Github: githubAPI, CodeCov: codecovApi})
+	server := server.New(&server.Config{Logger: logger, Version: version.ServerVersion, Storage: newKeyCacher(storage, time.Now), Github: github.NewGithubClient(util.GetEnv(DefaultGithubTokenEnv, "")), CodeCov: codecov.NewCodeCoverageClient()})
 	server.Accept("", listener)
 
 	wait := make(chan error)
@@ -82,7 +116,7 @@ func GetPostgresConnectionDetails() ent.Postgres {
 			User:     util.GetEnv(PostgresEntUserEnv, "postgres"),
 			Password: util.GetEnv(PostgresEntPasswordEnv, "postgres"),
 			Host:     util.GetEnv(PostgresEntHostEnv, "localhost"),
-			Port:     util.GetPortEnv(PostgresEntPortEnv, 5433),
+			Port:     util.GetPortEnv(PostgresEntPortEnv, 5432),
 		},
 		SSL: ent.SSL{
 			Mode: "disable", // Postgres container doesn't support SSL.

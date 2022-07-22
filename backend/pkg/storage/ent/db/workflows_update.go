@@ -4,16 +4,15 @@ package db
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
-	"github.com/google/uuid"
 )
 
 // WorkflowsUpdate is the builder for updating Workflows entities.
@@ -159,7 +158,7 @@ func (wu *WorkflowsUpdate) ExecX(ctx context.Context) {
 func (wu *WorkflowsUpdate) check() error {
 	if v, ok := wu.mutation.WorkflowName(); ok {
 		if err := workflows.WorkflowNameValidator(v); err != nil {
-			return &ValidationError{Name: "workflow_name", err: fmt.Errorf(`db: validator failed for field "Workflows.workflow_name": %w`, err)}
+			return &ValidationError{Name: "workflow_name", err: fmt.Errorf("db: validator failed for field \"workflow_name\": %w", err)}
 		}
 	}
 	return nil
@@ -416,7 +415,7 @@ func (wuo *WorkflowsUpdateOne) ExecX(ctx context.Context) {
 func (wuo *WorkflowsUpdateOne) check() error {
 	if v, ok := wuo.mutation.WorkflowName(); ok {
 		if err := workflows.WorkflowNameValidator(v); err != nil {
-			return &ValidationError{Name: "workflow_name", err: fmt.Errorf(`db: validator failed for field "Workflows.workflow_name": %w`, err)}
+			return &ValidationError{Name: "workflow_name", err: fmt.Errorf("db: validator failed for field \"workflow_name\": %w", err)}
 		}
 	}
 	return nil
@@ -435,7 +434,7 @@ func (wuo *WorkflowsUpdateOne) sqlSave(ctx context.Context) (_node *Workflows, e
 	}
 	id, ok := wuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "id", err: errors.New(`db: missing "Workflows.id" for update`)}
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Workflows.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if fields := wuo.fields; len(fields) > 0 {

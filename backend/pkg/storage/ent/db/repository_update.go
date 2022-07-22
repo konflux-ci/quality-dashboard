@@ -4,17 +4,17 @@ package db
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prow"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
-	"github.com/google/uuid"
 )
 
 // RepositoryUpdate is the builder for updating Repository entities.
@@ -84,6 +84,21 @@ func (ru *RepositoryUpdate) AddCodecov(c ...*CodeCov) *RepositoryUpdate {
 	return ru.AddCodecovIDs(ids...)
 }
 
+// AddProwIDs adds the "prow" edge to the Prow entity by IDs.
+func (ru *RepositoryUpdate) AddProwIDs(ids ...int) *RepositoryUpdate {
+	ru.mutation.AddProwIDs(ids...)
+	return ru
+}
+
+// AddProw adds the "prow" edges to the Prow entity.
+func (ru *RepositoryUpdate) AddProw(p ...*Prow) *RepositoryUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return ru.AddProwIDs(ids...)
+}
+
 // Mutation returns the RepositoryMutation object of the builder.
 func (ru *RepositoryUpdate) Mutation() *RepositoryMutation {
 	return ru.mutation
@@ -129,6 +144,27 @@ func (ru *RepositoryUpdate) RemoveCodecov(c ...*CodeCov) *RepositoryUpdate {
 		ids[i] = c[i].ID
 	}
 	return ru.RemoveCodecovIDs(ids...)
+}
+
+// ClearProw clears all "prow" edges to the Prow entity.
+func (ru *RepositoryUpdate) ClearProw() *RepositoryUpdate {
+	ru.mutation.ClearProw()
+	return ru
+}
+
+// RemoveProwIDs removes the "prow" edge to Prow entities by IDs.
+func (ru *RepositoryUpdate) RemoveProwIDs(ids ...int) *RepositoryUpdate {
+	ru.mutation.RemoveProwIDs(ids...)
+	return ru
+}
+
+// RemoveProw removes "prow" edges to Prow entities.
+func (ru *RepositoryUpdate) RemoveProw(p ...*Prow) *RepositoryUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return ru.RemoveProwIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -195,22 +231,22 @@ func (ru *RepositoryUpdate) ExecX(ctx context.Context) {
 func (ru *RepositoryUpdate) check() error {
 	if v, ok := ru.mutation.RepositoryName(); ok {
 		if err := repository.RepositoryNameValidator(v); err != nil {
-			return &ValidationError{Name: "repository_name", err: fmt.Errorf(`db: validator failed for field "Repository.repository_name": %w`, err)}
+			return &ValidationError{Name: "repository_name", err: fmt.Errorf("db: validator failed for field \"repository_name\": %w", err)}
 		}
 	}
 	if v, ok := ru.mutation.GitOrganization(); ok {
 		if err := repository.GitOrganizationValidator(v); err != nil {
-			return &ValidationError{Name: "git_organization", err: fmt.Errorf(`db: validator failed for field "Repository.git_organization": %w`, err)}
+			return &ValidationError{Name: "git_organization", err: fmt.Errorf("db: validator failed for field \"git_organization\": %w", err)}
 		}
 	}
 	if v, ok := ru.mutation.Description(); ok {
 		if err := repository.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`db: validator failed for field "Repository.description": %w`, err)}
+			return &ValidationError{Name: "description", err: fmt.Errorf("db: validator failed for field \"description\": %w", err)}
 		}
 	}
 	if v, ok := ru.mutation.GitURL(); ok {
 		if err := repository.GitURLValidator(v); err != nil {
-			return &ValidationError{Name: "git_url", err: fmt.Errorf(`db: validator failed for field "Repository.git_url": %w`, err)}
+			return &ValidationError{Name: "git_url", err: fmt.Errorf("db: validator failed for field \"git_url\": %w", err)}
 		}
 	}
 	return nil
@@ -370,6 +406,60 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ru.mutation.ProwCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwTable,
+			Columns: []string{repository.ProwColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prow.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RemovedProwIDs(); len(nodes) > 0 && !ru.mutation.ProwCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwTable,
+			Columns: []string{repository.ProwColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prow.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.ProwIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwTable,
+			Columns: []string{repository.ProwColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prow.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{repository.Label}
@@ -443,6 +533,21 @@ func (ruo *RepositoryUpdateOne) AddCodecov(c ...*CodeCov) *RepositoryUpdateOne {
 	return ruo.AddCodecovIDs(ids...)
 }
 
+// AddProwIDs adds the "prow" edge to the Prow entity by IDs.
+func (ruo *RepositoryUpdateOne) AddProwIDs(ids ...int) *RepositoryUpdateOne {
+	ruo.mutation.AddProwIDs(ids...)
+	return ruo
+}
+
+// AddProw adds the "prow" edges to the Prow entity.
+func (ruo *RepositoryUpdateOne) AddProw(p ...*Prow) *RepositoryUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return ruo.AddProwIDs(ids...)
+}
+
 // Mutation returns the RepositoryMutation object of the builder.
 func (ruo *RepositoryUpdateOne) Mutation() *RepositoryMutation {
 	return ruo.mutation
@@ -488,6 +593,27 @@ func (ruo *RepositoryUpdateOne) RemoveCodecov(c ...*CodeCov) *RepositoryUpdateOn
 		ids[i] = c[i].ID
 	}
 	return ruo.RemoveCodecovIDs(ids...)
+}
+
+// ClearProw clears all "prow" edges to the Prow entity.
+func (ruo *RepositoryUpdateOne) ClearProw() *RepositoryUpdateOne {
+	ruo.mutation.ClearProw()
+	return ruo
+}
+
+// RemoveProwIDs removes the "prow" edge to Prow entities by IDs.
+func (ruo *RepositoryUpdateOne) RemoveProwIDs(ids ...int) *RepositoryUpdateOne {
+	ruo.mutation.RemoveProwIDs(ids...)
+	return ruo
+}
+
+// RemoveProw removes "prow" edges to Prow entities.
+func (ruo *RepositoryUpdateOne) RemoveProw(p ...*Prow) *RepositoryUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return ruo.RemoveProwIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -561,22 +687,22 @@ func (ruo *RepositoryUpdateOne) ExecX(ctx context.Context) {
 func (ruo *RepositoryUpdateOne) check() error {
 	if v, ok := ruo.mutation.RepositoryName(); ok {
 		if err := repository.RepositoryNameValidator(v); err != nil {
-			return &ValidationError{Name: "repository_name", err: fmt.Errorf(`db: validator failed for field "Repository.repository_name": %w`, err)}
+			return &ValidationError{Name: "repository_name", err: fmt.Errorf("db: validator failed for field \"repository_name\": %w", err)}
 		}
 	}
 	if v, ok := ruo.mutation.GitOrganization(); ok {
 		if err := repository.GitOrganizationValidator(v); err != nil {
-			return &ValidationError{Name: "git_organization", err: fmt.Errorf(`db: validator failed for field "Repository.git_organization": %w`, err)}
+			return &ValidationError{Name: "git_organization", err: fmt.Errorf("db: validator failed for field \"git_organization\": %w", err)}
 		}
 	}
 	if v, ok := ruo.mutation.Description(); ok {
 		if err := repository.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`db: validator failed for field "Repository.description": %w`, err)}
+			return &ValidationError{Name: "description", err: fmt.Errorf("db: validator failed for field \"description\": %w", err)}
 		}
 	}
 	if v, ok := ruo.mutation.GitURL(); ok {
 		if err := repository.GitURLValidator(v); err != nil {
-			return &ValidationError{Name: "git_url", err: fmt.Errorf(`db: validator failed for field "Repository.git_url": %w`, err)}
+			return &ValidationError{Name: "git_url", err: fmt.Errorf("db: validator failed for field \"git_url\": %w", err)}
 		}
 	}
 	return nil
@@ -595,7 +721,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 	}
 	id, ok := ruo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "id", err: errors.New(`db: missing "Repository.id" for update`)}
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Repository.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if fields := ruo.fields; len(fields) > 0 {
@@ -745,6 +871,60 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: codecov.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ruo.mutation.ProwCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwTable,
+			Columns: []string{repository.ProwColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prow.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RemovedProwIDs(); len(nodes) > 0 && !ruo.mutation.ProwCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwTable,
+			Columns: []string{repository.ProwColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prow.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.ProwIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwTable,
+			Columns: []string{repository.ProwColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prow.FieldID,
 				},
 			},
 		}

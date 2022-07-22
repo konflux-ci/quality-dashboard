@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
-	"github.com/google/uuid"
 )
 
 // CodeCov is the model entity for the CodeCov schema.

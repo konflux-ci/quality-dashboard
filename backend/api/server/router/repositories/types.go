@@ -25,26 +25,6 @@ type GitRepositoryRequest struct {
 	Artifacts       []string `json:"artifacts"`
 }
 
-// ErrorResponse Represents an error.
-type ErrorResponse struct {
-
-	// The error message.
-	// Required: true
-	Message string `json:"message"`
-
-	// The error message.
-	// Required: false
-	StatusCode int `json:"statusCode"`
-}
-
-// SuccessResponse Represents an success message of a request.
-type SuccessResponse struct {
-
-	// The error message.
-	// Required: true
-	Message string `json:"message"`
-}
-
 type RepositoryDeleteRequest struct {
 	GitOrganization string `json:"git_organization"`
 	GitRepository   string `json:"repository_name"`

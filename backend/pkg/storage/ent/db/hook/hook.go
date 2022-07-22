@@ -22,6 +22,19 @@ func (f CodeCovFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error
 	return f(ctx, mv)
 }
 
+// The ProwFunc type is an adapter to allow the use of ordinary
+// function as Prow mutator.
+type ProwFunc func(context.Context, *db.ProwMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProwFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	mv, ok := m.(*db.ProwMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ProwMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The RepositoryFunc type is an adapter to allow the use of ordinary
 // function as Repository mutator.
 type RepositoryFunc func(context.Context, *db.RepositoryMutation) (db.Value, error)

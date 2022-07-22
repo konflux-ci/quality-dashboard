@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
 // Repository is the model entity for the Repository schema.
@@ -35,9 +35,11 @@ type RepositoryEdges struct {
 	Workflows []*Workflows `json:"workflows,omitempty"`
 	// Codecov holds the value of the codecov edge.
 	Codecov []*CodeCov `json:"codecov,omitempty"`
+	// Prow holds the value of the prow edge.
+	Prow []*Prow `json:"prow,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // WorkflowsOrErr returns the Workflows value or an error if the edge
@@ -56,6 +58,15 @@ func (e RepositoryEdges) CodecovOrErr() ([]*CodeCov, error) {
 		return e.Codecov, nil
 	}
 	return nil, &NotLoadedError{edge: "codecov"}
+}
+
+// ProwOrErr returns the Prow value or an error if the edge
+// was not loaded in eager-loading.
+func (e RepositoryEdges) ProwOrErr() ([]*Prow, error) {
+	if e.loadedTypes[2] {
+		return e.Prow, nil
+	}
+	return nil, &NotLoadedError{edge: "prow"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -125,6 +136,11 @@ func (r *Repository) QueryWorkflows() *WorkflowsQuery {
 // QueryCodecov queries the "codecov" edge of the Repository entity.
 func (r *Repository) QueryCodecov() *CodeCovQuery {
 	return (&RepositoryClient{config: r.config}).QueryCodecov(r)
+}
+
+// QueryProw queries the "prow" edge of the Repository entity.
+func (r *Repository) QueryProw() *ProwQuery {
+	return (&RepositoryClient{config: r.config}).QueryProw(r)
 }
 
 // Update returns a builder for updating this Repository.

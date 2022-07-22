@@ -11,10 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
-	"github.com/google/uuid"
 )
 
 // CodeCovQuery is the builder for querying CodeCov entities.
@@ -486,9 +486,6 @@ func (ccq *CodeCovQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if ccq.sql != nil {
 		selector = ccq.sql
 		selector.Select(selector.Columns(columns...)...)
-	}
-	if ccq.unique != nil && *ccq.unique {
-		selector.Distinct()
 	}
 	for _, p := range ccq.predicates {
 		p(selector)

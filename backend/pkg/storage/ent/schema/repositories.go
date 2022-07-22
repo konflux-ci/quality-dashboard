@@ -50,5 +50,6 @@ func (Repository) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("workflows", Workflows.Type),
 		edge.To("codecov", CodeCov.Type),
+		edge.To("prow", Prow.Type),
 	}
 }

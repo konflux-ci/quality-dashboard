@@ -33,7 +33,7 @@ func MakeErrorHandler(err error) http.HandlerFunc {
 }
 
 func apiVersionSupportsJSONErrors(version string) bool {
-	const firstAPIVersionWithJSONErrors = "1.23"
+	const firstAPIVersionWithJSONErrors = "0.0.0"
 	return version == "" || util.GreaterThan(version, firstAPIVersionWithJSONErrors)
 }
 

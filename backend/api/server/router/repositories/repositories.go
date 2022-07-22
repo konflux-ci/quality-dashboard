@@ -8,6 +8,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/api/types"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
+	"go.uber.org/zap"
 )
 
 var repository GitRepositoryRequest
@@ -20,7 +21,7 @@ var repository GitRepositoryRequest
 // @Produce json
 // @Router /repositories/list [get]
 // @Success 200 {array} storage.RepositoryQualityInfo
-// @Failure 400 {object} ErrorResponse
+// @Failure 400 {object} types.ErrorResponse
 func (rp *repositoryRouter) listAllRepositoriesQuality(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	repos, err := rp.Storage.ListRepositoriesQualityInfo()
 
@@ -42,8 +43,8 @@ func (rp *repositoryRouter) listAllRepositoriesQuality(ctx context.Context, w ht
 // @Produce json
 // @Param repository body GitRepositoryRequest true "repository name"
 // @Router /repositories/create [post]
-// @Success 200 {object} db.Repository
-// @Failure 400 {object} ErrorResponse
+// @Success 200 {object} types.SuccessResponse
+// @Failure 400 {object} types.ErrorResponse
 func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	if err := json.NewDecoder(r.Body).Decode(&repository); err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
@@ -54,12 +55,13 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 
 	githubRepo, err := rp.Github.GetGithubRepositoryInformation(repository.GitOrganization, repository.GitRepository)
 	if err != nil {
+		rp.Logger.Error("Failed to fetch repository info from github", zap.String("repository", repository.GitRepository), zap.String("git_organization", repository.GitOrganization), zap.Error(err))
+
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
 			StatusCode: http.StatusBadRequest,
 		})
 	}
-
 	createdRepo, err := rp.Storage.CreateRepository(storage.Repository{
 		RepositoryName:  githubRepo.GetName(),
 		GitOrganization: githubRepo.Owner.GetLogin(),
@@ -74,6 +76,8 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 	}
 	coverage, err := rp.CodeCov.GetCodeCovInfo(githubRepo.Owner.GetLogin(), githubRepo.GetName())
 	if err != nil {
+		rp.Logger.Error("Failed to fetch repository info from codecov", zap.String("repository", repository.GitRepository), zap.String("git_organization", repository.GitOrganization), zap.Error(err))
+
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    "Failed to obtain repositories. There are no repository cached",
 			StatusCode: http.StatusBadRequest,
@@ -106,13 +110,18 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 	}
 
 	if err != nil {
+		rp.Logger.Error("Failed to fetch github actions info from github", zap.String("repository", repository.GitRepository), zap.String("git_organization", repository.GitOrganization), zap.Error(err))
+
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    "Failed to save workflows data in database. There are no repository cached",
 			StatusCode: http.StatusBadRequest,
 		})
 	}
 
-	return httputils.WriteJSON(w, http.StatusOK, createdRepo)
+	return httputils.WriteJSON(w, http.StatusOK, types.SuccessResponse{
+		Message:    "Successfully created repository in quality-studio",
+		StatusCode: http.StatusCreated,
+	})
 }
 
 // Version godoc
@@ -122,31 +131,31 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 // @Produce json
 // @Param repository body GitRepositoryRequest true "repository name"
 // @Router /repositories/delete [delete]
-// @Success 200 {object} SuccessResponse
-// @Failure 400 {object} ErrorResponse
+// @Success 200 {object} types.SuccessResponse
+// @Failure 400 {object} types.ErrorResponse
 func (rp *repositoryRouter) deleteRepositoryHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	json.NewDecoder(r.Body).Decode(&repository)
 
 	if repository.GitRepository == "" {
-		return httputils.WriteJSON(w, http.StatusOK, ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
 			Message:    "Failed to remove repository. Field 'repository_name' missing",
 			StatusCode: 400,
 		})
 	}
 	if repository.GitOrganization == "" {
-		return httputils.WriteJSON(w, http.StatusOK, ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
 			Message:    "Failed to remove repository. Field 'git_organization' missing",
 			StatusCode: 400,
 		})
 	}
 	err := rp.Storage.DeleteRepository(repository.GitRepository, repository.GitOrganization)
 	if err != nil {
-		return httputils.WriteJSON(w, http.StatusOK, ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
 			Message:    "Failed to remove repository",
 			StatusCode: 400,
 		})
 	}
-	return httputils.WriteJSON(w, http.StatusOK, SuccessResponse{
+	return httputils.WriteJSON(w, http.StatusOK, types.SuccessResponse{
 		Message: "Repository deleted",
 	})
 }

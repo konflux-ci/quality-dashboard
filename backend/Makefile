@@ -35,4 +35,4 @@ swagger:
 	go install github.com/swaggo/swag/cmd/swag@latest
 	go get github.com/swaggo/swag/gen@latest
 	go get github.com/swaggo/swag/cmd/swag@latest
-	$$(go env GOPATH)/bin/swag init --output docs/swagger -g api/server/server.go
+	$$(go env GOPATH)/bin/swag init --output docs/swagger --parseVendor -g api/server/server.go

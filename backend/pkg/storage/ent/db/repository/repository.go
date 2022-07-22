@@ -23,10 +23,14 @@ const (
 	EdgeWorkflows = "workflows"
 	// EdgeCodecov holds the string denoting the codecov edge name in mutations.
 	EdgeCodecov = "codecov"
+	// EdgeProw holds the string denoting the prow edge name in mutations.
+	EdgeProw = "prow"
 	// WorkflowsFieldID holds the string denoting the ID field of the Workflows.
 	WorkflowsFieldID = "id"
 	// CodeCovFieldID holds the string denoting the ID field of the CodeCov.
 	CodeCovFieldID = "id"
+	// ProwFieldID holds the string denoting the ID field of the Prow.
+	ProwFieldID = "id"
 	// Table holds the table name of the repository in the database.
 	Table = "repositories"
 	// WorkflowsTable is the table that holds the workflows relation/edge.
@@ -43,6 +47,13 @@ const (
 	CodecovInverseTable = "code_covs"
 	// CodecovColumn is the table column denoting the codecov relation/edge.
 	CodecovColumn = "repository_codecov"
+	// ProwTable is the table that holds the prow relation/edge.
+	ProwTable = "prows"
+	// ProwInverseTable is the table name for the Prow entity.
+	// It exists in this package in order to avoid circular dependency with the "prow" package.
+	ProwInverseTable = "prows"
+	// ProwColumn is the table column denoting the prow relation/edge.
+	ProwColumn = "repository_prow"
 )
 
 // Columns holds all SQL columns for repository fields.

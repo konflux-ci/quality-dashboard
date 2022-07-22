@@ -9,9 +9,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
-	"github.com/google/uuid"
 )
 
 // CodeCovCreate is the builder for creating a CodeCov entity.
@@ -144,18 +144,18 @@ func (ccc *CodeCovCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (ccc *CodeCovCreate) check() error {
 	if _, ok := ccc.mutation.RepositoryName(); !ok {
-		return &ValidationError{Name: "repository_name", err: errors.New(`db: missing required field "CodeCov.repository_name"`)}
+		return &ValidationError{Name: "repository_name", err: errors.New(`db: missing required field "repository_name"`)}
 	}
 	if v, ok := ccc.mutation.RepositoryName(); ok {
 		if err := codecov.RepositoryNameValidator(v); err != nil {
-			return &ValidationError{Name: "repository_name", err: fmt.Errorf(`db: validator failed for field "CodeCov.repository_name": %w`, err)}
+			return &ValidationError{Name: "repository_name", err: fmt.Errorf(`db: validator failed for field "repository_name": %w`, err)}
 		}
 	}
 	if _, ok := ccc.mutation.GitOrganization(); !ok {
-		return &ValidationError{Name: "git_organization", err: errors.New(`db: missing required field "CodeCov.git_organization"`)}
+		return &ValidationError{Name: "git_organization", err: errors.New(`db: missing required field "git_organization"`)}
 	}
 	if _, ok := ccc.mutation.CoveragePercentage(); !ok {
-		return &ValidationError{Name: "coverage_percentage", err: errors.New(`db: missing required field "CodeCov.coverage_percentage"`)}
+		return &ValidationError{Name: "coverage_percentage", err: errors.New(`db: missing required field "coverage_percentage"`)}
 	}
 	return nil
 }
@@ -169,7 +169,7 @@ func (ccc *CodeCovCreate) sqlSave(ctx context.Context) (*CodeCov, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = *_spec.ID.Value.(*uuid.UUID)
+		_node.ID = _spec.ID.Value.(uuid.UUID)
 	}
 	return _node, nil
 }
@@ -187,7 +187,7 @@ func (ccc *CodeCovCreate) createSpec() (*CodeCov, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := ccc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = &id
+		_spec.ID.Value = id
 	}
 	if value, ok := ccc.mutation.RepositoryName(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

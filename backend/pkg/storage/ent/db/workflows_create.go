@@ -9,9 +9,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
-	"github.com/google/uuid"
 )
 
 // WorkflowsCreate is the builder for creating a Workflows entity.
@@ -156,27 +156,27 @@ func (wc *WorkflowsCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (wc *WorkflowsCreate) check() error {
 	if _, ok := wc.mutation.WorkflowID(); !ok {
-		return &ValidationError{Name: "workflow_id", err: errors.New(`db: missing required field "Workflows.workflow_id"`)}
+		return &ValidationError{Name: "workflow_id", err: errors.New(`db: missing required field "workflow_id"`)}
 	}
 	if _, ok := wc.mutation.WorkflowName(); !ok {
-		return &ValidationError{Name: "workflow_name", err: errors.New(`db: missing required field "Workflows.workflow_name"`)}
+		return &ValidationError{Name: "workflow_name", err: errors.New(`db: missing required field "workflow_name"`)}
 	}
 	if v, ok := wc.mutation.WorkflowName(); ok {
 		if err := workflows.WorkflowNameValidator(v); err != nil {
-			return &ValidationError{Name: "workflow_name", err: fmt.Errorf(`db: validator failed for field "Workflows.workflow_name": %w`, err)}
+			return &ValidationError{Name: "workflow_name", err: fmt.Errorf(`db: validator failed for field "workflow_name": %w`, err)}
 		}
 	}
 	if _, ok := wc.mutation.BadgeURL(); !ok {
-		return &ValidationError{Name: "badge_url", err: errors.New(`db: missing required field "Workflows.badge_url"`)}
+		return &ValidationError{Name: "badge_url", err: errors.New(`db: missing required field "badge_url"`)}
 	}
 	if _, ok := wc.mutation.HTMLURL(); !ok {
-		return &ValidationError{Name: "html_url", err: errors.New(`db: missing required field "Workflows.html_url"`)}
+		return &ValidationError{Name: "html_url", err: errors.New(`db: missing required field "html_url"`)}
 	}
 	if _, ok := wc.mutation.JobURL(); !ok {
-		return &ValidationError{Name: "job_url", err: errors.New(`db: missing required field "Workflows.job_url"`)}
+		return &ValidationError{Name: "job_url", err: errors.New(`db: missing required field "job_url"`)}
 	}
 	if _, ok := wc.mutation.State(); !ok {
-		return &ValidationError{Name: "state", err: errors.New(`db: missing required field "Workflows.state"`)}
+		return &ValidationError{Name: "state", err: errors.New(`db: missing required field "state"`)}
 	}
 	return nil
 }

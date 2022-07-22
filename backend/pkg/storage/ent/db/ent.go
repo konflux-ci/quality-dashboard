@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prow"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 )
@@ -32,6 +33,7 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		codecov.Table:    codecov.ValidColumn,
+		prow.Table:       prow.ValidColumn,
 		repository.Table: repository.ValidColumn,
 		workflows.Table:  workflows.ValidColumn,
 	}
@@ -145,7 +147,7 @@ func Sum(field string) AggregateFunc {
 	}
 }
 
-// ValidationError returns when validating a field or edge fails.
+// ValidationError returns when validating a field fails.
 type ValidationError struct {
 	Name string // Field or edge name.
 	err  error

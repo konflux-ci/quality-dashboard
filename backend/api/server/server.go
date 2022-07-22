@@ -16,6 +16,8 @@ import (
 	"github.com/redhat-appstudio/quality-studio/api/apis/github"
 	"github.com/redhat-appstudio/quality-studio/api/server/middleware"
 	"github.com/redhat-appstudio/quality-studio/api/server/router"
+	"github.com/redhat-appstudio/quality-studio/api/server/router/jira"
+	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/repositories"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/version"
 	_ "github.com/redhat-appstudio/quality-studio/docs/swagger"
@@ -71,9 +73,6 @@ type Server struct {
 	middlewares []middleware.Middleware
 	routers     []router.Router
 }
-
-// UAStringKey is used as key type for user-agent string in net/context struct
-type UAStringKey struct{}
 
 // New returns a new instance of the server based on the specified configuration.
 // It allocates resources which will be needed for ServeAPI(ports, unix-sockets).
@@ -156,7 +155,7 @@ func (s *HTTPServer) Close() error {
 
 func (s *Server) makeHTTPHandler(handler httputils.APIFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), UAStringKey{}, r.Header.Get("User-Agent"))
+		ctx := context.Background()
 		r = r.WithContext(ctx)
 		handlerFunc := s.handlerWithGlobalMiddlewares(handler)
 
@@ -178,7 +177,10 @@ func (s *Server) makeHTTPHandler(handler httputils.APIFunc) http.HandlerFunc {
 // InitRouter initializes the list of routers for the server.
 // This method also enables the Go profiler.
 func (s *Server) InitRouter() {
-	s.routers = append(s.routers, version.NewRouter(), repositories.NewRouter(s.cfg.Storage))
+	s.routers = append(s.routers,
+		version.NewRouter(), repositories.NewRouter(s.cfg.Storage),
+		prow.NewRouter(s.cfg.Storage),
+		jira.NewRouter(s.cfg.Storage))
 }
 
 type pageNotFoundError struct{}

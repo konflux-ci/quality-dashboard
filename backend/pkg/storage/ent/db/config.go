@@ -25,6 +25,7 @@ type config struct {
 // hooks per client, for fast access.
 type hooks struct {
 	CodeCov    []ent.Hook
+	Prow       []ent.Hook
 	Repository []ent.Hook
 	Workflows  []ent.Hook
 }

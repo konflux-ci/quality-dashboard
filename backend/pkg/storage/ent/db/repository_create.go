@@ -9,10 +9,11 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prow"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
-	"github.com/google/uuid"
 )
 
 // RepositoryCreate is the builder for creating a Repository entity.
@@ -80,6 +81,21 @@ func (rc *RepositoryCreate) AddCodecov(c ...*CodeCov) *RepositoryCreate {
 		ids[i] = c[i].ID
 	}
 	return rc.AddCodecovIDs(ids...)
+}
+
+// AddProwIDs adds the "prow" edge to the Prow entity by IDs.
+func (rc *RepositoryCreate) AddProwIDs(ids ...int) *RepositoryCreate {
+	rc.mutation.AddProwIDs(ids...)
+	return rc
+}
+
+// AddProw adds the "prow" edges to the Prow entity.
+func (rc *RepositoryCreate) AddProw(p ...*Prow) *RepositoryCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return rc.AddProwIDs(ids...)
 }
 
 // Mutation returns the RepositoryMutation object of the builder.
@@ -162,35 +178,35 @@ func (rc *RepositoryCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (rc *RepositoryCreate) check() error {
 	if _, ok := rc.mutation.RepositoryName(); !ok {
-		return &ValidationError{Name: "repository_name", err: errors.New(`db: missing required field "Repository.repository_name"`)}
+		return &ValidationError{Name: "repository_name", err: errors.New(`db: missing required field "repository_name"`)}
 	}
 	if v, ok := rc.mutation.RepositoryName(); ok {
 		if err := repository.RepositoryNameValidator(v); err != nil {
-			return &ValidationError{Name: "repository_name", err: fmt.Errorf(`db: validator failed for field "Repository.repository_name": %w`, err)}
+			return &ValidationError{Name: "repository_name", err: fmt.Errorf(`db: validator failed for field "repository_name": %w`, err)}
 		}
 	}
 	if _, ok := rc.mutation.GitOrganization(); !ok {
-		return &ValidationError{Name: "git_organization", err: errors.New(`db: missing required field "Repository.git_organization"`)}
+		return &ValidationError{Name: "git_organization", err: errors.New(`db: missing required field "git_organization"`)}
 	}
 	if v, ok := rc.mutation.GitOrganization(); ok {
 		if err := repository.GitOrganizationValidator(v); err != nil {
-			return &ValidationError{Name: "git_organization", err: fmt.Errorf(`db: validator failed for field "Repository.git_organization": %w`, err)}
+			return &ValidationError{Name: "git_organization", err: fmt.Errorf(`db: validator failed for field "git_organization": %w`, err)}
 		}
 	}
 	if _, ok := rc.mutation.Description(); !ok {
-		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "Repository.description"`)}
+		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "description"`)}
 	}
 	if v, ok := rc.mutation.Description(); ok {
 		if err := repository.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`db: validator failed for field "Repository.description": %w`, err)}
+			return &ValidationError{Name: "description", err: fmt.Errorf(`db: validator failed for field "description": %w`, err)}
 		}
 	}
 	if _, ok := rc.mutation.GitURL(); !ok {
-		return &ValidationError{Name: "git_url", err: errors.New(`db: missing required field "Repository.git_url"`)}
+		return &ValidationError{Name: "git_url", err: errors.New(`db: missing required field "git_url"`)}
 	}
 	if v, ok := rc.mutation.GitURL(); ok {
 		if err := repository.GitURLValidator(v); err != nil {
-			return &ValidationError{Name: "git_url", err: fmt.Errorf(`db: validator failed for field "Repository.git_url": %w`, err)}
+			return &ValidationError{Name: "git_url", err: fmt.Errorf(`db: validator failed for field "git_url": %w`, err)}
 		}
 	}
 	return nil
@@ -205,7 +221,7 @@ func (rc *RepositoryCreate) sqlSave(ctx context.Context) (*Repository, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = *_spec.ID.Value.(*uuid.UUID)
+		_node.ID = _spec.ID.Value.(uuid.UUID)
 	}
 	return _node, nil
 }
@@ -223,7 +239,7 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := rc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = &id
+		_spec.ID.Value = id
 	}
 	if value, ok := rc.mutation.RepositoryName(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -287,6 +303,25 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: codecov.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.ProwIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwTable,
+			Columns: []string{repository.ProwColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prow.FieldID,
 				},
 			},
 		}

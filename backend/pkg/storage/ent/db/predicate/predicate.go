@@ -9,6 +9,9 @@ import (
 // CodeCov is the predicate function for codecov builders.
 type CodeCov func(*sql.Selector)
 
+// Prow is the predicate function for prow builders.
+type Prow func(*sql.Selector)
+
 // Repository is the predicate function for repository builders.
 type Repository func(*sql.Selector)
 

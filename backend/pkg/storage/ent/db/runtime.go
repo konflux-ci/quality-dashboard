@@ -3,11 +3,11 @@
 package db
 
 import (
+	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/schema"
-	"github.com/google/uuid"
 )
 
 // The init function reads all schema descriptors with runtime code

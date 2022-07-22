@@ -23,6 +23,136 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/jira/bugs/e2e": {
+            "get": {
+                "description": "returns a list of jira issues which contain the label appstudio-e2e-tests-known-issues",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jira API Info"
+                ],
+                "summary": "Jira API Info",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/jira.Issue"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/prow/results/get": {
+            "get": {
+                "description": "returns all prow jobs related to git_organization and repository_name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Prow Jobs info"
+                ],
+                "summary": "Prow Jobs info",
+                "parameters": [
+                    {
+                        "description": "repository name",
+                        "name": "repository",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/prow.GitRepositoryRequest"
+                        }
+                    },
+                    {
+                        "description": "git_organization",
+                        "name": "organization",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/prow.GitRepositoryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "Object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/prow/results/post": {
+            "post": {
+                "description": "returns all prow jobs information stored in database",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Prow Jobs info"
+                ],
+                "summary": "Prow Jobs info",
+                "parameters": [
+                    {
+                        "description": "repository name",
+                        "name": "repository_name",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/prow.GitRepositoryRequest"
+                        }
+                    },
+                    {
+                        "description": "repository name",
+                        "name": "git_organization",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/prow.GitRepositoryRequest"
+                        }
+                    },
+                    {
+                        "description": "repository name",
+                        "name": "job_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "Object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/repositories/create": {
             "post": {
                 "description": "returns the Server information as a JSON",
@@ -51,13 +181,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/db.Repository"
+                            "$ref": "#/definitions/types.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repositories.ErrorResponse"
+                            "$ref": "#/definitions/types.ErrorResponse"
                         }
                     }
                 }
@@ -88,13 +218,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/repositories.SuccessResponse"
+                            "$ref": "#/definitions/types.SuccessResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repositories.ErrorResponse"
+                            "$ref": "#/definitions/types.ErrorResponse"
                         }
                     }
                 }
@@ -126,7 +256,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repositories.ErrorResponse"
+                            "$ref": "#/definitions/types.ErrorResponse"
                         }
                     }
                 }
@@ -187,7 +317,7 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/repositories.ErrorResponse"
+                            "$ref": "#/definitions/types.ErrorResponse"
                         }
                     }
                 }
@@ -195,144 +325,1075 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "db.CodeCov": {
+        "jira.AffectsVersion": {
             "type": "object",
             "properties": {
-                "coverage_percentage": {
-                    "description": "CoveragePercentage holds the value of the \"coverage_percentage\" field.",
-                    "type": "number"
+                "archived": {
+                    "type": "boolean"
                 },
-                "edges": {
-                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the CodeCovQuery when eager-loading is set.",
-                    "$ref": "#/definitions/db.CodeCovEdges"
-                },
-                "git_organization": {
-                    "description": "GitOrganization holds the value of the \"git_organization\" field.",
+                "description": {
                     "type": "string"
                 },
                 "id": {
-                    "description": "ID of the ent.",
                     "type": "string"
                 },
-                "repository_name": {
-                    "description": "RepositoryName holds the value of the \"repository_name\" field.",
+                "name": {
+                    "type": "string"
+                },
+                "projectId": {
+                    "description": "Unlike other IDs, this is returned as a number",
+                    "type": "integer"
+                },
+                "releaseDate": {
+                    "type": "string"
+                },
+                "released": {
+                    "type": "boolean"
+                },
+                "self": {
+                    "type": "string"
+                },
+                "startDate": {
+                    "type": "string"
+                },
+                "userReleaseDate": {
                     "type": "string"
                 }
             }
         },
-        "db.CodeCovEdges": {
+        "jira.Attachment": {
             "type": "object",
             "properties": {
-                "codecov": {
-                    "description": "Codecov holds the value of the codecov edge.",
-                    "$ref": "#/definitions/db.Repository"
+                "author": {
+                    "$ref": "#/definitions/jira.User"
+                },
+                "content": {
+                    "type": "string"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "filename": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "mimeType": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "thumbnail": {
+                    "type": "string"
                 }
             }
         },
-        "db.Repository": {
+        "jira.AvatarUrls": {
+            "type": "object",
+            "properties": {
+                "16x16": {
+                    "type": "string"
+                },
+                "24x24": {
+                    "type": "string"
+                },
+                "32x32": {
+                    "type": "string"
+                },
+                "48x48": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.Changelog": {
+            "type": "object",
+            "properties": {
+                "histories": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.ChangelogHistory"
+                    }
+                }
+            }
+        },
+        "jira.ChangelogHistory": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/jira.User"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.ChangelogItems"
+                    }
+                }
+            }
+        },
+        "jira.ChangelogItems": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "fieldtype": {
+                    "type": "string"
+                },
+                "from": {},
+                "fromString": {
+                    "type": "string"
+                },
+                "to": {},
+                "toString": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.Comment": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/jira.User"
+                },
+                "body": {
+                    "type": "string"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string"
+                },
+                "updateAuthor": {
+                    "$ref": "#/definitions/jira.User"
+                },
+                "updated": {
+                    "type": "string"
+                },
+                "visibility": {
+                    "$ref": "#/definitions/jira.CommentVisibility"
+                }
+            }
+        },
+        "jira.CommentVisibility": {
+            "type": "object",
+            "properties": {
+                "type": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.Comments": {
+            "type": "object",
+            "properties": {
+                "comments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.Comment"
+                    }
+                }
+            }
+        },
+        "jira.Component": {
             "type": "object",
             "properties": {
                 "description": {
-                    "description": "Description holds the value of the \"description\" field.",
-                    "type": "string"
-                },
-                "edges": {
-                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the RepositoryQuery when eager-loading is set.",
-                    "$ref": "#/definitions/db.RepositoryEdges"
-                },
-                "git_organization": {
-                    "description": "GitOrganization holds the value of the \"git_organization\" field.",
-                    "type": "string"
-                },
-                "git_url": {
-                    "description": "GitURL holds the value of the \"git_url\" field.",
                     "type": "string"
                 },
                 "id": {
-                    "description": "ID of the ent.",
                     "type": "string"
                 },
-                "repository_name": {
-                    "description": "RepositoryName holds the value of the \"repository_name\" field.",
+                "name": {
+                    "type": "string"
+                },
+                "self": {
                     "type": "string"
                 }
             }
         },
-        "db.RepositoryEdges": {
+        "jira.EntityProperty": {
             "type": "object",
             "properties": {
-                "codecov": {
-                    "description": "Codecov holds the value of the codecov edge.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/db.CodeCov"
-                    }
+                "key": {
+                    "type": "string"
                 },
-                "workflows": {
-                    "description": "Workflows holds the value of the workflows edge.",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/db.Workflows"
-                    }
-                }
+                "value": {}
             }
         },
-        "db.Workflows": {
+        "jira.Epic": {
             "type": "object",
             "properties": {
-                "badge_url": {
-                    "description": "BadgeURL holds the value of the \"badge_url\" field.",
-                    "type": "string"
-                },
-                "edges": {
-                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the WorkflowsQuery when eager-loading is set.",
-                    "$ref": "#/definitions/db.WorkflowsEdges"
-                },
-                "html_url": {
-                    "description": "HTMLURL holds the value of the \"html_url\" field.",
-                    "type": "string"
+                "done": {
+                    "type": "boolean"
                 },
                 "id": {
-                    "description": "ID of the ent.",
                     "type": "integer"
                 },
-                "job_url": {
-                    "description": "JobURL holds the value of the \"job_url\" field.",
+                "key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string"
+                },
+                "summary": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.FixVersion": {
+            "type": "object",
+            "properties": {
+                "archived": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "projectId": {
+                    "description": "Unlike other IDs, this is returned as a number",
+                    "type": "integer"
+                },
+                "releaseDate": {
+                    "type": "string"
+                },
+                "released": {
+                    "type": "boolean"
+                },
+                "self": {
+                    "type": "string"
+                },
+                "startDate": {
+                    "type": "string"
+                },
+                "userReleaseDate": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.Issue": {
+            "type": "object",
+            "properties": {
+                "changelog": {
+                    "$ref": "#/definitions/jira.Changelog"
+                },
+                "expand": {
+                    "type": "string"
+                },
+                "fields": {
+                    "$ref": "#/definitions/jira.IssueFields"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "names": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "renderedFields": {
+                    "$ref": "#/definitions/jira.IssueRenderedFields"
+                },
+                "self": {
+                    "type": "string"
+                },
+                "transitions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.Transition"
+                    }
+                }
+            }
+        },
+        "jira.IssueFields": {
+            "type": "object",
+            "properties": {
+                "Creator": {
+                    "$ref": "#/definitions/jira.User"
+                },
+                "aggregateprogress": {
+                    "$ref": "#/definitions/jira.Progress"
+                },
+                "aggregatetimeestimate": {
+                    "type": "integer"
+                },
+                "aggregatetimeoriginalestimate": {
+                    "type": "integer"
+                },
+                "aggregatetimespent": {
+                    "type": "integer"
+                },
+                "assignee": {
+                    "$ref": "#/definitions/jira.User"
+                },
+                "attachment": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.Attachment"
+                    }
+                },
+                "comment": {
+                    "$ref": "#/definitions/jira.Comments"
+                },
+                "components": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.Component"
+                    }
+                },
+                "created": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duedate": {
+                    "type": "string"
+                },
+                "environment": {
+                    "type": "string"
+                },
+                "epic": {
+                    "$ref": "#/definitions/jira.Epic"
+                },
+                "expand": {
+                    "description": "TODO Missing fields\n     * \"workratio\": -1,\n     * \"lastViewed\": null,\n     * \"environment\": null,",
+                    "type": "string"
+                },
+                "fixVersions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.FixVersion"
+                    }
+                },
+                "issuelinks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.IssueLink"
+                    }
+                },
+                "issuetype": {
+                    "$ref": "#/definitions/jira.IssueType"
+                },
+                "labels": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "parent": {
+                    "$ref": "#/definitions/jira.Parent"
+                },
+                "priority": {
+                    "$ref": "#/definitions/jira.Priority"
+                },
+                "progress": {
+                    "$ref": "#/definitions/jira.Progress"
+                },
+                "project": {
+                    "$ref": "#/definitions/jira.Project"
+                },
+                "reporter": {
+                    "$ref": "#/definitions/jira.User"
+                },
+                "resolution": {
+                    "$ref": "#/definitions/jira.Resolution"
+                },
+                "resolutiondate": {
+                    "type": "string"
+                },
+                "sprint": {
+                    "$ref": "#/definitions/jira.Sprint"
+                },
+                "status": {
+                    "$ref": "#/definitions/jira.Status"
+                },
+                "subtasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.Subtasks"
+                    }
+                },
+                "summary": {
+                    "type": "string"
+                },
+                "timeestimate": {
+                    "type": "integer"
+                },
+                "timeoriginalestimate": {
+                    "type": "integer"
+                },
+                "timespent": {
+                    "type": "integer"
+                },
+                "timetracking": {
+                    "$ref": "#/definitions/jira.TimeTracking"
+                },
+                "unknowns": {
+                    "$ref": "#/definitions/tcontainer.MarshalMap"
+                },
+                "updated": {
+                    "type": "string"
+                },
+                "versions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.AffectsVersion"
+                    }
+                },
+                "watches": {
+                    "$ref": "#/definitions/jira.Watches"
+                },
+                "worklog": {
+                    "$ref": "#/definitions/jira.Worklog"
+                }
+            }
+        },
+        "jira.IssueLink": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "$ref": "#/definitions/jira.Comment"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "inwardIssue": {
+                    "$ref": "#/definitions/jira.Issue"
+                },
+                "outwardIssue": {
+                    "$ref": "#/definitions/jira.Issue"
+                },
+                "self": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/jira.IssueLinkType"
+                }
+            }
+        },
+        "jira.IssueLinkType": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "inward": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "outward": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.IssueRenderedFields": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "$ref": "#/definitions/jira.Comments"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duedate": {
+                    "type": "string"
+                },
+                "resolutiondate": {
+                    "description": "TODO Missing fields\n     * \"aggregatetimespent\": null,\n     * \"workratio\": -1,\n     * \"lastViewed\": null,\n     * \"aggregatetimeoriginalestimate\": null,\n     * \"aggregatetimeestimate\": null,\n     * \"environment\": null,",
+                    "type": "string"
+                },
+                "updated": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.IssueType": {
+            "type": "object",
+            "properties": {
+                "avatarId": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "iconUrl": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string"
+                },
+                "subtask": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "jira.Parent": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.Priority": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "iconUrl": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string"
+                },
+                "statusColor": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.Progress": {
+            "type": "object",
+            "properties": {
+                "percent": {
+                    "type": "integer"
+                },
+                "progress": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "jira.Project": {
+            "type": "object",
+            "properties": {
+                "assigneeType": {
+                    "type": "string"
+                },
+                "avatarUrls": {
+                    "$ref": "#/definitions/jira.AvatarUrls"
+                },
+                "components": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.ProjectComponent"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "expand": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "issueTypes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.IssueType"
+                    }
+                },
+                "key": {
+                    "type": "string"
+                },
+                "lead": {
+                    "$ref": "#/definitions/jira.User"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "projectCategory": {
+                    "$ref": "#/definitions/jira.ProjectCategory"
+                },
+                "roles": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "self": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "versions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.Version"
+                    }
+                }
+            }
+        },
+        "jira.ProjectCategory": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.ProjectComponent": {
+            "type": "object",
+            "properties": {
+                "assignee": {
+                    "$ref": "#/definitions/jira.User"
+                },
+                "assigneeType": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isAssigneeTypeValid": {
+                    "type": "boolean"
+                },
+                "lead": {
+                    "$ref": "#/definitions/jira.User"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "project": {
+                    "type": "string"
+                },
+                "projectId": {
+                    "type": "integer"
+                },
+                "realAssignee": {
+                    "$ref": "#/definitions/jira.User"
+                },
+                "realAssigneeType": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.Resolution": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.Sprint": {
+            "type": "object",
+            "properties": {
+                "completeDate": {
+                    "type": "string"
+                },
+                "endDate": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "originBoardId": {
+                    "type": "integer"
+                },
+                "self": {
+                    "type": "string"
+                },
+                "startDate": {
                     "type": "string"
                 },
                 "state": {
-                    "description": "State holds the value of the \"state\" field.",
-                    "type": "string"
-                },
-                "workflow_id": {
-                    "description": "WorkflowID holds the value of the \"workflow_id\" field.",
-                    "type": "string"
-                },
-                "workflow_name": {
-                    "description": "WorkflowName holds the value of the \"workflow_name\" field.",
                     "type": "string"
                 }
             }
         },
-        "db.WorkflowsEdges": {
+        "jira.Status": {
             "type": "object",
             "properties": {
-                "workflows": {
-                    "description": "Workflows holds the value of the workflows edge.",
-                    "$ref": "#/definitions/db.Repository"
+                "description": {
+                    "type": "string"
+                },
+                "iconUrl": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string"
+                },
+                "statusCategory": {
+                    "$ref": "#/definitions/jira.StatusCategory"
                 }
             }
         },
-        "repositories.ErrorResponse": {
+        "jira.StatusCategory": {
             "type": "object",
             "properties": {
-                "message": {
-                    "description": "The error message.\nRequired: true",
+                "colorName": {
                     "type": "string"
                 },
-                "statusCode": {
-                    "description": "The error message.\nRequired: false",
+                "id": {
                     "type": "integer"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.Subtasks": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "$ref": "#/definitions/jira.IssueFields"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.TimeTracking": {
+            "type": "object",
+            "properties": {
+                "originalEstimate": {
+                    "type": "string"
+                },
+                "originalEstimateSeconds": {
+                    "type": "integer"
+                },
+                "remainingEstimate": {
+                    "type": "string"
+                },
+                "remainingEstimateSeconds": {
+                    "type": "integer"
+                },
+                "timeSpent": {
+                    "type": "string"
+                },
+                "timeSpentSeconds": {
+                    "type": "integer"
+                }
+            }
+        },
+        "jira.Transition": {
+            "type": "object",
+            "properties": {
+                "fields": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/jira.TransitionField"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "to": {
+                    "$ref": "#/definitions/jira.Status"
+                }
+            }
+        },
+        "jira.TransitionField": {
+            "type": "object",
+            "properties": {
+                "required": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "jira.User": {
+            "type": "object",
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                },
+                "accountType": {
+                    "type": "string"
+                },
+                "active": {
+                    "type": "boolean"
+                },
+                "applicationKeys": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "avatarUrls": {
+                    "$ref": "#/definitions/jira.AvatarUrls"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "emailAddress": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "locale": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string"
+                },
+                "timeZone": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.Version": {
+            "type": "object",
+            "properties": {
+                "archived": {
+                    "type": "boolean"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "projectId": {
+                    "description": "Unlike other IDs, this is returned as a number",
+                    "type": "integer"
+                },
+                "releaseDate": {
+                    "type": "string"
+                },
+                "released": {
+                    "type": "boolean"
+                },
+                "self": {
+                    "type": "string"
+                },
+                "startDate": {
+                    "type": "string"
+                },
+                "userReleaseDate": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.Watcher": {
+            "type": "object",
+            "properties": {
+                "accountId": {
+                    "type": "string"
+                },
+                "active": {
+                    "type": "boolean"
+                },
+                "displayName": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "self": {
+                    "type": "string"
+                }
+            }
+        },
+        "jira.Watches": {
+            "type": "object",
+            "properties": {
+                "isWatching": {
+                    "type": "boolean"
+                },
+                "self": {
+                    "type": "string"
+                },
+                "watchCount": {
+                    "type": "integer"
+                },
+                "watchers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.Watcher"
+                    }
+                }
+            }
+        },
+        "jira.Worklog": {
+            "type": "object",
+            "properties": {
+                "maxResults": {
+                    "type": "integer"
+                },
+                "startAt": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                },
+                "worklogs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.WorklogRecord"
+                    }
+                }
+            }
+        },
+        "jira.WorklogRecord": {
+            "type": "object",
+            "properties": {
+                "author": {
+                    "$ref": "#/definitions/jira.User"
+                },
+                "comment": {
+                    "type": "string"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "issueId": {
+                    "type": "string"
+                },
+                "properties": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/jira.EntityProperty"
+                    }
+                },
+                "self": {
+                    "type": "string"
+                },
+                "started": {
+                    "type": "string"
+                },
+                "timeSpent": {
+                    "type": "string"
+                },
+                "timeSpentSeconds": {
+                    "type": "integer"
+                },
+                "updateAuthor": {
+                    "$ref": "#/definitions/jira.User"
+                },
+                "updated": {
+                    "type": "string"
+                }
+            }
+        },
+        "prow.GitRepositoryRequest": {
+            "type": "object",
+            "properties": {
+                "git_organization": {
+                    "type": "string"
+                },
+                "repository_name": {
+                    "type": "string"
                 }
             }
         },
@@ -380,15 +1441,6 @@ const docTemplate = `{
             "properties": {
                 "monitor": {
                     "type": "boolean"
-                }
-            }
-        },
-        "repositories.SuccessResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "description": "The error message.\nRequired: true",
-                    "type": "string"
                 }
             }
         },
@@ -453,6 +1505,36 @@ const docTemplate = `{
                 "repository_name": {
                     "description": "RepositoryName identify an github repository",
                     "type": "string"
+                }
+            }
+        },
+        "tcontainer.MarshalMap": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "types.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "The error message.\nRequired: true",
+                    "type": "string"
+                },
+                "statusCode": {
+                    "description": "The error message.\nRequired: false",
+                    "type": "integer"
+                }
+            }
+        },
+        "types.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "The message.\nRequired: true",
+                    "type": "string"
+                },
+                "statusCode": {
+                    "description": "The error message.\nRequired: false",
+                    "type": "integer"
                 }
             }
         },

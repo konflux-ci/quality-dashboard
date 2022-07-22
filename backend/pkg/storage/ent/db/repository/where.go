@@ -5,8 +5,8 @@ package repository
 import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 )
 
 // ID filters vertices based on their ID field.
@@ -611,6 +611,34 @@ func HasCodecovWith(preds ...predicate.CodeCov) predicate.Repository {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(CodecovInverseTable, CodeCovFieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, CodecovTable, CodecovColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasProw applies the HasEdge predicate on the "prow" edge.
+func HasProw() predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ProwTable, ProwFieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ProwTable, ProwColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProwWith applies the HasEdge predicate on the "prow" edge with a given conditions (other predicates).
+func HasProwWith(preds ...predicate.Prow) predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ProwInverseTable, ProwFieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ProwTable, ProwColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

@@ -18,12 +18,11 @@ type rotationStrategy struct {
 
 // startUpdateCache begins repo information rotation in a new goroutine, closing once the context is canceled.
 func (s *Server) startUpdateStorage(ctx context.Context, strategy rotationStrategy, now func() time.Time) {
-	// Try to rotate immediately so properly configured repositories.
-	if err := s.rotate(); err != nil {
-		s.cfg.Logger.Sugar().Infof("Update failed: %v", err)
-	}
-
 	go func() {
+		// Try to rotate immediately so properly configured repositories.
+		if err := s.rotate(); err != nil {
+			s.cfg.Logger.Sugar().Infof("Update failed: %v", err)
+		}
 		for {
 			select {
 			case <-ctx.Done():

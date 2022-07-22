@@ -22,7 +22,9 @@ type Storage interface {
 	Close() error
 
 	// GET
-	GetRepository(repositoryName string, gitOrganizationName string) (*RepositoryQualityInfo, error)
+	GetRepository(repositoryName string, gitOrganizationName string) (*db.Repository, error)
+	GetProwJobsResults(*db.Repository) ([]*db.Prow, error)
+	GetProwJobsResultsByJobID(jobID string) ([]*db.Prow, error)
 	ListRepositories() ([]Repository, error)
 	ListWorkflowsByRepository(repositoryName string) (w []GithubWorkflows, err error)
 	ListRepositoriesQualityInfo() ([]RepositoryQualityInfo, error)
@@ -34,7 +36,7 @@ type Storage interface {
 
 	// POST
 	CreateCoverage(p Coverage, repo_id uuid.UUID) error
-
+	CreateProwJobResults(repository ProwJob, repo_id uuid.UUID) error
 	// Delete
 	ReCreateWorkflow(workflow GithubWorkflows, repoName string) error
 	UpdateCoverage(codecov Coverage, repoName string) error
@@ -77,6 +79,17 @@ type Coverage struct {
 	GitOrganization string `json:"git_organization"`
 
 	CoveragePercentage float64 `json:"coverage_percentage"`
+}
+
+// Repository is an github repository info managed by the storage.
+type ProwJob struct {
+	JobID string `json:"job_id"`
+
+	TestCaseName string `json:"test_name"`
+
+	TestCaseStatus string `json:"test_status"`
+
+	TestTiming string `json:"test_timing"`
 }
 
 // Repository is an github repository info managed by the storage.
