@@ -30,7 +30,7 @@ func (Prow) Fields() []ent.Field {
 			SchemaType(textSchema),
 		field.Text("Status").
 			SchemaType(textSchema),
-		field.Text("time").
+		field.Float("time").
 			SchemaType(textSchema),
 	}
 }

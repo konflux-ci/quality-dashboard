@@ -5,10 +5,8 @@ import { Dashboard } from '@app/Dashboard/Dashboard';
 import { Support } from '@app/Support/Support';
 import { GeneralSettings } from '@app/Settings/General/GeneralSettings';
 import { ProfileSettings } from '@app/Settings/Profile/ProfileSettings';
-import { NotFound } from '@app/NotFound/NotFound';
 import { useDocumentTitle } from '@app/utils/useDocumentTitle';
 import { LastLocationProvider, useLastLocation } from 'react-router-last-location';
-import { Repositories } from './Repositories/Repositories';
 import { JobsComponent } from './Jobs/Jobs';
 
 let routeFocusTimer: number;
@@ -40,7 +38,7 @@ const routes: AppRouteConfig[] = [
         exact: true,
         label: 'Overview',
         path: '/home/overview',
-        title: 'Quality Dashboard | Overview',
+        title: 'Quality Studio | Overview',
       },
     ],
   },

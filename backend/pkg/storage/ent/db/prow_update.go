@@ -47,8 +47,15 @@ func (pu *ProwUpdate) SetStatus(s string) *ProwUpdate {
 }
 
 // SetTime sets the "time" field.
-func (pu *ProwUpdate) SetTime(s string) *ProwUpdate {
-	pu.mutation.SetTime(s)
+func (pu *ProwUpdate) SetTime(f float64) *ProwUpdate {
+	pu.mutation.ResetTime()
+	pu.mutation.SetTime(f)
+	return pu
+}
+
+// AddTime adds f to the "time" field.
+func (pu *ProwUpdate) AddTime(f float64) *ProwUpdate {
+	pu.mutation.AddTime(f)
 	return pu
 }
 
@@ -177,7 +184,14 @@ func (pu *ProwUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pu.mutation.Time(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeFloat64,
+			Value:  value,
+			Column: prow.FieldTime,
+		})
+	}
+	if value, ok := pu.mutation.AddedTime(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
 			Value:  value,
 			Column: prow.FieldTime,
 		})
@@ -255,8 +269,15 @@ func (puo *ProwUpdateOne) SetStatus(s string) *ProwUpdateOne {
 }
 
 // SetTime sets the "time" field.
-func (puo *ProwUpdateOne) SetTime(s string) *ProwUpdateOne {
-	puo.mutation.SetTime(s)
+func (puo *ProwUpdateOne) SetTime(f float64) *ProwUpdateOne {
+	puo.mutation.ResetTime()
+	puo.mutation.SetTime(f)
+	return puo
+}
+
+// AddTime adds f to the "time" field.
+func (puo *ProwUpdateOne) AddTime(f float64) *ProwUpdateOne {
+	puo.mutation.AddTime(f)
 	return puo
 }
 
@@ -409,7 +430,14 @@ func (puo *ProwUpdateOne) sqlSave(ctx context.Context) (_node *Prow, err error) 
 	}
 	if value, ok := puo.mutation.Time(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeFloat64,
+			Value:  value,
+			Column: prow.FieldTime,
+		})
+	}
+	if value, ok := puo.mutation.AddedTime(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
 			Value:  value,
 			Column: prow.FieldTime,
 		})

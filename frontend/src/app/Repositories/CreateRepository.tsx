@@ -112,7 +112,7 @@ export const FormModal = ()=> {
         <Modal
          variant={ModalVariant.medium}
           title={ !modalContext.isEditRepo.value ? "Add new git repository" : "Update git repository" }
-          description={ !modalContext.isEditRepo.value ? "Enter a new git repository to obtain information in the quality dashboard." : ""}
+          description={ !modalContext.isEditRepo.value ? "Enter a new git repository to obtain information in the quality quality studio." : ""}
           isOpen={modalContext.isModalOpen.value}
           onClose={modalContext.handleModalToggle}
           actions={[

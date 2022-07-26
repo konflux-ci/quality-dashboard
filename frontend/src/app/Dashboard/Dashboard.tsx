@@ -9,9 +9,9 @@ import {
   TextContent,
   Text,
   Title,
-  DescriptionList, DescriptionListGroup, DescriptionListTerm, DescriptionListDescription
+  DescriptionList, DescriptionListGroup, DescriptionListTerm, DescriptionListDescription, Button, ButtonVariant
 } from '@patternfly/react-core';
-import { ExternalLinkAltIcon } from '@patternfly/react-icons';
+import { ExternalLinkAltIcon, PlusIcon } from '@patternfly/react-icons';
 import { getVersion } from '@app/utils/APIService';
 import { Context } from "src/app/store/store";
 import { RepositoriesTable } from '@app/Repositories/RepositoriesTable';
@@ -42,9 +42,16 @@ export const Dashboard = () => {
           backgroundColor : "black",
           opacity: '0.9'
         }} variant={PageSectionVariants.light}>
-          <TextContent style={{color: "white"}}>
-            <Text component="h2">Red Hat App Studio Quality Dashboard</Text>
-            <Text component="p">This is a demo that show app studio quality status.</Text>
+          <TextContent style={{color: "white", display:"inline"}}>
+            <div style={{float: "left", }}>
+              <Text component="h2">Red Hat Quality Studio</Text>
+              <Text component="p">Team X component quality.</Text>
+            </div>
+            <div style={{float: "right"}}>
+              <Button variant={ButtonVariant.primary}>
+                <PlusIcon /> &nbsp; Onboard Team
+              </Button>
+            </div>
           </TextContent>
         </PageSection>
           <PageSection >
@@ -52,25 +59,25 @@ export const Dashboard = () => {
             <Card style={{width: "35%"}}>
               <CardTitle>
                 <Title headingLevel="h1" size="xl">
-                  Red Hat App Studio Details
+                  Red Hat Quality Studio Status
                 </Title>
               </CardTitle>
               <CardBody>
                 <DescriptionList>
                 <DescriptionListGroup>
-                    <DescriptionListTerm>Quality Dashboard version</DescriptionListTerm>
+                    <DescriptionListTerm>Quality Studio version</DescriptionListTerm>
                     <DescriptionListDescription>
                       <span>{dashboardVersion}</span>
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>
-                    <DescriptionListTerm>Staging Version</DescriptionListTerm>
+                    <DescriptionListTerm>Server API Status</DescriptionListTerm>
                     <DescriptionListDescription>
                       <span>Unknown Version</span>
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>
-                    <DescriptionListTerm>Production Version</DescriptionListTerm>
+                    <DescriptionListTerm>Database Status</DescriptionListTerm>
                     <DescriptionListDescription>Unknown Version</DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>
@@ -92,7 +99,7 @@ export const Dashboard = () => {
         <PageSection style={{
         minHeight : "12%"
       }}>
-        <RepositoriesTable showTableToolbar={true} showCoverage={true} showDiscription={true} enableFiltersOnTheseColumns={['repository_name', 'git_organization']}></RepositoriesTable>
+        <RepositoriesTable showTableToolbar={true} showCoverage={true} showDiscription={true} enableFiltersOnTheseColumns={['git_organization']}></RepositoriesTable>
       </PageSection>
     </React.Fragment>
   );

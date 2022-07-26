@@ -552,7 +552,8 @@ type ProwMutation struct {
 	job_id        *string
 	_Name         *string
 	_Status       *string
-	time          *string
+	time          *float64
+	addtime       *float64
 	clearedFields map[string]struct{}
 	prow          *uuid.UUID
 	clearedprow   bool
@@ -749,12 +750,13 @@ func (m *ProwMutation) ResetStatus() {
 }
 
 // SetTime sets the "time" field.
-func (m *ProwMutation) SetTime(s string) {
-	m.time = &s
+func (m *ProwMutation) SetTime(f float64) {
+	m.time = &f
+	m.addtime = nil
 }
 
 // Time returns the value of the "time" field in the mutation.
-func (m *ProwMutation) Time() (r string, exists bool) {
+func (m *ProwMutation) Time() (r float64, exists bool) {
 	v := m.time
 	if v == nil {
 		return
@@ -765,7 +767,7 @@ func (m *ProwMutation) Time() (r string, exists bool) {
 // OldTime returns the old "time" field's value of the Prow entity.
 // If the Prow object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProwMutation) OldTime(ctx context.Context) (v string, err error) {
+func (m *ProwMutation) OldTime(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldTime is only allowed on UpdateOne operations")
 	}
@@ -779,9 +781,28 @@ func (m *ProwMutation) OldTime(ctx context.Context) (v string, err error) {
 	return oldValue.Time, nil
 }
 
+// AddTime adds f to the "time" field.
+func (m *ProwMutation) AddTime(f float64) {
+	if m.addtime != nil {
+		*m.addtime += f
+	} else {
+		m.addtime = &f
+	}
+}
+
+// AddedTime returns the value that was added to the "time" field in this mutation.
+func (m *ProwMutation) AddedTime() (r float64, exists bool) {
+	v := m.addtime
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
 // ResetTime resets all changes to the "time" field.
 func (m *ProwMutation) ResetTime() {
 	m.time = nil
+	m.addtime = nil
 }
 
 // SetProwID sets the "prow" edge to the Repository entity by id.
@@ -919,7 +940,7 @@ func (m *ProwMutation) SetField(name string, value ent.Value) error {
 		m.SetStatus(v)
 		return nil
 	case prow.FieldTime:
-		v, ok := value.(string)
+		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -932,13 +953,21 @@ func (m *ProwMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *ProwMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addtime != nil {
+		fields = append(fields, prow.FieldTime)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *ProwMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case prow.FieldTime:
+		return m.AddedTime()
+	}
 	return nil, false
 }
 
@@ -947,6 +976,13 @@ func (m *ProwMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *ProwMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case prow.FieldTime:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTime(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Prow numeric field %s", name)
 }

@@ -89,7 +89,7 @@ type ProwJob struct {
 
 	TestCaseStatus string `json:"test_status"`
 
-	TestTiming string `json:"test_timing"`
+	TestTiming float64 `json:"test_timing"`
 }
 
 // Repository is an github repository info managed by the storage.

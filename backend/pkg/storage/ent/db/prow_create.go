@@ -40,8 +40,8 @@ func (pc *ProwCreate) SetStatus(s string) *ProwCreate {
 }
 
 // SetTime sets the "time" field.
-func (pc *ProwCreate) SetTime(s string) *ProwCreate {
-	pc.mutation.SetTime(s)
+func (pc *ProwCreate) SetTime(f float64) *ProwCreate {
+	pc.mutation.SetTime(f)
 	return pc
 }
 
@@ -199,7 +199,7 @@ func (pc *ProwCreate) createSpec() (*Prow, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := pc.mutation.Time(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeFloat64,
 			Value:  value,
 			Column: prow.FieldTime,
 		})

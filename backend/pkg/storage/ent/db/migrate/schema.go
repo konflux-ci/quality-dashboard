@@ -36,7 +36,7 @@ var (
 		{Name: "job_id", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "name", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "status", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
-		{Name: "time", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "time", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "repository_prow", Type: field.TypeUUID, Nullable: true},
 	}
 	// ProwsTable holds the schema information for the "prows" table.

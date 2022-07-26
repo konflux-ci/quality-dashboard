@@ -113,7 +113,7 @@ func Status(v string) predicate.Prow {
 }
 
 // Time applies equality check predicate on the "time" field. It's identical to TimeEQ.
-func Time(v string) predicate.Prow {
+func Time(v float64) predicate.Prow {
 	return predicate.Prow(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldTime), v))
 	})
@@ -453,21 +453,21 @@ func StatusContainsFold(v string) predicate.Prow {
 }
 
 // TimeEQ applies the EQ predicate on the "time" field.
-func TimeEQ(v string) predicate.Prow {
+func TimeEQ(v float64) predicate.Prow {
 	return predicate.Prow(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldTime), v))
 	})
 }
 
 // TimeNEQ applies the NEQ predicate on the "time" field.
-func TimeNEQ(v string) predicate.Prow {
+func TimeNEQ(v float64) predicate.Prow {
 	return predicate.Prow(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldTime), v))
 	})
 }
 
 // TimeIn applies the In predicate on the "time" field.
-func TimeIn(vs ...string) predicate.Prow {
+func TimeIn(vs ...float64) predicate.Prow {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -484,7 +484,7 @@ func TimeIn(vs ...string) predicate.Prow {
 }
 
 // TimeNotIn applies the NotIn predicate on the "time" field.
-func TimeNotIn(vs ...string) predicate.Prow {
+func TimeNotIn(vs ...float64) predicate.Prow {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -501,65 +501,30 @@ func TimeNotIn(vs ...string) predicate.Prow {
 }
 
 // TimeGT applies the GT predicate on the "time" field.
-func TimeGT(v string) predicate.Prow {
+func TimeGT(v float64) predicate.Prow {
 	return predicate.Prow(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldTime), v))
 	})
 }
 
 // TimeGTE applies the GTE predicate on the "time" field.
-func TimeGTE(v string) predicate.Prow {
+func TimeGTE(v float64) predicate.Prow {
 	return predicate.Prow(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldTime), v))
 	})
 }
 
 // TimeLT applies the LT predicate on the "time" field.
-func TimeLT(v string) predicate.Prow {
+func TimeLT(v float64) predicate.Prow {
 	return predicate.Prow(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldTime), v))
 	})
 }
 
 // TimeLTE applies the LTE predicate on the "time" field.
-func TimeLTE(v string) predicate.Prow {
+func TimeLTE(v float64) predicate.Prow {
 	return predicate.Prow(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldTime), v))
-	})
-}
-
-// TimeContains applies the Contains predicate on the "time" field.
-func TimeContains(v string) predicate.Prow {
-	return predicate.Prow(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldTime), v))
-	})
-}
-
-// TimeHasPrefix applies the HasPrefix predicate on the "time" field.
-func TimeHasPrefix(v string) predicate.Prow {
-	return predicate.Prow(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldTime), v))
-	})
-}
-
-// TimeHasSuffix applies the HasSuffix predicate on the "time" field.
-func TimeHasSuffix(v string) predicate.Prow {
-	return predicate.Prow(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldTime), v))
-	})
-}
-
-// TimeEqualFold applies the EqualFold predicate on the "time" field.
-func TimeEqualFold(v string) predicate.Prow {
-	return predicate.Prow(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldTime), v))
-	})
-}
-
-// TimeContainsFold applies the ContainsFold predicate on the "time" field.
-func TimeContainsFold(v string) predicate.Prow {
-	return predicate.Prow(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldTime), v))
 	})
 }
 

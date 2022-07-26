@@ -24,7 +24,7 @@ type Prow struct {
 	// Status holds the value of the "Status" field.
 	Status string `json:"Status,omitempty"`
 	// Time holds the value of the "time" field.
-	Time string `json:"time,omitempty"`
+	Time float64 `json:"time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProwQuery when eager-loading is set.
 	Edges           ProwEdges `json:"edges"`
@@ -59,9 +59,11 @@ func (*Prow) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case prow.FieldTime:
+			values[i] = new(sql.NullFloat64)
 		case prow.FieldID:
 			values[i] = new(sql.NullInt64)
-		case prow.FieldJobID, prow.FieldName, prow.FieldStatus, prow.FieldTime:
+		case prow.FieldJobID, prow.FieldName, prow.FieldStatus:
 			values[i] = new(sql.NullString)
 		case prow.ForeignKeys[0]: // repository_prow
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
@@ -105,10 +107,10 @@ func (pr *Prow) assignValues(columns []string, values []interface{}) error {
 				pr.Status = value.String
 			}
 		case prow.FieldTime:
-			if value, ok := values[i].(*sql.NullString); !ok {
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field time", values[i])
 			} else if value.Valid {
-				pr.Time = value.String
+				pr.Time = value.Float64
 			}
 		case prow.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -157,7 +159,7 @@ func (pr *Prow) String() string {
 	builder.WriteString(", Status=")
 	builder.WriteString(pr.Status)
 	builder.WriteString(", time=")
-	builder.WriteString(pr.Time)
+	builder.WriteString(fmt.Sprintf("%v", pr.Time))
 	builder.WriteByte(')')
 	return builder.String()
 }
