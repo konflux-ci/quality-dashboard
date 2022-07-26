@@ -6,11 +6,13 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prow"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 
@@ -27,7 +29,8 @@ const (
 
 	// Node types.
 	TypeCodeCov    = "CodeCov"
-	TypeProw       = "Prow"
+	TypeProwJobs   = "ProwJobs"
+	TypeProwSuites = "ProwSuites"
 	TypeRepository = "Repository"
 	TypeWorkflows  = "Workflows"
 )
@@ -543,36 +546,41 @@ func (m *CodeCovMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown CodeCov edge %s", name)
 }
 
-// ProwMutation represents an operation that mutates the Prow nodes in the graph.
-type ProwMutation struct {
+// ProwJobsMutation represents an operation that mutates the ProwJobs nodes in the graph.
+type ProwJobsMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	job_id        *string
-	_Name         *string
-	_Status       *string
-	time          *float64
-	addtime       *float64
-	clearedFields map[string]struct{}
-	prow          *uuid.UUID
-	clearedprow   bool
-	done          bool
-	oldValue      func(context.Context) (*Prow, error)
-	predicates    []predicate.Prow
+	op               Op
+	typ              string
+	id               *int
+	job_id           *string
+	created_at       *time.Time
+	duration         *float64
+	addduration      *float64
+	tests_count      *int64
+	addtests_count   *int64
+	failed_count     *int64
+	addfailed_count  *int64
+	skipped_count    *int64
+	addskipped_count *int64
+	clearedFields    map[string]struct{}
+	prow_jobs        *uuid.UUID
+	clearedprow_jobs bool
+	done             bool
+	oldValue         func(context.Context) (*ProwJobs, error)
+	predicates       []predicate.ProwJobs
 }
 
-var _ ent.Mutation = (*ProwMutation)(nil)
+var _ ent.Mutation = (*ProwJobsMutation)(nil)
 
-// prowOption allows management of the mutation configuration using functional options.
-type prowOption func(*ProwMutation)
+// prowjobsOption allows management of the mutation configuration using functional options.
+type prowjobsOption func(*ProwJobsMutation)
 
-// newProwMutation creates new mutation for the Prow entity.
-func newProwMutation(c config, op Op, opts ...prowOption) *ProwMutation {
-	m := &ProwMutation{
+// newProwJobsMutation creates new mutation for the ProwJobs entity.
+func newProwJobsMutation(c config, op Op, opts ...prowjobsOption) *ProwJobsMutation {
+	m := &ProwJobsMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeProw,
+		typ:           TypeProwJobs,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -581,20 +589,20 @@ func newProwMutation(c config, op Op, opts ...prowOption) *ProwMutation {
 	return m
 }
 
-// withProwID sets the ID field of the mutation.
-func withProwID(id int) prowOption {
-	return func(m *ProwMutation) {
+// withProwJobsID sets the ID field of the mutation.
+func withProwJobsID(id int) prowjobsOption {
+	return func(m *ProwJobsMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *Prow
+			value *ProwJobs
 		)
-		m.oldValue = func(ctx context.Context) (*Prow, error) {
+		m.oldValue = func(ctx context.Context) (*ProwJobs, error) {
 			once.Do(func() {
 				if m.done {
 					err = fmt.Errorf("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().Prow.Get(ctx, id)
+					value, err = m.Client().ProwJobs.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -603,10 +611,10 @@ func withProwID(id int) prowOption {
 	}
 }
 
-// withProw sets the old Prow of the mutation.
-func withProw(node *Prow) prowOption {
-	return func(m *ProwMutation) {
-		m.oldValue = func(context.Context) (*Prow, error) {
+// withProwJobs sets the old ProwJobs of the mutation.
+func withProwJobs(node *ProwJobs) prowjobsOption {
+	return func(m *ProwJobsMutation) {
+		m.oldValue = func(context.Context) (*ProwJobs, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -615,7 +623,7 @@ func withProw(node *Prow) prowOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m ProwMutation) Client() *Client {
+func (m ProwJobsMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -623,7 +631,7 @@ func (m ProwMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m ProwMutation) Tx() (*Tx, error) {
+func (m ProwJobsMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, fmt.Errorf("db: mutation is not running in a transaction")
 	}
@@ -634,7 +642,7 @@ func (m ProwMutation) Tx() (*Tx, error) {
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *ProwMutation) ID() (id int, exists bool) {
+func (m *ProwJobsMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -642,12 +650,12 @@ func (m *ProwMutation) ID() (id int, exists bool) {
 }
 
 // SetJobID sets the "job_id" field.
-func (m *ProwMutation) SetJobID(s string) {
+func (m *ProwJobsMutation) SetJobID(s string) {
 	m.job_id = &s
 }
 
 // JobID returns the value of the "job_id" field in the mutation.
-func (m *ProwMutation) JobID() (r string, exists bool) {
+func (m *ProwJobsMutation) JobID() (r string, exists bool) {
 	v := m.job_id
 	if v == nil {
 		return
@@ -655,10 +663,10 @@ func (m *ProwMutation) JobID() (r string, exists bool) {
 	return *v, true
 }
 
-// OldJobID returns the old "job_id" field's value of the Prow entity.
-// If the Prow object wasn't provided to the builder, the object is fetched from the database.
+// OldJobID returns the old "job_id" field's value of the ProwJobs entity.
+// If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProwMutation) OldJobID(ctx context.Context) (v string, err error) {
+func (m *ProwJobsMutation) OldJobID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldJobID is only allowed on UpdateOne operations")
 	}
@@ -673,17 +681,778 @@ func (m *ProwMutation) OldJobID(ctx context.Context) (v string, err error) {
 }
 
 // ResetJobID resets all changes to the "job_id" field.
-func (m *ProwMutation) ResetJobID() {
+func (m *ProwJobsMutation) ResetJobID() {
+	m.job_id = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ProwJobsMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ProwJobsMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ProwJobs entity.
+// If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwJobsMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ProwJobsMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetDuration sets the "duration" field.
+func (m *ProwJobsMutation) SetDuration(f float64) {
+	m.duration = &f
+	m.addduration = nil
+}
+
+// Duration returns the value of the "duration" field in the mutation.
+func (m *ProwJobsMutation) Duration() (r float64, exists bool) {
+	v := m.duration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDuration returns the old "duration" field's value of the ProwJobs entity.
+// If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwJobsMutation) OldDuration(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDuration: %w", err)
+	}
+	return oldValue.Duration, nil
+}
+
+// AddDuration adds f to the "duration" field.
+func (m *ProwJobsMutation) AddDuration(f float64) {
+	if m.addduration != nil {
+		*m.addduration += f
+	} else {
+		m.addduration = &f
+	}
+}
+
+// AddedDuration returns the value that was added to the "duration" field in this mutation.
+func (m *ProwJobsMutation) AddedDuration() (r float64, exists bool) {
+	v := m.addduration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetDuration resets all changes to the "duration" field.
+func (m *ProwJobsMutation) ResetDuration() {
+	m.duration = nil
+	m.addduration = nil
+}
+
+// SetTestsCount sets the "tests_count" field.
+func (m *ProwJobsMutation) SetTestsCount(i int64) {
+	m.tests_count = &i
+	m.addtests_count = nil
+}
+
+// TestsCount returns the value of the "tests_count" field in the mutation.
+func (m *ProwJobsMutation) TestsCount() (r int64, exists bool) {
+	v := m.tests_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTestsCount returns the old "tests_count" field's value of the ProwJobs entity.
+// If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwJobsMutation) OldTestsCount(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTestsCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTestsCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTestsCount: %w", err)
+	}
+	return oldValue.TestsCount, nil
+}
+
+// AddTestsCount adds i to the "tests_count" field.
+func (m *ProwJobsMutation) AddTestsCount(i int64) {
+	if m.addtests_count != nil {
+		*m.addtests_count += i
+	} else {
+		m.addtests_count = &i
+	}
+}
+
+// AddedTestsCount returns the value that was added to the "tests_count" field in this mutation.
+func (m *ProwJobsMutation) AddedTestsCount() (r int64, exists bool) {
+	v := m.addtests_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTestsCount resets all changes to the "tests_count" field.
+func (m *ProwJobsMutation) ResetTestsCount() {
+	m.tests_count = nil
+	m.addtests_count = nil
+}
+
+// SetFailedCount sets the "failed_count" field.
+func (m *ProwJobsMutation) SetFailedCount(i int64) {
+	m.failed_count = &i
+	m.addfailed_count = nil
+}
+
+// FailedCount returns the value of the "failed_count" field in the mutation.
+func (m *ProwJobsMutation) FailedCount() (r int64, exists bool) {
+	v := m.failed_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFailedCount returns the old "failed_count" field's value of the ProwJobs entity.
+// If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwJobsMutation) OldFailedCount(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldFailedCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldFailedCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFailedCount: %w", err)
+	}
+	return oldValue.FailedCount, nil
+}
+
+// AddFailedCount adds i to the "failed_count" field.
+func (m *ProwJobsMutation) AddFailedCount(i int64) {
+	if m.addfailed_count != nil {
+		*m.addfailed_count += i
+	} else {
+		m.addfailed_count = &i
+	}
+}
+
+// AddedFailedCount returns the value that was added to the "failed_count" field in this mutation.
+func (m *ProwJobsMutation) AddedFailedCount() (r int64, exists bool) {
+	v := m.addfailed_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFailedCount resets all changes to the "failed_count" field.
+func (m *ProwJobsMutation) ResetFailedCount() {
+	m.failed_count = nil
+	m.addfailed_count = nil
+}
+
+// SetSkippedCount sets the "skipped_count" field.
+func (m *ProwJobsMutation) SetSkippedCount(i int64) {
+	m.skipped_count = &i
+	m.addskipped_count = nil
+}
+
+// SkippedCount returns the value of the "skipped_count" field in the mutation.
+func (m *ProwJobsMutation) SkippedCount() (r int64, exists bool) {
+	v := m.skipped_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSkippedCount returns the old "skipped_count" field's value of the ProwJobs entity.
+// If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwJobsMutation) OldSkippedCount(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldSkippedCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldSkippedCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSkippedCount: %w", err)
+	}
+	return oldValue.SkippedCount, nil
+}
+
+// AddSkippedCount adds i to the "skipped_count" field.
+func (m *ProwJobsMutation) AddSkippedCount(i int64) {
+	if m.addskipped_count != nil {
+		*m.addskipped_count += i
+	} else {
+		m.addskipped_count = &i
+	}
+}
+
+// AddedSkippedCount returns the value that was added to the "skipped_count" field in this mutation.
+func (m *ProwJobsMutation) AddedSkippedCount() (r int64, exists bool) {
+	v := m.addskipped_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetSkippedCount resets all changes to the "skipped_count" field.
+func (m *ProwJobsMutation) ResetSkippedCount() {
+	m.skipped_count = nil
+	m.addskipped_count = nil
+}
+
+// SetProwJobsID sets the "prow_jobs" edge to the Repository entity by id.
+func (m *ProwJobsMutation) SetProwJobsID(id uuid.UUID) {
+	m.prow_jobs = &id
+}
+
+// ClearProwJobs clears the "prow_jobs" edge to the Repository entity.
+func (m *ProwJobsMutation) ClearProwJobs() {
+	m.clearedprow_jobs = true
+}
+
+// ProwJobsCleared reports if the "prow_jobs" edge to the Repository entity was cleared.
+func (m *ProwJobsMutation) ProwJobsCleared() bool {
+	return m.clearedprow_jobs
+}
+
+// ProwJobsID returns the "prow_jobs" edge ID in the mutation.
+func (m *ProwJobsMutation) ProwJobsID() (id uuid.UUID, exists bool) {
+	if m.prow_jobs != nil {
+		return *m.prow_jobs, true
+	}
+	return
+}
+
+// ProwJobsIDs returns the "prow_jobs" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ProwJobsID instead. It exists only for internal usage by the builders.
+func (m *ProwJobsMutation) ProwJobsIDs() (ids []uuid.UUID) {
+	if id := m.prow_jobs; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetProwJobs resets all changes to the "prow_jobs" edge.
+func (m *ProwJobsMutation) ResetProwJobs() {
+	m.prow_jobs = nil
+	m.clearedprow_jobs = false
+}
+
+// Where appends a list predicates to the ProwJobsMutation builder.
+func (m *ProwJobsMutation) Where(ps ...predicate.ProwJobs) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *ProwJobsMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (ProwJobs).
+func (m *ProwJobsMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ProwJobsMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.job_id != nil {
+		fields = append(fields, prowjobs.FieldJobID)
+	}
+	if m.created_at != nil {
+		fields = append(fields, prowjobs.FieldCreatedAt)
+	}
+	if m.duration != nil {
+		fields = append(fields, prowjobs.FieldDuration)
+	}
+	if m.tests_count != nil {
+		fields = append(fields, prowjobs.FieldTestsCount)
+	}
+	if m.failed_count != nil {
+		fields = append(fields, prowjobs.FieldFailedCount)
+	}
+	if m.skipped_count != nil {
+		fields = append(fields, prowjobs.FieldSkippedCount)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ProwJobsMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case prowjobs.FieldJobID:
+		return m.JobID()
+	case prowjobs.FieldCreatedAt:
+		return m.CreatedAt()
+	case prowjobs.FieldDuration:
+		return m.Duration()
+	case prowjobs.FieldTestsCount:
+		return m.TestsCount()
+	case prowjobs.FieldFailedCount:
+		return m.FailedCount()
+	case prowjobs.FieldSkippedCount:
+		return m.SkippedCount()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ProwJobsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case prowjobs.FieldJobID:
+		return m.OldJobID(ctx)
+	case prowjobs.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case prowjobs.FieldDuration:
+		return m.OldDuration(ctx)
+	case prowjobs.FieldTestsCount:
+		return m.OldTestsCount(ctx)
+	case prowjobs.FieldFailedCount:
+		return m.OldFailedCount(ctx)
+	case prowjobs.FieldSkippedCount:
+		return m.OldSkippedCount(ctx)
+	}
+	return nil, fmt.Errorf("unknown ProwJobs field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProwJobsMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case prowjobs.FieldJobID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJobID(v)
+		return nil
+	case prowjobs.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case prowjobs.FieldDuration:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDuration(v)
+		return nil
+	case prowjobs.FieldTestsCount:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTestsCount(v)
+		return nil
+	case prowjobs.FieldFailedCount:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFailedCount(v)
+		return nil
+	case prowjobs.FieldSkippedCount:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSkippedCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProwJobs field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ProwJobsMutation) AddedFields() []string {
+	var fields []string
+	if m.addduration != nil {
+		fields = append(fields, prowjobs.FieldDuration)
+	}
+	if m.addtests_count != nil {
+		fields = append(fields, prowjobs.FieldTestsCount)
+	}
+	if m.addfailed_count != nil {
+		fields = append(fields, prowjobs.FieldFailedCount)
+	}
+	if m.addskipped_count != nil {
+		fields = append(fields, prowjobs.FieldSkippedCount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ProwJobsMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case prowjobs.FieldDuration:
+		return m.AddedDuration()
+	case prowjobs.FieldTestsCount:
+		return m.AddedTestsCount()
+	case prowjobs.FieldFailedCount:
+		return m.AddedFailedCount()
+	case prowjobs.FieldSkippedCount:
+		return m.AddedSkippedCount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProwJobsMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case prowjobs.FieldDuration:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDuration(v)
+		return nil
+	case prowjobs.FieldTestsCount:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTestsCount(v)
+		return nil
+	case prowjobs.FieldFailedCount:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFailedCount(v)
+		return nil
+	case prowjobs.FieldSkippedCount:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddSkippedCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProwJobs numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ProwJobsMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ProwJobsMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ProwJobsMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ProwJobs nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ProwJobsMutation) ResetField(name string) error {
+	switch name {
+	case prowjobs.FieldJobID:
+		m.ResetJobID()
+		return nil
+	case prowjobs.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case prowjobs.FieldDuration:
+		m.ResetDuration()
+		return nil
+	case prowjobs.FieldTestsCount:
+		m.ResetTestsCount()
+		return nil
+	case prowjobs.FieldFailedCount:
+		m.ResetFailedCount()
+		return nil
+	case prowjobs.FieldSkippedCount:
+		m.ResetSkippedCount()
+		return nil
+	}
+	return fmt.Errorf("unknown ProwJobs field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ProwJobsMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.prow_jobs != nil {
+		edges = append(edges, prowjobs.EdgeProwJobs)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ProwJobsMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case prowjobs.EdgeProwJobs:
+		if id := m.prow_jobs; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ProwJobsMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ProwJobsMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ProwJobsMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedprow_jobs {
+		edges = append(edges, prowjobs.EdgeProwJobs)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ProwJobsMutation) EdgeCleared(name string) bool {
+	switch name {
+	case prowjobs.EdgeProwJobs:
+		return m.clearedprow_jobs
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ProwJobsMutation) ClearEdge(name string) error {
+	switch name {
+	case prowjobs.EdgeProwJobs:
+		m.ClearProwJobs()
+		return nil
+	}
+	return fmt.Errorf("unknown ProwJobs unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ProwJobsMutation) ResetEdge(name string) error {
+	switch name {
+	case prowjobs.EdgeProwJobs:
+		m.ResetProwJobs()
+		return nil
+	}
+	return fmt.Errorf("unknown ProwJobs edge %s", name)
+}
+
+// ProwSuitesMutation represents an operation that mutates the ProwSuites nodes in the graph.
+type ProwSuitesMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int
+	job_id             *string
+	_Name              *string
+	_Status            *string
+	time               *float64
+	addtime            *float64
+	clearedFields      map[string]struct{}
+	prow_suites        *uuid.UUID
+	clearedprow_suites bool
+	done               bool
+	oldValue           func(context.Context) (*ProwSuites, error)
+	predicates         []predicate.ProwSuites
+}
+
+var _ ent.Mutation = (*ProwSuitesMutation)(nil)
+
+// prowsuitesOption allows management of the mutation configuration using functional options.
+type prowsuitesOption func(*ProwSuitesMutation)
+
+// newProwSuitesMutation creates new mutation for the ProwSuites entity.
+func newProwSuitesMutation(c config, op Op, opts ...prowsuitesOption) *ProwSuitesMutation {
+	m := &ProwSuitesMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeProwSuites,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withProwSuitesID sets the ID field of the mutation.
+func withProwSuitesID(id int) prowsuitesOption {
+	return func(m *ProwSuitesMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ProwSuites
+		)
+		m.oldValue = func(ctx context.Context) (*ProwSuites, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ProwSuites.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withProwSuites sets the old ProwSuites of the mutation.
+func withProwSuites(node *ProwSuites) prowsuitesOption {
+	return func(m *ProwSuitesMutation) {
+		m.oldValue = func(context.Context) (*ProwSuites, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ProwSuitesMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ProwSuitesMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ProwSuitesMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetJobID sets the "job_id" field.
+func (m *ProwSuitesMutation) SetJobID(s string) {
+	m.job_id = &s
+}
+
+// JobID returns the value of the "job_id" field in the mutation.
+func (m *ProwSuitesMutation) JobID() (r string, exists bool) {
+	v := m.job_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJobID returns the old "job_id" field's value of the ProwSuites entity.
+// If the ProwSuites object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwSuitesMutation) OldJobID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldJobID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldJobID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJobID: %w", err)
+	}
+	return oldValue.JobID, nil
+}
+
+// ResetJobID resets all changes to the "job_id" field.
+func (m *ProwSuitesMutation) ResetJobID() {
 	m.job_id = nil
 }
 
 // SetName sets the "Name" field.
-func (m *ProwMutation) SetName(s string) {
+func (m *ProwSuitesMutation) SetName(s string) {
 	m._Name = &s
 }
 
 // Name returns the value of the "Name" field in the mutation.
-func (m *ProwMutation) Name() (r string, exists bool) {
+func (m *ProwSuitesMutation) Name() (r string, exists bool) {
 	v := m._Name
 	if v == nil {
 		return
@@ -691,10 +1460,10 @@ func (m *ProwMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old "Name" field's value of the Prow entity.
-// If the Prow object wasn't provided to the builder, the object is fetched from the database.
+// OldName returns the old "Name" field's value of the ProwSuites entity.
+// If the ProwSuites object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProwMutation) OldName(ctx context.Context) (v string, err error) {
+func (m *ProwSuitesMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldName is only allowed on UpdateOne operations")
 	}
@@ -709,17 +1478,17 @@ func (m *ProwMutation) OldName(ctx context.Context) (v string, err error) {
 }
 
 // ResetName resets all changes to the "Name" field.
-func (m *ProwMutation) ResetName() {
+func (m *ProwSuitesMutation) ResetName() {
 	m._Name = nil
 }
 
 // SetStatus sets the "Status" field.
-func (m *ProwMutation) SetStatus(s string) {
+func (m *ProwSuitesMutation) SetStatus(s string) {
 	m._Status = &s
 }
 
 // Status returns the value of the "Status" field in the mutation.
-func (m *ProwMutation) Status() (r string, exists bool) {
+func (m *ProwSuitesMutation) Status() (r string, exists bool) {
 	v := m._Status
 	if v == nil {
 		return
@@ -727,10 +1496,10 @@ func (m *ProwMutation) Status() (r string, exists bool) {
 	return *v, true
 }
 
-// OldStatus returns the old "Status" field's value of the Prow entity.
-// If the Prow object wasn't provided to the builder, the object is fetched from the database.
+// OldStatus returns the old "Status" field's value of the ProwSuites entity.
+// If the ProwSuites object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProwMutation) OldStatus(ctx context.Context) (v string, err error) {
+func (m *ProwSuitesMutation) OldStatus(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
 	}
@@ -745,18 +1514,18 @@ func (m *ProwMutation) OldStatus(ctx context.Context) (v string, err error) {
 }
 
 // ResetStatus resets all changes to the "Status" field.
-func (m *ProwMutation) ResetStatus() {
+func (m *ProwSuitesMutation) ResetStatus() {
 	m._Status = nil
 }
 
 // SetTime sets the "time" field.
-func (m *ProwMutation) SetTime(f float64) {
+func (m *ProwSuitesMutation) SetTime(f float64) {
 	m.time = &f
 	m.addtime = nil
 }
 
 // Time returns the value of the "time" field in the mutation.
-func (m *ProwMutation) Time() (r float64, exists bool) {
+func (m *ProwSuitesMutation) Time() (r float64, exists bool) {
 	v := m.time
 	if v == nil {
 		return
@@ -764,10 +1533,10 @@ func (m *ProwMutation) Time() (r float64, exists bool) {
 	return *v, true
 }
 
-// OldTime returns the old "time" field's value of the Prow entity.
-// If the Prow object wasn't provided to the builder, the object is fetched from the database.
+// OldTime returns the old "time" field's value of the ProwSuites entity.
+// If the ProwSuites object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProwMutation) OldTime(ctx context.Context) (v float64, err error) {
+func (m *ProwSuitesMutation) OldTime(ctx context.Context) (v float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldTime is only allowed on UpdateOne operations")
 	}
@@ -782,7 +1551,7 @@ func (m *ProwMutation) OldTime(ctx context.Context) (v float64, err error) {
 }
 
 // AddTime adds f to the "time" field.
-func (m *ProwMutation) AddTime(f float64) {
+func (m *ProwSuitesMutation) AddTime(f float64) {
 	if m.addtime != nil {
 		*m.addtime += f
 	} else {
@@ -791,7 +1560,7 @@ func (m *ProwMutation) AddTime(f float64) {
 }
 
 // AddedTime returns the value that was added to the "time" field in this mutation.
-func (m *ProwMutation) AddedTime() (r float64, exists bool) {
+func (m *ProwSuitesMutation) AddedTime() (r float64, exists bool) {
 	v := m.addtime
 	if v == nil {
 		return
@@ -800,81 +1569,81 @@ func (m *ProwMutation) AddedTime() (r float64, exists bool) {
 }
 
 // ResetTime resets all changes to the "time" field.
-func (m *ProwMutation) ResetTime() {
+func (m *ProwSuitesMutation) ResetTime() {
 	m.time = nil
 	m.addtime = nil
 }
 
-// SetProwID sets the "prow" edge to the Repository entity by id.
-func (m *ProwMutation) SetProwID(id uuid.UUID) {
-	m.prow = &id
+// SetProwSuitesID sets the "prow_suites" edge to the Repository entity by id.
+func (m *ProwSuitesMutation) SetProwSuitesID(id uuid.UUID) {
+	m.prow_suites = &id
 }
 
-// ClearProw clears the "prow" edge to the Repository entity.
-func (m *ProwMutation) ClearProw() {
-	m.clearedprow = true
+// ClearProwSuites clears the "prow_suites" edge to the Repository entity.
+func (m *ProwSuitesMutation) ClearProwSuites() {
+	m.clearedprow_suites = true
 }
 
-// ProwCleared reports if the "prow" edge to the Repository entity was cleared.
-func (m *ProwMutation) ProwCleared() bool {
-	return m.clearedprow
+// ProwSuitesCleared reports if the "prow_suites" edge to the Repository entity was cleared.
+func (m *ProwSuitesMutation) ProwSuitesCleared() bool {
+	return m.clearedprow_suites
 }
 
-// ProwID returns the "prow" edge ID in the mutation.
-func (m *ProwMutation) ProwID() (id uuid.UUID, exists bool) {
-	if m.prow != nil {
-		return *m.prow, true
+// ProwSuitesID returns the "prow_suites" edge ID in the mutation.
+func (m *ProwSuitesMutation) ProwSuitesID() (id uuid.UUID, exists bool) {
+	if m.prow_suites != nil {
+		return *m.prow_suites, true
 	}
 	return
 }
 
-// ProwIDs returns the "prow" edge IDs in the mutation.
+// ProwSuitesIDs returns the "prow_suites" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ProwID instead. It exists only for internal usage by the builders.
-func (m *ProwMutation) ProwIDs() (ids []uuid.UUID) {
-	if id := m.prow; id != nil {
+// ProwSuitesID instead. It exists only for internal usage by the builders.
+func (m *ProwSuitesMutation) ProwSuitesIDs() (ids []uuid.UUID) {
+	if id := m.prow_suites; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetProw resets all changes to the "prow" edge.
-func (m *ProwMutation) ResetProw() {
-	m.prow = nil
-	m.clearedprow = false
+// ResetProwSuites resets all changes to the "prow_suites" edge.
+func (m *ProwSuitesMutation) ResetProwSuites() {
+	m.prow_suites = nil
+	m.clearedprow_suites = false
 }
 
-// Where appends a list predicates to the ProwMutation builder.
-func (m *ProwMutation) Where(ps ...predicate.Prow) {
+// Where appends a list predicates to the ProwSuitesMutation builder.
+func (m *ProwSuitesMutation) Where(ps ...predicate.ProwSuites) {
 	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
-func (m *ProwMutation) Op() Op {
+func (m *ProwSuitesMutation) Op() Op {
 	return m.op
 }
 
-// Type returns the node type of this mutation (Prow).
-func (m *ProwMutation) Type() string {
+// Type returns the node type of this mutation (ProwSuites).
+func (m *ProwSuitesMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *ProwMutation) Fields() []string {
+func (m *ProwSuitesMutation) Fields() []string {
 	fields := make([]string, 0, 4)
 	if m.job_id != nil {
-		fields = append(fields, prow.FieldJobID)
+		fields = append(fields, prowsuites.FieldJobID)
 	}
 	if m._Name != nil {
-		fields = append(fields, prow.FieldName)
+		fields = append(fields, prowsuites.FieldName)
 	}
 	if m._Status != nil {
-		fields = append(fields, prow.FieldStatus)
+		fields = append(fields, prowsuites.FieldStatus)
 	}
 	if m.time != nil {
-		fields = append(fields, prow.FieldTime)
+		fields = append(fields, prowsuites.FieldTime)
 	}
 	return fields
 }
@@ -882,15 +1651,15 @@ func (m *ProwMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *ProwMutation) Field(name string) (ent.Value, bool) {
+func (m *ProwSuitesMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case prow.FieldJobID:
+	case prowsuites.FieldJobID:
 		return m.JobID()
-	case prow.FieldName:
+	case prowsuites.FieldName:
 		return m.Name()
-	case prow.FieldStatus:
+	case prowsuites.FieldStatus:
 		return m.Status()
-	case prow.FieldTime:
+	case prowsuites.FieldTime:
 		return m.Time()
 	}
 	return nil, false
@@ -899,47 +1668,47 @@ func (m *ProwMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *ProwMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *ProwSuitesMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case prow.FieldJobID:
+	case prowsuites.FieldJobID:
 		return m.OldJobID(ctx)
-	case prow.FieldName:
+	case prowsuites.FieldName:
 		return m.OldName(ctx)
-	case prow.FieldStatus:
+	case prowsuites.FieldStatus:
 		return m.OldStatus(ctx)
-	case prow.FieldTime:
+	case prowsuites.FieldTime:
 		return m.OldTime(ctx)
 	}
-	return nil, fmt.Errorf("unknown Prow field %s", name)
+	return nil, fmt.Errorf("unknown ProwSuites field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *ProwMutation) SetField(name string, value ent.Value) error {
+func (m *ProwSuitesMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case prow.FieldJobID:
+	case prowsuites.FieldJobID:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetJobID(v)
 		return nil
-	case prow.FieldName:
+	case prowsuites.FieldName:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
 		return nil
-	case prow.FieldStatus:
+	case prowsuites.FieldStatus:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
 		return nil
-	case prow.FieldTime:
+	case prowsuites.FieldTime:
 		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -947,15 +1716,15 @@ func (m *ProwMutation) SetField(name string, value ent.Value) error {
 		m.SetTime(v)
 		return nil
 	}
-	return fmt.Errorf("unknown Prow field %s", name)
+	return fmt.Errorf("unknown ProwSuites field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *ProwMutation) AddedFields() []string {
+func (m *ProwSuitesMutation) AddedFields() []string {
 	var fields []string
 	if m.addtime != nil {
-		fields = append(fields, prow.FieldTime)
+		fields = append(fields, prowsuites.FieldTime)
 	}
 	return fields
 }
@@ -963,9 +1732,9 @@ func (m *ProwMutation) AddedFields() []string {
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *ProwMutation) AddedField(name string) (ent.Value, bool) {
+func (m *ProwSuitesMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case prow.FieldTime:
+	case prowsuites.FieldTime:
 		return m.AddedTime()
 	}
 	return nil, false
@@ -974,9 +1743,9 @@ func (m *ProwMutation) AddedField(name string) (ent.Value, bool) {
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *ProwMutation) AddField(name string, value ent.Value) error {
+func (m *ProwSuitesMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case prow.FieldTime:
+	case prowsuites.FieldTime:
 		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -984,63 +1753,63 @@ func (m *ProwMutation) AddField(name string, value ent.Value) error {
 		m.AddTime(v)
 		return nil
 	}
-	return fmt.Errorf("unknown Prow numeric field %s", name)
+	return fmt.Errorf("unknown ProwSuites numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *ProwMutation) ClearedFields() []string {
+func (m *ProwSuitesMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *ProwMutation) FieldCleared(name string) bool {
+func (m *ProwSuitesMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *ProwMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Prow nullable field %s", name)
+func (m *ProwSuitesMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown ProwSuites nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *ProwMutation) ResetField(name string) error {
+func (m *ProwSuitesMutation) ResetField(name string) error {
 	switch name {
-	case prow.FieldJobID:
+	case prowsuites.FieldJobID:
 		m.ResetJobID()
 		return nil
-	case prow.FieldName:
+	case prowsuites.FieldName:
 		m.ResetName()
 		return nil
-	case prow.FieldStatus:
+	case prowsuites.FieldStatus:
 		m.ResetStatus()
 		return nil
-	case prow.FieldTime:
+	case prowsuites.FieldTime:
 		m.ResetTime()
 		return nil
 	}
-	return fmt.Errorf("unknown Prow field %s", name)
+	return fmt.Errorf("unknown ProwSuites field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *ProwMutation) AddedEdges() []string {
+func (m *ProwSuitesMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.prow != nil {
-		edges = append(edges, prow.EdgeProw)
+	if m.prow_suites != nil {
+		edges = append(edges, prowsuites.EdgeProwSuites)
 	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *ProwMutation) AddedIDs(name string) []ent.Value {
+func (m *ProwSuitesMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case prow.EdgeProw:
-		if id := m.prow; id != nil {
+	case prowsuites.EdgeProwSuites:
+		if id := m.prow_suites; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -1048,83 +1817,86 @@ func (m *ProwMutation) AddedIDs(name string) []ent.Value {
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *ProwMutation) RemovedEdges() []string {
+func (m *ProwSuitesMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 1)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *ProwMutation) RemovedIDs(name string) []ent.Value {
+func (m *ProwSuitesMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *ProwMutation) ClearedEdges() []string {
+func (m *ProwSuitesMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.clearedprow {
-		edges = append(edges, prow.EdgeProw)
+	if m.clearedprow_suites {
+		edges = append(edges, prowsuites.EdgeProwSuites)
 	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *ProwMutation) EdgeCleared(name string) bool {
+func (m *ProwSuitesMutation) EdgeCleared(name string) bool {
 	switch name {
-	case prow.EdgeProw:
-		return m.clearedprow
+	case prowsuites.EdgeProwSuites:
+		return m.clearedprow_suites
 	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *ProwMutation) ClearEdge(name string) error {
+func (m *ProwSuitesMutation) ClearEdge(name string) error {
 	switch name {
-	case prow.EdgeProw:
-		m.ClearProw()
+	case prowsuites.EdgeProwSuites:
+		m.ClearProwSuites()
 		return nil
 	}
-	return fmt.Errorf("unknown Prow unique edge %s", name)
+	return fmt.Errorf("unknown ProwSuites unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *ProwMutation) ResetEdge(name string) error {
+func (m *ProwSuitesMutation) ResetEdge(name string) error {
 	switch name {
-	case prow.EdgeProw:
-		m.ResetProw()
+	case prowsuites.EdgeProwSuites:
+		m.ResetProwSuites()
 		return nil
 	}
-	return fmt.Errorf("unknown Prow edge %s", name)
+	return fmt.Errorf("unknown ProwSuites edge %s", name)
 }
 
 // RepositoryMutation represents an operation that mutates the Repository nodes in the graph.
 type RepositoryMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *uuid.UUID
-	repository_name  *string
-	git_organization *string
-	description      *string
-	git_url          *string
-	clearedFields    map[string]struct{}
-	workflows        map[int]struct{}
-	removedworkflows map[int]struct{}
-	clearedworkflows bool
-	codecov          map[uuid.UUID]struct{}
-	removedcodecov   map[uuid.UUID]struct{}
-	clearedcodecov   bool
-	prow             map[int]struct{}
-	removedprow      map[int]struct{}
-	clearedprow      bool
-	done             bool
-	oldValue         func(context.Context) (*Repository, error)
-	predicates       []predicate.Repository
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	repository_name    *string
+	git_organization   *string
+	description        *string
+	git_url            *string
+	clearedFields      map[string]struct{}
+	workflows          map[int]struct{}
+	removedworkflows   map[int]struct{}
+	clearedworkflows   bool
+	codecov            map[uuid.UUID]struct{}
+	removedcodecov     map[uuid.UUID]struct{}
+	clearedcodecov     bool
+	prow_suites        map[int]struct{}
+	removedprow_suites map[int]struct{}
+	clearedprow_suites bool
+	prow_jobs          map[int]struct{}
+	removedprow_jobs   map[int]struct{}
+	clearedprow_jobs   bool
+	done               bool
+	oldValue           func(context.Context) (*Repository, error)
+	predicates         []predicate.Repository
 }
 
 var _ ent.Mutation = (*RepositoryMutation)(nil)
@@ -1464,58 +2236,112 @@ func (m *RepositoryMutation) ResetCodecov() {
 	m.removedcodecov = nil
 }
 
-// AddProwIDs adds the "prow" edge to the Prow entity by ids.
-func (m *RepositoryMutation) AddProwIDs(ids ...int) {
-	if m.prow == nil {
-		m.prow = make(map[int]struct{})
+// AddProwSuiteIDs adds the "prow_suites" edge to the ProwSuites entity by ids.
+func (m *RepositoryMutation) AddProwSuiteIDs(ids ...int) {
+	if m.prow_suites == nil {
+		m.prow_suites = make(map[int]struct{})
 	}
 	for i := range ids {
-		m.prow[ids[i]] = struct{}{}
+		m.prow_suites[ids[i]] = struct{}{}
 	}
 }
 
-// ClearProw clears the "prow" edge to the Prow entity.
-func (m *RepositoryMutation) ClearProw() {
-	m.clearedprow = true
+// ClearProwSuites clears the "prow_suites" edge to the ProwSuites entity.
+func (m *RepositoryMutation) ClearProwSuites() {
+	m.clearedprow_suites = true
 }
 
-// ProwCleared reports if the "prow" edge to the Prow entity was cleared.
-func (m *RepositoryMutation) ProwCleared() bool {
-	return m.clearedprow
+// ProwSuitesCleared reports if the "prow_suites" edge to the ProwSuites entity was cleared.
+func (m *RepositoryMutation) ProwSuitesCleared() bool {
+	return m.clearedprow_suites
 }
 
-// RemoveProwIDs removes the "prow" edge to the Prow entity by IDs.
-func (m *RepositoryMutation) RemoveProwIDs(ids ...int) {
-	if m.removedprow == nil {
-		m.removedprow = make(map[int]struct{})
+// RemoveProwSuiteIDs removes the "prow_suites" edge to the ProwSuites entity by IDs.
+func (m *RepositoryMutation) RemoveProwSuiteIDs(ids ...int) {
+	if m.removedprow_suites == nil {
+		m.removedprow_suites = make(map[int]struct{})
 	}
 	for i := range ids {
-		delete(m.prow, ids[i])
-		m.removedprow[ids[i]] = struct{}{}
+		delete(m.prow_suites, ids[i])
+		m.removedprow_suites[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedProw returns the removed IDs of the "prow" edge to the Prow entity.
-func (m *RepositoryMutation) RemovedProwIDs() (ids []int) {
-	for id := range m.removedprow {
+// RemovedProwSuites returns the removed IDs of the "prow_suites" edge to the ProwSuites entity.
+func (m *RepositoryMutation) RemovedProwSuitesIDs() (ids []int) {
+	for id := range m.removedprow_suites {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ProwIDs returns the "prow" edge IDs in the mutation.
-func (m *RepositoryMutation) ProwIDs() (ids []int) {
-	for id := range m.prow {
+// ProwSuitesIDs returns the "prow_suites" edge IDs in the mutation.
+func (m *RepositoryMutation) ProwSuitesIDs() (ids []int) {
+	for id := range m.prow_suites {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetProw resets all changes to the "prow" edge.
-func (m *RepositoryMutation) ResetProw() {
-	m.prow = nil
-	m.clearedprow = false
-	m.removedprow = nil
+// ResetProwSuites resets all changes to the "prow_suites" edge.
+func (m *RepositoryMutation) ResetProwSuites() {
+	m.prow_suites = nil
+	m.clearedprow_suites = false
+	m.removedprow_suites = nil
+}
+
+// AddProwJobIDs adds the "prow_jobs" edge to the ProwJobs entity by ids.
+func (m *RepositoryMutation) AddProwJobIDs(ids ...int) {
+	if m.prow_jobs == nil {
+		m.prow_jobs = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.prow_jobs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearProwJobs clears the "prow_jobs" edge to the ProwJobs entity.
+func (m *RepositoryMutation) ClearProwJobs() {
+	m.clearedprow_jobs = true
+}
+
+// ProwJobsCleared reports if the "prow_jobs" edge to the ProwJobs entity was cleared.
+func (m *RepositoryMutation) ProwJobsCleared() bool {
+	return m.clearedprow_jobs
+}
+
+// RemoveProwJobIDs removes the "prow_jobs" edge to the ProwJobs entity by IDs.
+func (m *RepositoryMutation) RemoveProwJobIDs(ids ...int) {
+	if m.removedprow_jobs == nil {
+		m.removedprow_jobs = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.prow_jobs, ids[i])
+		m.removedprow_jobs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedProwJobs returns the removed IDs of the "prow_jobs" edge to the ProwJobs entity.
+func (m *RepositoryMutation) RemovedProwJobsIDs() (ids []int) {
+	for id := range m.removedprow_jobs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ProwJobsIDs returns the "prow_jobs" edge IDs in the mutation.
+func (m *RepositoryMutation) ProwJobsIDs() (ids []int) {
+	for id := range m.prow_jobs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetProwJobs resets all changes to the "prow_jobs" edge.
+func (m *RepositoryMutation) ResetProwJobs() {
+	m.prow_jobs = nil
+	m.clearedprow_jobs = false
+	m.removedprow_jobs = nil
 }
 
 // Where appends a list predicates to the RepositoryMutation builder.
@@ -1687,15 +2513,18 @@ func (m *RepositoryMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RepositoryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.workflows != nil {
 		edges = append(edges, repository.EdgeWorkflows)
 	}
 	if m.codecov != nil {
 		edges = append(edges, repository.EdgeCodecov)
 	}
-	if m.prow != nil {
-		edges = append(edges, repository.EdgeProw)
+	if m.prow_suites != nil {
+		edges = append(edges, repository.EdgeProwSuites)
+	}
+	if m.prow_jobs != nil {
+		edges = append(edges, repository.EdgeProwJobs)
 	}
 	return edges
 }
@@ -1716,9 +2545,15 @@ func (m *RepositoryMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case repository.EdgeProw:
-		ids := make([]ent.Value, 0, len(m.prow))
-		for id := range m.prow {
+	case repository.EdgeProwSuites:
+		ids := make([]ent.Value, 0, len(m.prow_suites))
+		for id := range m.prow_suites {
+			ids = append(ids, id)
+		}
+		return ids
+	case repository.EdgeProwJobs:
+		ids := make([]ent.Value, 0, len(m.prow_jobs))
+		for id := range m.prow_jobs {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1728,15 +2563,18 @@ func (m *RepositoryMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RepositoryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedworkflows != nil {
 		edges = append(edges, repository.EdgeWorkflows)
 	}
 	if m.removedcodecov != nil {
 		edges = append(edges, repository.EdgeCodecov)
 	}
-	if m.removedprow != nil {
-		edges = append(edges, repository.EdgeProw)
+	if m.removedprow_suites != nil {
+		edges = append(edges, repository.EdgeProwSuites)
+	}
+	if m.removedprow_jobs != nil {
+		edges = append(edges, repository.EdgeProwJobs)
 	}
 	return edges
 }
@@ -1757,9 +2595,15 @@ func (m *RepositoryMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
-	case repository.EdgeProw:
-		ids := make([]ent.Value, 0, len(m.removedprow))
-		for id := range m.removedprow {
+	case repository.EdgeProwSuites:
+		ids := make([]ent.Value, 0, len(m.removedprow_suites))
+		for id := range m.removedprow_suites {
+			ids = append(ids, id)
+		}
+		return ids
+	case repository.EdgeProwJobs:
+		ids := make([]ent.Value, 0, len(m.removedprow_jobs))
+		for id := range m.removedprow_jobs {
 			ids = append(ids, id)
 		}
 		return ids
@@ -1769,15 +2613,18 @@ func (m *RepositoryMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RepositoryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedworkflows {
 		edges = append(edges, repository.EdgeWorkflows)
 	}
 	if m.clearedcodecov {
 		edges = append(edges, repository.EdgeCodecov)
 	}
-	if m.clearedprow {
-		edges = append(edges, repository.EdgeProw)
+	if m.clearedprow_suites {
+		edges = append(edges, repository.EdgeProwSuites)
+	}
+	if m.clearedprow_jobs {
+		edges = append(edges, repository.EdgeProwJobs)
 	}
 	return edges
 }
@@ -1790,8 +2637,10 @@ func (m *RepositoryMutation) EdgeCleared(name string) bool {
 		return m.clearedworkflows
 	case repository.EdgeCodecov:
 		return m.clearedcodecov
-	case repository.EdgeProw:
-		return m.clearedprow
+	case repository.EdgeProwSuites:
+		return m.clearedprow_suites
+	case repository.EdgeProwJobs:
+		return m.clearedprow_jobs
 	}
 	return false
 }
@@ -1814,8 +2663,11 @@ func (m *RepositoryMutation) ResetEdge(name string) error {
 	case repository.EdgeCodecov:
 		m.ResetCodecov()
 		return nil
-	case repository.EdgeProw:
-		m.ResetProw()
+	case repository.EdgeProwSuites:
+		m.ResetProwSuites()
+		return nil
+	case repository.EdgeProwJobs:
+		m.ResetProwJobs()
 		return nil
 	}
 	return fmt.Errorf("unknown Repository edge %s", name)

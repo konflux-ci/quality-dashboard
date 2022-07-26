@@ -9,7 +9,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prow"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 )
@@ -33,7 +34,8 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		codecov.Table:    codecov.ValidColumn,
-		prow.Table:       prow.ValidColumn,
+		prowjobs.Table:   prowjobs.ValidColumn,
+		prowsuites.Table: prowsuites.ValidColumn,
 		repository.Table: repository.ValidColumn,
 		workflows.Table:  workflows.ValidColumn,
 	}

@@ -7,16 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-/* Original SQL table:
-create table password
-(
-    email    text not null  primary key,
-    hash     blob not null,
-    username text not null,
-    user_id  text not null
-);
-*/
-
 // Password holds the schema definition for the Password entity.
 type Repository struct {
 	ent.Schema
@@ -50,6 +40,7 @@ func (Repository) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("workflows", Workflows.Type),
 		edge.To("codecov", CodeCov.Type),
-		edge.To("prow", Prow.Type),
+		edge.To("prow_suites", ProwSuites.Type),
+		edge.To("prow_jobs", ProwJobs.Type),
 	}
 }

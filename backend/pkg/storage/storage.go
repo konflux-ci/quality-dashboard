@@ -2,6 +2,7 @@ package storage
 
 import (
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
@@ -23,8 +24,10 @@ type Storage interface {
 
 	// GET
 	GetRepository(repositoryName string, gitOrganizationName string) (*db.Repository, error)
-	GetProwJobsResults(*db.Repository) ([]*db.Prow, error)
-	GetProwJobsResultsByJobID(jobID string) ([]*db.Prow, error)
+	GetLatestProwTestExecution() (*db.ProwJobs, error)
+	GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error)
+	GetProwJobsResults(*db.Repository) ([]*db.ProwSuites, error)
+	GetProwJobsResultsByJobID(jobID string) ([]*db.ProwSuites, error)
 	ListRepositories() ([]Repository, error)
 	ListWorkflowsByRepository(repositoryName string) (w []GithubWorkflows, err error)
 	ListRepositoriesQualityInfo() ([]RepositoryQualityInfo, error)
@@ -36,7 +39,9 @@ type Storage interface {
 
 	// POST
 	CreateCoverage(p Coverage, repo_id uuid.UUID) error
-	CreateProwJobResults(repository ProwJob, repo_id uuid.UUID) error
+	CreateProwJobSuites(prowJobStatus ProwJobSuites, repo_id uuid.UUID) error
+	CreateProwJobResults(prowJobStatus ProwJobStatus, repo_id uuid.UUID) error
+
 	// Delete
 	ReCreateWorkflow(workflow GithubWorkflows, repoName string) error
 	UpdateCoverage(codecov Coverage, repoName string) error
@@ -82,7 +87,7 @@ type Coverage struct {
 }
 
 // Repository is an github repository info managed by the storage.
-type ProwJob struct {
+type ProwJobSuites struct {
 	JobID string `json:"job_id"`
 
 	TestCaseName string `json:"test_name"`
@@ -90,6 +95,23 @@ type ProwJob struct {
 	TestCaseStatus string `json:"test_status"`
 
 	TestTiming float64 `json:"test_timing"`
+}
+
+// Repository is an github repository info managed by the storage.
+type ProwJobStatus struct {
+	JobID string `json:"job_id"`
+
+	CreatedAt time.Time `json:"created_at"`
+
+	Status string `json:"status"`
+
+	Duration float64 `json:"duration"`
+
+	TestsCount int64 `json:"tests_count"`
+
+	FailedCount int64 `json:"failed_count"`
+
+	SkippedCount int64 `json:"skipped_count"`
 }
 
 // Repository is an github repository info managed by the storage.

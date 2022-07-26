@@ -6,23 +6,13 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-/* Original SQL table:
-create table password
-(
-    email    text not null  primary key,
-    hash     blob not null,
-    username text not null,
-    user_id  text not null
-);
-*/
-
-// Password holds the schema definition for the Password entity.
-type Prow struct {
+// ProwSuites holds the schema definition for the ProwSuites entity.
+type ProwSuites struct {
 	ent.Schema
 }
 
 // Fields of the Password.
-func (Prow) Fields() []ent.Field {
+func (ProwSuites) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("job_id").
 			SchemaType(textSchema),
@@ -36,13 +26,13 @@ func (Prow) Fields() []ent.Field {
 }
 
 // Edges of the Password.
-func (Prow) Edges() []ent.Edge {
+func (ProwSuites) Edges() []ent.Edge {
 	return []ent.Edge{
 		// Create an inverse-edge called "owner" of type `User`
 		// and reference it to the "cars" edge (in User schema)
 		// explicitly using the `Ref` method.
-		edge.From("prow", Repository.Type).
-			Ref("prow").
+		edge.From("prow_suites", Repository.Type).
+			Ref("prow_suites").
 			Unique(),
 	}
 }

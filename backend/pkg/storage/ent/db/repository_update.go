@@ -12,7 +12,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prow"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 )
@@ -84,19 +85,34 @@ func (ru *RepositoryUpdate) AddCodecov(c ...*CodeCov) *RepositoryUpdate {
 	return ru.AddCodecovIDs(ids...)
 }
 
-// AddProwIDs adds the "prow" edge to the Prow entity by IDs.
-func (ru *RepositoryUpdate) AddProwIDs(ids ...int) *RepositoryUpdate {
-	ru.mutation.AddProwIDs(ids...)
+// AddProwSuiteIDs adds the "prow_suites" edge to the ProwSuites entity by IDs.
+func (ru *RepositoryUpdate) AddProwSuiteIDs(ids ...int) *RepositoryUpdate {
+	ru.mutation.AddProwSuiteIDs(ids...)
 	return ru
 }
 
-// AddProw adds the "prow" edges to the Prow entity.
-func (ru *RepositoryUpdate) AddProw(p ...*Prow) *RepositoryUpdate {
+// AddProwSuites adds the "prow_suites" edges to the ProwSuites entity.
+func (ru *RepositoryUpdate) AddProwSuites(p ...*ProwSuites) *RepositoryUpdate {
 	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
-	return ru.AddProwIDs(ids...)
+	return ru.AddProwSuiteIDs(ids...)
+}
+
+// AddProwJobIDs adds the "prow_jobs" edge to the ProwJobs entity by IDs.
+func (ru *RepositoryUpdate) AddProwJobIDs(ids ...int) *RepositoryUpdate {
+	ru.mutation.AddProwJobIDs(ids...)
+	return ru
+}
+
+// AddProwJobs adds the "prow_jobs" edges to the ProwJobs entity.
+func (ru *RepositoryUpdate) AddProwJobs(p ...*ProwJobs) *RepositoryUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return ru.AddProwJobIDs(ids...)
 }
 
 // Mutation returns the RepositoryMutation object of the builder.
@@ -146,25 +162,46 @@ func (ru *RepositoryUpdate) RemoveCodecov(c ...*CodeCov) *RepositoryUpdate {
 	return ru.RemoveCodecovIDs(ids...)
 }
 
-// ClearProw clears all "prow" edges to the Prow entity.
-func (ru *RepositoryUpdate) ClearProw() *RepositoryUpdate {
-	ru.mutation.ClearProw()
+// ClearProwSuites clears all "prow_suites" edges to the ProwSuites entity.
+func (ru *RepositoryUpdate) ClearProwSuites() *RepositoryUpdate {
+	ru.mutation.ClearProwSuites()
 	return ru
 }
 
-// RemoveProwIDs removes the "prow" edge to Prow entities by IDs.
-func (ru *RepositoryUpdate) RemoveProwIDs(ids ...int) *RepositoryUpdate {
-	ru.mutation.RemoveProwIDs(ids...)
+// RemoveProwSuiteIDs removes the "prow_suites" edge to ProwSuites entities by IDs.
+func (ru *RepositoryUpdate) RemoveProwSuiteIDs(ids ...int) *RepositoryUpdate {
+	ru.mutation.RemoveProwSuiteIDs(ids...)
 	return ru
 }
 
-// RemoveProw removes "prow" edges to Prow entities.
-func (ru *RepositoryUpdate) RemoveProw(p ...*Prow) *RepositoryUpdate {
+// RemoveProwSuites removes "prow_suites" edges to ProwSuites entities.
+func (ru *RepositoryUpdate) RemoveProwSuites(p ...*ProwSuites) *RepositoryUpdate {
 	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
-	return ru.RemoveProwIDs(ids...)
+	return ru.RemoveProwSuiteIDs(ids...)
+}
+
+// ClearProwJobs clears all "prow_jobs" edges to the ProwJobs entity.
+func (ru *RepositoryUpdate) ClearProwJobs() *RepositoryUpdate {
+	ru.mutation.ClearProwJobs()
+	return ru
+}
+
+// RemoveProwJobIDs removes the "prow_jobs" edge to ProwJobs entities by IDs.
+func (ru *RepositoryUpdate) RemoveProwJobIDs(ids ...int) *RepositoryUpdate {
+	ru.mutation.RemoveProwJobIDs(ids...)
+	return ru
+}
+
+// RemoveProwJobs removes "prow_jobs" edges to ProwJobs entities.
+func (ru *RepositoryUpdate) RemoveProwJobs(p ...*ProwJobs) *RepositoryUpdate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return ru.RemoveProwJobIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -406,33 +443,33 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ru.mutation.ProwCleared() {
+	if ru.mutation.ProwSuitesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   repository.ProwTable,
-			Columns: []string{repository.ProwColumn},
+			Table:   repository.ProwSuitesTable,
+			Columns: []string{repository.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: prow.FieldID,
+					Column: prowsuites.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ru.mutation.RemovedProwIDs(); len(nodes) > 0 && !ru.mutation.ProwCleared() {
+	if nodes := ru.mutation.RemovedProwSuitesIDs(); len(nodes) > 0 && !ru.mutation.ProwSuitesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   repository.ProwTable,
-			Columns: []string{repository.ProwColumn},
+			Table:   repository.ProwSuitesTable,
+			Columns: []string{repository.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: prow.FieldID,
+					Column: prowsuites.FieldID,
 				},
 			},
 		}
@@ -441,17 +478,71 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ru.mutation.ProwIDs(); len(nodes) > 0 {
+	if nodes := ru.mutation.ProwSuitesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   repository.ProwTable,
-			Columns: []string{repository.ProwColumn},
+			Table:   repository.ProwSuitesTable,
+			Columns: []string{repository.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: prow.FieldID,
+					Column: prowsuites.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ru.mutation.ProwJobsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwJobsTable,
+			Columns: []string{repository.ProwJobsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prowjobs.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RemovedProwJobsIDs(); len(nodes) > 0 && !ru.mutation.ProwJobsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwJobsTable,
+			Columns: []string{repository.ProwJobsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prowjobs.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.ProwJobsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwJobsTable,
+			Columns: []string{repository.ProwJobsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prowjobs.FieldID,
 				},
 			},
 		}
@@ -533,19 +624,34 @@ func (ruo *RepositoryUpdateOne) AddCodecov(c ...*CodeCov) *RepositoryUpdateOne {
 	return ruo.AddCodecovIDs(ids...)
 }
 
-// AddProwIDs adds the "prow" edge to the Prow entity by IDs.
-func (ruo *RepositoryUpdateOne) AddProwIDs(ids ...int) *RepositoryUpdateOne {
-	ruo.mutation.AddProwIDs(ids...)
+// AddProwSuiteIDs adds the "prow_suites" edge to the ProwSuites entity by IDs.
+func (ruo *RepositoryUpdateOne) AddProwSuiteIDs(ids ...int) *RepositoryUpdateOne {
+	ruo.mutation.AddProwSuiteIDs(ids...)
 	return ruo
 }
 
-// AddProw adds the "prow" edges to the Prow entity.
-func (ruo *RepositoryUpdateOne) AddProw(p ...*Prow) *RepositoryUpdateOne {
+// AddProwSuites adds the "prow_suites" edges to the ProwSuites entity.
+func (ruo *RepositoryUpdateOne) AddProwSuites(p ...*ProwSuites) *RepositoryUpdateOne {
 	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
-	return ruo.AddProwIDs(ids...)
+	return ruo.AddProwSuiteIDs(ids...)
+}
+
+// AddProwJobIDs adds the "prow_jobs" edge to the ProwJobs entity by IDs.
+func (ruo *RepositoryUpdateOne) AddProwJobIDs(ids ...int) *RepositoryUpdateOne {
+	ruo.mutation.AddProwJobIDs(ids...)
+	return ruo
+}
+
+// AddProwJobs adds the "prow_jobs" edges to the ProwJobs entity.
+func (ruo *RepositoryUpdateOne) AddProwJobs(p ...*ProwJobs) *RepositoryUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return ruo.AddProwJobIDs(ids...)
 }
 
 // Mutation returns the RepositoryMutation object of the builder.
@@ -595,25 +701,46 @@ func (ruo *RepositoryUpdateOne) RemoveCodecov(c ...*CodeCov) *RepositoryUpdateOn
 	return ruo.RemoveCodecovIDs(ids...)
 }
 
-// ClearProw clears all "prow" edges to the Prow entity.
-func (ruo *RepositoryUpdateOne) ClearProw() *RepositoryUpdateOne {
-	ruo.mutation.ClearProw()
+// ClearProwSuites clears all "prow_suites" edges to the ProwSuites entity.
+func (ruo *RepositoryUpdateOne) ClearProwSuites() *RepositoryUpdateOne {
+	ruo.mutation.ClearProwSuites()
 	return ruo
 }
 
-// RemoveProwIDs removes the "prow" edge to Prow entities by IDs.
-func (ruo *RepositoryUpdateOne) RemoveProwIDs(ids ...int) *RepositoryUpdateOne {
-	ruo.mutation.RemoveProwIDs(ids...)
+// RemoveProwSuiteIDs removes the "prow_suites" edge to ProwSuites entities by IDs.
+func (ruo *RepositoryUpdateOne) RemoveProwSuiteIDs(ids ...int) *RepositoryUpdateOne {
+	ruo.mutation.RemoveProwSuiteIDs(ids...)
 	return ruo
 }
 
-// RemoveProw removes "prow" edges to Prow entities.
-func (ruo *RepositoryUpdateOne) RemoveProw(p ...*Prow) *RepositoryUpdateOne {
+// RemoveProwSuites removes "prow_suites" edges to ProwSuites entities.
+func (ruo *RepositoryUpdateOne) RemoveProwSuites(p ...*ProwSuites) *RepositoryUpdateOne {
 	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
-	return ruo.RemoveProwIDs(ids...)
+	return ruo.RemoveProwSuiteIDs(ids...)
+}
+
+// ClearProwJobs clears all "prow_jobs" edges to the ProwJobs entity.
+func (ruo *RepositoryUpdateOne) ClearProwJobs() *RepositoryUpdateOne {
+	ruo.mutation.ClearProwJobs()
+	return ruo
+}
+
+// RemoveProwJobIDs removes the "prow_jobs" edge to ProwJobs entities by IDs.
+func (ruo *RepositoryUpdateOne) RemoveProwJobIDs(ids ...int) *RepositoryUpdateOne {
+	ruo.mutation.RemoveProwJobIDs(ids...)
+	return ruo
+}
+
+// RemoveProwJobs removes "prow_jobs" edges to ProwJobs entities.
+func (ruo *RepositoryUpdateOne) RemoveProwJobs(p ...*ProwJobs) *RepositoryUpdateOne {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return ruo.RemoveProwJobIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -879,33 +1006,33 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if ruo.mutation.ProwCleared() {
+	if ruo.mutation.ProwSuitesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   repository.ProwTable,
-			Columns: []string{repository.ProwColumn},
+			Table:   repository.ProwSuitesTable,
+			Columns: []string{repository.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: prow.FieldID,
+					Column: prowsuites.FieldID,
 				},
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ruo.mutation.RemovedProwIDs(); len(nodes) > 0 && !ruo.mutation.ProwCleared() {
+	if nodes := ruo.mutation.RemovedProwSuitesIDs(); len(nodes) > 0 && !ruo.mutation.ProwSuitesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   repository.ProwTable,
-			Columns: []string{repository.ProwColumn},
+			Table:   repository.ProwSuitesTable,
+			Columns: []string{repository.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: prow.FieldID,
+					Column: prowsuites.FieldID,
 				},
 			},
 		}
@@ -914,17 +1041,71 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := ruo.mutation.ProwIDs(); len(nodes) > 0 {
+	if nodes := ruo.mutation.ProwSuitesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   repository.ProwTable,
-			Columns: []string{repository.ProwColumn},
+			Table:   repository.ProwSuitesTable,
+			Columns: []string{repository.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: prow.FieldID,
+					Column: prowsuites.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ruo.mutation.ProwJobsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwJobsTable,
+			Columns: []string{repository.ProwJobsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prowjobs.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RemovedProwJobsIDs(); len(nodes) > 0 && !ruo.mutation.ProwJobsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwJobsTable,
+			Columns: []string{repository.ProwJobsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prowjobs.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.ProwJobsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwJobsTable,
+			Columns: []string{repository.ProwJobsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prowjobs.FieldID,
 				},
 			},
 		}

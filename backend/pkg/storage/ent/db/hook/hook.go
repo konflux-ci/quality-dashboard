@@ -22,15 +22,28 @@ func (f CodeCovFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error
 	return f(ctx, mv)
 }
 
-// The ProwFunc type is an adapter to allow the use of ordinary
-// function as Prow mutator.
-type ProwFunc func(context.Context, *db.ProwMutation) (db.Value, error)
+// The ProwJobsFunc type is an adapter to allow the use of ordinary
+// function as ProwJobs mutator.
+type ProwJobsFunc func(context.Context, *db.ProwJobsMutation) (db.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f ProwFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
-	mv, ok := m.(*db.ProwMutation)
+func (f ProwJobsFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	mv, ok := m.(*db.ProwJobsMutation)
 	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ProwMutation", m)
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ProwJobsMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The ProwSuitesFunc type is an adapter to allow the use of ordinary
+// function as ProwSuites mutator.
+type ProwSuitesFunc func(context.Context, *db.ProwSuitesMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProwSuitesFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	mv, ok := m.(*db.ProwSuitesMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ProwSuitesMutation", m)
 	}
 	return f(ctx, mv)
 }

@@ -23,14 +23,18 @@ const (
 	EdgeWorkflows = "workflows"
 	// EdgeCodecov holds the string denoting the codecov edge name in mutations.
 	EdgeCodecov = "codecov"
-	// EdgeProw holds the string denoting the prow edge name in mutations.
-	EdgeProw = "prow"
+	// EdgeProwSuites holds the string denoting the prow_suites edge name in mutations.
+	EdgeProwSuites = "prow_suites"
+	// EdgeProwJobs holds the string denoting the prow_jobs edge name in mutations.
+	EdgeProwJobs = "prow_jobs"
 	// WorkflowsFieldID holds the string denoting the ID field of the Workflows.
 	WorkflowsFieldID = "id"
 	// CodeCovFieldID holds the string denoting the ID field of the CodeCov.
 	CodeCovFieldID = "id"
-	// ProwFieldID holds the string denoting the ID field of the Prow.
-	ProwFieldID = "id"
+	// ProwSuitesFieldID holds the string denoting the ID field of the ProwSuites.
+	ProwSuitesFieldID = "id"
+	// ProwJobsFieldID holds the string denoting the ID field of the ProwJobs.
+	ProwJobsFieldID = "id"
 	// Table holds the table name of the repository in the database.
 	Table = "repositories"
 	// WorkflowsTable is the table that holds the workflows relation/edge.
@@ -47,13 +51,20 @@ const (
 	CodecovInverseTable = "code_covs"
 	// CodecovColumn is the table column denoting the codecov relation/edge.
 	CodecovColumn = "repository_codecov"
-	// ProwTable is the table that holds the prow relation/edge.
-	ProwTable = "prows"
-	// ProwInverseTable is the table name for the Prow entity.
-	// It exists in this package in order to avoid circular dependency with the "prow" package.
-	ProwInverseTable = "prows"
-	// ProwColumn is the table column denoting the prow relation/edge.
-	ProwColumn = "repository_prow"
+	// ProwSuitesTable is the table that holds the prow_suites relation/edge.
+	ProwSuitesTable = "prow_suites"
+	// ProwSuitesInverseTable is the table name for the ProwSuites entity.
+	// It exists in this package in order to avoid circular dependency with the "prowsuites" package.
+	ProwSuitesInverseTable = "prow_suites"
+	// ProwSuitesColumn is the table column denoting the prow_suites relation/edge.
+	ProwSuitesColumn = "repository_prow_suites"
+	// ProwJobsTable is the table that holds the prow_jobs relation/edge.
+	ProwJobsTable = "prow_jobs"
+	// ProwJobsInverseTable is the table name for the ProwJobs entity.
+	// It exists in this package in order to avoid circular dependency with the "prowjobs" package.
+	ProwJobsInverseTable = "prow_jobs"
+	// ProwJobsColumn is the table column denoting the prow_jobs relation/edge.
+	ProwJobsColumn = "repository_prow_jobs"
 )
 
 // Columns holds all SQL columns for repository fields.

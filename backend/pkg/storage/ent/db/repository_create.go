@@ -11,7 +11,8 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prow"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 )
@@ -83,19 +84,34 @@ func (rc *RepositoryCreate) AddCodecov(c ...*CodeCov) *RepositoryCreate {
 	return rc.AddCodecovIDs(ids...)
 }
 
-// AddProwIDs adds the "prow" edge to the Prow entity by IDs.
-func (rc *RepositoryCreate) AddProwIDs(ids ...int) *RepositoryCreate {
-	rc.mutation.AddProwIDs(ids...)
+// AddProwSuiteIDs adds the "prow_suites" edge to the ProwSuites entity by IDs.
+func (rc *RepositoryCreate) AddProwSuiteIDs(ids ...int) *RepositoryCreate {
+	rc.mutation.AddProwSuiteIDs(ids...)
 	return rc
 }
 
-// AddProw adds the "prow" edges to the Prow entity.
-func (rc *RepositoryCreate) AddProw(p ...*Prow) *RepositoryCreate {
+// AddProwSuites adds the "prow_suites" edges to the ProwSuites entity.
+func (rc *RepositoryCreate) AddProwSuites(p ...*ProwSuites) *RepositoryCreate {
 	ids := make([]int, len(p))
 	for i := range p {
 		ids[i] = p[i].ID
 	}
-	return rc.AddProwIDs(ids...)
+	return rc.AddProwSuiteIDs(ids...)
+}
+
+// AddProwJobIDs adds the "prow_jobs" edge to the ProwJobs entity by IDs.
+func (rc *RepositoryCreate) AddProwJobIDs(ids ...int) *RepositoryCreate {
+	rc.mutation.AddProwJobIDs(ids...)
+	return rc
+}
+
+// AddProwJobs adds the "prow_jobs" edges to the ProwJobs entity.
+func (rc *RepositoryCreate) AddProwJobs(p ...*ProwJobs) *RepositoryCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return rc.AddProwJobIDs(ids...)
 }
 
 // Mutation returns the RepositoryMutation object of the builder.
@@ -311,17 +327,36 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
-	if nodes := rc.mutation.ProwIDs(); len(nodes) > 0 {
+	if nodes := rc.mutation.ProwSuitesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   repository.ProwTable,
-			Columns: []string{repository.ProwColumn},
+			Table:   repository.ProwSuitesTable,
+			Columns: []string{repository.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
-					Column: prow.FieldID,
+					Column: prowsuites.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.ProwJobsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwJobsTable,
+			Columns: []string{repository.ProwJobsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prowjobs.FieldID,
 				},
 			},
 		}

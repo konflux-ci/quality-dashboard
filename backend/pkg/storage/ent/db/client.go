@@ -11,7 +11,8 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/migrate"
 
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prow"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 
@@ -27,8 +28,10 @@ type Client struct {
 	Schema *migrate.Schema
 	// CodeCov is the client for interacting with the CodeCov builders.
 	CodeCov *CodeCovClient
-	// Prow is the client for interacting with the Prow builders.
-	Prow *ProwClient
+	// ProwJobs is the client for interacting with the ProwJobs builders.
+	ProwJobs *ProwJobsClient
+	// ProwSuites is the client for interacting with the ProwSuites builders.
+	ProwSuites *ProwSuitesClient
 	// Repository is the client for interacting with the Repository builders.
 	Repository *RepositoryClient
 	// Workflows is the client for interacting with the Workflows builders.
@@ -47,7 +50,8 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.CodeCov = NewCodeCovClient(c.config)
-	c.Prow = NewProwClient(c.config)
+	c.ProwJobs = NewProwJobsClient(c.config)
+	c.ProwSuites = NewProwSuitesClient(c.config)
 	c.Repository = NewRepositoryClient(c.config)
 	c.Workflows = NewWorkflowsClient(c.config)
 }
@@ -84,7 +88,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:        ctx,
 		config:     cfg,
 		CodeCov:    NewCodeCovClient(cfg),
-		Prow:       NewProwClient(cfg),
+		ProwJobs:   NewProwJobsClient(cfg),
+		ProwSuites: NewProwSuitesClient(cfg),
 		Repository: NewRepositoryClient(cfg),
 		Workflows:  NewWorkflowsClient(cfg),
 	}, nil
@@ -106,7 +111,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		config:     cfg,
 		CodeCov:    NewCodeCovClient(cfg),
-		Prow:       NewProwClient(cfg),
+		ProwJobs:   NewProwJobsClient(cfg),
+		ProwSuites: NewProwSuitesClient(cfg),
 		Repository: NewRepositoryClient(cfg),
 		Workflows:  NewWorkflowsClient(cfg),
 	}, nil
@@ -139,7 +145,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.CodeCov.Use(hooks...)
-	c.Prow.Use(hooks...)
+	c.ProwJobs.Use(hooks...)
+	c.ProwSuites.Use(hooks...)
 	c.Repository.Use(hooks...)
 	c.Workflows.Use(hooks...)
 }
@@ -250,84 +257,84 @@ func (c *CodeCovClient) Hooks() []Hook {
 	return c.hooks.CodeCov
 }
 
-// ProwClient is a client for the Prow schema.
-type ProwClient struct {
+// ProwJobsClient is a client for the ProwJobs schema.
+type ProwJobsClient struct {
 	config
 }
 
-// NewProwClient returns a client for the Prow from the given config.
-func NewProwClient(c config) *ProwClient {
-	return &ProwClient{config: c}
+// NewProwJobsClient returns a client for the ProwJobs from the given config.
+func NewProwJobsClient(c config) *ProwJobsClient {
+	return &ProwJobsClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `prow.Hooks(f(g(h())))`.
-func (c *ProwClient) Use(hooks ...Hook) {
-	c.hooks.Prow = append(c.hooks.Prow, hooks...)
+// A call to `Use(f, g, h)` equals to `prowjobs.Hooks(f(g(h())))`.
+func (c *ProwJobsClient) Use(hooks ...Hook) {
+	c.hooks.ProwJobs = append(c.hooks.ProwJobs, hooks...)
 }
 
-// Create returns a create builder for Prow.
-func (c *ProwClient) Create() *ProwCreate {
-	mutation := newProwMutation(c.config, OpCreate)
-	return &ProwCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a create builder for ProwJobs.
+func (c *ProwJobsClient) Create() *ProwJobsCreate {
+	mutation := newProwJobsMutation(c.config, OpCreate)
+	return &ProwJobsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of Prow entities.
-func (c *ProwClient) CreateBulk(builders ...*ProwCreate) *ProwCreateBulk {
-	return &ProwCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of ProwJobs entities.
+func (c *ProwJobsClient) CreateBulk(builders ...*ProwJobsCreate) *ProwJobsCreateBulk {
+	return &ProwJobsCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for Prow.
-func (c *ProwClient) Update() *ProwUpdate {
-	mutation := newProwMutation(c.config, OpUpdate)
-	return &ProwUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for ProwJobs.
+func (c *ProwJobsClient) Update() *ProwJobsUpdate {
+	mutation := newProwJobsMutation(c.config, OpUpdate)
+	return &ProwJobsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *ProwClient) UpdateOne(pr *Prow) *ProwUpdateOne {
-	mutation := newProwMutation(c.config, OpUpdateOne, withProw(pr))
-	return &ProwUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *ProwJobsClient) UpdateOne(pj *ProwJobs) *ProwJobsUpdateOne {
+	mutation := newProwJobsMutation(c.config, OpUpdateOne, withProwJobs(pj))
+	return &ProwJobsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *ProwClient) UpdateOneID(id int) *ProwUpdateOne {
-	mutation := newProwMutation(c.config, OpUpdateOne, withProwID(id))
-	return &ProwUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *ProwJobsClient) UpdateOneID(id int) *ProwJobsUpdateOne {
+	mutation := newProwJobsMutation(c.config, OpUpdateOne, withProwJobsID(id))
+	return &ProwJobsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for Prow.
-func (c *ProwClient) Delete() *ProwDelete {
-	mutation := newProwMutation(c.config, OpDelete)
-	return &ProwDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for ProwJobs.
+func (c *ProwJobsClient) Delete() *ProwJobsDelete {
+	mutation := newProwJobsMutation(c.config, OpDelete)
+	return &ProwJobsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a delete builder for the given entity.
-func (c *ProwClient) DeleteOne(pr *Prow) *ProwDeleteOne {
-	return c.DeleteOneID(pr.ID)
+func (c *ProwJobsClient) DeleteOne(pj *ProwJobs) *ProwJobsDeleteOne {
+	return c.DeleteOneID(pj.ID)
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *ProwClient) DeleteOneID(id int) *ProwDeleteOne {
-	builder := c.Delete().Where(prow.ID(id))
+func (c *ProwJobsClient) DeleteOneID(id int) *ProwJobsDeleteOne {
+	builder := c.Delete().Where(prowjobs.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &ProwDeleteOne{builder}
+	return &ProwJobsDeleteOne{builder}
 }
 
-// Query returns a query builder for Prow.
-func (c *ProwClient) Query() *ProwQuery {
-	return &ProwQuery{
+// Query returns a query builder for ProwJobs.
+func (c *ProwJobsClient) Query() *ProwJobsQuery {
+	return &ProwJobsQuery{
 		config: c.config,
 	}
 }
 
-// Get returns a Prow entity by its id.
-func (c *ProwClient) Get(ctx context.Context, id int) (*Prow, error) {
-	return c.Query().Where(prow.ID(id)).Only(ctx)
+// Get returns a ProwJobs entity by its id.
+func (c *ProwJobsClient) Get(ctx context.Context, id int) (*ProwJobs, error) {
+	return c.Query().Where(prowjobs.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *ProwClient) GetX(ctx context.Context, id int) *Prow {
+func (c *ProwJobsClient) GetX(ctx context.Context, id int) *ProwJobs {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -335,25 +342,131 @@ func (c *ProwClient) GetX(ctx context.Context, id int) *Prow {
 	return obj
 }
 
-// QueryProw queries the prow edge of a Prow.
-func (c *ProwClient) QueryProw(pr *Prow) *RepositoryQuery {
+// QueryProwJobs queries the prow_jobs edge of a ProwJobs.
+func (c *ProwJobsClient) QueryProwJobs(pj *ProwJobs) *RepositoryQuery {
 	query := &RepositoryQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := pr.ID
+		id := pj.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(prow.Table, prow.FieldID, id),
+			sqlgraph.From(prowjobs.Table, prowjobs.FieldID, id),
 			sqlgraph.To(repository.Table, repository.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, prow.ProwTable, prow.ProwColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, prowjobs.ProwJobsTable, prowjobs.ProwJobsColumn),
 		)
-		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		fromV = sqlgraph.Neighbors(pj.driver.Dialect(), step)
 		return fromV, nil
 	}
 	return query
 }
 
 // Hooks returns the client hooks.
-func (c *ProwClient) Hooks() []Hook {
-	return c.hooks.Prow
+func (c *ProwJobsClient) Hooks() []Hook {
+	return c.hooks.ProwJobs
+}
+
+// ProwSuitesClient is a client for the ProwSuites schema.
+type ProwSuitesClient struct {
+	config
+}
+
+// NewProwSuitesClient returns a client for the ProwSuites from the given config.
+func NewProwSuitesClient(c config) *ProwSuitesClient {
+	return &ProwSuitesClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `prowsuites.Hooks(f(g(h())))`.
+func (c *ProwSuitesClient) Use(hooks ...Hook) {
+	c.hooks.ProwSuites = append(c.hooks.ProwSuites, hooks...)
+}
+
+// Create returns a create builder for ProwSuites.
+func (c *ProwSuitesClient) Create() *ProwSuitesCreate {
+	mutation := newProwSuitesMutation(c.config, OpCreate)
+	return &ProwSuitesCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ProwSuites entities.
+func (c *ProwSuitesClient) CreateBulk(builders ...*ProwSuitesCreate) *ProwSuitesCreateBulk {
+	return &ProwSuitesCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ProwSuites.
+func (c *ProwSuitesClient) Update() *ProwSuitesUpdate {
+	mutation := newProwSuitesMutation(c.config, OpUpdate)
+	return &ProwSuitesUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProwSuitesClient) UpdateOne(ps *ProwSuites) *ProwSuitesUpdateOne {
+	mutation := newProwSuitesMutation(c.config, OpUpdateOne, withProwSuites(ps))
+	return &ProwSuitesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProwSuitesClient) UpdateOneID(id int) *ProwSuitesUpdateOne {
+	mutation := newProwSuitesMutation(c.config, OpUpdateOne, withProwSuitesID(id))
+	return &ProwSuitesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ProwSuites.
+func (c *ProwSuitesClient) Delete() *ProwSuitesDelete {
+	mutation := newProwSuitesMutation(c.config, OpDelete)
+	return &ProwSuitesDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *ProwSuitesClient) DeleteOne(ps *ProwSuites) *ProwSuitesDeleteOne {
+	return c.DeleteOneID(ps.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *ProwSuitesClient) DeleteOneID(id int) *ProwSuitesDeleteOne {
+	builder := c.Delete().Where(prowsuites.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProwSuitesDeleteOne{builder}
+}
+
+// Query returns a query builder for ProwSuites.
+func (c *ProwSuitesClient) Query() *ProwSuitesQuery {
+	return &ProwSuitesQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a ProwSuites entity by its id.
+func (c *ProwSuitesClient) Get(ctx context.Context, id int) (*ProwSuites, error) {
+	return c.Query().Where(prowsuites.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProwSuitesClient) GetX(ctx context.Context, id int) *ProwSuites {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProwSuites queries the prow_suites edge of a ProwSuites.
+func (c *ProwSuitesClient) QueryProwSuites(ps *ProwSuites) *RepositoryQuery {
+	query := &RepositoryQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := ps.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(prowsuites.Table, prowsuites.FieldID, id),
+			sqlgraph.To(repository.Table, repository.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, prowsuites.ProwSuitesTable, prowsuites.ProwSuitesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ps.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ProwSuitesClient) Hooks() []Hook {
+	return c.hooks.ProwSuites
 }
 
 // RepositoryClient is a client for the Repository schema.
@@ -473,15 +586,31 @@ func (c *RepositoryClient) QueryCodecov(r *Repository) *CodeCovQuery {
 	return query
 }
 
-// QueryProw queries the prow edge of a Repository.
-func (c *RepositoryClient) QueryProw(r *Repository) *ProwQuery {
-	query := &ProwQuery{config: c.config}
+// QueryProwSuites queries the prow_suites edge of a Repository.
+func (c *RepositoryClient) QueryProwSuites(r *Repository) *ProwSuitesQuery {
+	query := &ProwSuitesQuery{config: c.config}
 	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
 		id := r.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(repository.Table, repository.FieldID, id),
-			sqlgraph.To(prow.Table, prow.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, repository.ProwTable, repository.ProwColumn),
+			sqlgraph.To(prowsuites.Table, prowsuites.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, repository.ProwSuitesTable, repository.ProwSuitesColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryProwJobs queries the prow_jobs edge of a Repository.
+func (c *RepositoryClient) QueryProwJobs(r *Repository) *ProwJobsQuery {
+	query := &ProwJobsQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(repository.Table, repository.FieldID, id),
+			sqlgraph.To(prowjobs.Table, prowjobs.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, repository.ProwJobsTable, repository.ProwJobsColumn),
 		)
 		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
 		return fromV, nil

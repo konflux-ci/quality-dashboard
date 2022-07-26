@@ -30,24 +30,49 @@ var (
 			},
 		},
 	}
-	// ProwsColumns holds the columns for the "prows" table.
-	ProwsColumns = []*schema.Column{
+	// ProwJobsColumns holds the columns for the "prow_jobs" table.
+	ProwJobsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "job_id", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "duration", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "tests_count", Type: field.TypeInt64, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "failed_count", Type: field.TypeInt64, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "skipped_count", Type: field.TypeInt64, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "repository_prow_jobs", Type: field.TypeUUID, Nullable: true},
+	}
+	// ProwJobsTable holds the schema information for the "prow_jobs" table.
+	ProwJobsTable = &schema.Table{
+		Name:       "prow_jobs",
+		Columns:    ProwJobsColumns,
+		PrimaryKey: []*schema.Column{ProwJobsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "prow_jobs_repositories_prow_jobs",
+				Columns:    []*schema.Column{ProwJobsColumns[7]},
+				RefColumns: []*schema.Column{RepositoriesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// ProwSuitesColumns holds the columns for the "prow_suites" table.
+	ProwSuitesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "job_id", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "name", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "status", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "time", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "text"}},
-		{Name: "repository_prow", Type: field.TypeUUID, Nullable: true},
+		{Name: "repository_prow_suites", Type: field.TypeUUID, Nullable: true},
 	}
-	// ProwsTable holds the schema information for the "prows" table.
-	ProwsTable = &schema.Table{
-		Name:       "prows",
-		Columns:    ProwsColumns,
-		PrimaryKey: []*schema.Column{ProwsColumns[0]},
+	// ProwSuitesTable holds the schema information for the "prow_suites" table.
+	ProwSuitesTable = &schema.Table{
+		Name:       "prow_suites",
+		Columns:    ProwSuitesColumns,
+		PrimaryKey: []*schema.Column{ProwSuitesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "prows_repositories_prow",
-				Columns:    []*schema.Column{ProwsColumns[5]},
+				Symbol:     "prow_suites_repositories_prow_suites",
+				Columns:    []*schema.Column{ProwSuitesColumns[5]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -95,7 +120,8 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		CodeCovsTable,
-		ProwsTable,
+		ProwJobsTable,
+		ProwSuitesTable,
 		RepositoriesTable,
 		WorkflowsTable,
 	}
@@ -103,6 +129,7 @@ var (
 
 func init() {
 	CodeCovsTable.ForeignKeys[0].RefTable = RepositoriesTable
-	ProwsTable.ForeignKeys[0].RefTable = RepositoriesTable
+	ProwJobsTable.ForeignKeys[0].RefTable = RepositoriesTable
+	ProwSuitesTable.ForeignKeys[0].RefTable = RepositoriesTable
 	WorkflowsTable.ForeignKeys[0].RefTable = RepositoriesTable
 }

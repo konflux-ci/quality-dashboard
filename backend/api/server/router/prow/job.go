@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/redhat-appstudio/quality-studio/api/types"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
@@ -71,16 +72,24 @@ func (s *jobRouter) createProwCIResults(ctx context.Context, w http.ResponseWrit
 	}
 
 	testXml, err := parseFileFromRequest(r, &s.Logger)
+
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
 			Message:    fmt.Sprintf("Error parsing junit file %s", err),
 			StatusCode: 400,
 		})
 	}
-
 	for _, suites := range testXml.Suites {
+		s.Storage.CreateProwJobResults(storage.ProwJobStatus{
+			JobID:        jobID[0],
+			CreatedAt:    time.Now(),
+			Duration:     suites.Duration,
+			TestsCount:   int64(suites.NumTests),
+			FailedCount:  int64(suites.NumFailed),
+			SkippedCount: int64(suites.NumSkipped),
+		}, repoInfo.ID)
 		for _, testCase := range suites.TestCases {
-			err := s.Storage.CreateProwJobResults(storage.ProwJob{
+			err := s.Storage.CreateProwJobSuites(storage.ProwJobSuites{
 				JobID:          jobID[0],
 				TestCaseName:   testCase.Name,
 				TestCaseStatus: testCase.Status,
@@ -143,4 +152,54 @@ func (s *jobRouter) getProwJobs(ctx context.Context, w http.ResponseWriter, r *h
 	}
 
 	return httputils.WriteJSON(w, http.StatusOK, prows)
+}
+
+// version godoc
+// @Summary Prow Jobs info
+// @Description returns all prow jobs related to git_organization and repository_name
+// @Tags Prow Jobs info
+// @Accept json
+// @Produce json
+// @Param repository body GitRepositoryRequest true "repository name"
+// @Param organization body GitRepositoryRequest true "git_organization"
+// @Router /prow/results/get [get]
+// @Success 200 {Object} []db.Prow
+// @Failure 400 {object} types.ErrorResponse
+func (s *jobRouter) getLatestSuitesExecution(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	repositoryName := r.URL.Query()["repository_name"]
+	gitOrgazanitation := r.URL.Query()["git_organization"]
+
+	if len(repositoryName) == 0 {
+		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+			Message:    "repository_name value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(gitOrgazanitation) == 0 {
+		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+			Message:    "git_organization value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	latest, _ := s.Storage.GetLatestProwTestExecution()
+
+	suiterlandia, _ := s.Storage.GetSuitesByJobID(latest.JobID)
+	/*
+		repoInfo, err := s.Storage.GetRepository(repositoryName[0], gitOrgazanitation[0])
+		if err != nil {
+			return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+				Message:    "failed to get repository from database; check if repository exist in quality studio",
+				StatusCode: 400,
+			})
+		}
+
+		prows, err := s.Storage.GetProwJobsResults(repoInfo)
+		if err != nil {
+			return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+				Message:    "failed to get repository from database; check if repository exist in quality studio",
+				StatusCode: 400,
+			})
+		}
+	*/
+	return httputils.WriteJSON(w, http.StatusOK, suiterlandia)
 }

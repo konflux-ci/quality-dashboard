@@ -620,25 +620,53 @@ func HasCodecovWith(preds ...predicate.CodeCov) predicate.Repository {
 	})
 }
 
-// HasProw applies the HasEdge predicate on the "prow" edge.
-func HasProw() predicate.Repository {
+// HasProwSuites applies the HasEdge predicate on the "prow_suites" edge.
+func HasProwSuites() predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ProwTable, ProwFieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ProwTable, ProwColumn),
+			sqlgraph.To(ProwSuitesTable, ProwSuitesFieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ProwSuitesTable, ProwSuitesColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasProwWith applies the HasEdge predicate on the "prow" edge with a given conditions (other predicates).
-func HasProwWith(preds ...predicate.Prow) predicate.Repository {
+// HasProwSuitesWith applies the HasEdge predicate on the "prow_suites" edge with a given conditions (other predicates).
+func HasProwSuitesWith(preds ...predicate.ProwSuites) predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ProwInverseTable, ProwFieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ProwTable, ProwColumn),
+			sqlgraph.To(ProwSuitesInverseTable, ProwSuitesFieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ProwSuitesTable, ProwSuitesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasProwJobs applies the HasEdge predicate on the "prow_jobs" edge.
+func HasProwJobs() predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ProwJobsTable, ProwJobsFieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ProwJobsTable, ProwJobsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProwJobsWith applies the HasEdge predicate on the "prow_jobs" edge with a given conditions (other predicates).
+func HasProwJobsWith(preds ...predicate.ProwJobs) predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ProwJobsInverseTable, ProwJobsFieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ProwJobsTable, ProwJobsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
