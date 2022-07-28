@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
@@ -42,10 +41,6 @@ func (d *Database) GetProwJobsResults(db *db.Repository) ([]*db.ProwSuites, erro
 
 // GetRepository returns a git repo given its url
 func (d *Database) GetProwJobsResultsByJobID(jobID string) ([]*db.ProwSuites, error) {
-	peluca, err := d.client.ProwJobs.Query().Order(db.Desc(prowjobs.FieldCreatedAt)).First(context.Background())
-	fmt.Println(peluca)
-	fmt.Println(err)
-
 	prowJobs, err := d.client.ProwSuites.Query().Where(prowsuites.JobID(jobID)).All(context.TODO())
 
 	if err != nil {

@@ -893,6 +893,38 @@ paths:
       summary: Prow Jobs info
       tags:
       - Prow Jobs info
+  /prow/results/latest/get:
+    get:
+      consumes:
+      - application/json
+      description: returns all prow jobs related to git_organization and repository_name
+      parameters:
+      - description: repository name
+        in: body
+        name: repository
+        required: true
+        schema:
+          $ref: '#/definitions/prow.GitRepositoryRequest'
+      - description: git_organization
+        in: body
+        name: organization
+        required: true
+        schema:
+          $ref: '#/definitions/prow.GitRepositoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: Object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Prow Jobs info
+      tags:
+      - Prow Jobs info
   /prow/results/post:
     post:
       consumes:

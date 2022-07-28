@@ -162,8 +162,8 @@ func (s *jobRouter) getProwJobs(ctx context.Context, w http.ResponseWriter, r *h
 // @Produce json
 // @Param repository body GitRepositoryRequest true "repository name"
 // @Param organization body GitRepositoryRequest true "git_organization"
-// @Router /prow/results/get [get]
-// @Success 200 {Object} []db.Prow
+// @Router /prow/results/latest/get [get]
+// @Success 200 {Object} []db.ProwJobSuites
 // @Failure 400 {object} types.ErrorResponse
 func (s *jobRouter) getLatestSuitesExecution(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	repositoryName := r.URL.Query()["repository_name"]
@@ -181,25 +181,22 @@ func (s *jobRouter) getLatestSuitesExecution(ctx context.Context, w http.Respons
 		})
 	}
 
-	latest, _ := s.Storage.GetLatestProwTestExecution()
+	latest, err := s.Storage.GetLatestProwTestExecution()
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+			Message:    "failed to get latest prow execution.",
+			StatusCode: 400,
+		})
+	}
 
-	suiterlandia, _ := s.Storage.GetSuitesByJobID(latest.JobID)
-	/*
-		repoInfo, err := s.Storage.GetRepository(repositoryName[0], gitOrgazanitation[0])
-		if err != nil {
-			return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
-				Message:    "failed to get repository from database; check if repository exist in quality studio",
-				StatusCode: 400,
-			})
-		}
+	suiterlandia, err := s.Storage.GetSuitesByJobID(latest.JobID)
 
-		prows, err := s.Storage.GetProwJobsResults(repoInfo)
-		if err != nil {
-			return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
-				Message:    "failed to get repository from database; check if repository exist in quality studio",
-				StatusCode: 400,
-			})
-		}
-	*/
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+			Message:    "failed to get latest prow execution",
+			StatusCode: 400,
+		})
+	}
+
 	return httputils.WriteJSON(w, http.StatusOK, suiterlandia)
 }

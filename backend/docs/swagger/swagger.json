@@ -92,6 +92,55 @@
                 }
             }
         },
+        "/prow/results/latest/get": {
+            "get": {
+                "description": "returns all prow jobs related to git_organization and repository_name",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Prow Jobs info"
+                ],
+                "summary": "Prow Jobs info",
+                "parameters": [
+                    {
+                        "description": "repository name",
+                        "name": "repository",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/prow.GitRepositoryRequest"
+                        }
+                    },
+                    {
+                        "description": "git_organization",
+                        "name": "organization",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/prow.GitRepositoryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "Object"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/prow/results/post": {
             "post": {
                 "description": "returns all prow jobs information stored in database",
