@@ -58,6 +58,12 @@ func (pjc *ProwJobsCreate) SetSkippedCount(i int64) *ProwJobsCreate {
 	return pjc
 }
 
+// SetJobType sets the "job_type" field.
+func (pjc *ProwJobsCreate) SetJobType(s string) *ProwJobsCreate {
+	pjc.mutation.SetJobType(s)
+	return pjc
+}
+
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
 func (pjc *ProwJobsCreate) SetProwJobsID(id uuid.UUID) *ProwJobsCreate {
 	pjc.mutation.SetProwJobsID(id)
@@ -165,6 +171,9 @@ func (pjc *ProwJobsCreate) check() error {
 	if _, ok := pjc.mutation.SkippedCount(); !ok {
 		return &ValidationError{Name: "skipped_count", err: errors.New(`db: missing required field "skipped_count"`)}
 	}
+	if _, ok := pjc.mutation.JobType(); !ok {
+		return &ValidationError{Name: "job_type", err: errors.New(`db: missing required field "job_type"`)}
+	}
 	return nil
 }
 
@@ -239,6 +248,14 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 			Column: prowjobs.FieldSkippedCount,
 		})
 		_node.SkippedCount = value
+	}
+	if value, ok := pjc.mutation.JobType(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: prowjobs.FieldJobType,
+		})
+		_node.JobType = value
 	}
 	if nodes := pjc.mutation.ProwJobsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

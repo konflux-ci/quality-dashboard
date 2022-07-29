@@ -15,6 +15,7 @@ func (d *Database) CreateProwJobResults(prowJobStatus storage.ProwJobStatus, rep
 		SetTestsCount(prowJobStatus.TestsCount).
 		SetFailedCount(prowJobStatus.FailedCount).
 		SetSkippedCount(prowJobStatus.SkippedCount).
+		SetJobType(prowJobStatus.JobType).
 		Save(context.TODO())
 	if err != nil {
 		return convertDBError("create prow status: %w", err)

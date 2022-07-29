@@ -34,13 +34,13 @@ func (psu *ProwSuitesUpdate) SetJobID(s string) *ProwSuitesUpdate {
 	return psu
 }
 
-// SetName sets the "Name" field.
+// SetName sets the "name" field.
 func (psu *ProwSuitesUpdate) SetName(s string) *ProwSuitesUpdate {
 	psu.mutation.SetName(s)
 	return psu
 }
 
-// SetStatus sets the "Status" field.
+// SetStatus sets the "status" field.
 func (psu *ProwSuitesUpdate) SetStatus(s string) *ProwSuitesUpdate {
 	psu.mutation.SetStatus(s)
 	return psu
@@ -256,13 +256,13 @@ func (psuo *ProwSuitesUpdateOne) SetJobID(s string) *ProwSuitesUpdateOne {
 	return psuo
 }
 
-// SetName sets the "Name" field.
+// SetName sets the "name" field.
 func (psuo *ProwSuitesUpdateOne) SetName(s string) *ProwSuitesUpdateOne {
 	psuo.mutation.SetName(s)
 	return psuo
 }
 
-// SetStatus sets the "Status" field.
+// SetStatus sets the "status" field.
 func (psuo *ProwSuitesUpdateOne) SetStatus(s string) *ProwSuitesUpdateOne {
 	psuo.mutation.SetStatus(s)
 	return psuo

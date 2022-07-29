@@ -135,6 +135,13 @@ func SkippedCount(v int64) predicate.ProwJobs {
 	})
 }
 
+// JobType applies equality check predicate on the "job_type" field. It's identical to JobTypeEQ.
+func JobType(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldJobType), v))
+	})
+}
+
 // JobIDEQ applies the EQ predicate on the "job_id" field.
 func JobIDEQ(v string) predicate.ProwJobs {
 	return predicate.ProwJobs(func(s *sql.Selector) {
@@ -623,6 +630,117 @@ func SkippedCountLT(v int64) predicate.ProwJobs {
 func SkippedCountLTE(v int64) predicate.ProwJobs {
 	return predicate.ProwJobs(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldSkippedCount), v))
+	})
+}
+
+// JobTypeEQ applies the EQ predicate on the "job_type" field.
+func JobTypeEQ(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldJobType), v))
+	})
+}
+
+// JobTypeNEQ applies the NEQ predicate on the "job_type" field.
+func JobTypeNEQ(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldJobType), v))
+	})
+}
+
+// JobTypeIn applies the In predicate on the "job_type" field.
+func JobTypeIn(vs ...string) predicate.ProwJobs {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldJobType), v...))
+	})
+}
+
+// JobTypeNotIn applies the NotIn predicate on the "job_type" field.
+func JobTypeNotIn(vs ...string) predicate.ProwJobs {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldJobType), v...))
+	})
+}
+
+// JobTypeGT applies the GT predicate on the "job_type" field.
+func JobTypeGT(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldJobType), v))
+	})
+}
+
+// JobTypeGTE applies the GTE predicate on the "job_type" field.
+func JobTypeGTE(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldJobType), v))
+	})
+}
+
+// JobTypeLT applies the LT predicate on the "job_type" field.
+func JobTypeLT(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldJobType), v))
+	})
+}
+
+// JobTypeLTE applies the LTE predicate on the "job_type" field.
+func JobTypeLTE(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldJobType), v))
+	})
+}
+
+// JobTypeContains applies the Contains predicate on the "job_type" field.
+func JobTypeContains(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldJobType), v))
+	})
+}
+
+// JobTypeHasPrefix applies the HasPrefix predicate on the "job_type" field.
+func JobTypeHasPrefix(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldJobType), v))
+	})
+}
+
+// JobTypeHasSuffix applies the HasSuffix predicate on the "job_type" field.
+func JobTypeHasSuffix(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldJobType), v))
+	})
+}
+
+// JobTypeEqualFold applies the EqualFold predicate on the "job_type" field.
+func JobTypeEqualFold(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldJobType), v))
+	})
+}
+
+// JobTypeContainsFold applies the ContainsFold predicate on the "job_type" field.
+func JobTypeContainsFold(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldJobType), v))
 	})
 }
 

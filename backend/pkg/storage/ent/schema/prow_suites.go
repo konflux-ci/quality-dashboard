@@ -16,9 +16,9 @@ func (ProwSuites) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("job_id").
 			SchemaType(textSchema),
-		field.Text("Name").
+		field.Text("name").
 			SchemaType(textSchema),
-		field.Text("Status").
+		field.Text("status").
 			SchemaType(textSchema),
 		field.Float("time").
 			SchemaType(textSchema),

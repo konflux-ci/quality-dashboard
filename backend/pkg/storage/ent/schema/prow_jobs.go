@@ -26,6 +26,8 @@ func (ProwJobs) Fields() []ent.Field {
 			SchemaType(textSchema),
 		field.Int64("skipped_count").
 			SchemaType(textSchema),
+		field.Text("job_type").
+			SchemaType(textSchema),
 	}
 }
 

@@ -98,14 +98,14 @@ func JobID(v string) predicate.ProwSuites {
 	})
 }
 
-// Name applies equality check predicate on the "Name" field. It's identical to NameEQ.
+// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldName), v))
 	})
 }
 
-// Status applies equality check predicate on the "Status" field. It's identical to StatusEQ.
+// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
 func Status(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldStatus), v))
@@ -230,21 +230,21 @@ func JobIDContainsFold(v string) predicate.ProwSuites {
 	})
 }
 
-// NameEQ applies the EQ predicate on the "Name" field.
+// NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldName), v))
 	})
 }
 
-// NameNEQ applies the NEQ predicate on the "Name" field.
+// NameNEQ applies the NEQ predicate on the "name" field.
 func NameNEQ(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldName), v))
 	})
 }
 
-// NameIn applies the In predicate on the "Name" field.
+// NameIn applies the In predicate on the "name" field.
 func NameIn(vs ...string) predicate.ProwSuites {
 	v := make([]interface{}, len(vs))
 	for i := range v {
@@ -261,7 +261,7 @@ func NameIn(vs ...string) predicate.ProwSuites {
 	})
 }
 
-// NameNotIn applies the NotIn predicate on the "Name" field.
+// NameNotIn applies the NotIn predicate on the "name" field.
 func NameNotIn(vs ...string) predicate.ProwSuites {
 	v := make([]interface{}, len(vs))
 	for i := range v {
@@ -278,84 +278,84 @@ func NameNotIn(vs ...string) predicate.ProwSuites {
 	})
 }
 
-// NameGT applies the GT predicate on the "Name" field.
+// NameGT applies the GT predicate on the "name" field.
 func NameGT(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldName), v))
 	})
 }
 
-// NameGTE applies the GTE predicate on the "Name" field.
+// NameGTE applies the GTE predicate on the "name" field.
 func NameGTE(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldName), v))
 	})
 }
 
-// NameLT applies the LT predicate on the "Name" field.
+// NameLT applies the LT predicate on the "name" field.
 func NameLT(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldName), v))
 	})
 }
 
-// NameLTE applies the LTE predicate on the "Name" field.
+// NameLTE applies the LTE predicate on the "name" field.
 func NameLTE(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldName), v))
 	})
 }
 
-// NameContains applies the Contains predicate on the "Name" field.
+// NameContains applies the Contains predicate on the "name" field.
 func NameContains(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.Contains(s.C(FieldName), v))
 	})
 }
 
-// NameHasPrefix applies the HasPrefix predicate on the "Name" field.
+// NameHasPrefix applies the HasPrefix predicate on the "name" field.
 func NameHasPrefix(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.HasPrefix(s.C(FieldName), v))
 	})
 }
 
-// NameHasSuffix applies the HasSuffix predicate on the "Name" field.
+// NameHasSuffix applies the HasSuffix predicate on the "name" field.
 func NameHasSuffix(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.HasSuffix(s.C(FieldName), v))
 	})
 }
 
-// NameEqualFold applies the EqualFold predicate on the "Name" field.
+// NameEqualFold applies the EqualFold predicate on the "name" field.
 func NameEqualFold(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.EqualFold(s.C(FieldName), v))
 	})
 }
 
-// NameContainsFold applies the ContainsFold predicate on the "Name" field.
+// NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldName), v))
 	})
 }
 
-// StatusEQ applies the EQ predicate on the "Status" field.
+// StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldStatus), v))
 	})
 }
 
-// StatusNEQ applies the NEQ predicate on the "Status" field.
+// StatusNEQ applies the NEQ predicate on the "status" field.
 func StatusNEQ(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldStatus), v))
 	})
 }
 
-// StatusIn applies the In predicate on the "Status" field.
+// StatusIn applies the In predicate on the "status" field.
 func StatusIn(vs ...string) predicate.ProwSuites {
 	v := make([]interface{}, len(vs))
 	for i := range v {
@@ -372,7 +372,7 @@ func StatusIn(vs ...string) predicate.ProwSuites {
 	})
 }
 
-// StatusNotIn applies the NotIn predicate on the "Status" field.
+// StatusNotIn applies the NotIn predicate on the "status" field.
 func StatusNotIn(vs ...string) predicate.ProwSuites {
 	v := make([]interface{}, len(vs))
 	for i := range v {
@@ -389,63 +389,63 @@ func StatusNotIn(vs ...string) predicate.ProwSuites {
 	})
 }
 
-// StatusGT applies the GT predicate on the "Status" field.
+// StatusGT applies the GT predicate on the "status" field.
 func StatusGT(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldStatus), v))
 	})
 }
 
-// StatusGTE applies the GTE predicate on the "Status" field.
+// StatusGTE applies the GTE predicate on the "status" field.
 func StatusGTE(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldStatus), v))
 	})
 }
 
-// StatusLT applies the LT predicate on the "Status" field.
+// StatusLT applies the LT predicate on the "status" field.
 func StatusLT(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldStatus), v))
 	})
 }
 
-// StatusLTE applies the LTE predicate on the "Status" field.
+// StatusLTE applies the LTE predicate on the "status" field.
 func StatusLTE(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldStatus), v))
 	})
 }
 
-// StatusContains applies the Contains predicate on the "Status" field.
+// StatusContains applies the Contains predicate on the "status" field.
 func StatusContains(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.Contains(s.C(FieldStatus), v))
 	})
 }
 
-// StatusHasPrefix applies the HasPrefix predicate on the "Status" field.
+// StatusHasPrefix applies the HasPrefix predicate on the "status" field.
 func StatusHasPrefix(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.HasPrefix(s.C(FieldStatus), v))
 	})
 }
 
-// StatusHasSuffix applies the HasSuffix predicate on the "Status" field.
+// StatusHasSuffix applies the HasSuffix predicate on the "status" field.
 func StatusHasSuffix(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.HasSuffix(s.C(FieldStatus), v))
 	})
 }
 
-// StatusEqualFold applies the EqualFold predicate on the "Status" field.
+// StatusEqualFold applies the EqualFold predicate on the "status" field.
 func StatusEqualFold(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.EqualFold(s.C(FieldStatus), v))
 	})
 }
 
-// StatusContainsFold applies the ContainsFold predicate on the "Status" field.
+// StatusContainsFold applies the ContainsFold predicate on the "status" field.
 func StatusContainsFold(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldStatus), v))

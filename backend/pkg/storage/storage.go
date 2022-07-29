@@ -24,7 +24,7 @@ type Storage interface {
 
 	// GET
 	GetRepository(repositoryName string, gitOrganizationName string) (*db.Repository, error)
-	GetLatestProwTestExecution() (*db.ProwJobs, error)
+	GetLatestProwTestExecution(jobType string) (*db.ProwJobs, error)
 	GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error)
 	GetProwJobsResults(*db.Repository) ([]*db.ProwSuites, error)
 	GetProwJobsResultsByJobID(jobID string) ([]*db.ProwSuites, error)
@@ -95,6 +95,8 @@ type ProwJobSuites struct {
 	TestCaseStatus string `json:"test_status"`
 
 	TestTiming float64 `json:"test_timing"`
+
+	JobType string `json:"job_type"`
 }
 
 // Repository is an github repository info managed by the storage.
@@ -112,6 +114,8 @@ type ProwJobStatus struct {
 	FailedCount int64 `json:"failed_count"`
 
 	SkippedCount int64 `json:"skipped_count"`
+
+	JobType string `json:"job_type"`
 }
 
 // Repository is an github repository info managed by the storage.

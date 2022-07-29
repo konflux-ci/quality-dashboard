@@ -562,6 +562,7 @@ type ProwJobsMutation struct {
 	addfailed_count  *int64
 	skipped_count    *int64
 	addskipped_count *int64
+	job_type         *string
 	clearedFields    map[string]struct{}
 	prow_jobs        *uuid.UUID
 	clearedprow_jobs bool
@@ -945,6 +946,42 @@ func (m *ProwJobsMutation) ResetSkippedCount() {
 	m.addskipped_count = nil
 }
 
+// SetJobType sets the "job_type" field.
+func (m *ProwJobsMutation) SetJobType(s string) {
+	m.job_type = &s
+}
+
+// JobType returns the value of the "job_type" field in the mutation.
+func (m *ProwJobsMutation) JobType() (r string, exists bool) {
+	v := m.job_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJobType returns the old "job_type" field's value of the ProwJobs entity.
+// If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwJobsMutation) OldJobType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldJobType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldJobType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJobType: %w", err)
+	}
+	return oldValue.JobType, nil
+}
+
+// ResetJobType resets all changes to the "job_type" field.
+func (m *ProwJobsMutation) ResetJobType() {
+	m.job_type = nil
+}
+
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by id.
 func (m *ProwJobsMutation) SetProwJobsID(id uuid.UUID) {
 	m.prow_jobs = &id
@@ -1003,7 +1040,7 @@ func (m *ProwJobsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProwJobsMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 7)
 	if m.job_id != nil {
 		fields = append(fields, prowjobs.FieldJobID)
 	}
@@ -1021,6 +1058,9 @@ func (m *ProwJobsMutation) Fields() []string {
 	}
 	if m.skipped_count != nil {
 		fields = append(fields, prowjobs.FieldSkippedCount)
+	}
+	if m.job_type != nil {
+		fields = append(fields, prowjobs.FieldJobType)
 	}
 	return fields
 }
@@ -1042,6 +1082,8 @@ func (m *ProwJobsMutation) Field(name string) (ent.Value, bool) {
 		return m.FailedCount()
 	case prowjobs.FieldSkippedCount:
 		return m.SkippedCount()
+	case prowjobs.FieldJobType:
+		return m.JobType()
 	}
 	return nil, false
 }
@@ -1063,6 +1105,8 @@ func (m *ProwJobsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldFailedCount(ctx)
 	case prowjobs.FieldSkippedCount:
 		return m.OldSkippedCount(ctx)
+	case prowjobs.FieldJobType:
+		return m.OldJobType(ctx)
 	}
 	return nil, fmt.Errorf("unknown ProwJobs field %s", name)
 }
@@ -1113,6 +1157,13 @@ func (m *ProwJobsMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSkippedCount(v)
+		return nil
+	case prowjobs.FieldJobType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJobType(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ProwJobs field %s", name)
@@ -1232,6 +1283,9 @@ func (m *ProwJobsMutation) ResetField(name string) error {
 	case prowjobs.FieldSkippedCount:
 		m.ResetSkippedCount()
 		return nil
+	case prowjobs.FieldJobType:
+		m.ResetJobType()
+		return nil
 	}
 	return fmt.Errorf("unknown ProwJobs field %s", name)
 }
@@ -1319,8 +1373,8 @@ type ProwSuitesMutation struct {
 	typ                string
 	id                 *int
 	job_id             *string
-	_Name              *string
-	_Status            *string
+	name               *string
+	status             *string
 	time               *float64
 	addtime            *float64
 	clearedFields      map[string]struct{}
@@ -1446,21 +1500,21 @@ func (m *ProwSuitesMutation) ResetJobID() {
 	m.job_id = nil
 }
 
-// SetName sets the "Name" field.
+// SetName sets the "name" field.
 func (m *ProwSuitesMutation) SetName(s string) {
-	m._Name = &s
+	m.name = &s
 }
 
-// Name returns the value of the "Name" field in the mutation.
+// Name returns the value of the "name" field in the mutation.
 func (m *ProwSuitesMutation) Name() (r string, exists bool) {
-	v := m._Name
+	v := m.name
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldName returns the old "Name" field's value of the ProwSuites entity.
+// OldName returns the old "name" field's value of the ProwSuites entity.
 // If the ProwSuites object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *ProwSuitesMutation) OldName(ctx context.Context) (v string, err error) {
@@ -1477,26 +1531,26 @@ func (m *ProwSuitesMutation) OldName(ctx context.Context) (v string, err error) 
 	return oldValue.Name, nil
 }
 
-// ResetName resets all changes to the "Name" field.
+// ResetName resets all changes to the "name" field.
 func (m *ProwSuitesMutation) ResetName() {
-	m._Name = nil
+	m.name = nil
 }
 
-// SetStatus sets the "Status" field.
+// SetStatus sets the "status" field.
 func (m *ProwSuitesMutation) SetStatus(s string) {
-	m._Status = &s
+	m.status = &s
 }
 
-// Status returns the value of the "Status" field in the mutation.
+// Status returns the value of the "status" field in the mutation.
 func (m *ProwSuitesMutation) Status() (r string, exists bool) {
-	v := m._Status
+	v := m.status
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldStatus returns the old "Status" field's value of the ProwSuites entity.
+// OldStatus returns the old "status" field's value of the ProwSuites entity.
 // If the ProwSuites object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
 func (m *ProwSuitesMutation) OldStatus(ctx context.Context) (v string, err error) {
@@ -1513,9 +1567,9 @@ func (m *ProwSuitesMutation) OldStatus(ctx context.Context) (v string, err error
 	return oldValue.Status, nil
 }
 
-// ResetStatus resets all changes to the "Status" field.
+// ResetStatus resets all changes to the "status" field.
 func (m *ProwSuitesMutation) ResetStatus() {
-	m._Status = nil
+	m.status = nil
 }
 
 // SetTime sets the "time" field.
@@ -1636,10 +1690,10 @@ func (m *ProwSuitesMutation) Fields() []string {
 	if m.job_id != nil {
 		fields = append(fields, prowsuites.FieldJobID)
 	}
-	if m._Name != nil {
+	if m.name != nil {
 		fields = append(fields, prowsuites.FieldName)
 	}
-	if m._Status != nil {
+	if m.status != nil {
 		fields = append(fields, prowsuites.FieldStatus)
 	}
 	if m.time != nil {

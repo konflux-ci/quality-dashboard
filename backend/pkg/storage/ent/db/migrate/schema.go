@@ -39,6 +39,7 @@ var (
 		{Name: "tests_count", Type: field.TypeInt64, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "failed_count", Type: field.TypeInt64, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "skipped_count", Type: field.TypeInt64, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "job_type", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "repository_prow_jobs", Type: field.TypeUUID, Nullable: true},
 	}
 	// ProwJobsTable holds the schema information for the "prow_jobs" table.
@@ -49,7 +50,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "prow_jobs_repositories_prow_jobs",
-				Columns:    []*schema.Column{ProwJobsColumns[7]},
+				Columns:    []*schema.Column{ProwJobsColumns[8]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

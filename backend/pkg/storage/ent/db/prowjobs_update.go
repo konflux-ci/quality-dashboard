@@ -93,6 +93,12 @@ func (pju *ProwJobsUpdate) AddSkippedCount(i int64) *ProwJobsUpdate {
 	return pju
 }
 
+// SetJobType sets the "job_type" field.
+func (pju *ProwJobsUpdate) SetJobType(s string) *ProwJobsUpdate {
+	pju.mutation.SetJobType(s)
+	return pju
+}
+
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
 func (pju *ProwJobsUpdate) SetProwJobsID(id uuid.UUID) *ProwJobsUpdate {
 	pju.mutation.SetProwJobsID(id)
@@ -265,6 +271,13 @@ func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: prowjobs.FieldSkippedCount,
 		})
 	}
+	if value, ok := pju.mutation.JobType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: prowjobs.FieldJobType,
+		})
+	}
 	if pju.mutation.ProwJobsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -380,6 +393,12 @@ func (pjuo *ProwJobsUpdateOne) SetSkippedCount(i int64) *ProwJobsUpdateOne {
 // AddSkippedCount adds i to the "skipped_count" field.
 func (pjuo *ProwJobsUpdateOne) AddSkippedCount(i int64) *ProwJobsUpdateOne {
 	pjuo.mutation.AddSkippedCount(i)
+	return pjuo
+}
+
+// SetJobType sets the "job_type" field.
+func (pjuo *ProwJobsUpdateOne) SetJobType(s string) *ProwJobsUpdateOne {
+	pjuo.mutation.SetJobType(s)
 	return pjuo
 }
 
@@ -577,6 +596,13 @@ func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, er
 			Type:   field.TypeInt64,
 			Value:  value,
 			Column: prowjobs.FieldSkippedCount,
+		})
+	}
+	if value, ok := pjuo.mutation.JobType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: prowjobs.FieldJobType,
 		})
 	}
 	if pjuo.mutation.ProwJobsCleared() {

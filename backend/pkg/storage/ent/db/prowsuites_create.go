@@ -27,13 +27,13 @@ func (psc *ProwSuitesCreate) SetJobID(s string) *ProwSuitesCreate {
 	return psc
 }
 
-// SetName sets the "Name" field.
+// SetName sets the "name" field.
 func (psc *ProwSuitesCreate) SetName(s string) *ProwSuitesCreate {
 	psc.mutation.SetName(s)
 	return psc
 }
 
-// SetStatus sets the "Status" field.
+// SetStatus sets the "status" field.
 func (psc *ProwSuitesCreate) SetStatus(s string) *ProwSuitesCreate {
 	psc.mutation.SetStatus(s)
 	return psc
@@ -138,10 +138,10 @@ func (psc *ProwSuitesCreate) check() error {
 		return &ValidationError{Name: "job_id", err: errors.New(`db: missing required field "job_id"`)}
 	}
 	if _, ok := psc.mutation.Name(); !ok {
-		return &ValidationError{Name: "Name", err: errors.New(`db: missing required field "Name"`)}
+		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "name"`)}
 	}
 	if _, ok := psc.mutation.Status(); !ok {
-		return &ValidationError{Name: "Status", err: errors.New(`db: missing required field "Status"`)}
+		return &ValidationError{Name: "status", err: errors.New(`db: missing required field "status"`)}
 	}
 	if _, ok := psc.mutation.Time(); !ok {
 		return &ValidationError{Name: "time", err: errors.New(`db: missing required field "time"`)}

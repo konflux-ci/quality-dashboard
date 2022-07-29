@@ -41,17 +41,17 @@ func (d *Database) GetProwJobsResults(db *db.Repository) ([]*db.ProwSuites, erro
 
 // GetRepository returns a git repo given its url
 func (d *Database) GetProwJobsResultsByJobID(jobID string) ([]*db.ProwSuites, error) {
-	prowJobs, err := d.client.ProwSuites.Query().Where(prowsuites.JobID(jobID)).All(context.TODO())
+	prowSuites, err := d.client.ProwSuites.Query().Where(prowsuites.JobID(jobID)).All(context.TODO())
 
 	if err != nil {
-		return nil, convertDBError("get repository: %w", err)
+		return nil, convertDBError("get prow suites: %w", err)
 	}
 
-	return prowJobs, nil
+	return prowSuites, nil
 }
 
-func (d *Database) GetLatestProwTestExecution() (*db.ProwJobs, error) {
-	prowJob, err := d.client.ProwJobs.Query().Order(db.Desc(prowjobs.FieldCreatedAt)).First(context.Background())
+func (d *Database) GetLatestProwTestExecution(jobType string) (*db.ProwJobs, error) {
+	prowJob, err := d.client.ProwJobs.Query().Where(prowjobs.JobType(jobType)).Order(db.Desc(prowjobs.FieldCreatedAt)).First(context.Background())
 
 	if err != nil {
 		return nil, convertDBError("get prow job: %w", err)

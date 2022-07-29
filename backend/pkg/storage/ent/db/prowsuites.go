@@ -19,10 +19,10 @@ type ProwSuites struct {
 	ID int `json:"id,omitempty"`
 	// JobID holds the value of the "job_id" field.
 	JobID string `json:"job_id,omitempty"`
-	// Name holds the value of the "Name" field.
-	Name string `json:"Name,omitempty"`
-	// Status holds the value of the "Status" field.
-	Status string `json:"Status,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
+	// Status holds the value of the "status" field.
+	Status string `json:"status,omitempty"`
 	// Time holds the value of the "time" field.
 	Time float64 `json:"time,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -96,13 +96,13 @@ func (ps *ProwSuites) assignValues(columns []string, values []interface{}) error
 			}
 		case prowsuites.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field Name", values[i])
+				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				ps.Name = value.String
 			}
 		case prowsuites.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field Status", values[i])
+				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
 				ps.Status = value.String
 			}
@@ -154,9 +154,9 @@ func (ps *ProwSuites) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", ps.ID))
 	builder.WriteString(", job_id=")
 	builder.WriteString(ps.JobID)
-	builder.WriteString(", Name=")
+	builder.WriteString(", name=")
 	builder.WriteString(ps.Name)
-	builder.WriteString(", Status=")
+	builder.WriteString(", status=")
 	builder.WriteString(ps.Status)
 	builder.WriteString(", time=")
 	builder.WriteString(fmt.Sprintf("%v", ps.Time))

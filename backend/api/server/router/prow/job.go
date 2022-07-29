@@ -36,6 +36,7 @@ func (s *jobRouter) createProwCIResults(ctx context.Context, w http.ResponseWrit
 	repositoryName := r.URL.Query()["repository_name"]
 	gitOrgazanitation := r.URL.Query()["git_organization"]
 	jobID := r.URL.Query()["job_id"]
+	jobType := r.URL.Query()["job_type"]
 
 	if len(repositoryName) == 0 {
 		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
@@ -49,7 +50,12 @@ func (s *jobRouter) createProwCIResults(ctx context.Context, w http.ResponseWrit
 		})
 	} else if len(jobID) == 0 {
 		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
-			Message:    "git_organization value not present in query",
+			Message:    "job_id value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(jobType) == 0 {
+		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+			Message:    "job_type value not present in query",
 			StatusCode: 400,
 		})
 	}
@@ -87,6 +93,7 @@ func (s *jobRouter) createProwCIResults(ctx context.Context, w http.ResponseWrit
 			TestsCount:   int64(suites.NumTests),
 			FailedCount:  int64(suites.NumFailed),
 			SkippedCount: int64(suites.NumSkipped),
+			JobType:      jobType[0],
 		}, repoInfo.ID)
 		for _, testCase := range suites.TestCases {
 			err := s.Storage.CreateProwJobSuites(storage.ProwJobSuites{
@@ -94,6 +101,7 @@ func (s *jobRouter) createProwCIResults(ctx context.Context, w http.ResponseWrit
 				TestCaseName:   testCase.Name,
 				TestCaseStatus: testCase.Status,
 				TestTiming:     testCase.Duration,
+				JobType:        jobType[0],
 			}, repoInfo.ID)
 
 			if err != nil {
@@ -168,6 +176,7 @@ func (s *jobRouter) getProwJobs(ctx context.Context, w http.ResponseWriter, r *h
 func (s *jobRouter) getLatestSuitesExecution(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	repositoryName := r.URL.Query()["repository_name"]
 	gitOrgazanitation := r.URL.Query()["git_organization"]
+	jobType := r.URL.Query()["job_type"]
 
 	if len(repositoryName) == 0 {
 		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
@@ -179,9 +188,14 @@ func (s *jobRouter) getLatestSuitesExecution(ctx context.Context, w http.Respons
 			Message:    "git_organization value not present in query",
 			StatusCode: 400,
 		})
+	} else if len(jobType) == 0 {
+		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+			Message:    "job_type value not present in query",
+			StatusCode: 400,
+		})
 	}
 
-	latest, err := s.Storage.GetLatestProwTestExecution()
+	latest, err := s.Storage.GetLatestProwTestExecution(jobType[0])
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
 			Message:    "failed to get latest prow execution.",
