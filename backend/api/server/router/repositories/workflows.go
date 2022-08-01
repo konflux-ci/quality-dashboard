@@ -21,7 +21,7 @@ func (rp *repositoryRouter) getWorkflowByRepositoryName(ctx context.Context, w h
 	repositoryName := r.URL.Query()["repository_name"]
 	workflows, err := rp.Storage.ListWorkflowsByRepository(repositoryName[0])
 	if err != nil {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "Failed to remove repository. Field 'repository_name' missing",
 			StatusCode: 400,
 		})

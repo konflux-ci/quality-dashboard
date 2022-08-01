@@ -24,7 +24,7 @@ type Storage interface {
 
 	// GET
 	GetRepository(repositoryName string, gitOrganizationName string) (*db.Repository, error)
-	GetLatestProwTestExecution(jobType string) (*db.ProwJobs, error)
+	GetLatestProwTestExecution(r *db.Repository, jobType string) (*db.ProwJobs, error)
 	GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error)
 	GetProwJobsResults(*db.Repository) ([]*db.ProwSuites, error)
 	GetProwJobsResultsByJobID(jobID string) ([]*db.ProwSuites, error)

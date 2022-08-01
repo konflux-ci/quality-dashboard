@@ -58,7 +58,6 @@ let Support = () => {
   };
 
   const validateGetProwJob = () => {
-    console.log(repoName, repoOrg, jobType)
     if(repoName != "" && repoOrg != "" && jobType != ""){
       setbuttonDisabled(false)
     }

@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 )
 
@@ -48,16 +47,6 @@ func (d *Database) GetProwJobsResultsByJobID(jobID string) ([]*db.ProwSuites, er
 	}
 
 	return prowSuites, nil
-}
-
-func (d *Database) GetLatestProwTestExecution(jobType string) (*db.ProwJobs, error) {
-	prowJob, err := d.client.ProwJobs.Query().Where(prowjobs.JobType(jobType)).Order(db.Desc(prowjobs.FieldCreatedAt)).First(context.Background())
-
-	if err != nil {
-		return nil, convertDBError("get prow job: %w", err)
-	}
-
-	return prowJob, nil
 }
 
 func (d *Database) GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error) {

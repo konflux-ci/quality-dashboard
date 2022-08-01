@@ -137,20 +137,20 @@ func (rp *repositoryRouter) deleteRepositoryHandler(ctx context.Context, w http.
 	json.NewDecoder(r.Body).Decode(&repository)
 
 	if repository.GitRepository == "" {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "Failed to remove repository. Field 'repository_name' missing",
 			StatusCode: 400,
 		})
 	}
 	if repository.GitOrganization == "" {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "Failed to remove repository. Field 'git_organization' missing",
 			StatusCode: 400,
 		})
 	}
 	err := rp.Storage.DeleteRepository(repository.GitRepository, repository.GitOrganization)
 	if err != nil {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "Failed to remove repository",
 			StatusCode: 400,
 		})

@@ -39,22 +39,22 @@ func (s *jobRouter) createProwCIResults(ctx context.Context, w http.ResponseWrit
 	jobType := r.URL.Query()["job_type"]
 
 	if len(repositoryName) == 0 {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "repository_name value not present in query",
 			StatusCode: 400,
 		})
 	} else if len(gitOrgazanitation) == 0 {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "git_organization value not present in query",
 			StatusCode: 400,
 		})
 	} else if len(jobID) == 0 {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "job_id value not present in query",
 			StatusCode: 400,
 		})
 	} else if len(jobType) == 0 {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "job_type value not present in query",
 			StatusCode: 400,
 		})
@@ -62,7 +62,7 @@ func (s *jobRouter) createProwCIResults(ctx context.Context, w http.ResponseWrit
 
 	prowJobsInDatabase, _ := s.Storage.GetProwJobsResultsByJobID(jobID[0])
 	if len(prowJobsInDatabase) > 0 {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "ci jobid already exist in database",
 			StatusCode: 400,
 		})
@@ -71,7 +71,7 @@ func (s *jobRouter) createProwCIResults(ctx context.Context, w http.ResponseWrit
 	repoInfo, err := s.Storage.GetRepository(repositoryName[0], gitOrgazanitation[0])
 
 	if err != nil {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    fmt.Sprintf("Repository '%s' doesn't exists in quality studio database", repositoryName[0]),
 			StatusCode: 400,
 		})
@@ -80,7 +80,7 @@ func (s *jobRouter) createProwCIResults(ctx context.Context, w http.ResponseWrit
 	testXml, err := parseFileFromRequest(r, &s.Logger)
 
 	if err != nil {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    fmt.Sprintf("Error parsing junit file %s", err),
 			StatusCode: 400,
 		})
@@ -132,12 +132,12 @@ func (s *jobRouter) getProwJobs(ctx context.Context, w http.ResponseWriter, r *h
 	gitOrgazanitation := r.URL.Query()["git_organization"]
 
 	if len(repositoryName) == 0 {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "repository_name value not present in query",
 			StatusCode: 400,
 		})
 	} else if len(gitOrgazanitation) == 0 {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "git_organization value not present in query",
 			StatusCode: 400,
 		})
@@ -145,7 +145,7 @@ func (s *jobRouter) getProwJobs(ctx context.Context, w http.ResponseWriter, r *h
 
 	repoInfo, err := s.Storage.GetRepository(repositoryName[0], gitOrgazanitation[0])
 	if err != nil {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "failed to get repository from database; check if repository exist in quality studio",
 			StatusCode: 400,
 		})
@@ -153,7 +153,7 @@ func (s *jobRouter) getProwJobs(ctx context.Context, w http.ResponseWriter, r *h
 
 	prows, err := s.Storage.GetProwJobsResults(repoInfo)
 	if err != nil {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "failed to get repository from database; check if repository exist in quality studio",
 			StatusCode: 400,
 		})
@@ -179,25 +179,32 @@ func (s *jobRouter) getLatestSuitesExecution(ctx context.Context, w http.Respons
 	jobType := r.URL.Query()["job_type"]
 
 	if len(repositoryName) == 0 {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "repository_name value not present in query",
 			StatusCode: 400,
 		})
 	} else if len(gitOrgazanitation) == 0 {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "git_organization value not present in query",
 			StatusCode: 400,
 		})
 	} else if len(jobType) == 0 {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "job_type value not present in query",
 			StatusCode: 400,
 		})
 	}
 
-	latest, err := s.Storage.GetLatestProwTestExecution(jobType[0])
+	repoInfo, err := s.Storage.GetRepository(repositoryName[0], gitOrgazanitation[0])
 	if err != nil {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    fmt.Sprintf("Repository '%s' doesn't exists in quality studio database", repositoryName[0]),
+			StatusCode: 400,
+		})
+	}
+	latest, err := s.Storage.GetLatestProwTestExecution(repoInfo, jobType[0])
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "failed to get latest prow execution.",
 			StatusCode: 400,
 		})
@@ -206,7 +213,7 @@ func (s *jobRouter) getLatestSuitesExecution(ctx context.Context, w http.Respons
 	suiterlandia, err := s.Storage.GetSuitesByJobID(latest.JobID)
 
 	if err != nil {
-		return httputils.WriteJSON(w, http.StatusOK, types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "failed to get latest prow execution",
 			StatusCode: 400,
 		})
