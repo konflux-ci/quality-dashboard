@@ -27,7 +27,7 @@ import {
 } from '@patternfly/react-core';
 import { Context } from '@app/store/store';
 import { deleteRepositoryAPI, getRepositories } from '@app/utils/APIService';
-import { ExternalLinkAltIcon, FilterIcon, PlusIcon } from '@patternfly/react-icons';
+import { ExternalLinkAltIcon, FilterIcon, PlusIcon , BarsIcon} from '@patternfly/react-icons';
 import _ from 'lodash';
 import { useModalContext } from './CreateRepository';
 import { Repository } from './Repositories';
@@ -409,6 +409,9 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
                   <a href={repo.git_url}>
                   <ExternalLinkAltIcon style={{marginLeft: "1%"}}></ExternalLinkAltIcon>
                   </a>
+                  <span title= {repo.description}> &nbsp; &nbsp;
+                    <a><BarsIcon></BarsIcon></a>
+                  </span>
                 </Td> 
                 
                 {showCoverage &&
@@ -420,7 +423,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
                 {showDiscription && 
                   <Td>{repo.description}</Td> 
                 } 
-                
+
                 <Td>
                   {rowActions ? (
                     <ActionsColumn
