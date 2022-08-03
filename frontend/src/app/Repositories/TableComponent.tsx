@@ -16,6 +16,7 @@ import {
 import {
   Alert, Pagination, PaginationVariant,
   Button, ButtonVariant,
+  ExpandableSection,
   Toolbar, ToolbarItem, ToolbarContent,
   ToolbarFilter,
   ToolbarToggleGroup,
@@ -27,7 +28,7 @@ import {
 } from '@patternfly/react-core';
 import { Context } from '@app/store/store';
 import { deleteRepositoryAPI, getRepositories } from '@app/utils/APIService';
-import { ExternalLinkAltIcon, FilterIcon, PlusIcon , BarsIcon} from '@patternfly/react-icons';
+import { ExternalLinkAltIcon, FilterIcon, PlusIcon, BarsIcon, InfoCircleIcon } from '@patternfly/react-icons';
 import _ from 'lodash';
 import { useModalContext } from './CreateRepository';
 import { Repository } from './Repositories';
@@ -39,23 +40,24 @@ export interface TableComponentProps {
   enableFiltersOnTheseColumns?: Array<string>
 }
 
+
 const columnNames = {
   git_organization: 'GitHub Organization',
   repository_name: 'Repository',
   description: 'Description',
   coverageType: 'Coverage Type',
   coverage_percentage: 'Code Covered',
-};
+}
 
 
 const rederCoverageEffects = (repo: Repository) => {
   const coveredFixed = repo.code_coverage.coverage_percentage
-  if (coveredFixed >= 0 && coveredFixed <= 33.33 ) {
-    return <Alert title={coveredFixed.toFixed(2)+"%"} variant="danger" isInline isPlain />
+  if (coveredFixed >= 0 && coveredFixed <= 33.33) {
+    return <Alert title={coveredFixed.toFixed(2) + "%"} variant="danger" isInline isPlain />
   } else if (coveredFixed >= 33.33 && coveredFixed <= 66.66) {
-    return <Alert title={coveredFixed.toFixed(2)+"%"} variant="warning" isInline isPlain />
+    return <Alert title={coveredFixed.toFixed(2) + "%"} variant="warning" isInline isPlain />
   }
-  return <Alert title={coveredFixed.toFixed(2)+"%"} variant="success" isInline isPlain />
+  return <Alert title={coveredFixed.toFixed(2) + "%"} variant="success" isInline isPlain />
 }
 
 type IFilterItem = {
@@ -63,18 +65,18 @@ type IFilterItem = {
   Filters: Array<string | Number>;
 }
 
-export const TableComponent = ({showCoverage, showDiscription, showTableToolbar, enableFiltersOnTheseColumns}: TableComponentProps) => {
+export const TableComponent = ({ showCoverage, showDiscription, showTableToolbar, enableFiltersOnTheseColumns }: TableComponentProps) => {
   const { state, dispatch } = useContext(Context)
   const [perpage, onperpageset] = useState(10)
   const [repos, setRepositories] = useState<any>([])
-  const [page, onPageset]= useState(1)
+  const [page, onPageset] = useState(1)
   const [allreps, setallreps] = useState<any>(state.Allrepositories);
   const modalContext = useModalContext()
 
-  async function deleteRepository(gitOrg:string, repoName:string) {
+  async function deleteRepository(gitOrg: string, repoName: string) {
     const data = {
       git_organization: gitOrg,
-      repository_name : repoName,
+      repository_name: repoName,
     }
     try {
       await deleteRepositoryAPI(data)
@@ -103,11 +105,11 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
     },
   ];
 
-  function onPageselect(e, page){
+  function onPageselect(e, page) {
     onPageset(page)
   }
 
-  function onperpageselect(e, Perpage){
+  function onperpageselect(e, Perpage) {
     onperpageset(Perpage)
   }
 
@@ -156,11 +158,11 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
 
   // Filters helpers
 
-  const InitFilters = () : Record<string, IFilterItem> | undefined => {
-    let newObj : Record<string, IFilterItem> = {}
-    if(enableFiltersOnTheseColumns != undefined){
+  const InitFilters = (): Record<string, IFilterItem> | undefined => {
+    let newObj: Record<string, IFilterItem> = {}
+    if (enableFiltersOnTheseColumns != undefined) {
       for (let column of enableFiltersOnTheseColumns) {
-        newObj[column] = {State: false, Filters: []}
+        newObj[column] = { State: false, Filters: [] }
       }
     }
     return newObj
@@ -269,11 +271,11 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
   };
 
   const filterData = () => {
-    const filteredRepos = repos.filter(function(record) {
+    const filteredRepos = repos.filter(function (record) {
       let isFiltered = true;
       Object.keys(filters).forEach(category => {
-        if(filters[category].Filters.length != 0){
-          let val = category.toString().split('.').reduce((o,i)=> o[i], record)
+        if (filters[category].Filters.length != 0) {
+          let val = category.toString().split('.').reduce((o, i) => o[i], record)
           isFiltered = filters[category].Filters.includes(val.toString()) && isFiltered
         }
       });
@@ -286,7 +288,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
 
   const filteringIsActive = () => {
     let filterActive = false
-    Object.keys(filters).forEach(category => { filterActive = filterActive || filters[category].Filters.length !== 0})
+    Object.keys(filters).forEach(category => { filterActive = filterActive || filters[category].Filters.length !== 0 })
     return filterActive
   }
 
@@ -296,11 +298,11 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
 
   const toggleGroupItems = (
 
-      <ToolbarGroup variant="filter-group">
-      { enableFiltersOnTheseColumns!= undefined && enableFiltersOnTheseColumns.map((filter, f_idx) => {
+    <ToolbarGroup variant="filter-group">
+      {enableFiltersOnTheseColumns != undefined && enableFiltersOnTheseColumns.map((filter, f_idx) => {
         let f = filter.split('.').pop() || filter;
         return <ToolbarFilter
-          key={"filter"+f+f_idx}
+          key={"filter" + f + f_idx}
           chips={filters[filter].Filters}
           deleteChip={(category, chip) =>
             onDelete(category as string, chip as string)
@@ -318,24 +320,24 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
             selections={filters[filter].Filters}
             isCheckboxSelectionBadgeHidden
             isOpen={filters[filter].State}
-            placeholderText={"Filter by "+(columnNames[f]|| filter)}
-            aria-labelledby={"checkbox-select-id-"+filter}
+            placeholderText={"Filter by " + (columnNames[f] || filter)}
+            aria-labelledby={"checkbox-select-id-" + filter}
           >
             {
               repos
-              .map((value, index) => {
-                 return filter.split('.').reduce((o,i)=> o[i], value).toString()
-              })
-              .filter((x, i, a) => a.indexOf(x) == i )
-              .sort((one, two) => (one < two ? -1 : 1))
-              .map((v, i) => {
-                return <SelectOption key={v} value={v} />
-              })
+                .map((value, index) => {
+                  return filter.split('.').reduce((o, i) => o[i], value).toString()
+                })
+                .filter((x, i, a) => a.indexOf(x) == i)
+                .sort((one, two) => (one < two ? -1 : 1))
+                .map((v, i) => {
+                  return <SelectOption key={v} value={v} />
+                })
             }
           </Select>
         </ToolbarFilter>
       })}
-      </ToolbarGroup>
+    </ToolbarGroup>
   );
 
   const toolbarItems = (
@@ -347,23 +349,23 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
   );
   // End of filters helpers
 
-  useEffect(()=> {
-    getRepositories(perpage).then((res)=> {
-      if(res.code === 200) {
+  useEffect(() => {
+    getRepositories(perpage).then((res) => {
+      if (res.code === 200) {
         const result = res.data;
         setallreps(res.all)
         let repositories: any = result
-        const repos = repositories[page-1]
-        const ress : any = []
-        _.each(repos, function(ele, index, array){
+        const repos = repositories[page - 1]
+        const ress: any = []
+        _.each(repos, function (ele, index, array) {
           ress.push(ele)
         })
         setRepositories(ress)
         onPageset(page)
         dispatch({ type: "SET_REPOSITORIES", data: result });
-        dispatch({type: "SET_REPOSITORIES_ALL", data: res.all});
+        dispatch({ type: "SET_REPOSITORIES_ALL", data: res.all });
       } else {
-          dispatch({ type: "SET_ERROR", data: res });
+        dispatch({ type: "SET_ERROR", data: res });
       }
     })
   }, [page, perpage, setRepositories, dispatch])
@@ -371,21 +373,21 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
   return (
     <React.Fragment>
       <TableComposable aria-label="Actions table">
-      <Caption>Repositories Summary</Caption>
+        <Caption>Repositories Summary</Caption>
         <Thead>
           <Tr>
-          <Th sort={getSortParams(0)}>{columnNames.git_organization}</Th>
-           <Th sort={getSortParams(1)}>{columnNames.repository_name}</Th>
-           {showCoverage &&
-            <Th>{columnNames.coverageType}</Th> 
-           }
-           {showCoverage &&
-            <Th sort={getSortParams(2)}>{columnNames.coverage_percentage}</Th>
-           }
-           {showDiscription &&
-            <Th>{columnNames.description}</Th>
-           }
-           
+            <Th sort={getSortParams(0)}>{columnNames.git_organization}</Th>
+            <Th sort={getSortParams(1)}>{columnNames.repository_name}</Th>
+            {showCoverage &&
+              <Th>{columnNames.coverageType}</Th>
+            }
+            {showCoverage &&
+              <Th sort={getSortParams(2)}>{columnNames.coverage_percentage}</Th>
+            }
+            {showDiscription &&
+              <Th>{columnNames.description}</Th>
+            }
+
           </Tr>
         </Thead>
         <Tbody>
@@ -395,34 +397,36 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
             return (
               <Tr key={repo.repository_name}>
                 <Td>
-                  <a href= {org_url}>
+                  <a href={org_url}>
                     {repo.git_organization}
                   </a>
                   <a href={org_url}>
-                  <ExternalLinkAltIcon style={{marginLeft: "1%"}}></ExternalLinkAltIcon>
+                    <ExternalLinkAltIcon style={{ marginLeft: "1%" }}></ExternalLinkAltIcon>
                   </a>
                 </Td>
                 <Td>
-                  <a href= {repo.git_url}>
-                  <span title= {repo.description}>{repo.repository_name}</span>
-                  </a>
+                  <a href={repo.git_url}>{repo.repository_name}</a>
                   <a href={repo.git_url}>
-                  <ExternalLinkAltIcon style={{marginLeft: "1%"}}></ExternalLinkAltIcon>
+                    <ExternalLinkAltIcon style={{ marginLeft: "1%" }}></ExternalLinkAltIcon>
                   </a>
-                  <span title= {repo.description}> &nbsp; &nbsp;
-                    <a><BarsIcon></BarsIcon></a>
-                  </span>
-                </Td> 
-                
+                  
+                  {!showDiscription &&
+                    <ExpandableSection toggleTextCollapsed='Show' toggleTextExpanded='Hide'>
+                      {repo.description}
+                    </ExpandableSection>
+                  }
+                  
+                </Td>
+
                 {showCoverage &&
-                  <Td><a href={`https://app.codecov.io/gh/${repo.git_organization}/${repo.repository_name}`}>CodeCov<ExternalLinkAltIcon style={{marginLeft: "0.5%"}}></ExternalLinkAltIcon></a></Td>
+                  <Td><a href={`https://app.codecov.io/gh/${repo.git_organization}/${repo.repository_name}`}>CodeCov<ExternalLinkAltIcon style={{ marginLeft: "0.5%" }}></ExternalLinkAltIcon></a></Td>
                 }
                 {showCoverage &&
                   <Td>{rederCoverageEffects(repo)}</Td>
                 }
-                {showDiscription && 
-                  <Td>{repo.description}</Td> 
-                } 
+                {showDiscription &&
+                  <Td>{repo.description}</Td>
+                }
 
                 <Td>
                   {rowActions ? (
@@ -443,28 +447,28 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
           clearAllFilters={onClearAll}
         >
 
-        <ToolbarContent>
-          <ToolbarItem alignment={{default: 'alignLeft'}}>
-            <Button variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
-            <PlusIcon /> &nbsp; Add a repository
-            </Button>
-          </ToolbarItem>
-          <ToolbarItem variant="separator"></ToolbarItem>
-          <ToolbarItem>
-            {toolbarItems}
-          </ToolbarItem>
-          <ToolbarItem alignment={{default: 'alignRight'}}>
-          <Pagination
-            itemCount={allreps.length}
-            perPage={perpage}
-            page={page}
-            variant={PaginationVariant.bottom}
-            onSetPage={onPageselect}
-            onPerPageSelect={onperpageselect}
-          />
-          </ToolbarItem>
-        </ToolbarContent>
-      </Toolbar>
+          <ToolbarContent>
+            <ToolbarItem alignment={{ default: 'alignLeft' }}>
+              <Button variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
+                <PlusIcon /> &nbsp; Add a repository
+              </Button>
+            </ToolbarItem>
+            <ToolbarItem variant="separator"></ToolbarItem>
+            <ToolbarItem>
+              {toolbarItems}
+            </ToolbarItem>
+            <ToolbarItem alignment={{ default: 'alignRight' }}>
+              <Pagination
+                itemCount={allreps.length}
+                perPage={perpage}
+                page={page}
+                variant={PaginationVariant.bottom}
+                onSetPage={onPageselect}
+                onPerPageSelect={onperpageselect}
+              />
+            </ToolbarItem>
+          </ToolbarContent>
+        </Toolbar>
       }
 
     </React.Fragment>

@@ -21,8 +21,7 @@ import {
   DrawerPanelBody,
   DrawerActions,
   DrawerCloseButton,
-  List,
-  ListItem,
+  ExpandableSection
 } from '@patternfly/react-core';
 import {
   TableComposable,
@@ -31,9 +30,6 @@ import {
   Th,
   Tbody,
   Td,
-  ActionsColumn,
-  IAction,
-  Caption,
   ThProps
 } from '@patternfly/react-table';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
@@ -51,6 +47,7 @@ export const Dashboard = () => {
   const onExpand = () => {
     drawerRef.current && drawerRef.current.focus();
   };
+
 
   const showJiras = (issueType) => {
     setIsExpanded(!isExpanded);
@@ -93,7 +90,7 @@ export const Dashboard = () => {
     dateTime['hour'] = parseInt(dt.slice(11, 13))
     dateTime['minute'] = parseInt(dt.slice(14, 16))
 
-    if (dateTime["hour"] < 12) {
+    if (dateTime['hour'] < 12) {
       dateTime['noon'] = 'AM'
     } else { dateTime['noon'] = 'PM' }
 
@@ -107,8 +104,8 @@ export const Dashboard = () => {
       <Thead>
         <Tr>
           <Th>{issuesColumnNames.issue_name}</Th>
-          <Th>{issuesColumnNames.dt_updated}</Th>
-          <Th>{issuesColumnNames.assignee}</Th>
+          <Th sort={}>{issuesColumnNames.dt_updated}</Th>
+          <Th sort={}>{issuesColumnNames.assignee}</Th>
         </Tr>
       </Thead>
       {computeJiraIssueCount(jiraType) == 0 &&
@@ -132,7 +129,9 @@ export const Dashboard = () => {
               <Td>{j["fields"]["assignee"]["displayName"]}</Td>
             </Tr>
           </Tbody>
-        ))}
+          ))
+        }
+
     </TableComposable>
   )
   
