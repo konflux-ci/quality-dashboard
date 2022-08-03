@@ -562,7 +562,12 @@ type ProwJobsMutation struct {
 	addfailed_count  *int64
 	skipped_count    *int64
 	addskipped_count *int64
+	job_name         *string
 	job_type         *string
+	state            *string
+	job_url          *string
+	ci_failed        *int16
+	addci_failed     *int16
 	clearedFields    map[string]struct{}
 	prow_jobs        *uuid.UUID
 	clearedprow_jobs bool
@@ -946,6 +951,42 @@ func (m *ProwJobsMutation) ResetSkippedCount() {
 	m.addskipped_count = nil
 }
 
+// SetJobName sets the "job_name" field.
+func (m *ProwJobsMutation) SetJobName(s string) {
+	m.job_name = &s
+}
+
+// JobName returns the value of the "job_name" field in the mutation.
+func (m *ProwJobsMutation) JobName() (r string, exists bool) {
+	v := m.job_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJobName returns the old "job_name" field's value of the ProwJobs entity.
+// If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwJobsMutation) OldJobName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldJobName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldJobName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJobName: %w", err)
+	}
+	return oldValue.JobName, nil
+}
+
+// ResetJobName resets all changes to the "job_name" field.
+func (m *ProwJobsMutation) ResetJobName() {
+	m.job_name = nil
+}
+
 // SetJobType sets the "job_type" field.
 func (m *ProwJobsMutation) SetJobType(s string) {
 	m.job_type = &s
@@ -980,6 +1021,134 @@ func (m *ProwJobsMutation) OldJobType(ctx context.Context) (v string, err error)
 // ResetJobType resets all changes to the "job_type" field.
 func (m *ProwJobsMutation) ResetJobType() {
 	m.job_type = nil
+}
+
+// SetState sets the "state" field.
+func (m *ProwJobsMutation) SetState(s string) {
+	m.state = &s
+}
+
+// State returns the value of the "state" field in the mutation.
+func (m *ProwJobsMutation) State() (r string, exists bool) {
+	v := m.state
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldState returns the old "state" field's value of the ProwJobs entity.
+// If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwJobsMutation) OldState(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldState is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldState requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldState: %w", err)
+	}
+	return oldValue.State, nil
+}
+
+// ResetState resets all changes to the "state" field.
+func (m *ProwJobsMutation) ResetState() {
+	m.state = nil
+}
+
+// SetJobURL sets the "job_url" field.
+func (m *ProwJobsMutation) SetJobURL(s string) {
+	m.job_url = &s
+}
+
+// JobURL returns the value of the "job_url" field in the mutation.
+func (m *ProwJobsMutation) JobURL() (r string, exists bool) {
+	v := m.job_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJobURL returns the old "job_url" field's value of the ProwJobs entity.
+// If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwJobsMutation) OldJobURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldJobURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldJobURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJobURL: %w", err)
+	}
+	return oldValue.JobURL, nil
+}
+
+// ResetJobURL resets all changes to the "job_url" field.
+func (m *ProwJobsMutation) ResetJobURL() {
+	m.job_url = nil
+}
+
+// SetCiFailed sets the "ci_failed" field.
+func (m *ProwJobsMutation) SetCiFailed(i int16) {
+	m.ci_failed = &i
+	m.addci_failed = nil
+}
+
+// CiFailed returns the value of the "ci_failed" field in the mutation.
+func (m *ProwJobsMutation) CiFailed() (r int16, exists bool) {
+	v := m.ci_failed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCiFailed returns the old "ci_failed" field's value of the ProwJobs entity.
+// If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwJobsMutation) OldCiFailed(ctx context.Context) (v int16, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCiFailed is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCiFailed requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCiFailed: %w", err)
+	}
+	return oldValue.CiFailed, nil
+}
+
+// AddCiFailed adds i to the "ci_failed" field.
+func (m *ProwJobsMutation) AddCiFailed(i int16) {
+	if m.addci_failed != nil {
+		*m.addci_failed += i
+	} else {
+		m.addci_failed = &i
+	}
+}
+
+// AddedCiFailed returns the value that was added to the "ci_failed" field in this mutation.
+func (m *ProwJobsMutation) AddedCiFailed() (r int16, exists bool) {
+	v := m.addci_failed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCiFailed resets all changes to the "ci_failed" field.
+func (m *ProwJobsMutation) ResetCiFailed() {
+	m.ci_failed = nil
+	m.addci_failed = nil
 }
 
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by id.
@@ -1040,7 +1209,7 @@ func (m *ProwJobsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProwJobsMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 11)
 	if m.job_id != nil {
 		fields = append(fields, prowjobs.FieldJobID)
 	}
@@ -1059,8 +1228,20 @@ func (m *ProwJobsMutation) Fields() []string {
 	if m.skipped_count != nil {
 		fields = append(fields, prowjobs.FieldSkippedCount)
 	}
+	if m.job_name != nil {
+		fields = append(fields, prowjobs.FieldJobName)
+	}
 	if m.job_type != nil {
 		fields = append(fields, prowjobs.FieldJobType)
+	}
+	if m.state != nil {
+		fields = append(fields, prowjobs.FieldState)
+	}
+	if m.job_url != nil {
+		fields = append(fields, prowjobs.FieldJobURL)
+	}
+	if m.ci_failed != nil {
+		fields = append(fields, prowjobs.FieldCiFailed)
 	}
 	return fields
 }
@@ -1082,8 +1263,16 @@ func (m *ProwJobsMutation) Field(name string) (ent.Value, bool) {
 		return m.FailedCount()
 	case prowjobs.FieldSkippedCount:
 		return m.SkippedCount()
+	case prowjobs.FieldJobName:
+		return m.JobName()
 	case prowjobs.FieldJobType:
 		return m.JobType()
+	case prowjobs.FieldState:
+		return m.State()
+	case prowjobs.FieldJobURL:
+		return m.JobURL()
+	case prowjobs.FieldCiFailed:
+		return m.CiFailed()
 	}
 	return nil, false
 }
@@ -1105,8 +1294,16 @@ func (m *ProwJobsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldFailedCount(ctx)
 	case prowjobs.FieldSkippedCount:
 		return m.OldSkippedCount(ctx)
+	case prowjobs.FieldJobName:
+		return m.OldJobName(ctx)
 	case prowjobs.FieldJobType:
 		return m.OldJobType(ctx)
+	case prowjobs.FieldState:
+		return m.OldState(ctx)
+	case prowjobs.FieldJobURL:
+		return m.OldJobURL(ctx)
+	case prowjobs.FieldCiFailed:
+		return m.OldCiFailed(ctx)
 	}
 	return nil, fmt.Errorf("unknown ProwJobs field %s", name)
 }
@@ -1158,12 +1355,40 @@ func (m *ProwJobsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSkippedCount(v)
 		return nil
+	case prowjobs.FieldJobName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJobName(v)
+		return nil
 	case prowjobs.FieldJobType:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetJobType(v)
+		return nil
+	case prowjobs.FieldState:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetState(v)
+		return nil
+	case prowjobs.FieldJobURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJobURL(v)
+		return nil
+	case prowjobs.FieldCiFailed:
+		v, ok := value.(int16)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCiFailed(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ProwJobs field %s", name)
@@ -1185,6 +1410,9 @@ func (m *ProwJobsMutation) AddedFields() []string {
 	if m.addskipped_count != nil {
 		fields = append(fields, prowjobs.FieldSkippedCount)
 	}
+	if m.addci_failed != nil {
+		fields = append(fields, prowjobs.FieldCiFailed)
+	}
 	return fields
 }
 
@@ -1201,6 +1429,8 @@ func (m *ProwJobsMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedFailedCount()
 	case prowjobs.FieldSkippedCount:
 		return m.AddedSkippedCount()
+	case prowjobs.FieldCiFailed:
+		return m.AddedCiFailed()
 	}
 	return nil, false
 }
@@ -1237,6 +1467,13 @@ func (m *ProwJobsMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddSkippedCount(v)
+		return nil
+	case prowjobs.FieldCiFailed:
+		v, ok := value.(int16)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCiFailed(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ProwJobs numeric field %s", name)
@@ -1283,8 +1520,20 @@ func (m *ProwJobsMutation) ResetField(name string) error {
 	case prowjobs.FieldSkippedCount:
 		m.ResetSkippedCount()
 		return nil
+	case prowjobs.FieldJobName:
+		m.ResetJobName()
+		return nil
 	case prowjobs.FieldJobType:
 		m.ResetJobType()
+		return nil
+	case prowjobs.FieldState:
+		m.ResetState()
+		return nil
+	case prowjobs.FieldJobURL:
+		m.ResetJobURL()
+		return nil
+	case prowjobs.FieldCiFailed:
+		m.ResetCiFailed()
 		return nil
 	}
 	return fmt.Errorf("unknown ProwJobs field %s", name)

@@ -30,8 +30,16 @@ type ProwJobs struct {
 	FailedCount int64 `json:"failed_count,omitempty"`
 	// SkippedCount holds the value of the "skipped_count" field.
 	SkippedCount int64 `json:"skipped_count,omitempty"`
+	// JobName holds the value of the "job_name" field.
+	JobName string `json:"job_name,omitempty"`
 	// JobType holds the value of the "job_type" field.
 	JobType string `json:"job_type,omitempty"`
+	// State holds the value of the "state" field.
+	State string `json:"state,omitempty"`
+	// JobURL holds the value of the "job_url" field.
+	JobURL string `json:"job_url,omitempty"`
+	// CiFailed holds the value of the "ci_failed" field.
+	CiFailed int16 `json:"ci_failed,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProwJobsQuery when eager-loading is set.
 	Edges                ProwJobsEdges `json:"edges"`
@@ -68,9 +76,9 @@ func (*ProwJobs) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case prowjobs.FieldDuration:
 			values[i] = new(sql.NullFloat64)
-		case prowjobs.FieldID, prowjobs.FieldTestsCount, prowjobs.FieldFailedCount, prowjobs.FieldSkippedCount:
+		case prowjobs.FieldID, prowjobs.FieldTestsCount, prowjobs.FieldFailedCount, prowjobs.FieldSkippedCount, prowjobs.FieldCiFailed:
 			values[i] = new(sql.NullInt64)
-		case prowjobs.FieldJobID, prowjobs.FieldJobType:
+		case prowjobs.FieldJobID, prowjobs.FieldJobName, prowjobs.FieldJobType, prowjobs.FieldState, prowjobs.FieldJobURL:
 			values[i] = new(sql.NullString)
 		case prowjobs.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -133,11 +141,35 @@ func (pj *ProwJobs) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				pj.SkippedCount = value.Int64
 			}
+		case prowjobs.FieldJobName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field job_name", values[i])
+			} else if value.Valid {
+				pj.JobName = value.String
+			}
 		case prowjobs.FieldJobType:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field job_type", values[i])
 			} else if value.Valid {
 				pj.JobType = value.String
+			}
+		case prowjobs.FieldState:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field state", values[i])
+			} else if value.Valid {
+				pj.State = value.String
+			}
+		case prowjobs.FieldJobURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field job_url", values[i])
+			} else if value.Valid {
+				pj.JobURL = value.String
+			}
+		case prowjobs.FieldCiFailed:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field ci_failed", values[i])
+			} else if value.Valid {
+				pj.CiFailed = int16(value.Int64)
 			}
 		case prowjobs.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -191,8 +223,16 @@ func (pj *ProwJobs) String() string {
 	builder.WriteString(fmt.Sprintf("%v", pj.FailedCount))
 	builder.WriteString(", skipped_count=")
 	builder.WriteString(fmt.Sprintf("%v", pj.SkippedCount))
+	builder.WriteString(", job_name=")
+	builder.WriteString(pj.JobName)
 	builder.WriteString(", job_type=")
 	builder.WriteString(pj.JobType)
+	builder.WriteString(", state=")
+	builder.WriteString(pj.State)
+	builder.WriteString(", job_url=")
+	builder.WriteString(pj.JobURL)
+	builder.WriteString(", ci_failed=")
+	builder.WriteString(fmt.Sprintf("%v", pj.CiFailed))
 	builder.WriteByte(')')
 	return builder.String()
 }

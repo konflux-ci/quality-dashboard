@@ -58,9 +58,33 @@ func (pjc *ProwJobsCreate) SetSkippedCount(i int64) *ProwJobsCreate {
 	return pjc
 }
 
+// SetJobName sets the "job_name" field.
+func (pjc *ProwJobsCreate) SetJobName(s string) *ProwJobsCreate {
+	pjc.mutation.SetJobName(s)
+	return pjc
+}
+
 // SetJobType sets the "job_type" field.
 func (pjc *ProwJobsCreate) SetJobType(s string) *ProwJobsCreate {
 	pjc.mutation.SetJobType(s)
+	return pjc
+}
+
+// SetState sets the "state" field.
+func (pjc *ProwJobsCreate) SetState(s string) *ProwJobsCreate {
+	pjc.mutation.SetState(s)
+	return pjc
+}
+
+// SetJobURL sets the "job_url" field.
+func (pjc *ProwJobsCreate) SetJobURL(s string) *ProwJobsCreate {
+	pjc.mutation.SetJobURL(s)
+	return pjc
+}
+
+// SetCiFailed sets the "ci_failed" field.
+func (pjc *ProwJobsCreate) SetCiFailed(i int16) *ProwJobsCreate {
+	pjc.mutation.SetCiFailed(i)
 	return pjc
 }
 
@@ -171,8 +195,20 @@ func (pjc *ProwJobsCreate) check() error {
 	if _, ok := pjc.mutation.SkippedCount(); !ok {
 		return &ValidationError{Name: "skipped_count", err: errors.New(`db: missing required field "skipped_count"`)}
 	}
+	if _, ok := pjc.mutation.JobName(); !ok {
+		return &ValidationError{Name: "job_name", err: errors.New(`db: missing required field "job_name"`)}
+	}
 	if _, ok := pjc.mutation.JobType(); !ok {
 		return &ValidationError{Name: "job_type", err: errors.New(`db: missing required field "job_type"`)}
+	}
+	if _, ok := pjc.mutation.State(); !ok {
+		return &ValidationError{Name: "state", err: errors.New(`db: missing required field "state"`)}
+	}
+	if _, ok := pjc.mutation.JobURL(); !ok {
+		return &ValidationError{Name: "job_url", err: errors.New(`db: missing required field "job_url"`)}
+	}
+	if _, ok := pjc.mutation.CiFailed(); !ok {
+		return &ValidationError{Name: "ci_failed", err: errors.New(`db: missing required field "ci_failed"`)}
 	}
 	return nil
 }
@@ -249,6 +285,14 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 		})
 		_node.SkippedCount = value
 	}
+	if value, ok := pjc.mutation.JobName(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: prowjobs.FieldJobName,
+		})
+		_node.JobName = value
+	}
 	if value, ok := pjc.mutation.JobType(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -256,6 +300,30 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 			Column: prowjobs.FieldJobType,
 		})
 		_node.JobType = value
+	}
+	if value, ok := pjc.mutation.State(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: prowjobs.FieldState,
+		})
+		_node.State = value
+	}
+	if value, ok := pjc.mutation.JobURL(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: prowjobs.FieldJobURL,
+		})
+		_node.JobURL = value
+	}
+	if value, ok := pjc.mutation.CiFailed(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt16,
+			Value:  value,
+			Column: prowjobs.FieldCiFailed,
+		})
+		_node.CiFailed = value
 	}
 	if nodes := pjc.mutation.ProwJobsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

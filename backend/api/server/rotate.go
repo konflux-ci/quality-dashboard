@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"regexp"
 	"time"
 
 	gh "github.com/google/go-github/v44/github"
@@ -9,6 +10,8 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"go.uber.org/zap"
 )
+
+var RegexpCompiler = regexp.MustCompile("(-main-|-master-)(.*?)(\\/)")
 
 // rotationStrategy describes a strategy for generating server configuration from a file.
 type rotationStrategy struct {
@@ -37,6 +40,7 @@ func (s *Server) startUpdateStorage(ctx context.Context, strategy rotationStrate
 }
 
 func (s *Server) rotate() error {
+	s.ProwStaticUpdate()
 	err := s.CacheRepositoriesInformation()
 	if err != nil {
 		s.cfg.Logger.Sugar().Errorf("Failed to update cache", zap.Error(err))
@@ -45,11 +49,10 @@ func (s *Server) rotate() error {
 
 	return nil
 }
-
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
 		// Setting these values to 30 Minutes is easier than having a flag indicating no rotation.
-		rotationFrequency: time.Minute * 30,
+		rotationFrequency: time.Second * 30,
 	}
 }
 

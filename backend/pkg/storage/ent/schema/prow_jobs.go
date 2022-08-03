@@ -15,6 +15,7 @@ type ProwJobs struct {
 func (ProwJobs) Fields() []ent.Field {
 	return []ent.Field{
 		field.Text("job_id").
+			Unique().
 			SchemaType(textSchema),
 		field.Time("created_at").
 			SchemaType(timeSchema),
@@ -26,8 +27,16 @@ func (ProwJobs) Fields() []ent.Field {
 			SchemaType(textSchema),
 		field.Int64("skipped_count").
 			SchemaType(textSchema),
+		field.Text("job_name").
+			SchemaType(textSchema),
 		field.Text("job_type").
 			SchemaType(textSchema),
+		field.Text("state").
+			SchemaType(textSchema),
+		field.Text("job_url").
+			SchemaType(textSchema),
+		field.Int16("ci_failed").
+			SchemaType(intSchema),
 	}
 }
 

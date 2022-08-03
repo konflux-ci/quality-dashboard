@@ -27,7 +27,7 @@ type Storage interface {
 	GetLatestProwTestExecution(r *db.Repository, jobType string) (*db.ProwJobs, error)
 	GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error)
 	GetProwJobsResults(*db.Repository) ([]*db.ProwSuites, error)
-	GetProwJobsResultsByJobID(jobID string) ([]*db.ProwSuites, error)
+	GetProwJobsResultsByJobID(jobID string) ([]*db.ProwJobs, error)
 	ListRepositories() ([]Repository, error)
 	ListWorkflowsByRepository(repositoryName string) (w []GithubWorkflows, err error)
 	ListRepositoriesQualityInfo() ([]RepositoryQualityInfo, error)
@@ -58,6 +58,8 @@ type Repository struct {
 	Description string `json:"description"`
 
 	GitURL string `json:"git_url"`
+
+	ID uuid.UUID `json:"id"`
 }
 
 type RepositoryQualityInfo struct {
@@ -105,7 +107,7 @@ type ProwJobStatus struct {
 
 	CreatedAt time.Time `json:"created_at"`
 
-	Status string `json:"status"`
+	State string `json:"state"`
 
 	Duration float64 `json:"duration"`
 
@@ -116,6 +118,12 @@ type ProwJobStatus struct {
 	SkippedCount int64 `json:"skipped_count"`
 
 	JobType string `json:"job_type"`
+
+	JobName string `json:"job_name"`
+
+	JobURL string `json:"job_url"`
+
+	CIFailed int16 `json:"ci_failed"`
 }
 
 // Repository is an github repository info managed by the storage.

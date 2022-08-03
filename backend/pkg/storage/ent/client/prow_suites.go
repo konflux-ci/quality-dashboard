@@ -38,17 +38,6 @@ func (d *Database) GetProwJobsResults(db *db.Repository) ([]*db.ProwSuites, erro
 	return prowJobs, nil
 }
 
-// GetRepository returns a git repo given its url
-func (d *Database) GetProwJobsResultsByJobID(jobID string) ([]*db.ProwSuites, error) {
-	prowSuites, err := d.client.ProwSuites.Query().Where(prowsuites.JobID(jobID)).All(context.TODO())
-
-	if err != nil {
-		return nil, convertDBError("get prow suites: %w", err)
-	}
-
-	return prowSuites, nil
-}
-
 func (d *Database) GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error) {
 	prowSuites, err := d.client.ProwSuites.Query().Where(prowsuites.JobID(jobID)).All(context.Background())
 

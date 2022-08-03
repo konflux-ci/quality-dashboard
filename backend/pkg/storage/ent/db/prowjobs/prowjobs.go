@@ -19,8 +19,16 @@ const (
 	FieldFailedCount = "failed_count"
 	// FieldSkippedCount holds the string denoting the skipped_count field in the database.
 	FieldSkippedCount = "skipped_count"
+	// FieldJobName holds the string denoting the job_name field in the database.
+	FieldJobName = "job_name"
 	// FieldJobType holds the string denoting the job_type field in the database.
 	FieldJobType = "job_type"
+	// FieldState holds the string denoting the state field in the database.
+	FieldState = "state"
+	// FieldJobURL holds the string denoting the job_url field in the database.
+	FieldJobURL = "job_url"
+	// FieldCiFailed holds the string denoting the ci_failed field in the database.
+	FieldCiFailed = "ci_failed"
 	// EdgeProwJobs holds the string denoting the prow_jobs edge name in mutations.
 	EdgeProwJobs = "prow_jobs"
 	// RepositoryFieldID holds the string denoting the ID field of the Repository.
@@ -45,7 +53,11 @@ var Columns = []string{
 	FieldTestsCount,
 	FieldFailedCount,
 	FieldSkippedCount,
+	FieldJobName,
 	FieldJobType,
+	FieldState,
+	FieldJobURL,
+	FieldCiFailed,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "prow_jobs"

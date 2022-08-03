@@ -93,9 +93,40 @@ func (pju *ProwJobsUpdate) AddSkippedCount(i int64) *ProwJobsUpdate {
 	return pju
 }
 
+// SetJobName sets the "job_name" field.
+func (pju *ProwJobsUpdate) SetJobName(s string) *ProwJobsUpdate {
+	pju.mutation.SetJobName(s)
+	return pju
+}
+
 // SetJobType sets the "job_type" field.
 func (pju *ProwJobsUpdate) SetJobType(s string) *ProwJobsUpdate {
 	pju.mutation.SetJobType(s)
+	return pju
+}
+
+// SetState sets the "state" field.
+func (pju *ProwJobsUpdate) SetState(s string) *ProwJobsUpdate {
+	pju.mutation.SetState(s)
+	return pju
+}
+
+// SetJobURL sets the "job_url" field.
+func (pju *ProwJobsUpdate) SetJobURL(s string) *ProwJobsUpdate {
+	pju.mutation.SetJobURL(s)
+	return pju
+}
+
+// SetCiFailed sets the "ci_failed" field.
+func (pju *ProwJobsUpdate) SetCiFailed(i int16) *ProwJobsUpdate {
+	pju.mutation.ResetCiFailed()
+	pju.mutation.SetCiFailed(i)
+	return pju
+}
+
+// AddCiFailed adds i to the "ci_failed" field.
+func (pju *ProwJobsUpdate) AddCiFailed(i int16) *ProwJobsUpdate {
+	pju.mutation.AddCiFailed(i)
 	return pju
 }
 
@@ -271,11 +302,46 @@ func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: prowjobs.FieldSkippedCount,
 		})
 	}
+	if value, ok := pju.mutation.JobName(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: prowjobs.FieldJobName,
+		})
+	}
 	if value, ok := pju.mutation.JobType(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
 			Column: prowjobs.FieldJobType,
+		})
+	}
+	if value, ok := pju.mutation.State(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: prowjobs.FieldState,
+		})
+	}
+	if value, ok := pju.mutation.JobURL(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: prowjobs.FieldJobURL,
+		})
+	}
+	if value, ok := pju.mutation.CiFailed(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt16,
+			Value:  value,
+			Column: prowjobs.FieldCiFailed,
+		})
+	}
+	if value, ok := pju.mutation.AddedCiFailed(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt16,
+			Value:  value,
+			Column: prowjobs.FieldCiFailed,
 		})
 	}
 	if pju.mutation.ProwJobsCleared() {
@@ -396,9 +462,40 @@ func (pjuo *ProwJobsUpdateOne) AddSkippedCount(i int64) *ProwJobsUpdateOne {
 	return pjuo
 }
 
+// SetJobName sets the "job_name" field.
+func (pjuo *ProwJobsUpdateOne) SetJobName(s string) *ProwJobsUpdateOne {
+	pjuo.mutation.SetJobName(s)
+	return pjuo
+}
+
 // SetJobType sets the "job_type" field.
 func (pjuo *ProwJobsUpdateOne) SetJobType(s string) *ProwJobsUpdateOne {
 	pjuo.mutation.SetJobType(s)
+	return pjuo
+}
+
+// SetState sets the "state" field.
+func (pjuo *ProwJobsUpdateOne) SetState(s string) *ProwJobsUpdateOne {
+	pjuo.mutation.SetState(s)
+	return pjuo
+}
+
+// SetJobURL sets the "job_url" field.
+func (pjuo *ProwJobsUpdateOne) SetJobURL(s string) *ProwJobsUpdateOne {
+	pjuo.mutation.SetJobURL(s)
+	return pjuo
+}
+
+// SetCiFailed sets the "ci_failed" field.
+func (pjuo *ProwJobsUpdateOne) SetCiFailed(i int16) *ProwJobsUpdateOne {
+	pjuo.mutation.ResetCiFailed()
+	pjuo.mutation.SetCiFailed(i)
+	return pjuo
+}
+
+// AddCiFailed adds i to the "ci_failed" field.
+func (pjuo *ProwJobsUpdateOne) AddCiFailed(i int16) *ProwJobsUpdateOne {
+	pjuo.mutation.AddCiFailed(i)
 	return pjuo
 }
 
@@ -598,11 +695,46 @@ func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, er
 			Column: prowjobs.FieldSkippedCount,
 		})
 	}
+	if value, ok := pjuo.mutation.JobName(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: prowjobs.FieldJobName,
+		})
+	}
 	if value, ok := pjuo.mutation.JobType(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
 			Column: prowjobs.FieldJobType,
+		})
+	}
+	if value, ok := pjuo.mutation.State(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: prowjobs.FieldState,
+		})
+	}
+	if value, ok := pjuo.mutation.JobURL(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: prowjobs.FieldJobURL,
+		})
+	}
+	if value, ok := pjuo.mutation.CiFailed(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt16,
+			Value:  value,
+			Column: prowjobs.FieldCiFailed,
+		})
+	}
+	if value, ok := pjuo.mutation.AddedCiFailed(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt16,
+			Value:  value,
+			Column: prowjobs.FieldCiFailed,
 		})
 	}
 	if pjuo.mutation.ProwJobsCleared() {

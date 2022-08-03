@@ -11,6 +11,7 @@ func toStorageRepository(p *db.Repository) storage.Repository {
 		GitOrganization: p.GitOrganization,
 		Description:     p.Description,
 		GitURL:          p.GitURL,
+		ID:              p.ID,
 	}
 }
 
