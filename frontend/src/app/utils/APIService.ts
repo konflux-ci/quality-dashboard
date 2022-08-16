@@ -132,4 +132,145 @@ async function getLatestProwJob(repoName: string, repoOrg:string, jobType:string
     return data
 }
 
-export { getVersion, getRepositories, createRepository, deleteRepositoryAPI, getWorkflowByRepositoryName, getAllRepositoriesWithOrgs, getLatestProwJob }
+async function getProwJobStatisticsMOCK(repoName: string, repoOrg:string, jobType:string){
+    const statistics = {
+        "repository_name": "infra-deployments",
+        "type": "periodic",
+        "git_org": "redhat-appstudio",
+        "jobs": [
+          {
+            "name": "periodic-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-deployment-periodic",
+            "metrics": [
+              {
+                "success_rate": "99.00",
+                "failure_rate": "1.00",
+                "ci_failed_rate": "2.00",
+                "date": "2022-08-13 07:14:29.000 +0200"
+              },
+              {
+                "success_rate": "96.00",
+                "failure_rate": "4.00",
+                "ci_failed_rate": "5.00",
+                "date": "2022-08-12 09:54:44.000 +0200"
+              },
+              {
+                "success_rate": "98.00",
+                "failure_rate": "2.00",
+                "ci_failed_rate": "5.00",
+                "date": "2022-08-11 01:54:44.000 +0200"
+              },
+              {
+                "success_rate": "100.00",
+                "failure_rate": "0.00",
+                "ci_failed_rate": "1.00",
+                "date": "2022-08-10 07:14:29.000 +0200"
+              },
+              {
+                "success_rate": "97.00",
+                "failure_rate": "3.00",
+                "ci_failed_rate": "2.00",
+                "date": "2022-08-09 09:54:44.000 +0200"
+              },
+              {
+                "success_rate": "80.00",
+                "failure_rate": "20.00",
+                "ci_failed_rate": "5.00",
+                "date": "2022-08-08 01:54:44.000 +0200"
+              },
+              {
+                "success_rate": "99.00",
+                "failure_rate": "1.00",
+                "ci_failed_rate": "2.00",
+                "date": "2022-08-07 07:14:29.000 +0200"
+              },
+              {
+                "success_rate": "96.00",
+                "failure_rate": "4.00",
+                "ci_failed_rate": "3.00",
+                "date": "2022-08-06 09:54:44.000 +0200"
+              },
+              {
+                "success_rate": "89.00",
+                "failure_rate": "11.00",
+                "ci_failed_rate": "5.00",
+                "date": "2022-08-05 01:54:44.000 +0200"
+              },
+              {
+                "success_rate": "100.00",
+                "failure_rate": "0.00",
+                "ci_failed_rate": "0.00",
+                "date": "2022-08-04 07:14:29.000 +0200"
+              },
+              {
+                "success_rate": "98.00",
+                "failure_rate": "2.00",
+                "ci_failed_rate": "1.00",
+                "date": "2022-08-03 09:54:44.000 +0200"
+              },
+              {
+                "success_rate": "99.00",
+                "failure_rate": "1.00",
+                "ci_failed_rate": "2.00",
+                "date": "2022-08-02 01:54:44.000 +0200"
+              },
+              {
+                "success_rate": "99.99",
+                "failure_rate": "0.01",
+                "ci_failed_rate": "2.00",
+                "date": "2022-08-01 07:14:29.000 +0200"
+              }
+            ],
+            "summary": {
+              "success_rate_avg": "85.15",
+              "failure_rate_avg": "20.07",
+              "ci_failed_rate_avg": "3.5",
+              "date_from": "2022-08-01 07:14:29.000 +0200",
+              "date_to": "2022-08-13 07:14:29.000 +0200"
+            }
+          },
+          {
+            "name": "periodic-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-deployment-periodic-2",
+            "metrics": [
+              {
+                "success_rate": "66.00",
+                "failure_rate": "2.00",
+                "ci_failed_rate": "5.00",
+                "date": "2022-08-03 09:54:44.000 +0200"
+              },
+              {
+                "success_rate": "89.00",
+                "failure_rate": "78.00",
+                "ci_failed_rate": "5.00",
+                "date": "2022-08-02 01:54:44.000 +0200"
+              },
+              {
+                "success_rate": "1.00",
+                "failure_rate": "100.00",
+                "ci_failed_rate": "60.00",
+                "date": "2022-08-01 07:14:29.000 +0200"
+              }
+            ],
+            "summary": {
+              "success_rate_avg": "52",
+              "failure_rate_avg": "0",
+              "ci_failed_rate_avg": "23.33",
+              "date_from": "2022-08-02 07:14:29.000 +0200",
+              "date_to": "2022-08-13 07:14:29.000 +0200"
+            }
+          }
+        ]
+    }
+    
+    statistics.jobs.forEach((job, j_idx) => {
+      let j = job.metrics.sort(function(a,b){
+        return +new Date(a.date) - +new Date(b.date);
+      })
+      console.log(j)
+      statistics.jobs[j_idx].metrics = j
+    })
+    
+    return statistics
+      
+}
+
+export { getVersion, getRepositories, createRepository, deleteRepositoryAPI, getWorkflowByRepositoryName, getAllRepositoriesWithOrgs, getLatestProwJob, getProwJobStatisticsMOCK}
