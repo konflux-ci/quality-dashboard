@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import axios, { AxiosResponse, AxiosError } from "axios";
 import _ from 'lodash';
+import {JobsStatistics} from '@app/utils/sharedComponents'
 
 type ApiResponse = {
     code: number;
@@ -132,8 +133,8 @@ async function getLatestProwJob(repoName: string, repoOrg:string, jobType:string
     return data
 }
 
-async function getProwJobStatisticsMOCK(repoName: string, repoOrg:string, jobType:string){
-    const statistics = {
+async function getProwJobStatistics(repoName: string, repoOrg:string, jobType:string){
+    const statistics:JobsStatistics = {
         "repository_name": "infra-deployments",
         "type": "periodic",
         "git_org": "redhat-appstudio",
@@ -254,18 +255,25 @@ async function getProwJobStatisticsMOCK(repoName: string, repoOrg:string, jobTyp
               "success_rate_avg": "52",
               "failure_rate_avg": "0",
               "ci_failed_rate_avg": "23.33",
-              "date_from": "2022-08-02 07:14:29.000 +0200",
-              "date_to": "2022-08-13 07:14:29.000 +0200"
+              "date_from": "2022-08-01 07:14:29.000 +0200",
+              "date_to": "2022-08-03 07:14:29.000 +0200"
             }
           }
         ]
     }
+
+    /*
+    const response = await fetch("<BACKEND ENDPOINT FOR STATISTICS GOES HERE>?repository_name="+repoName+"&git_organization="+repoOrg+"&job_type="+jobType)
+    if(!response.ok){
+        throw "Error fetching data from server. "
+    }
+    const statistics:JobsStatistics = await response.json()
+    */
     
     statistics.jobs.forEach((job, j_idx) => {
       let j = job.metrics.sort(function(a,b){
         return +new Date(a.date) - +new Date(b.date);
       })
-      console.log(j)
       statistics.jobs[j_idx].metrics = j
     })
     
@@ -273,4 +281,4 @@ async function getProwJobStatisticsMOCK(repoName: string, repoOrg:string, jobTyp
       
 }
 
-export { getVersion, getRepositories, createRepository, deleteRepositoryAPI, getWorkflowByRepositoryName, getAllRepositoriesWithOrgs, getLatestProwJob, getProwJobStatisticsMOCK}
+export { getVersion, getRepositories, createRepository, deleteRepositoryAPI, getWorkflowByRepositoryName, getAllRepositoriesWithOrgs, getLatestProwJob, getProwJobStatistics}
