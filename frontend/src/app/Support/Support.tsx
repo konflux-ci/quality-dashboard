@@ -8,7 +8,8 @@ import {
   EmptyStateBody,
   DataList, DataListItem, DataListItemRow, DataListItemCells, DataListCell,
   Title, TitleSizes,
-  Alert, AlertGroup, AlertActionCloseButton
+  Alert, AlertGroup, AlertActionCloseButton,
+  Badge, Spinner
 } from '@patternfly/react-core';
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
@@ -29,6 +30,7 @@ import {
 let Support = () => {
 
   const [prowVisible, setProwVisible] = useState(false)
+  const [loadingState, setloadingState] = useState(false)
   const [alerts, setAlerts] = React.useState<React.ReactNode[]>([]);
 
   /* 
@@ -36,9 +38,9 @@ let Support = () => {
   */
 
   const [repositories, setRepositories] = useState<{repoName: string, organization: string, isPlaceholder?: boolean}[]>([]);
-  const [repoName, setRepoName] = useState("infra-deployments");
-  const [repoOrg, setRepoOrg] = useState("redhat-appstudio");
-  const [jobType, setjobType] = useState("periodic");
+  const [repoName, setRepoName] = useState("");
+  const [repoOrg, setRepoOrg] = useState("");
+  const [jobType, setjobType] = useState("");
   const [jobTypeToggle, setjobTypeToggle] = useState(false);
   const [repoNameToggle, setRepoNameToggle] = useState(false);
   const [buttonDisabled, setbuttonDisabled] = useState(true);
@@ -90,6 +92,7 @@ let Support = () => {
   const validateGetProwJob = () => {
     if(repoName != "" && repoOrg != "" && jobType != ""){
       setbuttonDisabled(false)
+      getProwJob()
     }
     else{
       setbuttonDisabled(true)
@@ -107,6 +110,10 @@ let Support = () => {
     .then((data:any) => {
       data.unshift({repoName: "Select a repository", organization: "", isPlaceholder: true}) // Adds placeholder at the beginning of the array, so it will be shown first
       setRepositories(data)
+      setRepoName(data[1].repoName)
+      setRepoOrg(data[1].organization)
+      setjobType("periodic")
+      validateGetProwJob()
     })
   }, []);
 
@@ -137,19 +144,25 @@ let Support = () => {
 
   // Get the prow jobs from API
   const getProwJob = async () => {
-    setProwVisible(true)
+    setSelectedJob(0)
+    // Hide components and show laoding spinner 
+    setProwVisible(false)
+    setloadingState(true)
     try {
       // Get job suite details
       let data = await getLatestProwJob(repoName, repoOrg, jobType)
       setprowJobs(data)
-
       // Get statistics and metrics
       let stats = await getProwJobStatistics(repoName, repoOrg, jobType)
+      // Set UI for showing data and disable spinner
       setprowJobsStats(stats)
-      
+      setloadingState(false)
+      setProwVisible(true)
     }
     catch {
+      // Set UI to empty page and show error alert
       setProwVisible(false);
+      setloadingState(false)
       setAlerts(prevAlerts => {
         return [...prevAlerts,
           <Alert
@@ -256,15 +269,16 @@ let Support = () => {
               </Select>
             </ToolbarItem>
             <ToolbarItem >      
-              <Button variant="primary" isDisabled={buttonDisabled} onClick={getProwJob}>Get Latest Test Report</Button>
-            </ToolbarItem>
-            <ToolbarItem >      
               <Button variant="link" onClick={clearProwJob}>Clear</Button>
             </ToolbarItem>
           </ToolbarContent>
         </Toolbar>
         {/* if the server has not provided any data or if the clear button is clicked or if the page is in its initial state, this empty placeholder will be shown */}
-        {!prowVisible && <EmptyState variant={EmptyStateVariant.xl}>
+        { loadingState &&  <div style={{width: '100%', textAlign: "center"}}>
+            <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{margin: "100px auto"}}/>
+          </div>
+        }
+        {!prowVisible && !loadingState && <EmptyState variant={EmptyStateVariant.xl}>
           <EmptyStateIcon icon={CubesIcon}/>
             <Title headingLevel="h1" size="lg">
               No job selected yet.
@@ -285,7 +299,7 @@ let Support = () => {
               <GridItem span={2}><DashboardCard cardType={'success'} title="avg of passed tests" body={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.success_rate_avg +"%" : "-"}></DashboardCard></GridItem>
               <GridItem span={3}><DashboardCard cardType={'default'} title="Time Range" body={prowJobsStats?.jobs != null ? new Date(prowJobsStats.jobs[selectedJob].summary.date_from.split(" ")[0]).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }) + " - " + new Date(prowJobsStats.jobs[selectedJob].summary.date_to.split(" ")[0]).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }): "-"}></DashboardCard></GridItem>
 
-              <GridItem span={4} rowSpan={4}><DashboardSimpleList data={jobNames} onSelection={(value)=>{setSelectedJob(value)}}></DashboardSimpleList></GridItem>
+              <GridItem span={4} rowSpan={4}><DashboardSimpleList title={<div>Jobs <Badge style={{float: "right"}}>{jobType}</Badge></div>} data={jobNames} onSelection={(value)=>{setSelectedJob(value)}}></DashboardSimpleList></GridItem>
               <GridItem span={8} rowSpan={5}><DashboardLineChart data={beautifiedData}></DashboardLineChart></GridItem>
               <GridItem span={4} rowSpan={1}><DashboardCard cardType={'help'} title="About this dashboard" body={LoremIpsum}></DashboardCard></GridItem>
 

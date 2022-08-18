@@ -43,7 +43,8 @@ Accepts data in <SimpleListData> format type; requires a function to be executed
 
 export type SimpleListProps = {
   data: SimpleListData[],
-  onSelection: (value) => void
+  onSelection: (value) => void,
+  title: any
 };
 
 export type SimpleListData = {
@@ -51,7 +52,7 @@ export type SimpleListData = {
   value: string;
 };
 
-export const DashboardSimpleList = ({data, onSelection}:SimpleListProps) => {
+export const DashboardSimpleList = ({data, onSelection, title}:SimpleListProps) => {
   const onSelect = (selectedItem, selectedItemProps) => {
     onSelection(selectedItemProps["data-index"])
   }
@@ -60,7 +61,7 @@ export const DashboardSimpleList = ({data, onSelection}:SimpleListProps) => {
 
   return (
       <Card style={{width: "100%", height: "100%", fontSize: "1rem"}}>
-        <CardTitle>Jobs</CardTitle>
+        <CardTitle>{title}</CardTitle>
         <CardBody>
           <SimpleList onSelect={onSelect} aria-label="Simple List Example">
             {items}
@@ -110,7 +111,6 @@ export const DashboardLineChart = ({data, colorScale}: {data:DashboardLineChartD
     
     return l
   })
-  console.log(legendData)
 
   // Custom legend component
   const getLegend = (legendData) => (
