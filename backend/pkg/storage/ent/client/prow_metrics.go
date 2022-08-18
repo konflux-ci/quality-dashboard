@@ -14,30 +14,30 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
-func (d *Database) GetMetrics() storage.ProwJobsMetrics {
+func (d *Database) GetMetrics(gitOrganization string, repoName string, jobType string) storage.ProwJobsMetrics {
 	var metrics storage.ProwJobsMetrics
-	metrics.GitOrganization = "redhat-appstudio"
-	metrics.JobType = "presubmit"
-	metrics.RepostitoryName = "infra-deployments"
+	metrics.GitOrganization = gitOrganization
+	metrics.JobType = jobType
+	metrics.RepostitoryName = repoName
 
-	repo, _ := d.client.Repository.Query().Where(repository.RepositoryName("infra-deployments")).First(context.Background())
+	repo, _ := d.client.Repository.Query().Where(repository.GitOrganization(gitOrganization)).Where(repository.RepositoryName(repoName)).First(context.Background())
 
-	dbJobs, _ := d.client.Repository.QueryProwJobs(repo).Where(prowjobs.JobType("presubmit")).All(context.Background())
+	dbJobs, _ := d.client.Repository.QueryProwJobs(repo).Where(prowjobs.JobType(jobType)).All(context.Background())
 
 	for _, job := range ReturnJobNames(dbJobs) {
 		jMetric, _ := d.client.Repository.QueryProwJobs(repo).Select().
 			Where(prowjobs.JobName(job)).
-			Where(prowjobs.JobType("presubmit")).
+			Where(prowjobs.JobType(jobType)).
 			Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 				s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", time.Now().AddDate(0, 0, -10).Format("2006-01-02 15:04:05"), time.Now().Format("2006-01-02 15:04:05"))))
 			}).All(context.TODO())
-		metrics.Jobs = append(metrics.Jobs, d.getProwJobSummary(jMetric, repo, job))
+		metrics.Jobs = append(metrics.Jobs, d.getProwJobSummary(jMetric, repo, job, jobType))
 	}
 
 	return metrics
 }
 
-func (d *Database) getMetricsSummaryByDay(job string, repo *db.Repository) []storage.Metrics {
+func (d *Database) getMetricsSummaryByDay(job string, repo *db.Repository, jobType string) []storage.Metrics {
 	var metrics []storage.Metrics
 
 	var dayArr []string
@@ -48,7 +48,7 @@ func (d *Database) getMetricsSummaryByDay(job string, repo *db.Repository) []sto
 		t, _ := time.Parse("2006-01-02", day)
 		jMetric, _ := d.client.Repository.QueryProwJobs(repo).Select().
 			Where(prowjobs.JobName(job)).
-			Where(prowjobs.JobType("presubmit")).
+			Where(prowjobs.JobType(jobType)).
 			Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 				s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", day, t.AddDate(0, 0, +1).Format("2006-01-02"))))
 			}).All(context.TODO())
@@ -99,7 +99,7 @@ func getProwMetricsByDay(jobs []*db.ProwJobs, date string) storage.Metrics {
 
 }
 
-func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, jobName string) storage.Jobs {
+func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, jobName string, jobType string) storage.Jobs {
 	var success_rate_total, failed_rate_total, ci_failed_total float64
 
 	for _, j := range jobs {
@@ -116,7 +116,7 @@ func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, j
 		}
 	}
 	job_nums := float64(len(jobs))
-	metricsByDat := d.getMetricsSummaryByDay(jobName, repo)
+	metricsByDat := d.getMetricsSummaryByDay(jobName, repo, jobType)
 
 	return storage.Jobs{
 		Name:    jobName,

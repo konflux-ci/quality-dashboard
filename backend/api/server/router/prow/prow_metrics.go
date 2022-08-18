@@ -2,9 +2,9 @@ package prow
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
+	"github.com/redhat-appstudio/quality-studio/api/types"
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
 )
 
@@ -20,7 +20,25 @@ import (
 // @Success 200 {Object} []db.Prow
 // @Failure 400 {object} types.ErrorResponse
 func (s *jobRouter) getProwMetrics(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
-	metrics := s.Storage.GetMetrics()
-	fmt.Println(metrics)
-	return httputils.WriteJSON(w, http.StatusOK, metrics)
+	repositoryName := r.URL.Query()["repository_name"]
+	gitOrgazanitation := r.URL.Query()["git_organization"]
+	jobType := r.URL.Query()["job_type"]
+
+	if len(repositoryName) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "repository_name value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(gitOrgazanitation) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "git_organization value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(jobType) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "job_type value not present in query",
+			StatusCode: 400,
+		})
+	}
+	return httputils.WriteJSON(w, http.StatusOK, s.Storage.GetMetrics(gitOrgazanitation[0], repositoryName[0], jobType[0]))
 }

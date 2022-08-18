@@ -21,7 +21,7 @@ var (
 // support timezones or standardize on UTC.
 type Storage interface {
 	Close() error
-	GetMetrics() ProwJobsMetrics
+	GetMetrics(gitOrganization string, repoName string, jobType string) ProwJobsMetrics
 
 	// GET
 	GetRepository(repositoryName string, gitOrganizationName string) (*db.Repository, error)
