@@ -23,6 +23,7 @@ func NewRouter(storage storage.Storage) router.Router {
 	r.routes = []router.Route{
 		router.NewGetRoute("/prow/results/get", r.getProwJobs),
 		router.NewGetRoute("/prow/results/latest/get", r.getLatestSuitesExecution),
+		router.NewGetRoute("/prow/metrics/get", r.getProwMetrics),
 	}
 
 	return r

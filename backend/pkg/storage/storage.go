@@ -21,6 +21,7 @@ var (
 // support timezones or standardize on UTC.
 type Storage interface {
 	Close() error
+	GetMetrics() ProwJobsMetrics
 
 	// GET
 	GetRepository(repositoryName string, gitOrganizationName string) (*db.Repository, error)
@@ -138,4 +139,32 @@ type GithubWorkflows struct {
 	JobURL string `json:"job_url"`
 
 	State string `json:"state"`
+}
+
+type ProwJobsMetrics struct {
+	RepostitoryName string `json:"repository_name"`
+	JobType         string `json:"type"`
+	GitOrganization string `json:"git_organization"`
+	Jobs            []Jobs `json:"jobs"`
+}
+
+type Jobs struct {
+	Name    string    `json:"name"`
+	Summary Summary   `json:"summary"`
+	Metrics []Metrics `json:"metrics"`
+}
+
+type Metrics struct {
+	SuccessRate  float64 `json:"success_rate"`
+	FailureRate  float64 `json:"failure_rate"`
+	CiFailedRate float64 `json:"ci_failed_rate"`
+	Date         string  `json:"date"`
+}
+
+type Summary struct {
+	DateFrom       string  `json:"date_from"`
+	DateTo         string  `json:"date_to"`
+	SuccessRateAvg float64 `json:"success_rate_avg"`
+	JobFailedAvg   float64 `json:"failure_rate_avg"`
+	CIFailedAvg    float64 `json:"ci_failed_rate_avg"`
 }

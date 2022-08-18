@@ -65,7 +65,7 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 	createdRepo, err := rp.Storage.CreateRepository(storage.Repository{
 		RepositoryName:  githubRepo.GetName(),
 		GitOrganization: githubRepo.Owner.GetLogin(),
-		Description:     githubRepo.GetDescription(),
+		Description:     "Desc",
 		GitURL:          githubRepo.GetHTMLURL(),
 	})
 	if err != nil {

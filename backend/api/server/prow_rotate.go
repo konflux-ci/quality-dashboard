@@ -38,7 +38,7 @@ func (s *Server) ProwStaticUpdate() {
 			suitesXml := prow.TestSuites{}
 			prowOrg, prowRepo := ExtractOrgAndRepoFromProwJobLabels(pj.Labels)
 
-			if prowOrg == repo.GitOrganization && prowRepo == repo.RepositoryName && pj.Status.State != prow.AbortedState && pj.Status.State != prow.PendingState && !strings.Contains(pj.Status.URL, "-main-images") {
+			if prowOrg == repo.GitOrganization && prowRepo == repo.RepositoryName && pj.Status.State != prow.AbortedState && pj.Status.State != prow.PendingState && !strings.Contains(pj.Status.URL, "-images") && !strings.Contains(pj.Status.URL, "-index") {
 				// check if job already in database
 				prowJobsInDatabase, _ := s.cfg.Storage.GetProwJobsResultsByJobID(pj.Status.BuildID)
 				if len(prowJobsInDatabase) > 0 {

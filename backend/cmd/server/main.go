@@ -84,6 +84,7 @@ func main() {
 	cfg := GetPostgresConnectionDetails()
 
 	storage, err := cfg.Open()
+	storage.GetMetrics()
 	if err != nil {
 		logger.Fatal("Server fail to initialize database connection", zap.Error(err))
 	}
