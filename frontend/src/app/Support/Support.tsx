@@ -294,9 +294,9 @@ let Support = () => {
             {/* this section will show the job's chart over time and last execution stats */}
             { prowJobsStats !== null && <Grid hasGutter style={{margin: "20px 0px"}} sm={6} md={4} lg={3} xl2={1}>
               <GridItem span={3}><InfoCard data={[{title: "Repository", value: prowJobsStats.repository_name}, {title: "Organization", value: prowJobsStats.git_org}]}></InfoCard></GridItem>
-              <GridItem span={2}><DashboardCard cardType={'danger'} title="avg of ci failures" body={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.ci_failed_rate_avg +"%" : "-"}></DashboardCard></GridItem>
-              <GridItem span={2}><DashboardCard cardType={'danger'} title="avg of failures" body={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.failure_rate_avg +"%" : "-"}></DashboardCard></GridItem>
-              <GridItem span={2}><DashboardCard cardType={'success'} title="avg of passed tests" body={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.success_rate_avg +"%" : "-"}></DashboardCard></GridItem>
+              <GridItem span={2}><DashboardCard cardType={'danger'} title="avg of ci failures" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.ci_failed_rate_avg).toFixed(2) +"%" : "-"}></DashboardCard></GridItem>
+              <GridItem span={2}><DashboardCard cardType={'danger'} title="avg of failures" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.failure_rate_avg).toFixed(2) +"%" : "-"}></DashboardCard></GridItem>
+              <GridItem span={2}><DashboardCard cardType={'success'} title="avg of passed tests" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.success_rate_avg).toFixed(2) +"%" : "-"}></DashboardCard></GridItem>
               <GridItem span={3}><DashboardCard cardType={'default'} title="Time Range" body={prowJobsStats?.jobs != null ? new Date(prowJobsStats.jobs[selectedJob].summary.date_from.split(" ")[0]).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }) + " - " + new Date(prowJobsStats.jobs[selectedJob].summary.date_to.split(" ")[0]).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }): "-"}></DashboardCard></GridItem>
 
               <GridItem span={4} rowSpan={4}><DashboardSimpleList title={<div>Jobs <Badge style={{float: "right"}}>{jobType}</Badge></div>} data={jobNames} onSelection={(value)=>{setSelectedJob(value)}}></DashboardSimpleList></GridItem>
