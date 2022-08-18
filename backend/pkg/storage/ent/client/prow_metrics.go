@@ -122,7 +122,7 @@ func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, j
 		Name:    jobName,
 		Metrics: metricsByDat,
 		Summary: storage.Summary{
-			DateFrom:       time.Now().AddDate(0, 0, -10).Format("2006-01-02 15:04:05"),
+			DateFrom:       time.Now().AddDate(0, 0, -9).Format("2006-01-02 15:04:05"),
 			DateTo:         time.Now().Format("2006-01-02 15:04:05"),
 			SuccessRateAvg: success_rate_total / job_nums * 100,
 			JobFailedAvg:   failed_rate_total / job_nums * 100,
