@@ -127,7 +127,7 @@ async function createRepository(data = {}) {
 async function getLatestProwJob(repoName: string, repoOrg:string, jobType:string){
     const response = await fetch("http://127.0.0.1:9898/api/quality/prow/results/latest/get?repository_name="+repoName+"&git_organization="+repoOrg+"&job_type="+jobType)
     if(!response.ok){
-        throw "Error fetching data from server. "
+      throw "Error fetching data from server. "
     }
     const data = await response.json()
     return data

@@ -6,16 +6,19 @@ import {
   EmptyStateVariant,
   EmptyStateIcon,
   EmptyStateBody,
-  DataList, DataListItem, DataListItemRow, DataListItemCells, DataListCell,
   Title, TitleSizes,
   Alert, AlertGroup, AlertActionCloseButton,
-  Badge, Spinner
+  Badge, Spinner, Pagination,
+  Card, CardTitle, CardBody,
+  Bullseye
 } from '@patternfly/react-core';
+import SearchIcon from '@patternfly/react-icons/dist/esm/icons/search-icon';
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
 import { getAllRepositoriesWithOrgs, getLatestProwJob, getProwJobStatistics } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
+import { Table, TableHeader, TableBody, TableProps, sortable, cellWidth, truncate, info } from '@patternfly/react-table';
 import { 
   JobsStatistics,
   DashboardCard,
@@ -34,7 +37,7 @@ let Support = () => {
   const [alerts, setAlerts] = React.useState<React.ReactNode[]>([]);
 
   /* 
-  Toolbar selects logic and helpers
+  Toolbar dropdowns logic and helpers
   */
 
   const [repositories, setRepositories] = useState<{repoName: string, organization: string, isPlaceholder?: boolean}[]>([]);
@@ -43,7 +46,6 @@ let Support = () => {
   const [jobType, setjobType] = useState("");
   const [jobTypeToggle, setjobTypeToggle] = useState(false);
   const [repoNameToggle, setRepoNameToggle] = useState(false);
-  const [buttonDisabled, setbuttonDisabled] = useState(true);
 
   // Called onChange of the repository dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
   const setRepoNameOnChange = (event, selection, isPlaceholder) => { 
@@ -91,11 +93,7 @@ let Support = () => {
   // Validates that the required variables are not empty; if not, the "get" button is enabled
   const validateGetProwJob = () => {
     if(repoName != "" && repoOrg != "" && jobType != ""){
-      setbuttonDisabled(false)
       getProwJob()
-    }
-    else{
-      setbuttonDisabled(true)
     }
   }
   
@@ -128,19 +126,14 @@ let Support = () => {
   Some helpers and definitions
   */
   const LoremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat"
-  let statusColorMap = new Map<string, string>([
-    ["skipped", "lightgrey"],
-    ["passed", "darkgreen"],
-    ["failed", "darkred"]
-  ]);
-
+  
   /* 
   ProwJobs logic to populate dashboard
   */ 
   
   const [selectedJob, setSelectedJob] = useState(0)
   const [prowJobsStats, setprowJobsStats] = useState<JobsStatistics|null>(null);
-  const [prowJobs, setprowJobs] = useState([])
+  const [prowJobSuite, setProwJobSuite] = useState([])
 
   // Get the prow jobs from API
   const getProwJob = async () => {
@@ -151,7 +144,7 @@ let Support = () => {
     try {
       // Get job suite details
       let data = await getLatestProwJob(repoName, repoOrg, jobType)
-      setprowJobs(data)
+      setProwJobSuite(data)
       // Get statistics and metrics
       let stats = await getProwJobStatistics(repoName, repoOrg, jobType)
       // Set UI for showing data and disable spinner
@@ -187,7 +180,6 @@ let Support = () => {
   let jobNames:SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function(job, index){ return {"value":job.name, "index":index} }) : []
 
   // Prepare data for the line chart
-
   let beautifiedData: DashboardLineChartData = {
     "SUCCESS_RATE_INDEX":{data:[]},
     "FAILURE_RATE_INDEX":{data:[]},
@@ -226,6 +218,103 @@ let Support = () => {
     ]
     beautifiedData["CI_FAILED_RATE_AVG_INDEX"].style = { data: { stroke: "rgba(240, 171, 0, 0.3)", strokeDasharray: 10, strokeWidth: 5} }
   }
+
+  // Prow test suites details table and its pagination
+  const [activeSortIndex, setActiveSortIndex] = React.useState<number | null>(1);
+  const [activeSortDirection, setActiveSortDirection] = React.useState<'asc' | 'desc' | null >('desc');
+  const [page, setPage] = React.useState(1);
+  const [perPage, setPerPage] = React.useState(10);
+
+  let statusColorMap = new Map<string, string>([
+    ["skipped", "lightgrey"],
+    ["passed", "darkgreen"],
+    ["failed", "darkred"]
+  ]);
+
+  const getSortableRowValues = (suite:any): (string | number)[] => {
+    return [suite['name'], suite['status'], suite['time']];
+  };
+
+  let sortedRows = repositories;
+
+  if (activeSortIndex !== null) {
+    sortedRows = prowJobSuite.sort((a, b) => {
+      const aValue = getSortableRowValues(a)[activeSortIndex];
+      const bValue = getSortableRowValues(b)[activeSortIndex];
+      if (typeof aValue === 'number') {
+        // Numeric sort
+        if (activeSortDirection === 'asc') {
+          return (aValue as number) - (bValue as number);
+        }
+        return (bValue as number) - (aValue as number);
+      } else {
+        // String sort
+        if (activeSortDirection === 'asc') {
+          return (aValue as string).localeCompare(bValue as string);
+        }
+        return (bValue as string).localeCompare(aValue as string);
+      }
+    });
+  }
+
+  const columns: TableProps['cells'] = [
+    { title: 'Name', transforms: [sortable, cellWidth(70)] },
+    {
+      title: 'Status',
+      transforms: [
+        info({
+          tooltip: 'More information about branches'
+        }),
+        sortable
+      ]
+    },
+    { title: 'Time Elapsed', transforms: [sortable] }
+  ];
+
+
+  let rows: TableProps['rows'] = prowJobSuite.slice((page-1)*perPage, (page)*perPage).map(suite => [
+    suite['name'], 
+    { title: <div style={{color: statusColorMap.get(suite["status"]), textTransform: 'uppercase', fontWeight: 'bold'}}>{suite['status']}</div> },
+    suite['time']
+  ]);
+
+  if(prowJobSuite.length == 0){
+    rows = [
+      {
+        heightAuto: true,
+        cells: [
+          {
+            props: { colSpan: 8 },
+            title: (
+              <Bullseye>
+                <EmptyState variant={EmptyStateVariant.small}>
+                  <EmptyStateIcon icon={SearchIcon} />
+                  <Title headingLevel="h2" size="lg">
+                    No results found
+                  </Title>
+                  <EmptyStateBody>The job selected does not have test suites details to show</EmptyStateBody>
+                </EmptyState>
+              </Bullseye>
+            )
+          }
+        ]
+      }
+    ]
+  } 
+
+  const onSetPage = (_event: React.MouseEvent | React.KeyboardEvent | MouseEvent, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const onPerPageSelect = (
+    _event: React.MouseEvent | React.KeyboardEvent | MouseEvent,
+    newPerPage: number,
+    newPage: number
+  ) => {
+    setPerPage(newPerPage);
+    setPage(newPage);
+  };
+
 
   return (
     
@@ -303,36 +392,40 @@ let Support = () => {
               <GridItem span={8} rowSpan={5}><DashboardLineChart data={beautifiedData}></DashboardLineChart></GridItem>
               <GridItem span={4} rowSpan={1}><DashboardCard cardType={'help'} title="About this dashboard" body={LoremIpsum}></DashboardCard></GridItem>
 
+              <GridItem span={12}>
+                <Card style={{width: "100%", height: "100%", fontSize: "1rem"}}>
+                  <CardTitle>Test suites details</CardTitle>
+                    <CardBody>
+                      <Table
+                        sortBy={{
+                          index: activeSortIndex as number,
+                          direction: activeSortDirection as any
+                        }}
+                        onSort={(_event, index, direction) => {
+                          setActiveSortIndex(index);
+                          setActiveSortDirection(direction);
+                        }}
+                        aria-label="Test suites details table"
+                        cells={columns}
+                        rows={rows}>
+                        <TableHeader />
+                        <TableBody />
+                      </Table>
+                      <Pagination
+                        style={{marginTop: "30px"}}
+                        itemCount={prowJobSuite.length}
+                        perPage={perPage}
+                        page={page}
+                        onSetPage={onSetPage}
+                        widgetId="pagination-options-menu-top"
+                        onPerPageSelect={onPerPageSelect}
+                      />
+                    </CardBody>
+                </Card>
+              </GridItem>
             </Grid> 
             }
-            {/* TDB: if job has also suite details, here is the place to show it */}
-            { false && <DataList aria-label="Simple data list example" style={{marginTop: '20px'}}>
-              <DataListItem aria-labelledby="simple-item1">
-                <DataListItemRow key="000" style={{fontWeight: 'bold', borderBottom: "1px solid lightgrey"}}>
-                  <DataListItemCells
-                    dataListCells={[
-                      <DataListCell width={4} key={2}>Name</DataListCell>,
-                      <DataListCell width={1} key={3}>Status</DataListCell>,
-                      <DataListCell width={1} key={4}>Time elapsed</DataListCell>,
-                    ]}
-                  />
-                </DataListItemRow>
-                {prowJobs.map(function(value, index){
-                  return <DataListItemRow key={index}>
-                        <DataListItemCells
-                          dataListCells={[
-                            <DataListCell width={4} key={index+"-2"}>{value['name']}</DataListCell>,
-                            <DataListCell width={1} key={index+"-3"} style={{fontWeight: "bold", textTransform: "uppercase", color : statusColorMap.get(value["status"])}}>
-                              {value['status']}
-                            </DataListCell>,
-                            <DataListCell width={1} key={index+"-4"}>{value['time']}</DataListCell>,
-                          ]}
-                        />
-                    </DataListItemRow>
-                })}
-              </DataListItem>
-            </DataList>
-            }
+            
           </div> 
           }
         </React.Fragment>

@@ -57,7 +57,7 @@ const routes: AppRouteConfig[] = [
     isAsync: true,
     label: 'Tests Reports',
     path: '/reports/test',
-    title: 'PatternFly Seed | Support Page',
+    title: 'Tests Reports | Page',
   },
   {
     label: 'Settings',

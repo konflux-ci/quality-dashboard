@@ -424,7 +424,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
           clearAllFilters={onClearAll}
         >
 
-        <ToolbarContent style={{marginleft: "5%"}}>
+        <ToolbarContent style={{marginLeft: "5%"}}>
           <ToolbarItem alignment={{default: 'alignLeft'}}>
             <Button variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
             <PlusIcon /> &nbsp; Add a repository
