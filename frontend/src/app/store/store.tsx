@@ -13,11 +13,15 @@ const initialState = {
     version: '',
     repositories: [],
     Allrepositories: [],
+    Team: ""
 };
 
 export const Context = React.createContext({} as IContextProps);
 
 const Store = ({children}) => {
+    let default_team = localStorage.getItem("default_team");
+    if(default_team) initialState.Team = default_team;
+
     const [state, dispatch] = useReducer(Reducer, initialState);
     const value = { state, dispatch };
     return (

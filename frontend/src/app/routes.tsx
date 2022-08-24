@@ -8,6 +8,8 @@ import { ProfileSettings } from '@app/Settings/Profile/ProfileSettings';
 import { useDocumentTitle } from '@app/utils/useDocumentTitle';
 import { LastLocationProvider, useLastLocation } from 'react-router-last-location';
 import { JobsComponent } from './Jobs/Jobs';
+import { Teams } from '@app/Teams/Teams';
+import { Context } from '@app/store/store';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -76,6 +78,14 @@ const routes: AppRouteConfig[] = [
         path: '/settings/profile',
         title: 'PatternFly Seed | Profile Settings',
       },
+      {
+        component: Teams,
+        exact: true,
+        isAsync: true,
+        label: 'Teams Onboarding',
+        path: '/settings/teams/onboarding',
+        title: 'Teams | Onboarding',
+      }
     ],
   },
 ];
@@ -102,7 +112,6 @@ const RouteWithTitleUpdates = ({ component: Component, isAsync = false, title, .
   function routeWithTitle(routeProps: RouteComponentProps) {
     return <Component {...rest} {...routeProps} />;
   }
-
   return <Route render={routeWithTitle} {...rest}/>;
 };
 
@@ -111,14 +120,27 @@ const flattenedRoutes: IAppRoute[] = routes.reduce(
   [] as IAppRoute[]
 );
 
-const AppRoutes = (): React.ReactElement => (
+const AppRoutes = (): React.ReactElement => {
+  const { state } = React.useContext(Context)
+  const [TeamsNotSet, setTeamsNotSet] = React.useState(false)
+
+  React.useEffect(() => {
+    if(state.Team == undefined || state.Team == "Select Team" || state.Team == ""){
+      setTeamsNotSet(true)
+    } else {
+      setTeamsNotSet(false)
+    }
+  }, [location.pathname, state.Team]);
+
+
+  return (
   <LastLocationProvider>
     <Switch>
       {flattenedRoutes.map(({ path, exact, component, title, isAsync }, idx) => (
         <RouteWithTitleUpdates
           path={path}
           exact={exact}
-          component={component}
+          component={TeamsNotSet ? Teams : component}
           key={idx}
           title={title}
           isAsync={isAsync}
@@ -127,6 +149,6 @@ const AppRoutes = (): React.ReactElement => (
       <Redirect to='/home/overview'  />
     </Switch>
   </LastLocationProvider>
-);
+)};
 
 export { AppRoutes, routes };

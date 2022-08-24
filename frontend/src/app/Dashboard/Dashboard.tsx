@@ -5,9 +5,6 @@ import {
   CardBody,
   Gallery,
   PageSection,
-  PageSectionVariants,
-  TextContent,
-  Text,
   Title,
   DescriptionList, DescriptionListGroup, DescriptionListTerm, DescriptionListDescription, Button, ButtonVariant
 } from '@patternfly/react-core';
@@ -35,26 +32,7 @@ export const Dashboard = () => {
 
   return (
     <React.Fragment>
-        <PageSection style={{
-          minHeight : "12%",
-          background:"url(https://console.redhat.com/apps/frontend-assets/background-images/new-landing-page/estate_section_banner.svg)",
-          backgroundSize: "cover",
-          backgroundColor : "black",
-          opacity: '0.9'
-        }} variant={PageSectionVariants.light}>
-          <TextContent style={{color: "white", display:"inline"}}>
-            <div style={{float: "left", }}>
-              <Text component="h2">Red Hat Quality Studio</Text>
-              <Text component="p">Team X component quality.</Text>
-            </div>
-            <div style={{float: "right"}}>
-              <Button variant={ButtonVariant.primary}>
-                <PlusIcon /> &nbsp; Onboard Team
-              </Button>
-            </div>
-          </TextContent>
-        </PageSection>
-          <PageSection >
+        <PageSection>
           <Gallery hasGutter style={{ display:"flex" }}>
             <Card style={{width: "35%"}}>
               <CardTitle>

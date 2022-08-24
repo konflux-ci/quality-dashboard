@@ -8,10 +8,12 @@ import {
   Page,
   PageHeader,
   PageSidebar,
-  SkipToContent
+  SkipToContent,
+  PageSection
 } from '@patternfly/react-core';
 import { routes, IAppRoute, IAppRouteGroup } from '@app/routes';
 import logo from '@app/bgimages/Logo-RedHat-A-Reverse-RGB.svg';
+import {BasicMasthead} from '@app/Teams/TeamsSelect'
 
 interface IAppLayout {
   children: React.ReactNode;
@@ -44,6 +46,7 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
   const Header = (
     <PageHeader
       logo={<LogoImg />}
+      headerTools={<BasicMasthead></BasicMasthead>}
       showNavToggle
       isNavOpen={isNavOpen}
       onNavToggle={isMobileView ? onNavToggleMobile : onNavToggle}
@@ -99,14 +102,16 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
       Skip to Content
     </SkipToContent>
   );
+
   return (
     <Page
       mainContainerId={pageId}
       header={Header}
       sidebar={Sidebar}
       onPageResize={onPageResize}
-      skipToContent={PageSkipToContent}>
-      {children}
+      skipToContent={PageSkipToContent}
+    >
+    {children}
     </Page>
   );
 }

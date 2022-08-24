@@ -4,9 +4,10 @@ export interface StateContext {
     error: string;
     alerts: [];
     version: string;
-    repositories: []
-    workflows: []
-    Allrepositories: []
+    repositories: [];
+    workflows: [];
+    Allrepositories: [];
+    Team: string;
 }
 
 const Reducer = (state, action) => {
@@ -50,6 +51,12 @@ const Reducer = (state, action) => {
             return {
                 ...state,
                 alerts: state.alerts.filter(el => el.key !== action.data)
+            };
+        case 'SET_TEAM':
+            localStorage.setItem("default_team", action.data);
+            return {
+                ...state,
+                Team: action.data
             };
         default:
             return state;
