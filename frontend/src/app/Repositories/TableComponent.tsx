@@ -346,7 +346,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
   // End of filters helpers
 
   useEffect(()=> {
-    getRepositories(perpage).then((res)=> {
+    getRepositories(perpage, state.Team).then((res)=> {
       if(res.code === 200) {
         const result = res.data;
         setallreps(res.all)
@@ -364,7 +364,7 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
           dispatch({ type: "SET_ERROR", data: res });
       }
     })
-  }, [page, perpage, setRepositories, dispatch])
+  }, [page, perpage, setRepositories, dispatch, state.Team])
 
   return (
     <React.Fragment>

@@ -30,12 +30,16 @@ async function getVersion(){
     return result;
 }
 
-async function getRepositories(perPage = 5){
+async function getRepositories(perPage = 5, team:string){
     const REPOS_IN_PAGE = perPage 
     const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
     const subPath ='/api/quality/repositories/list';
     const uri = API_URL + subPath;
     await axios.get(uri, {
+        headers: {},
+        params: {
+            "team_name": team
+        }
       }).then((res: AxiosResponse) => {
         result.code = res.status;
         result.all = res.data;
@@ -52,8 +56,8 @@ async function getRepositories(perPage = 5){
     return result;
 }
 
-async function getAllRepositoriesWithOrgs(){
-    const subPath ='/api/quality/repositories/list';
+async function getAllRepositoriesWithOrgs(team:string){
+    const subPath ='/api/quality/repositories/list?team_name='+team;
     const uri = API_URL + subPath;
     const response = await fetch(uri)
     let repoAndOrgs = []

@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useLayoutEffect, useRef } from 'react';
-import { CubesIcon, ExclamationCircleIcon, OkIcon, HelpIcon } from '@patternfly/react-icons';
+import React, { useEffect, useState, useContext } from 'react';
+import { CubesIcon } from '@patternfly/react-icons';
 import {
   PageSection,PageSectionVariants,
   EmptyState,
@@ -28,6 +28,7 @@ import {
   SimpleListData,
   DashboardLineChartData
 } from '@app/utils/sharedComponents';
+import { Context } from '@app/store/store';
 
 // eslint-disable-next-line prefer-const
 let Support = () => {
@@ -35,6 +36,7 @@ let Support = () => {
   const [prowVisible, setProwVisible] = useState(false)
   const [loadingState, setloadingState] = useState(false)
   const [alerts, setAlerts] = React.useState<React.ReactNode[]>([]);
+  const { state, dispatch } = useContext(Context)
 
   /* 
   Toolbar dropdowns logic and helpers
@@ -104,16 +106,19 @@ let Support = () => {
 
   // When component is mounted, get the list of repo and orgs from API and populate the dropdowns
   useEffect( () => {
-    getAllRepositoriesWithOrgs()
-    .then((data:any) => {
-      data.unshift({repoName: "Select a repository", organization: "", isPlaceholder: true}) // Adds placeholder at the beginning of the array, so it will be shown first
-      setRepositories(data)
-      setRepoName(data[1].repoName)
-      setRepoOrg(data[1].organization)
-      setjobType("periodic")
-      validateGetProwJob()
-    })
-  }, []);
+    if(state.Team != ""){
+      setRepositories([])
+      getAllRepositoriesWithOrgs(state.Team)
+      .then((data:any) => {
+        data.unshift({repoName: "Select a repository", organization: "", isPlaceholder: true}) // Adds placeholder at the beginning of the array, so it will be shown first
+        setRepositories(data)
+        setRepoName(data[1].repoName)
+        setRepoOrg(data[1].organization)
+        //setjobType("periodic")
+        validateGetProwJob()
+      })
+    }
+  }, [state.Team]);
 
   // Static list of job types to populate the dropdown
   let jobTypes = [
