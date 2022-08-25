@@ -30,8 +30,8 @@ func (d *Database) CreateRepository(repository storage.Repository, team_id uuid.
 }
 
 // ListPasswords extracts an array of repositories from the database.
-func (d *Database) ListRepositories() ([]storage.Repository, error) {
-	repositories, err := d.client.Repository.Query().All(context.TODO())
+func (d *Database) ListRepositories(team *db.Teams) ([]storage.Repository, error) {
+	repositories, err := d.client.Teams.QueryRepositories(team).All(context.TODO())
 	if err != nil {
 		return nil, convertDBError("list repositories: %w", err)
 	}
@@ -56,8 +56,8 @@ func (d *Database) GetRepository(repositoryName string, gitOrganizationName stri
 }
 
 // ListRepositoriesQualityInfo extracts an array of repositories from the database.
-func (d *Database) ListRepositoriesQualityInfo() ([]storage.RepositoryQualityInfo, error) {
-	repositories, err := d.client.Repository.Query().All(context.TODO())
+func (d *Database) ListRepositoriesQualityInfo(team *db.Teams) ([]storage.RepositoryQualityInfo, error) {
+	repositories, err := d.client.Teams.QueryRepositories(team).All(context.TODO())
 	if err != nil {
 		return nil, convertDBError("list repositories: %w", err)
 	}

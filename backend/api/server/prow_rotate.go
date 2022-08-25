@@ -18,8 +18,8 @@ const (
 	ProwEndpoint       = "https://prow.ci.openshift.org/prowjobs.js"
 )
 
-func (s *Server) ProwStaticUpdate() {
-	jobsJSON, err := fetchJobsJSON("https://prow.ci.openshift.org/prowjobs.js")
+func (s *Server) UpdateProwStatusByTeam() {
+	jobsJSON, err := fetchJobsJSON(ProwEndpoint)
 	if err != nil {
 		s.cfg.Logger.Sugar().Warnf("Failed to fetch prow endpoint ", err)
 	}
@@ -27,12 +27,15 @@ func (s *Server) ProwStaticUpdate() {
 	if err != nil {
 		s.cfg.Logger.Sugar().Warnf("Failed to convert prow json endpoint to struct ", err)
 	}
+	teamArr, _ := s.cfg.Storage.GetAllTeamsFromDB()
 
-	storageRepos, err := s.cfg.Storage.ListRepositories()
-	if err != nil {
-		s.cfg.Logger.Sugar().Warnf("Failed to get repos from database ", err)
+	for _, team := range teamArr {
+		repo, _ := s.cfg.Storage.ListRepositories(team)
+		s.ProwStaticUpdate(repo, prowjobs)
 	}
+}
 
+func (s *Server) ProwStaticUpdate(storageRepos []storage.Repository, prowjobs []prow.ProwJob) {
 	for _, repo := range storageRepos {
 		for _, pj := range prowjobs {
 			suitesXml := prow.TestSuites{}

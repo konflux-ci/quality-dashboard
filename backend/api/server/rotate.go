@@ -40,8 +40,8 @@ func (s *Server) startUpdateStorage(ctx context.Context, strategy rotationStrate
 }
 
 func (s *Server) rotate() error {
-	s.ProwStaticUpdate()
-	err := s.CacheRepositoriesInformation()
+	s.UpdateProwStatusByTeam()
+	err := s.UpdateDataBaseRepoByTeam()
 	if err != nil {
 		s.cfg.Logger.Sugar().Errorf("Failed to update cache", zap.Error(err))
 		return err
@@ -56,12 +56,17 @@ func staticRotationStrategy() rotationStrategy {
 	}
 }
 
-func (s *Server) CacheRepositoriesInformation() error {
-	storageRepos, err := s.cfg.Storage.ListRepositories()
-	if err != nil {
-		return err
-	}
+func (s *Server) UpdateDataBaseRepoByTeam() error {
+	teamArr, _ := s.cfg.Storage.GetAllTeamsFromDB()
 
+	for _, team := range teamArr {
+		repo, _ := s.cfg.Storage.ListRepositories(team)
+		return s.CacheRepositoriesInformation(repo)
+	}
+	return nil
+}
+
+func (s *Server) CacheRepositoriesInformation(storageRepos []storage.Repository) error {
 	for _, repo := range storageRepos {
 		workf, err := s.getGithubWorkflows(repo.GitOrganization, repo.RepositoryName)
 		if err != nil {

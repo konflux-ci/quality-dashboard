@@ -23,7 +23,25 @@ var repository GitRepositoryRequest
 // @Success 200 {array} storage.RepositoryQualityInfo
 // @Failure 400 {object} types.ErrorResponse
 func (rp *repositoryRouter) listAllRepositoriesQuality(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
-	repos, err := rp.Storage.ListRepositoriesQualityInfo()
+	teamName := r.URL.Query()["team_name"]
+
+	if len(teamName) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "repository_name value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	team, err := rp.Storage.GetTeamByName(teamName[0])
+	if err != nil {
+		rp.Logger.Error("Failed to fetch team. Make sure the team exists", zap.String("team", repository.Team), zap.Error(err))
+
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+	repos, err := rp.Storage.ListRepositoriesQualityInfo(team)
 
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
