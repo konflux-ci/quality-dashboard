@@ -30,10 +30,9 @@ type Storage interface {
 	GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error)
 	GetProwJobsResults(*db.Repository) ([]*db.ProwSuites, error)
 	GetProwJobsResultsByJobID(jobID string) ([]*db.ProwJobs, error)
-	ListRepositories() ([]Repository, error)
 	ListWorkflowsByRepository(repositoryName string) (w []GithubWorkflows, err error)
-	ListRepositoriesQualityInfo() ([]RepositoryQualityInfo, error)
-
+	ListRepositories(team *db.Teams) ([]Repository, error)
+	ListRepositoriesQualityInfo(team *db.Teams) ([]RepositoryQualityInfo, error)
 	// POST
 	CreateRepository(p Repository, team_id uuid.UUID) (*db.Repository, error)
 	CreateQualityStudioTeam(teamName string) (*db.Teams, error)
