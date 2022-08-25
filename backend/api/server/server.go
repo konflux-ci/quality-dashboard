@@ -19,6 +19,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/api/server/router/jira"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/repositories"
+	"github.com/redhat-appstudio/quality-studio/api/server/router/teams"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/version"
 	_ "github.com/redhat-appstudio/quality-studio/docs/swagger"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
@@ -180,6 +181,7 @@ func (s *Server) InitRouter() {
 	s.routers = append(s.routers,
 		version.NewRouter(), repositories.NewRouter(s.cfg.Storage),
 		prow.NewRouter(s.cfg.Storage),
+		teams.NewRouter(s.cfg.Storage),
 		jira.NewRouter(s.cfg.Storage))
 }
 

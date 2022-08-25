@@ -14,6 +14,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 
 	"entgo.io/ent"
@@ -32,6 +33,7 @@ const (
 	TypeProwJobs   = "ProwJobs"
 	TypeProwSuites = "ProwSuites"
 	TypeRepository = "Repository"
+	TypeTeams      = "Teams"
 	TypeWorkflows  = "Workflows"
 )
 
@@ -2177,29 +2179,31 @@ func (m *ProwSuitesMutation) ResetEdge(name string) error {
 // RepositoryMutation represents an operation that mutates the Repository nodes in the graph.
 type RepositoryMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	repository_name    *string
-	git_organization   *string
-	description        *string
-	git_url            *string
-	clearedFields      map[string]struct{}
-	workflows          map[int]struct{}
-	removedworkflows   map[int]struct{}
-	clearedworkflows   bool
-	codecov            map[uuid.UUID]struct{}
-	removedcodecov     map[uuid.UUID]struct{}
-	clearedcodecov     bool
-	prow_suites        map[int]struct{}
-	removedprow_suites map[int]struct{}
-	clearedprow_suites bool
-	prow_jobs          map[int]struct{}
-	removedprow_jobs   map[int]struct{}
-	clearedprow_jobs   bool
-	done               bool
-	oldValue           func(context.Context) (*Repository, error)
-	predicates         []predicate.Repository
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	repository_name     *string
+	git_organization    *string
+	description         *string
+	git_url             *string
+	clearedFields       map[string]struct{}
+	repositories        *uuid.UUID
+	clearedrepositories bool
+	workflows           map[int]struct{}
+	removedworkflows    map[int]struct{}
+	clearedworkflows    bool
+	codecov             map[uuid.UUID]struct{}
+	removedcodecov      map[uuid.UUID]struct{}
+	clearedcodecov      bool
+	prow_suites         map[int]struct{}
+	removedprow_suites  map[int]struct{}
+	clearedprow_suites  bool
+	prow_jobs           map[int]struct{}
+	removedprow_jobs    map[int]struct{}
+	clearedprow_jobs    bool
+	done                bool
+	oldValue            func(context.Context) (*Repository, error)
+	predicates          []predicate.Repository
 }
 
 var _ ent.Mutation = (*RepositoryMutation)(nil)
@@ -2429,6 +2433,45 @@ func (m *RepositoryMutation) OldGitURL(ctx context.Context) (v string, err error
 // ResetGitURL resets all changes to the "git_url" field.
 func (m *RepositoryMutation) ResetGitURL() {
 	m.git_url = nil
+}
+
+// SetRepositoriesID sets the "repositories" edge to the Teams entity by id.
+func (m *RepositoryMutation) SetRepositoriesID(id uuid.UUID) {
+	m.repositories = &id
+}
+
+// ClearRepositories clears the "repositories" edge to the Teams entity.
+func (m *RepositoryMutation) ClearRepositories() {
+	m.clearedrepositories = true
+}
+
+// RepositoriesCleared reports if the "repositories" edge to the Teams entity was cleared.
+func (m *RepositoryMutation) RepositoriesCleared() bool {
+	return m.clearedrepositories
+}
+
+// RepositoriesID returns the "repositories" edge ID in the mutation.
+func (m *RepositoryMutation) RepositoriesID() (id uuid.UUID, exists bool) {
+	if m.repositories != nil {
+		return *m.repositories, true
+	}
+	return
+}
+
+// RepositoriesIDs returns the "repositories" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// RepositoriesID instead. It exists only for internal usage by the builders.
+func (m *RepositoryMutation) RepositoriesIDs() (ids []uuid.UUID) {
+	if id := m.repositories; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetRepositories resets all changes to the "repositories" edge.
+func (m *RepositoryMutation) ResetRepositories() {
+	m.repositories = nil
+	m.clearedrepositories = false
 }
 
 // AddWorkflowIDs adds the "workflows" edge to the Workflows entity by ids.
@@ -2816,7 +2859,10 @@ func (m *RepositoryMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RepositoryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
+	if m.repositories != nil {
+		edges = append(edges, repository.EdgeRepositories)
+	}
 	if m.workflows != nil {
 		edges = append(edges, repository.EdgeWorkflows)
 	}
@@ -2836,6 +2882,10 @@ func (m *RepositoryMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *RepositoryMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case repository.EdgeRepositories:
+		if id := m.repositories; id != nil {
+			return []ent.Value{*id}
+		}
 	case repository.EdgeWorkflows:
 		ids := make([]ent.Value, 0, len(m.workflows))
 		for id := range m.workflows {
@@ -2866,7 +2916,7 @@ func (m *RepositoryMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RepositoryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedworkflows != nil {
 		edges = append(edges, repository.EdgeWorkflows)
 	}
@@ -2916,7 +2966,10 @@ func (m *RepositoryMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RepositoryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
+	if m.clearedrepositories {
+		edges = append(edges, repository.EdgeRepositories)
+	}
 	if m.clearedworkflows {
 		edges = append(edges, repository.EdgeWorkflows)
 	}
@@ -2936,6 +2989,8 @@ func (m *RepositoryMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *RepositoryMutation) EdgeCleared(name string) bool {
 	switch name {
+	case repository.EdgeRepositories:
+		return m.clearedrepositories
 	case repository.EdgeWorkflows:
 		return m.clearedworkflows
 	case repository.EdgeCodecov:
@@ -2952,6 +3007,9 @@ func (m *RepositoryMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *RepositoryMutation) ClearEdge(name string) error {
 	switch name {
+	case repository.EdgeRepositories:
+		m.ClearRepositories()
+		return nil
 	}
 	return fmt.Errorf("unknown Repository unique edge %s", name)
 }
@@ -2960,6 +3018,9 @@ func (m *RepositoryMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *RepositoryMutation) ResetEdge(name string) error {
 	switch name {
+	case repository.EdgeRepositories:
+		m.ResetRepositories()
+		return nil
 	case repository.EdgeWorkflows:
 		m.ResetWorkflows()
 		return nil
@@ -2974,6 +3035,397 @@ func (m *RepositoryMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Repository edge %s", name)
+}
+
+// TeamsMutation represents an operation that mutates the Teams nodes in the graph.
+type TeamsMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	team_name           *string
+	clearedFields       map[string]struct{}
+	repositories        map[uuid.UUID]struct{}
+	removedrepositories map[uuid.UUID]struct{}
+	clearedrepositories bool
+	done                bool
+	oldValue            func(context.Context) (*Teams, error)
+	predicates          []predicate.Teams
+}
+
+var _ ent.Mutation = (*TeamsMutation)(nil)
+
+// teamsOption allows management of the mutation configuration using functional options.
+type teamsOption func(*TeamsMutation)
+
+// newTeamsMutation creates new mutation for the Teams entity.
+func newTeamsMutation(c config, op Op, opts ...teamsOption) *TeamsMutation {
+	m := &TeamsMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTeams,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTeamsID sets the ID field of the mutation.
+func withTeamsID(id uuid.UUID) teamsOption {
+	return func(m *TeamsMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Teams
+		)
+		m.oldValue = func(ctx context.Context) (*Teams, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Teams.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTeams sets the old Teams of the mutation.
+func withTeams(node *Teams) teamsOption {
+	return func(m *TeamsMutation) {
+		m.oldValue = func(context.Context) (*Teams, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TeamsMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TeamsMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Teams entities.
+func (m *TeamsMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TeamsMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetTeamName sets the "team_name" field.
+func (m *TeamsMutation) SetTeamName(s string) {
+	m.team_name = &s
+}
+
+// TeamName returns the value of the "team_name" field in the mutation.
+func (m *TeamsMutation) TeamName() (r string, exists bool) {
+	v := m.team_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTeamName returns the old "team_name" field's value of the Teams entity.
+// If the Teams object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TeamsMutation) OldTeamName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTeamName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTeamName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTeamName: %w", err)
+	}
+	return oldValue.TeamName, nil
+}
+
+// ResetTeamName resets all changes to the "team_name" field.
+func (m *TeamsMutation) ResetTeamName() {
+	m.team_name = nil
+}
+
+// AddRepositoryIDs adds the "repositories" edge to the Repository entity by ids.
+func (m *TeamsMutation) AddRepositoryIDs(ids ...uuid.UUID) {
+	if m.repositories == nil {
+		m.repositories = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.repositories[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRepositories clears the "repositories" edge to the Repository entity.
+func (m *TeamsMutation) ClearRepositories() {
+	m.clearedrepositories = true
+}
+
+// RepositoriesCleared reports if the "repositories" edge to the Repository entity was cleared.
+func (m *TeamsMutation) RepositoriesCleared() bool {
+	return m.clearedrepositories
+}
+
+// RemoveRepositoryIDs removes the "repositories" edge to the Repository entity by IDs.
+func (m *TeamsMutation) RemoveRepositoryIDs(ids ...uuid.UUID) {
+	if m.removedrepositories == nil {
+		m.removedrepositories = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.repositories, ids[i])
+		m.removedrepositories[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRepositories returns the removed IDs of the "repositories" edge to the Repository entity.
+func (m *TeamsMutation) RemovedRepositoriesIDs() (ids []uuid.UUID) {
+	for id := range m.removedrepositories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RepositoriesIDs returns the "repositories" edge IDs in the mutation.
+func (m *TeamsMutation) RepositoriesIDs() (ids []uuid.UUID) {
+	for id := range m.repositories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRepositories resets all changes to the "repositories" edge.
+func (m *TeamsMutation) ResetRepositories() {
+	m.repositories = nil
+	m.clearedrepositories = false
+	m.removedrepositories = nil
+}
+
+// Where appends a list predicates to the TeamsMutation builder.
+func (m *TeamsMutation) Where(ps ...predicate.Teams) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// Op returns the operation name.
+func (m *TeamsMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Teams).
+func (m *TeamsMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TeamsMutation) Fields() []string {
+	fields := make([]string, 0, 1)
+	if m.team_name != nil {
+		fields = append(fields, teams.FieldTeamName)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TeamsMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case teams.FieldTeamName:
+		return m.TeamName()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TeamsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case teams.FieldTeamName:
+		return m.OldTeamName(ctx)
+	}
+	return nil, fmt.Errorf("unknown Teams field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TeamsMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case teams.FieldTeamName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTeamName(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Teams field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TeamsMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TeamsMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TeamsMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Teams numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TeamsMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TeamsMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TeamsMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Teams nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TeamsMutation) ResetField(name string) error {
+	switch name {
+	case teams.FieldTeamName:
+		m.ResetTeamName()
+		return nil
+	}
+	return fmt.Errorf("unknown Teams field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TeamsMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.repositories != nil {
+		edges = append(edges, teams.EdgeRepositories)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TeamsMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case teams.EdgeRepositories:
+		ids := make([]ent.Value, 0, len(m.repositories))
+		for id := range m.repositories {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TeamsMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedrepositories != nil {
+		edges = append(edges, teams.EdgeRepositories)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TeamsMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case teams.EdgeRepositories:
+		ids := make([]ent.Value, 0, len(m.removedrepositories))
+		for id := range m.removedrepositories {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TeamsMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedrepositories {
+		edges = append(edges, teams.EdgeRepositories)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TeamsMutation) EdgeCleared(name string) bool {
+	switch name {
+	case teams.EdgeRepositories:
+		return m.clearedrepositories
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TeamsMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Teams unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TeamsMutation) ResetEdge(name string) error {
+	switch name {
+	case teams.EdgeRepositories:
+		m.ResetRepositories()
+		return nil
+	}
+	return fmt.Errorf("unknown Teams edge %s", name)
 }
 
 // WorkflowsMutation represents an operation that mutates the Workflows nodes in the graph.

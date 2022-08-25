@@ -28,6 +28,7 @@ type hooks struct {
 	ProwJobs   []ent.Hook
 	ProwSuites []ent.Hook
 	Repository []ent.Hook
+	Teams      []ent.Hook
 	Workflows  []ent.Hook
 }
 

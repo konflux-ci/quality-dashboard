@@ -19,6 +19,7 @@ type JobSpec struct {
 }
 
 type GitRepositoryRequest struct {
+	Team            string   `json:"team_name"`
 	GitOrganization string   `json:"git_organization"`
 	GitRepository   string   `json:"repository_name"`
 	Jobs            JobSpec  `json:"jobs"`

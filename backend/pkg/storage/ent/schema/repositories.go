@@ -38,6 +38,9 @@ func (Repository) Fields() []ent.Field {
 // Edges of the Password.
 func (Repository) Edges() []ent.Edge {
 	return []ent.Edge{
+		edge.From("repositories", Teams.Type).
+			Ref("repositories").
+			Unique(),
 		edge.To("workflows", Workflows.Type),
 		edge.To("codecov", CodeCov.Type),
 		edge.To("prow_suites", ProwSuites.Type),

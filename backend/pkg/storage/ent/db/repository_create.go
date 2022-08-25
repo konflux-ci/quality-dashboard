@@ -14,6 +14,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 )
 
@@ -52,6 +53,25 @@ func (rc *RepositoryCreate) SetGitURL(s string) *RepositoryCreate {
 func (rc *RepositoryCreate) SetID(u uuid.UUID) *RepositoryCreate {
 	rc.mutation.SetID(u)
 	return rc
+}
+
+// SetRepositoriesID sets the "repositories" edge to the Teams entity by ID.
+func (rc *RepositoryCreate) SetRepositoriesID(id uuid.UUID) *RepositoryCreate {
+	rc.mutation.SetRepositoriesID(id)
+	return rc
+}
+
+// SetNillableRepositoriesID sets the "repositories" edge to the Teams entity by ID if the given value is not nil.
+func (rc *RepositoryCreate) SetNillableRepositoriesID(id *uuid.UUID) *RepositoryCreate {
+	if id != nil {
+		rc = rc.SetRepositoriesID(*id)
+	}
+	return rc
+}
+
+// SetRepositories sets the "repositories" edge to the Teams entity.
+func (rc *RepositoryCreate) SetRepositories(t *Teams) *RepositoryCreate {
+	return rc.SetRepositoriesID(t.ID)
 }
 
 // AddWorkflowIDs adds the "workflows" edge to the Workflows entity by IDs.
@@ -288,6 +308,26 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 			Column: repository.FieldGitURL,
 		})
 		_node.GitURL = value
+	}
+	if nodes := rc.mutation.RepositoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   repository.RepositoriesTable,
+			Columns: []string{repository.RepositoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: teams.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.teams_repositories = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := rc.mutation.WorkflowsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

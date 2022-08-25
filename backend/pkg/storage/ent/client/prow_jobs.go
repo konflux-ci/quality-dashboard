@@ -34,7 +34,7 @@ func (d *Database) CreateProwJobResults(prowJobStatus storage.ProwJobStatus, rep
 }
 
 func (d *Database) GetLatestProwTestExecution(r *db.Repository, jobType string) (*db.ProwJobs, error) {
-	jobId, err := d.client.Repository.QueryProwJobs(r).Where(prowjobs.JobType(jobType)).Order(db.Desc(prowjobs.FieldCreatedAt)).FirstID(context.Background())
+	jobId, err := d.client.Repository.QueryProwJobs(r).Where(prowjobs.JobType(jobType)).Where(prowjobs.State("success")).Order(db.Desc(prowjobs.FieldCreatedAt)).FirstID(context.Background())
 	if err != nil {
 		return nil, convertDBError("get prow job: %w", err)
 	}

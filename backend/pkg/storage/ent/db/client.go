@@ -14,6 +14,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 
 	"entgo.io/ent/dialect"
@@ -34,6 +35,8 @@ type Client struct {
 	ProwSuites *ProwSuitesClient
 	// Repository is the client for interacting with the Repository builders.
 	Repository *RepositoryClient
+	// Teams is the client for interacting with the Teams builders.
+	Teams *TeamsClient
 	// Workflows is the client for interacting with the Workflows builders.
 	Workflows *WorkflowsClient
 }
@@ -53,6 +56,7 @@ func (c *Client) init() {
 	c.ProwJobs = NewProwJobsClient(c.config)
 	c.ProwSuites = NewProwSuitesClient(c.config)
 	c.Repository = NewRepositoryClient(c.config)
+	c.Teams = NewTeamsClient(c.config)
 	c.Workflows = NewWorkflowsClient(c.config)
 }
 
@@ -91,6 +95,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ProwJobs:   NewProwJobsClient(cfg),
 		ProwSuites: NewProwSuitesClient(cfg),
 		Repository: NewRepositoryClient(cfg),
+		Teams:      NewTeamsClient(cfg),
 		Workflows:  NewWorkflowsClient(cfg),
 	}, nil
 }
@@ -114,6 +119,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ProwJobs:   NewProwJobsClient(cfg),
 		ProwSuites: NewProwSuitesClient(cfg),
 		Repository: NewRepositoryClient(cfg),
+		Teams:      NewTeamsClient(cfg),
 		Workflows:  NewWorkflowsClient(cfg),
 	}, nil
 }
@@ -124,7 +130,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 //		CodeCov.
 //		Query().
 //		Count(ctx)
-//
 func (c *Client) Debug() *Client {
 	if c.debug {
 		return c
@@ -148,6 +153,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.ProwJobs.Use(hooks...)
 	c.ProwSuites.Use(hooks...)
 	c.Repository.Use(hooks...)
+	c.Teams.Use(hooks...)
 	c.Workflows.Use(hooks...)
 }
 
@@ -554,6 +560,22 @@ func (c *RepositoryClient) GetX(ctx context.Context, id uuid.UUID) *Repository {
 	return obj
 }
 
+// QueryRepositories queries the repositories edge of a Repository.
+func (c *RepositoryClient) QueryRepositories(r *Repository) *TeamsQuery {
+	query := &TeamsQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(repository.Table, repository.FieldID, id),
+			sqlgraph.To(teams.Table, teams.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, repository.RepositoriesTable, repository.RepositoriesColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryWorkflows queries the workflows edge of a Repository.
 func (c *RepositoryClient) QueryWorkflows(r *Repository) *WorkflowsQuery {
 	query := &WorkflowsQuery{config: c.config}
@@ -621,6 +643,112 @@ func (c *RepositoryClient) QueryProwJobs(r *Repository) *ProwJobsQuery {
 // Hooks returns the client hooks.
 func (c *RepositoryClient) Hooks() []Hook {
 	return c.hooks.Repository
+}
+
+// TeamsClient is a client for the Teams schema.
+type TeamsClient struct {
+	config
+}
+
+// NewTeamsClient returns a client for the Teams from the given config.
+func NewTeamsClient(c config) *TeamsClient {
+	return &TeamsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `teams.Hooks(f(g(h())))`.
+func (c *TeamsClient) Use(hooks ...Hook) {
+	c.hooks.Teams = append(c.hooks.Teams, hooks...)
+}
+
+// Create returns a create builder for Teams.
+func (c *TeamsClient) Create() *TeamsCreate {
+	mutation := newTeamsMutation(c.config, OpCreate)
+	return &TeamsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Teams entities.
+func (c *TeamsClient) CreateBulk(builders ...*TeamsCreate) *TeamsCreateBulk {
+	return &TeamsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Teams.
+func (c *TeamsClient) Update() *TeamsUpdate {
+	mutation := newTeamsMutation(c.config, OpUpdate)
+	return &TeamsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TeamsClient) UpdateOne(t *Teams) *TeamsUpdateOne {
+	mutation := newTeamsMutation(c.config, OpUpdateOne, withTeams(t))
+	return &TeamsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TeamsClient) UpdateOneID(id uuid.UUID) *TeamsUpdateOne {
+	mutation := newTeamsMutation(c.config, OpUpdateOne, withTeamsID(id))
+	return &TeamsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Teams.
+func (c *TeamsClient) Delete() *TeamsDelete {
+	mutation := newTeamsMutation(c.config, OpDelete)
+	return &TeamsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *TeamsClient) DeleteOne(t *Teams) *TeamsDeleteOne {
+	return c.DeleteOneID(t.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *TeamsClient) DeleteOneID(id uuid.UUID) *TeamsDeleteOne {
+	builder := c.Delete().Where(teams.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TeamsDeleteOne{builder}
+}
+
+// Query returns a query builder for Teams.
+func (c *TeamsClient) Query() *TeamsQuery {
+	return &TeamsQuery{
+		config: c.config,
+	}
+}
+
+// Get returns a Teams entity by its id.
+func (c *TeamsClient) Get(ctx context.Context, id uuid.UUID) (*Teams, error) {
+	return c.Query().Where(teams.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TeamsClient) GetX(ctx context.Context, id uuid.UUID) *Teams {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryRepositories queries the repositories edge of a Teams.
+func (c *TeamsClient) QueryRepositories(t *Teams) *RepositoryQuery {
+	query := &RepositoryQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(teams.Table, teams.FieldID, id),
+			sqlgraph.To(repository.Table, repository.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, teams.RepositoriesTable, teams.RepositoriesColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TeamsClient) Hooks() []Hook {
+	return c.hooks.Teams
 }
 
 // WorkflowsClient is a client for the Workflows schema.

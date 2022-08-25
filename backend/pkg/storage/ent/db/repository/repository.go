@@ -19,6 +19,8 @@ const (
 	FieldDescription = "description"
 	// FieldGitURL holds the string denoting the git_url field in the database.
 	FieldGitURL = "git_url"
+	// EdgeRepositories holds the string denoting the repositories edge name in mutations.
+	EdgeRepositories = "repositories"
 	// EdgeWorkflows holds the string denoting the workflows edge name in mutations.
 	EdgeWorkflows = "workflows"
 	// EdgeCodecov holds the string denoting the codecov edge name in mutations.
@@ -27,6 +29,8 @@ const (
 	EdgeProwSuites = "prow_suites"
 	// EdgeProwJobs holds the string denoting the prow_jobs edge name in mutations.
 	EdgeProwJobs = "prow_jobs"
+	// TeamsFieldID holds the string denoting the ID field of the Teams.
+	TeamsFieldID = "team_id"
 	// WorkflowsFieldID holds the string denoting the ID field of the Workflows.
 	WorkflowsFieldID = "id"
 	// CodeCovFieldID holds the string denoting the ID field of the CodeCov.
@@ -37,6 +41,13 @@ const (
 	ProwJobsFieldID = "id"
 	// Table holds the table name of the repository in the database.
 	Table = "repositories"
+	// RepositoriesTable is the table that holds the repositories relation/edge.
+	RepositoriesTable = "repositories"
+	// RepositoriesInverseTable is the table name for the Teams entity.
+	// It exists in this package in order to avoid circular dependency with the "teams" package.
+	RepositoriesInverseTable = "teams"
+	// RepositoriesColumn is the table column denoting the repositories relation/edge.
+	RepositoriesColumn = "teams_repositories"
 	// WorkflowsTable is the table that holds the workflows relation/edge.
 	WorkflowsTable = "workflows"
 	// WorkflowsInverseTable is the table name for the Workflows entity.
@@ -76,10 +87,21 @@ var Columns = []string{
 	FieldGitURL,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "repositories"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"teams_repositories",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

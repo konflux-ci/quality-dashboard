@@ -61,6 +61,19 @@ func (f RepositoryFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, er
 	return f(ctx, mv)
 }
 
+// The TeamsFunc type is an adapter to allow the use of ordinary
+// function as Teams mutator.
+type TeamsFunc func(context.Context, *db.TeamsMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TeamsFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	mv, ok := m.(*db.TeamsMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TeamsMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The WorkflowsFunc type is an adapter to allow the use of ordinary
 // function as Workflows mutator.
 type WorkflowsFunc func(context.Context, *db.WorkflowsMutation) (db.Value, error)
@@ -169,7 +182,6 @@ func HasFields(field string, fields ...string) Condition {
 // If executes the given hook under condition.
 //
 //	hook.If(ComputeAverage, And(HasFields(...), HasAddedFields(...)))
-//
 func If(hk db.Hook, cond Condition) db.Hook {
 	return func(next db.Mutator) db.Mutator {
 		return db.MutateFunc(func(ctx context.Context, m db.Mutation) (db.Value, error) {
@@ -184,7 +196,6 @@ func If(hk db.Hook, cond Condition) db.Hook {
 // On executes the given hook only for the given operation.
 //
 //	hook.On(Log, db.Delete|db.Create)
-//
 func On(hk db.Hook, op db.Op) db.Hook {
 	return If(hk, HasOp(op))
 }
@@ -192,7 +203,6 @@ func On(hk db.Hook, op db.Op) db.Hook {
 // Unless skips the given hook only for the given operation.
 //
 //	hook.Unless(Log, db.Update|db.UpdateOne)
-//
 func Unless(hk db.Hook, op db.Op) db.Hook {
 	return If(hk, Not(HasOp(op)))
 }
@@ -213,7 +223,6 @@ func FixedError(err error) db.Hook {
 //			Reject(db.Delete|db.Update),
 //		}
 //	}
-//
 func Reject(op db.Op) db.Hook {
 	hk := FixedError(fmt.Errorf("%s operation is not allowed", op))
 	return On(hk, op)

@@ -1,7 +1,6 @@
 package prow
 
 import (
-	"regexp"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,8 +24,6 @@ const (
 	// ErrorState means the job could not schedule (bad config, perhaps).
 	ErrorState ProwJobState = "error"
 )
-
-var RegexpCompiler = regexp.MustCompile("(-main-|-master-)(.*?)(\\/)")
 
 type Extrarefs struct {
 	// Org is something like kubernetes or k8s.io

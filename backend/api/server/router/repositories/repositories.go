@@ -48,7 +48,7 @@ func (rp *repositoryRouter) listAllRepositoriesQuality(ctx context.Context, w ht
 func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	if err := json.NewDecoder(r.Body).Decode(&repository); err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-			Message:    "Error reading repository/git_organization value from body",
+			Message:    "Error reading repository/git_organization/team_name value from body",
 			StatusCode: http.StatusBadRequest,
 		})
 	}
@@ -62,18 +62,34 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 			StatusCode: http.StatusBadRequest,
 		})
 	}
+
+	team, err := rp.Storage.GetTeamByName(repository.Team)
+	if err != nil {
+		rp.Logger.Error("Failed to fetch team. Make sure the team exists", zap.String("team", repository.Team), zap.Error(err))
+
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	description := githubRepo.GetDescription()
+	if description == "" {
+		description = "Repository don't contain a description"
+	}
 	createdRepo, err := rp.Storage.CreateRepository(storage.Repository{
 		RepositoryName:  githubRepo.GetName(),
 		GitOrganization: githubRepo.Owner.GetLogin(),
-		Description:     "Desc",
+		Description:     description,
 		GitURL:          githubRepo.GetHTMLURL(),
-	})
+	}, team.ID)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
 			StatusCode: http.StatusBadRequest,
 		})
 	}
+
 	coverage, err := rp.CodeCov.GetCodeCovInfo(githubRepo.Owner.GetLogin(), githubRepo.GetName())
 	if err != nil {
 		rp.Logger.Error("Failed to fetch repository info from codecov", zap.String("repository", repository.GitRepository), zap.String("git_organization", repository.GitOrganization), zap.Error(err))

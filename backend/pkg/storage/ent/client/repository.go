@@ -4,13 +4,14 @@ import (
 	"context"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
 // CreateRepository save provided repository information in database.
-func (d *Database) CreateRepository(repository storage.Repository) (*db.Repository, error) {
+func (d *Database) CreateRepository(repository storage.Repository, team_id uuid.UUID) (*db.Repository, error) {
 	repo, err := d.client.Repository.Create().
 		SetRepositoryName(repository.RepositoryName).
 		SetGitOrganization(repository.GitOrganization).
@@ -19,6 +20,11 @@ func (d *Database) CreateRepository(repository storage.Repository) (*db.Reposito
 		Save(context.TODO())
 	if err != nil {
 		return nil, convertDBError("create repository: %w", err)
+	}
+
+	_, err = d.client.Teams.UpdateOneID(team_id).AddRepositories(repo).Save(context.TODO())
+	if err != nil {
+		return nil, convertDBError("create workflows: %w", err)
 	}
 	return repo, nil
 }

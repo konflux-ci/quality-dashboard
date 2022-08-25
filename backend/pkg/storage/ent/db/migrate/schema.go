@@ -90,12 +90,32 @@ var (
 		{Name: "git_organization", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "description", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "git_url", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "teams_repositories", Type: field.TypeUUID, Nullable: true},
 	}
 	// RepositoriesTable holds the schema information for the "repositories" table.
 	RepositoriesTable = &schema.Table{
 		Name:       "repositories",
 		Columns:    RepositoriesColumns,
 		PrimaryKey: []*schema.Column{RepositoriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "repositories_teams_repositories",
+				Columns:    []*schema.Column{RepositoriesColumns[5]},
+				RefColumns: []*schema.Column{TeamsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// TeamsColumns holds the columns for the "teams" table.
+	TeamsColumns = []*schema.Column{
+		{Name: "team_id", Type: field.TypeUUID, Unique: true},
+		{Name: "team_name", Type: field.TypeString, Unique: true},
+	}
+	// TeamsTable holds the schema information for the "teams" table.
+	TeamsTable = &schema.Table{
+		Name:       "teams",
+		Columns:    TeamsColumns,
+		PrimaryKey: []*schema.Column{TeamsColumns[0]},
 	}
 	// WorkflowsColumns holds the columns for the "workflows" table.
 	WorkflowsColumns = []*schema.Column{
@@ -128,6 +148,7 @@ var (
 		ProwJobsTable,
 		ProwSuitesTable,
 		RepositoriesTable,
+		TeamsTable,
 		WorkflowsTable,
 	}
 )
@@ -136,5 +157,6 @@ func init() {
 	CodeCovsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	ProwJobsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	ProwSuitesTable.ForeignKeys[0].RefTable = RepositoriesTable
+	RepositoriesTable.ForeignKeys[0].RefTable = TeamsTable
 	WorkflowsTable.ForeignKeys[0].RefTable = RepositoriesTable
 }

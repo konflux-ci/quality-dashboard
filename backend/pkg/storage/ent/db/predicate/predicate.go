@@ -18,5 +18,8 @@ type ProwSuites func(*sql.Selector)
 // Repository is the predicate function for repository builders.
 type Repository func(*sql.Selector)
 
+// Teams is the predicate function for teams builders.
+type Teams func(*sql.Selector)
+
 // Workflows is the predicate function for workflows builders.
 type Workflows func(*sql.Selector)

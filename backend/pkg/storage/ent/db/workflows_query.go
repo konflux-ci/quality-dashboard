@@ -300,7 +300,6 @@ func (wq *WorkflowsQuery) WithWorkflows(opts ...func(*RepositoryQuery)) *Workflo
 //		GroupBy(workflows.FieldWorkflowID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
-//
 func (wq *WorkflowsQuery) GroupBy(field string, fields ...string) *WorkflowsGroupBy {
 	group := &WorkflowsGroupBy{config: wq.config}
 	group.fields = append([]string{field}, fields...)
@@ -325,7 +324,6 @@ func (wq *WorkflowsQuery) GroupBy(field string, fields ...string) *WorkflowsGrou
 //	client.Workflows.Query().
 //		Select(workflows.FieldWorkflowID).
 //		Scan(ctx, &v)
-//
 func (wq *WorkflowsQuery) Select(fields ...string) *WorkflowsSelect {
 	wq.fields = append(wq.fields, fields...)
 	return &WorkflowsSelect{WorkflowsQuery: wq}

@@ -15,6 +15,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 )
 
@@ -53,6 +54,25 @@ func (ru *RepositoryUpdate) SetDescription(s string) *RepositoryUpdate {
 func (ru *RepositoryUpdate) SetGitURL(s string) *RepositoryUpdate {
 	ru.mutation.SetGitURL(s)
 	return ru
+}
+
+// SetRepositoriesID sets the "repositories" edge to the Teams entity by ID.
+func (ru *RepositoryUpdate) SetRepositoriesID(id uuid.UUID) *RepositoryUpdate {
+	ru.mutation.SetRepositoriesID(id)
+	return ru
+}
+
+// SetNillableRepositoriesID sets the "repositories" edge to the Teams entity by ID if the given value is not nil.
+func (ru *RepositoryUpdate) SetNillableRepositoriesID(id *uuid.UUID) *RepositoryUpdate {
+	if id != nil {
+		ru = ru.SetRepositoriesID(*id)
+	}
+	return ru
+}
+
+// SetRepositories sets the "repositories" edge to the Teams entity.
+func (ru *RepositoryUpdate) SetRepositories(t *Teams) *RepositoryUpdate {
+	return ru.SetRepositoriesID(t.ID)
 }
 
 // AddWorkflowIDs adds the "workflows" edge to the Workflows entity by IDs.
@@ -118,6 +138,12 @@ func (ru *RepositoryUpdate) AddProwJobs(p ...*ProwJobs) *RepositoryUpdate {
 // Mutation returns the RepositoryMutation object of the builder.
 func (ru *RepositoryUpdate) Mutation() *RepositoryMutation {
 	return ru.mutation
+}
+
+// ClearRepositories clears the "repositories" edge to the Teams entity.
+func (ru *RepositoryUpdate) ClearRepositories() *RepositoryUpdate {
+	ru.mutation.ClearRepositories()
+	return ru
 }
 
 // ClearWorkflows clears all "workflows" edges to the Workflows entity.
@@ -334,6 +360,41 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Value:  value,
 			Column: repository.FieldGitURL,
 		})
+	}
+	if ru.mutation.RepositoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   repository.RepositoriesTable,
+			Columns: []string{repository.RepositoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: teams.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RepositoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   repository.RepositoriesTable,
+			Columns: []string{repository.RepositoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: teams.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ru.mutation.WorkflowsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -594,6 +655,25 @@ func (ruo *RepositoryUpdateOne) SetGitURL(s string) *RepositoryUpdateOne {
 	return ruo
 }
 
+// SetRepositoriesID sets the "repositories" edge to the Teams entity by ID.
+func (ruo *RepositoryUpdateOne) SetRepositoriesID(id uuid.UUID) *RepositoryUpdateOne {
+	ruo.mutation.SetRepositoriesID(id)
+	return ruo
+}
+
+// SetNillableRepositoriesID sets the "repositories" edge to the Teams entity by ID if the given value is not nil.
+func (ruo *RepositoryUpdateOne) SetNillableRepositoriesID(id *uuid.UUID) *RepositoryUpdateOne {
+	if id != nil {
+		ruo = ruo.SetRepositoriesID(*id)
+	}
+	return ruo
+}
+
+// SetRepositories sets the "repositories" edge to the Teams entity.
+func (ruo *RepositoryUpdateOne) SetRepositories(t *Teams) *RepositoryUpdateOne {
+	return ruo.SetRepositoriesID(t.ID)
+}
+
 // AddWorkflowIDs adds the "workflows" edge to the Workflows entity by IDs.
 func (ruo *RepositoryUpdateOne) AddWorkflowIDs(ids ...int) *RepositoryUpdateOne {
 	ruo.mutation.AddWorkflowIDs(ids...)
@@ -657,6 +737,12 @@ func (ruo *RepositoryUpdateOne) AddProwJobs(p ...*ProwJobs) *RepositoryUpdateOne
 // Mutation returns the RepositoryMutation object of the builder.
 func (ruo *RepositoryUpdateOne) Mutation() *RepositoryMutation {
 	return ruo.mutation
+}
+
+// ClearRepositories clears the "repositories" edge to the Teams entity.
+func (ruo *RepositoryUpdateOne) ClearRepositories() *RepositoryUpdateOne {
+	ruo.mutation.ClearRepositories()
+	return ruo
 }
 
 // ClearWorkflows clears all "workflows" edges to the Workflows entity.
@@ -897,6 +983,41 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Value:  value,
 			Column: repository.FieldGitURL,
 		})
+	}
+	if ruo.mutation.RepositoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   repository.RepositoriesTable,
+			Columns: []string{repository.RepositoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: teams.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RepositoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   repository.RepositoriesTable,
+			Columns: []string{repository.RepositoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: teams.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if ruo.mutation.WorkflowsCleared() {
 		edge := &sqlgraph.EdgeSpec{

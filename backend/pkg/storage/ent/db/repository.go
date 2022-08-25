@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 )
 
 // Repository is the model entity for the Repository schema.
@@ -26,11 +27,14 @@ type Repository struct {
 	GitURL string `json:"git_url,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RepositoryQuery when eager-loading is set.
-	Edges RepositoryEdges `json:"edges"`
+	Edges              RepositoryEdges `json:"edges"`
+	teams_repositories *uuid.UUID
 }
 
 // RepositoryEdges holds the relations/edges for other nodes in the graph.
 type RepositoryEdges struct {
+	// Repositories holds the value of the repositories edge.
+	Repositories *Teams `json:"repositories,omitempty"`
 	// Workflows holds the value of the workflows edge.
 	Workflows []*Workflows `json:"workflows,omitempty"`
 	// Codecov holds the value of the codecov edge.
@@ -41,13 +45,27 @@ type RepositoryEdges struct {
 	ProwJobs []*ProwJobs `json:"prow_jobs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
+}
+
+// RepositoriesOrErr returns the Repositories value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e RepositoryEdges) RepositoriesOrErr() (*Teams, error) {
+	if e.loadedTypes[0] {
+		if e.Repositories == nil {
+			// The edge repositories was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: teams.Label}
+		}
+		return e.Repositories, nil
+	}
+	return nil, &NotLoadedError{edge: "repositories"}
 }
 
 // WorkflowsOrErr returns the Workflows value or an error if the edge
 // was not loaded in eager-loading.
 func (e RepositoryEdges) WorkflowsOrErr() ([]*Workflows, error) {
-	if e.loadedTypes[0] {
+	if e.loadedTypes[1] {
 		return e.Workflows, nil
 	}
 	return nil, &NotLoadedError{edge: "workflows"}
@@ -56,7 +74,7 @@ func (e RepositoryEdges) WorkflowsOrErr() ([]*Workflows, error) {
 // CodecovOrErr returns the Codecov value or an error if the edge
 // was not loaded in eager-loading.
 func (e RepositoryEdges) CodecovOrErr() ([]*CodeCov, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		return e.Codecov, nil
 	}
 	return nil, &NotLoadedError{edge: "codecov"}
@@ -65,7 +83,7 @@ func (e RepositoryEdges) CodecovOrErr() ([]*CodeCov, error) {
 // ProwSuitesOrErr returns the ProwSuites value or an error if the edge
 // was not loaded in eager-loading.
 func (e RepositoryEdges) ProwSuitesOrErr() ([]*ProwSuites, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.ProwSuites, nil
 	}
 	return nil, &NotLoadedError{edge: "prow_suites"}
@@ -74,7 +92,7 @@ func (e RepositoryEdges) ProwSuitesOrErr() ([]*ProwSuites, error) {
 // ProwJobsOrErr returns the ProwJobs value or an error if the edge
 // was not loaded in eager-loading.
 func (e RepositoryEdges) ProwJobsOrErr() ([]*ProwJobs, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.ProwJobs, nil
 	}
 	return nil, &NotLoadedError{edge: "prow_jobs"}
@@ -89,6 +107,8 @@ func (*Repository) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullString)
 		case repository.FieldID:
 			values[i] = new(uuid.UUID)
+		case repository.ForeignKeys[0]: // teams_repositories
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Repository", columns[i])
 		}
@@ -134,9 +154,21 @@ func (r *Repository) assignValues(columns []string, values []interface{}) error 
 			} else if value.Valid {
 				r.GitURL = value.String
 			}
+		case repository.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field teams_repositories", values[i])
+			} else if value.Valid {
+				r.teams_repositories = new(uuid.UUID)
+				*r.teams_repositories = *value.S.(*uuid.UUID)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryRepositories queries the "repositories" edge of the Repository entity.
+func (r *Repository) QueryRepositories() *TeamsQuery {
+	return (&RepositoryClient{config: r.config}).QueryRepositories(r)
 }
 
 // QueryWorkflows queries the "workflows" edge of the Repository entity.

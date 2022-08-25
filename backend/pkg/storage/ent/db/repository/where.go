@@ -564,6 +564,34 @@ func GitURLContainsFold(v string) predicate.Repository {
 	})
 }
 
+// HasRepositories applies the HasEdge predicate on the "repositories" edge.
+func HasRepositories() predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RepositoriesTable, TeamsFieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RepositoriesTable, RepositoriesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRepositoriesWith applies the HasEdge predicate on the "repositories" edge with a given conditions (other predicates).
+func HasRepositoriesWith(preds ...predicate.Teams) predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RepositoriesInverseTable, TeamsFieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RepositoriesTable, RepositoriesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasWorkflows applies the HasEdge predicate on the "workflows" edge.
 func HasWorkflows() predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {

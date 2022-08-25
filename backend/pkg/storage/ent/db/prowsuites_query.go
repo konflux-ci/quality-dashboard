@@ -300,7 +300,6 @@ func (psq *ProwSuitesQuery) WithProwSuites(opts ...func(*RepositoryQuery)) *Prow
 //		GroupBy(prowsuites.FieldJobID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
-//
 func (psq *ProwSuitesQuery) GroupBy(field string, fields ...string) *ProwSuitesGroupBy {
 	group := &ProwSuitesGroupBy{config: psq.config}
 	group.fields = append([]string{field}, fields...)
@@ -325,7 +324,6 @@ func (psq *ProwSuitesQuery) GroupBy(field string, fields ...string) *ProwSuitesG
 //	client.ProwSuites.Query().
 //		Select(prowsuites.FieldJobID).
 //		Scan(ctx, &v)
-//
 func (psq *ProwSuitesQuery) Select(fields ...string) *ProwSuitesSelect {
 	psq.fields = append(psq.fields, fields...)
 	return &ProwSuitesSelect{ProwSuitesQuery: psq}
