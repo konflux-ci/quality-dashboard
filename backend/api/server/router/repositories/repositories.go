@@ -31,7 +31,8 @@ func (rp *repositoryRouter) listAllRepositoriesQuality(ctx context.Context, w ht
 			StatusCode: 400,
 		})
 	}
-	team, err := rp.Storage.GetTeamByName(repository.Team)
+
+	team, err := rp.Storage.GetTeamByName(teamName[0])
 	if err != nil {
 		rp.Logger.Error("Failed to fetch team. Make sure the team exists", zap.String("team", repository.Team), zap.Error(err))
 
