@@ -110,7 +110,7 @@ async function createRepository(data = {}) {
     const result: ApiResponse = { code: 0, data: {} };
     const subPath ='/api/quality/repositories/create';
     const uri = API_URL + subPath;
-    axios.request({
+    await axios.request({
         method: 'POST',
         url: uri,
         data: {...data},
@@ -120,6 +120,7 @@ async function createRepository(data = {}) {
     }).catch((err) => {
         result.code = err.response.status;
         result.data = err.response.data;
+        return ;
     });
     return result;
 }
@@ -152,4 +153,41 @@ async function getProwJobStatistics(repoName: string, repoOrg:string, jobType:st
       
 }
 
-export { getVersion, getRepositories, createRepository, deleteRepositoryAPI, getWorkflowByRepositoryName, getAllRepositoriesWithOrgs, getLatestProwJob, getProwJobStatistics}
+async function getTeams(){
+    const result: ApiResponse = { code: 0, data: {} };
+    const subPath = "/api/quality/teams/list/all"
+    const uri = API_URL + subPath;
+    await axios.get(uri)
+    .then((res: AxiosResponse) => {
+        result.code = res.status;
+        result.data = res.data;
+    }).catch((err) => {
+        result.code = err.response.status;
+        result.data = err.response.data;
+    });
+    return result;
+}
+
+async function createTeam(data = {}) {
+    const result: ApiResponse = { code: 0, data: {} };
+    const subPath ='/api/quality/teams/create';
+    const uri = API_URL + subPath;
+    await axios.request({
+        method: 'POST',
+        url: uri,
+        data: {...data},
+      }).then((res: AxiosResponse) => {
+        result.code = res.status;
+        result.data = res.data;
+    }).catch((err) => {
+        result.code = err.response.status;
+        result.data = err.response.data;
+    });
+    return result;
+}
+
+export { 
+    getVersion, getRepositories, createRepository, deleteRepositoryAPI, 
+    getWorkflowByRepositoryName, getAllRepositoriesWithOrgs, 
+    getLatestProwJob, getProwJobStatistics, getTeams, createTeam
+}

@@ -12,11 +12,22 @@ import {
 } from '@patternfly/react-core';
 import CaretDownIcon from '@patternfly/react-icons/dist/js/icons/caret-down-icon';
 import { Context } from '@app/store/store';
+import { getTeams } from '@app/utils/APIService';
+
+export interface ITeam {
+  id: string
+  team_name: string
+}
 
 export const BasicMasthead = () => {
 
   const { state, dispatch } = useContext(Context)
   const [isDropdownOpen, setDropdownOpen] = useState(false)
+  const [teams, setTeams] = useState<ITeam[]>([])
+
+  useEffect(() => {
+    setTeams(state.TeamsAvailable)
+  }, [state.TeamsAvailable]);
 
   const onDropdownToggle = (isDropdownOpen: boolean) => {
     setDropdownOpen(isDropdownOpen)
@@ -27,12 +38,7 @@ export const BasicMasthead = () => {
     dispatch({ type: "SET_TEAM", data:  event.target.dataset.value });
   };
 
-  const dropdownItems = [
-    <DropdownItem key="Select Team" data-value="Select Team">Select Team</DropdownItem>,
-    <DropdownItem key="Link 1" data-value="link_1">Link 1</DropdownItem>,
-    <DropdownItem key="Link 2" data-value="link_2">Link 2 </DropdownItem>,
-    <DropdownItem key="Link 3" data-value="link_3">Link 3</DropdownItem>,
-  ];
+  const dropdownItems = teams.map((team) => <DropdownItem key={team.id} data-value={team.team_name}>{team.team_name}</DropdownItem> )
 
     return (
       <Masthead id="basic-demo">

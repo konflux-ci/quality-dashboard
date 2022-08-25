@@ -247,7 +247,6 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
   };
 
   const onSelect = (event, selection, type) => {
-    console.log(typeof selection)
     if (!event.target.checked) {
       filtersDispatch({
         type: "DELETE",

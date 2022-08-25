@@ -1,3 +1,4 @@
+import { ITeam } from '@app/Teams/TeamsSelect'
 
 export interface StateContext {
     APIData: [];
@@ -8,6 +9,7 @@ export interface StateContext {
     workflows: [];
     Allrepositories: [];
     Team: string;
+    TeamsAvailable: ITeam[]
 }
 
 const Reducer = (state, action) => {
@@ -53,10 +55,14 @@ const Reducer = (state, action) => {
                 alerts: state.alerts.filter(el => el.key !== action.data)
             };
         case 'SET_TEAM':
-            localStorage.setItem("default_team", action.data);
             return {
                 ...state,
                 Team: action.data
+            };
+        case 'SET_TEAMS_AVAILABLE':
+            return {
+                ...state,
+                TeamsAvailable: action.data
             };
         default:
             return state;

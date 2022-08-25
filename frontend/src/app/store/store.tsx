@@ -1,5 +1,6 @@
 import React, {createContext, Dispatch, useReducer} from "react";
 import Reducer, {StateContext} from './reducer'
+import { getTeams } from '@app/utils/APIService';
 
 interface IContextProps {
     state: StateContext;
@@ -13,14 +14,21 @@ const initialState = {
     version: '',
     repositories: [],
     Allrepositories: [],
-    Team: ""
+    Team: "",
+    TeamsAvailable: []
 };
 
 export const Context = React.createContext({} as IContextProps);
 
 const Store = ({children}) => {
-    let default_team = localStorage.getItem("default_team");
-    if(default_team) initialState.Team = default_team;
+    React.useEffect(() => {
+        getTeams().then(data => {
+            if( data.data.length > 0){ 
+                dispatch({ type: "SET_TEAM", data:  data.data[0].team_name });
+                dispatch({ type: "SET_TEAMS_AVAILABLE", data:  data.data });
+            }
+          })
+    }, []);
 
     const [state, dispatch] = useReducer(Reducer, initialState);
     const value = { state, dispatch };

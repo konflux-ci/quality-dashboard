@@ -82,7 +82,7 @@ const routes: AppRouteConfig[] = [
         component: Teams,
         exact: true,
         isAsync: true,
-        label: 'Teams Onboarding',
+        label: 'Create New Team',
         path: '/settings/teams/onboarding',
         title: 'Teams | Onboarding',
       }

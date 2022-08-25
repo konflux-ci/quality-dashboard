@@ -2,16 +2,8 @@ import React, { useContext } from 'react'
 import {PageSection, PageSectionVariants, TextContent, Text, Button, ButtonVariant } from '@patternfly/react-core';
 import { Context } from '@app/store/store';
 import { TeamsWizard } from "@app/Teams/TeamsOnboarding"
-import { Redirect, Route, RouteComponentProps, Switch, useHistory, useLocation } from 'react-router-dom';
-export const Teams = () => {
-  const { state, dispatch } = useContext(Context)
-  const history = useHistory()
-  const location = useLocation()
 
-  React.useEffect(() => {
-    
-  });
-  
+export const Teams = () => {
 
   return (
     <React.Fragment>
@@ -28,7 +20,6 @@ export const Teams = () => {
             <div style={{float: "left", }}>
               <Text component="h2">Get Started with Red Hat Quality Studio</Text>
               <Text component="p">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</Text>
-              <Button variant={ButtonVariant.danger}> Get Started with Onboarding a new Team </Button>
             </div>
           </TextContent>
         </React.Fragment>

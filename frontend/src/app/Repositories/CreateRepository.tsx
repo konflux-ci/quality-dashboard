@@ -2,6 +2,7 @@ import { createRepository } from "@app/utils/APIService";
 import { Button, ButtonVariant, Checkbox, Form, FormGroup, Modal, ModalContent, ModalVariant, Popover, TextArea, TextInput } from "@patternfly/react-core";
 import { HelpIcon } from "@patternfly/react-icons";
 import React, { useContext, SetStateAction, useEffect } from "react";
+import { Context } from '@app/store/store';
 
 interface IModalContext {
   isModalOpen: IModalContextMember;
@@ -57,6 +58,8 @@ export const FormModal = ()=> {
     const [monitorGithubActions, setMonitorGithubActions] = React.useState(false);
     const [checked, setChecked] = React.useState('');
   
+    const { state } = useContext(Context)
+
     const handleGitRepositoryInput = value => {
       setGitRepositoryValue(value);
     };
@@ -85,7 +88,8 @@ export const FormModal = ()=> {
               monitor: monitorGithubActions
             }
           },
-          artifacts: []
+          artifacts: [],
+          team_name: state.Team
         }
         modalContext.handleModalToggle()
         await createRepository(data)
@@ -198,6 +202,16 @@ export const FormModal = ()=> {
                 name="modal-with-form-form-email"
                 value={gitRepositoryValue}
                 onChange={handleGitRepositoryInput}
+              />
+          </FormGroup>
+          <FormGroup label="Team" isRequired isStack hasNoPaddingTop fieldId={''}>
+            <TextInput
+              isReadOnly={true}
+              isRequired
+              type="text"
+              id="modal-with-form-form-team"
+              name="modal-with-form-form-team"
+              value={state.Team}
               />
           </FormGroup>
           <FormGroup label="Monitor CI Jobs" isRequired isStack hasNoPaddingTop fieldId={''}>
