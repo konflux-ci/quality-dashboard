@@ -52,7 +52,8 @@ func (s *Server) ProwStaticUpdate(storageRepos []storage.Repository, prowjobs []
 				pj.Status.URL = strings.Replace(pj.Status.URL, "https://prow.ci.openshift.org/view/gs", "https://gcsweb-ci.apps.ci.l2s4.p1.openshiftapps.com/gcs", 1)
 				matches := RegexpCompiler.FindStringSubmatch(pj.Status.URL)
 
-				if !strings.Contains(pj.Status.URL, "-main-images") && pj.Status.State != prow.ErrorState && prowOrg == "redhat-appstudio" && len(matches) == 2 {
+				if !strings.Contains(pj.Status.URL, "-main-images") && pj.Status.State != prow.ErrorState && prowOrg == "redhat-appstudio" && len(matches) > 1 {
+					//fmt.Println(repo.ID, repo.RepositoryName, pj.Spec.Type)
 					// convert the url to get GCS url where are stored the artifacts for appstudio
 					suites, _ := fetchSuitesXml(pj.Status.URL + "/" + "artifacts/" + matches[2] + "/" + matches[2] + "/artifacts/e2e-report.xml")
 					// we unmarshal our byteArray which contains our
