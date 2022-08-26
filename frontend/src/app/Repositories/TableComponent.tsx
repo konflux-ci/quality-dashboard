@@ -412,7 +412,7 @@ export const TableComponent = ({ showCoverage, showDiscription, showTableToolbar
                   
                   {!showDiscription &&
                     <ExpandableSection toggleTextCollapsed='Show' toggleTextExpanded='Hide'>
-                      {repo.description}
+                      <div>{repo.description}</div>
                     </ExpandableSection>
                   }
                   
