@@ -27,7 +27,7 @@ func (rp *repositoryRouter) listAllRepositoriesQuality(ctx context.Context, w ht
 
 	if len(teamName) == 0 {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
-			Message:    "repository_name value not present in query",
+			Message:    "team_name value not present in query",
 			StatusCode: 400,
 		})
 	}

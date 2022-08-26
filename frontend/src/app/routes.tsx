@@ -42,52 +42,32 @@ const routes: AppRouteConfig[] = [
         path: '/home/overview',
         title: 'Quality Studio | Overview',
       },
+      {
+        component: Teams,
+        exact: true,
+        isAsync: true,
+        label: 'Teams',
+        path: '/home/teams',
+        title: 'Quality Studio | Teams',
+      }
     ],
-  },
-
-  {
-    component: JobsComponent,
-    exact: true,
-    isAsync: true,
-    label: 'CI Jobs',
-    path: '/ci/jobs',
-    title: 'PatternFly Seed | Support Page',
   },
   {
     component: Support,
     exact: true,
     isAsync: true,
-    label: 'Tests Reports',
+    label: 'Openshift CI',
     path: '/reports/test',
-    title: 'Tests Reports | Page',
+    title: 'Quality Studio | Openshift CI',
   },
   {
-    label: 'Settings',
-    routes: [
-      {
-        component: GeneralSettings,
-        exact: true,
-        label: 'General',
-        path: '/settings/general',
-        title: 'PatternFly Seed | General Settings',
-      },
-      {
-        component: ProfileSettings,
-        exact: true,
-        label: 'Profile',
-        path: '/settings/profile',
-        title: 'PatternFly Seed | Profile Settings',
-      },
-      {
-        component: Teams,
-        exact: true,
-        isAsync: true,
-        label: 'Create New Team',
-        path: '/settings/teams/onboarding',
-        title: 'Teams | Onboarding',
-      }
-    ],
-  },
+    component: JobsComponent,
+    exact: true,
+    isAsync: true,
+    label: 'Github Actions',
+    path: '/ci/jobs',
+    title: 'Quality Studio | Github Actions',
+  }
 ];
 
 // a custom hook for sending focus to the primary content container
