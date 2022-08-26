@@ -4,17 +4,46 @@ import {
   Wizard, PageSection, PageSectionVariants, 
   TextInput, FormGroup, Form, TextArea,
   DescriptionList, DescriptionListGroup, DescriptionListDescription, DescriptionListTerm, Title, Spinner,
-  Alert, AlertGroup, AlertVariant,
+  Alert, AlertGroup, AlertVariant, Button, Toolbar, ToolbarContent, ToolbarItem, ToolbarGroup
 } from '@patternfly/react-core';
 import { Context } from "src/app/store/store";
 import { useHistory } from 'react-router-dom';
 import { getTeams } from '@app/utils/APIService';
+import { PlusIcon } from '@patternfly/react-icons/dist/esm/icons';
 
 interface AlertInfo {
   title: string;
   variant: AlertVariant;
   key: string;
 }
+
+import { Table, TableHeader, TableBody, TableProps } from '@patternfly/react-table';
+
+export const TeamsTable: React.FunctionComponent = () => {
+  // In real usage, this data would come from some external source like an API via props.
+  const {state, dispatch} = React.useContext(Context) // required to access the global state
+
+  const columns: TableProps['cells'] = [ 'Name','ID'];
+  const rows: TableProps['rows'] = state.TeamsAvailable.map(team => [
+    team.team_name,
+    team.id,
+  ]);
+
+  return (
+    <React.Fragment>
+      <Table
+        aria-label="Teams Table"
+        cells={columns}
+        rows={rows}
+      >
+        <TableHeader />
+        <TableBody />
+      </Table>
+    </React.Fragment>
+  );
+};
+
+
 
 export const TeamsWizard = () => {
   const history = useHistory()  
@@ -29,6 +58,7 @@ export const TeamsWizard = () => {
   const [alerts, setAlerts] = React.useState<AlertInfo[]>([]);
   const [ creationError, setCreationError ] = useState<boolean>(false);
   const [ isFinishedWizard, setIsFinishedWizard ] = useState<boolean>(false);
+  const [ isOpen, setOpen ] = useState<boolean>(false);
 
   const onSubmit = async () => {
     // Create a team
@@ -97,9 +127,9 @@ export const TeamsWizard = () => {
     setCreationLoading(false)
     if(!creationError) {
       setAlerts(prevAlertInfo => [...prevAlertInfo, {
-        title: 'You resources have created. You will be redirected to home in a few seconds.',
+        title: 'You resources have created successfully. You can close the modal now.',
         variant: AlertVariant.info,
-        key: "team-not-created"
+        key: "all-created"
       }]);
       getTeams().then(data => {
         if( data.data.length > 0){ 
@@ -107,8 +137,6 @@ export const TeamsWizard = () => {
           dispatch({ type: "SET_TEAMS_AVAILABLE", data:  data.data });
         }
       })
-      
-      setTimeout(()=>{ history.push("/home/overview"); }, 5000)
     }
     
   };
@@ -122,14 +150,11 @@ export const TeamsWizard = () => {
   };
 
   const onClear = () => {
-    if(stepIdReached ==  "team"){
-      setNewTeamName("")
-      setNewTeamDesc("")
-    }
-    if(stepIdReached ==  "repo"){
-      setNewOrgName("")
-      setNewRepoName("")
-    }
+    setOpen(false)
+    setNewTeamName("")
+    setNewTeamDesc("")
+    setNewOrgName("")
+    setNewRepoName("")
   };
 
   const TeamData = (
@@ -218,21 +243,41 @@ export const TeamsWizard = () => {
       isFinishedStep: isFinishedWizard
     }
   ];
-  const title = 'Incrementally enabled wizard';
+
+  const title = 'Create new Team';
+
+  const handleModalToggle = () => {
+    setOpen(!isOpen)
+  };
 
   return (
     <React.Fragment>
       <PageSection style={{backgroundColor: 'white'}} variant={PageSectionVariants.light}>
+        <Toolbar id="toolbar-items">
+          <ToolbarContent>
+            <ToolbarGroup variant="filter-group" alignment={{default: 'alignLeft'}}>
+            <Title headingLevel="h2" size="3xl">Teams</Title>
+            </ToolbarGroup>
+            <ToolbarGroup variant="filter-group" alignment={{default: 'alignRight'}}>
+              <ToolbarItem>
+                <Button onClick={handleModalToggle} type="button" variant="primary"> <PlusIcon></PlusIcon> Add Team </Button>
+              </ToolbarItem>
+            </ToolbarGroup>
+          </ToolbarContent>
+        </Toolbar>
+        <TeamsTable></TeamsTable>
         <Wizard
-          navAriaLabel={`${title} steps`}
-          mainAriaLabel={`${title} content`}
           steps={steps}
           onNext={onNext}
           onBack={onBack}
           onClose={onClear}
           onSave={onSubmit}
-          cancelButtonText="Clear"
+          cancelButtonText="Close"
           height={600}
+          title={title}
+          description="Create a new team and (optionally) add a new repository"
+          isOpen={isOpen}
+          hideClose={false}
         />
       </PageSection>
     </React.Fragment>
