@@ -2,6 +2,7 @@
 import axios, { AxiosResponse, AxiosError } from "axios";
 import _ from 'lodash';
 import {JobsStatistics} from '@app/utils/sharedComponents'
+import { teamIsNotEmpty } from '@app/utils/utils'
 
 type ApiResponse = {
     code: number;
@@ -35,6 +36,9 @@ async function getRepositories(perPage = 5, team:string){
     const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
     const subPath ='/api/quality/repositories/list';
     const uri = API_URL + subPath;
+
+    if(!teamIsNotEmpty(team)) return result;
+
     await axios.get(uri, {
         headers: {},
         params: {
@@ -59,8 +63,11 @@ async function getRepositories(perPage = 5, team:string){
 async function getAllRepositoriesWithOrgs(team:string){
     const subPath ='/api/quality/repositories/list?team_name='+team;
     const uri = API_URL + subPath;
-    const response = await fetch(uri)
     let repoAndOrgs = []
+
+    if(!teamIsNotEmpty(team)) return repoAndOrgs;
+
+    const response = await fetch(uri)
     if (!response.ok) {
         throw "Error fetching data from server"
     }

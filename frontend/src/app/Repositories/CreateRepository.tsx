@@ -1,8 +1,10 @@
 import { createRepository } from "@app/utils/APIService";
-import { Button, ButtonVariant, Checkbox, Form, FormGroup, Modal, ModalContent, ModalVariant, Popover, TextArea, TextInput } from "@patternfly/react-core";
+import { Button, Checkbox, Form, FormGroup, Modal, ModalVariant, Popover, TextArea, TextInput, Alert } from "@patternfly/react-core";
 import { HelpIcon } from "@patternfly/react-icons";
 import React, { useContext, SetStateAction, useEffect } from "react";
 import { Context } from '@app/store/store';
+import { teamIsNotEmpty } from '@app/utils/utils'
+import { useHistory } from 'react-router-dom';
 
 interface IModalContext {
   isModalOpen: IModalContextMember;
@@ -53,6 +55,7 @@ export const useDefaultModalContextState = () => {
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const FormModal = ()=> {
     const modalContext=useModalContext()
+    const history = useHistory()  
     const [gitRepositoryValue, setGitRepositoryValue] = React.useState("");
     const [gitOrganizationValue, setGitOrganizationValue] = React.useState("");
     const [monitorGithubActions, setMonitorGithubActions] = React.useState(false);
@@ -120,7 +123,7 @@ export const FormModal = ()=> {
           isOpen={modalContext.isModalOpen.value}
           onClose={modalContext.handleModalToggle}
           actions={[
-            <Button key="create" variant="primary" form="modal-with-form-form" onClick={onSubmit}>
+            <Button key="create" variant="primary" form="modal-with-form-form" onClick={onSubmit} isDisabled={!teamIsNotEmpty(state.Team)}>
               { !modalContext.isEditRepo.value ? "Add" : "Update" }
             </Button>,
             <Button key="cancel" variant="link" onClick={modalContext.handleModalToggle}>
@@ -205,14 +208,19 @@ export const FormModal = ()=> {
               />
           </FormGroup>
           <FormGroup label="Team" isRequired isStack hasNoPaddingTop fieldId={''}>
-            <TextInput
+            { teamIsNotEmpty(state.Team) ? <TextInput
               isReadOnly={true}
               isRequired
               type="text"
               id="modal-with-form-form-team"
               name="modal-with-form-form-team"
               value={state.Team}
-              />
+              /> : 
+              <div>
+                <Button onClick={()=>{ history.push("/home/teams") }} type="button" width={300}>Create your first</Button>
+                <Alert style={{marginTop: "1em"}} variant="danger" isInline isPlain title="You need to create a team before adding a repository" />
+              </div>  
+              }
           </FormGroup>
           <FormGroup label="Monitor CI Jobs" isRequired isStack hasNoPaddingTop fieldId={''}>
             <Checkbox label="Github Actions" id="alt-form-checkbox-1" name="alt-form-checkbox-1" value={String(monitorGithubActions)} onChange={handleGithubActionsMonitor} isChecked={Boolean(checked)}/>

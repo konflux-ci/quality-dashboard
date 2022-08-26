@@ -120,7 +120,7 @@ const AppRoutes = (): React.ReactElement => {
         <RouteWithTitleUpdates
           path={path}
           exact={exact}
-          component={TeamsNotSet ? Teams : component}
+          component={component}
           key={idx}
           title={title}
           isAsync={isAsync}
