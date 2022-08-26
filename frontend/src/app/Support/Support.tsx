@@ -108,13 +108,15 @@ let Support = () => {
   useEffect( () => {
     if(state.Team != ""){
       setRepositories([])
+      clearJobType()
+      clearRepo()
       getAllRepositoriesWithOrgs(state.Team)
       .then((data:any) => {
         data.unshift({repoName: "Select a repository", organization: "", isPlaceholder: true}) // Adds placeholder at the beginning of the array, so it will be shown first
         setRepositories(data)
         setRepoName(data[1].repoName)
         setRepoOrg(data[1].organization)
-        //setjobType("periodic")
+        setjobType("presubmit")
         validateGetProwJob()
       })
     }
