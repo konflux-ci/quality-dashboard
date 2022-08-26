@@ -72,7 +72,10 @@ export const Dashboard = () => {
                   </DescriptionListGroup>
                   <DescriptionListGroup>
                     <DescriptionListTerm>Database Status</DescriptionListTerm>
-                    <DescriptionListDescription>Unknown Version</DescriptionListDescription>
+                    <DescriptionListDescription>
+                      { serverAvailable &&  <span style={{color: "darkgreen", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500}}> <CheckCircleIcon size={'sm'} ></CheckCircleIcon> OK </span> }
+                      {!serverAvailable &&  <span style={{color: "darkred", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500}}> <ExclamationCircleIcon size={'sm'} ></ExclamationCircleIcon> DOWN </span> }
+                    </DescriptionListDescription>
                   </DescriptionListGroup>
                 </DescriptionList>
               </CardBody>
