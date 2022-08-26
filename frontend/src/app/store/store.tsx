@@ -23,8 +23,8 @@ export const Context = React.createContext({} as IContextProps);
 const Store = ({children}) => {
     React.useEffect(() => {
         getTeams().then(data => {
-            if( data.data.length >= 1){ 
-                dispatch({ type: "SET_TEAM", data:  data.data[1].team_name });
+            if( data.data.length > 0){ 
+                dispatch({ type: "SET_TEAM", data:  data.data[0].team_name });
                 dispatch({ type: "SET_TEAMS_AVAILABLE", data:  data.data });
             }
           })
