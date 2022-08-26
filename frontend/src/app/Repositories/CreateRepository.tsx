@@ -217,7 +217,7 @@ export const FormModal = ()=> {
               value={state.Team}
               /> : 
               <div>
-                <Button onClick={()=>{ history.push("/home/teams") }} type="button" width={300}>Create your first</Button>
+                <Button onClick={()=>{ history.push("/home/teams") }} type="button" width={300}>Create your first Team</Button>
                 <Alert style={{marginTop: "1em"}} variant="danger" isInline isPlain title="You need to create a team before adding a repository" />
               </div>  
               }

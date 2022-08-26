@@ -9,9 +9,13 @@ import {
   Dropdown,
   DropdownToggle,
   DropdownItem,
+  Button
 } from '@patternfly/react-core';
 import CaretDownIcon from '@patternfly/react-icons/dist/js/icons/caret-down-icon';
 import { Context } from '@app/store/store';
+import { useHistory } from 'react-router-dom';
+import { teamIsNotEmpty } from '@app/utils/utils';
+import ArrowRightIcon from '@patternfly/react-icons/dist/esm/icons/arrow-right-icon';
 
 export interface ITeam {
   id: string
@@ -19,7 +23,7 @@ export interface ITeam {
 }
 
 export const BasicMasthead = () => {
-
+  const history = useHistory()  
   const { state, dispatch } = useContext(Context)
   const [isDropdownOpen, setDropdownOpen] = useState(false)
 
@@ -52,6 +56,9 @@ export const BasicMasthead = () => {
                     dropdownItems={dropdownItems}
                     isFullHeight
                   />
+                </ToolbarItem>
+                <ToolbarItem visibility={{ default: 'hidden', lg: 'visible' }}>
+                  { !teamIsNotEmpty(state.Team) && <Button style={{verticalAlign: "middle", backgroundColor: "var(--pf-c-button--m-primary--Color)", color: "var(--pf-c-button--m-primary--BackgroundColor)"}} onClick={()=>{ history.push("/home/teams") }} type="button" width={300} variant="primary">Create your first Team <ArrowRightIcon /></Button>}
                 </ToolbarItem>
               </ToolbarGroup>
             </ToolbarContent>
