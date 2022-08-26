@@ -47,7 +47,7 @@ const routes: AppRouteConfig[] = [
         exact: true,
         isAsync: true,
         label: 'Teams',
-        path: '/settings/teams/onboarding',
+        path: '/home/teams',
         title: 'Quality Studio | Teams',
       }
     ],
