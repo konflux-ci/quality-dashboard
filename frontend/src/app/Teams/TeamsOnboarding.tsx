@@ -6,8 +6,9 @@ import {
   DescriptionList, DescriptionListGroup, DescriptionListDescription, DescriptionListTerm, Title, Spinner,
   Alert, AlertGroup, AlertVariant,
 } from '@patternfly/react-core';
-
+import { Context } from "src/app/store/store";
 import { useHistory } from 'react-router-dom';
+import { getTeams } from '@app/utils/APIService';
 
 interface AlertInfo {
   title: string;
@@ -17,6 +18,7 @@ interface AlertInfo {
 
 export const TeamsWizard = () => {
   const history = useHistory()  
+  const {state, dispatch} = React.useContext(Context) // required to access the global state
 
   const [ stepIdReached, setState ] = useState<string>("team");
   const [ newTeamName, setNewTeamName ] = useState<string>("");
@@ -26,9 +28,11 @@ export const TeamsWizard = () => {
   const [ creationLoading, setCreationLoading ] = useState<boolean>(false);
   const [alerts, setAlerts] = React.useState<AlertInfo[]>([]);
   const [ creationError, setCreationError ] = useState<boolean>(false);
+  const [ isFinishedWizard, setIsFinishedWizard ] = useState<boolean>(false);
 
   const onSubmit = async () => {
     // Create a team
+    setIsFinishedWizard(true)
     setCreationLoading(true)
     const data = {
       "team_name": newTeamName,
@@ -55,38 +59,41 @@ export const TeamsWizard = () => {
     })
 
     
-    // Create a repo
-    try{
-      const data = {
-        git_organization: newOrgName,
-        repository_name : newRepoName,
-        jobs: {
-          github_actions: {
-            monitor: false
-          }
-        },
-        artifacts: [],
-        team_name: newTeamName
+    // Create a repo optionally (only if fields are populated)
+    if(newRepoName != "" && newOrgName != ""){
+      try{
+        const data = {
+          git_organization: newOrgName,
+          repository_name : newRepoName,
+          jobs: {
+            github_actions: {
+              monitor: false
+            }
+          },
+          artifacts: [],
+          team_name: newTeamName
+        }
+        let response = await createRepository(data)
+        if(response.code == 200) {
+          setAlerts(prevAlertInfo => [...prevAlertInfo, {
+            title: 'Repository created',
+            variant: AlertVariant.success,
+            key: "repo-created"
+          }]);
+        } else {
+          setAlerts(prevAlertInfo => [...prevAlertInfo, {
+            title: 'Could not add repository',
+            variant: AlertVariant.danger,
+            key: "repo-not-created"
+          }]);
+          setCreationError(true)
+        }
       }
-      let response = await createRepository(data)
-      if(response.code == 200) {
-        setAlerts(prevAlertInfo => [...prevAlertInfo, {
-          title: 'Repository created',
-          variant: AlertVariant.success,
-          key: "repo-created"
-        }]);
-      } else {
-        setAlerts(prevAlertInfo => [...prevAlertInfo, {
-          title: 'Could not add repository',
-          variant: AlertVariant.danger,
-          key: "repo-not-created"
-        }]);
-        setCreationError(true)
+      catch (error) {
+        console.log(error)
       }
     }
-    catch (error) {
-      console.log(error)
-    }
+
     setCreationLoading(false)
     if(!creationError) {
       setAlerts(prevAlertInfo => [...prevAlertInfo, {
@@ -94,8 +101,16 @@ export const TeamsWizard = () => {
         variant: AlertVariant.info,
         key: "team-not-created"
       }]);
-      setTimeout(()=>{ history.push("/home/overview"); window.location.reload(); }, 3000)
+      getTeams().then(data => {
+        if( data.data.length > 0){ 
+          dispatch({ type: "SET_TEAM", data: newTeamName });
+          dispatch({ type: "SET_TEAMS_AVAILABLE", data:  data.data });
+        }
+      })
+      
+      setTimeout(()=>{ history.push("/home/overview"); }, 5000)
     }
+    
   };
 
   const onNext = (id) => {
@@ -121,10 +136,10 @@ export const TeamsWizard = () => {
       <div className={'pf-u-m-lg'} >
         <Form>
           <FormGroup label="Team Name" isRequired fieldId="team-name" helperText="Include the name for your team">
-            <TextInput value={newTeamName} type="text" onChange={(value)=>{setNewTeamName(value)}} aria-label="text input example" />
+            <TextInput value={newTeamName} type="text" onChange={(value)=>{setNewTeamName(value)}} aria-label="text input example" placeholder="Include the name for your team"/>
           </FormGroup>
           <FormGroup label="Description" fieldId='team-description' helperText="Include a description for your team">
-            <TextArea value={newTeamDesc} onChange={(value)=>{setNewTeamDesc(value)}} aria-label="text area example" />
+            <TextArea value={newTeamDesc} onChange={(value)=>{setNewTeamDesc(value)}} aria-label="text area example" placeholder="Include a description for your team"/>
           </FormGroup>
         </Form>
       </div>
@@ -132,12 +147,13 @@ export const TeamsWizard = () => {
 
   const AddRepo = (
       <div className={'pf-u-m-lg'} >
+        <Title headingLevel="h6" size="xl">Optionally: add a repository to your team</Title>
         <Form>
-          <FormGroup label="Repository Name" isRequired fieldId="repo-name" helperText="Add a repository">
-            <TextInput value={newRepoName} type="text" onChange={value => setNewRepoName(value)} aria-label="text input example" />
+          <FormGroup label="Repository Name" fieldId="repo-name" helperText="Add a repository">
+            <TextInput value={newRepoName} type="text" onChange={value => setNewRepoName(value)} aria-label="text input example" placeholder="Add a repository"/>
           </FormGroup>
-          <FormGroup label="Organization Name" isRequired fieldId="org-name" helperText="Specify the organization">
-            <TextInput value={newOrgName} type="text" onChange={value => setNewOrgName(value)} aria-label="text input example" />
+          <FormGroup label="Organization Name" fieldId="org-name" helperText="Specify the organization">
+            <TextInput value={newOrgName} type="text" onChange={value => setNewOrgName(value)} aria-label="text input example" placeholder="Specify the organization"/>
           </FormGroup>
         </Form>
       </div>
@@ -178,7 +194,16 @@ export const TeamsWizard = () => {
     )
 
   const ValidateTeamName = () => { return newTeamName != "" }
-  const ValidateRepoAndOrg = () => { return newRepoName != "" && newOrgName != "" }
+  const ValidateRepoAndOrg = () => { 
+    if(newRepoName != "" || newOrgName != ""){
+      return newRepoName != "" && newOrgName != ""
+    }
+    else if(newRepoName == "" && newOrgName == ""){
+      return true
+    }
+    return false
+     
+  }
 
   const steps = [
     { id: 'team', name: 'Team Name', component: TeamData, enableNext: ValidateTeamName() },
@@ -189,7 +214,8 @@ export const TeamsWizard = () => {
       component: DataReview,
       nextButtonText: 'Create',
       canJumpTo: (ValidateTeamName() && ValidateRepoAndOrg()),
-      hideCancelButton: true
+      hideCancelButton: true,
+      isFinishedStep: isFinishedWizard
     }
   ];
   const title = 'Incrementally enabled wizard';

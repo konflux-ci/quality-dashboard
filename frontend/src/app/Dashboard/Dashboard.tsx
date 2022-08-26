@@ -9,14 +9,14 @@ import {
   DescriptionList, DescriptionListGroup, DescriptionListTerm, 
   DescriptionListDescription, TextContent, Text, PageSectionVariants
 } from '@patternfly/react-core';
-import { ExternalLinkAltIcon, PlusIcon } from '@patternfly/react-icons';
+import { CheckCircleIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
 import { getVersion } from '@app/utils/APIService';
 import { Context } from "src/app/store/store";
 import { RepositoriesTable } from '@app/Repositories/RepositoriesTable';
 
-
 export const Dashboard = () => {
   const [dashboardVersion, setVersion] = useState('unknown')
+  const [serverAvailable, setServerAvailable] = useState<boolean>(false)
   const {state, dispatch} = useContext(Context) // required to access the global state
   useEffect(()=> {
     getVersion().then((res) => { // making the api call here
@@ -25,8 +25,10 @@ export const Dashboard = () => {
           dispatch({ type: "SET_Version", data: result['serverAPIVersion'] });
           // not really required to store it in the global state , just added it to make it better understandable
           setVersion(result['serverAPIVersion'])
+          setServerAvailable(true)
       } else {
-          dispatch({ type: "SET_ERROR", data: res });
+        setServerAvailable(false)
+        dispatch({ type: "SET_ERROR", data: res });
       }
     });
   }, [dashboardVersion, setVersion, dispatch])
@@ -64,16 +66,13 @@ export const Dashboard = () => {
                   <DescriptionListGroup>
                     <DescriptionListTerm>Server API Status</DescriptionListTerm>
                     <DescriptionListDescription>
-                      <span>Unknown Version</span>
+                      { serverAvailable &&  <span style={{color: "darkgreen", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500}}> <CheckCircleIcon size={'sm'} ></CheckCircleIcon> OK </span> }
+                      {!serverAvailable &&  <span style={{color: "darkred", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500}}> <ExclamationCircleIcon size={'sm'} ></ExclamationCircleIcon> DOWN </span> }
                     </DescriptionListDescription>
                   </DescriptionListGroup>
                   <DescriptionListGroup>
                     <DescriptionListTerm>Database Status</DescriptionListTerm>
                     <DescriptionListDescription>Unknown Version</DescriptionListDescription>
-                  </DescriptionListGroup>
-                  <DescriptionListGroup>
-                    <DescriptionListTerm>Github Organization</DescriptionListTerm>
-                    <a href="https://github.com/redhat-appstudio">redhat-appstudio <ExternalLinkAltIcon ></ExternalLinkAltIcon></a>
                   </DescriptionListGroup>
                 </DescriptionList>
               </CardBody>
