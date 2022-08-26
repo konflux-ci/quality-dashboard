@@ -23,10 +23,10 @@ export const TeamsTable: React.FunctionComponent = () => {
   // In real usage, this data would come from some external source like an API via props.
   const {state, dispatch} = React.useContext(Context) // required to access the global state
 
-  const columns: TableProps['cells'] = [ 'Name','ID'];
+  const columns: TableProps['cells'] = [ 'Name', 'Description'];
   const rows: TableProps['rows'] = state.TeamsAvailable.map(team => [
     team.team_name,
-    team.id,
+    team.description
   ]);
 
   return (

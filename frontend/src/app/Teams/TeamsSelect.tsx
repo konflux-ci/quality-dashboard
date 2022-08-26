@@ -20,6 +20,7 @@ import ArrowRightIcon from '@patternfly/react-icons/dist/esm/icons/arrow-right-i
 export interface ITeam {
   id: string
   team_name: string
+  description: string
 }
 
 export const BasicMasthead = () => {
