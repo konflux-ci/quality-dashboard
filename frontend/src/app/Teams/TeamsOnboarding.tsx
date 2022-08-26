@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import { createTeam, createRepository } from "@app/utils/APIService";
 import { 
   Wizard, PageSection, PageSectionVariants, 
-  TextContent, Text, TextVariants,TextInput, FormGroup, Form, TextArea,
+  TextInput, FormGroup, Form, TextArea,
   DescriptionList, DescriptionListGroup, DescriptionListDescription, DescriptionListTerm, Title, Spinner,
   Alert, AlertGroup, AlertVariant,
 } from '@patternfly/react-core';
