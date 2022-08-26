@@ -21,6 +21,8 @@ func (Teams) Fields() []ent.Field {
 			Unique(),
 		field.String("team_name").
 			Unique(),
+		field.String("description").
+			Unique(),
 	}
 }
 

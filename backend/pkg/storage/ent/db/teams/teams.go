@@ -13,6 +13,8 @@ const (
 	FieldID = "team_id"
 	// FieldTeamName holds the string denoting the team_name field in the database.
 	FieldTeamName = "team_name"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
 	// EdgeRepositories holds the string denoting the repositories edge name in mutations.
 	EdgeRepositories = "repositories"
 	// RepositoryFieldID holds the string denoting the ID field of the Repository.
@@ -32,6 +34,7 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldTeamName,
+	FieldDescription,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

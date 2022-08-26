@@ -49,7 +49,7 @@ func (s *teamsRouter) createQualityStudioTeam(ctx context.Context, w http.Respon
 		})
 	}
 
-	teams, err := s.Storage.CreateQualityStudioTeam(team.TeamName)
+	teams, err := s.Storage.CreateQualityStudioTeam(team.TeamName, team.Description)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),

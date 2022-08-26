@@ -18,6 +18,8 @@ type Teams struct {
 	ID uuid.UUID `json:"id,omitempty"`
 	// TeamName holds the value of the "team_name" field.
 	TeamName string `json:"team_name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TeamsQuery when eager-loading is set.
 	Edges TeamsEdges `json:"edges"`
@@ -46,7 +48,7 @@ func (*Teams) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case teams.FieldTeamName:
+		case teams.FieldTeamName, teams.FieldDescription:
 			values[i] = new(sql.NullString)
 		case teams.FieldID:
 			values[i] = new(uuid.UUID)
@@ -76,6 +78,12 @@ func (t *Teams) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field team_name", values[i])
 			} else if value.Valid {
 				t.TeamName = value.String
+			}
+		case teams.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				t.Description = value.String
 			}
 		}
 	}
@@ -112,6 +120,8 @@ func (t *Teams) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v", t.ID))
 	builder.WriteString(", team_name=")
 	builder.WriteString(t.TeamName)
+	builder.WriteString(", description=")
+	builder.WriteString(t.Description)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -34,6 +34,12 @@ func (tu *TeamsUpdate) SetTeamName(s string) *TeamsUpdate {
 	return tu
 }
 
+// SetDescription sets the "description" field.
+func (tu *TeamsUpdate) SetDescription(s string) *TeamsUpdate {
+	tu.mutation.SetDescription(s)
+	return tu
+}
+
 // AddRepositoryIDs adds the "repositories" edge to the Repository entity by IDs.
 func (tu *TeamsUpdate) AddRepositoryIDs(ids ...uuid.UUID) *TeamsUpdate {
 	tu.mutation.AddRepositoryIDs(ids...)
@@ -154,6 +160,13 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: teams.FieldTeamName,
 		})
 	}
+	if value, ok := tu.mutation.Description(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: teams.FieldDescription,
+		})
+	}
 	if tu.mutation.RepositoriesCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -230,6 +243,12 @@ type TeamsUpdateOne struct {
 // SetTeamName sets the "team_name" field.
 func (tuo *TeamsUpdateOne) SetTeamName(s string) *TeamsUpdateOne {
 	tuo.mutation.SetTeamName(s)
+	return tuo
+}
+
+// SetDescription sets the "description" field.
+func (tuo *TeamsUpdateOne) SetDescription(s string) *TeamsUpdateOne {
+	tuo.mutation.SetDescription(s)
 	return tuo
 }
 
@@ -375,6 +394,13 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Type:   field.TypeString,
 			Value:  value,
 			Column: teams.FieldTeamName,
+		})
+	}
+	if value, ok := tuo.mutation.Description(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: teams.FieldDescription,
 		})
 	}
 	if tuo.mutation.RepositoriesCleared() {

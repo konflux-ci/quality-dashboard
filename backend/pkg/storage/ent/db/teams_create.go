@@ -27,6 +27,12 @@ func (tc *TeamsCreate) SetTeamName(s string) *TeamsCreate {
 	return tc
 }
 
+// SetDescription sets the "description" field.
+func (tc *TeamsCreate) SetDescription(s string) *TeamsCreate {
+	tc.mutation.SetDescription(s)
+	return tc
+}
+
 // SetID sets the "id" field.
 func (tc *TeamsCreate) SetID(u uuid.UUID) *TeamsCreate {
 	tc.mutation.SetID(u)
@@ -130,6 +136,9 @@ func (tc *TeamsCreate) check() error {
 	if _, ok := tc.mutation.TeamName(); !ok {
 		return &ValidationError{Name: "team_name", err: errors.New(`db: missing required field "team_name"`)}
 	}
+	if _, ok := tc.mutation.Description(); !ok {
+		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "description"`)}
+	}
 	return nil
 }
 
@@ -169,6 +178,14 @@ func (tc *TeamsCreate) createSpec() (*Teams, *sqlgraph.CreateSpec) {
 			Column: teams.FieldTeamName,
 		})
 		_node.TeamName = value
+	}
+	if value, ok := tc.mutation.Description(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: teams.FieldDescription,
+		})
+		_node.Description = value
 	}
 	if nodes := tc.mutation.RepositoriesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

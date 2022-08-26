@@ -35,7 +35,7 @@ type Storage interface {
 	ListRepositoriesQualityInfo(team *db.Teams) ([]RepositoryQualityInfo, error)
 	// POST
 	CreateRepository(p Repository, team_id uuid.UUID) (*db.Repository, error)
-	CreateQualityStudioTeam(teamName string) (*db.Teams, error)
+	CreateQualityStudioTeam(teamName string, description string) (*db.Teams, error)
 	CreateWorkflows(p GithubWorkflows, repo_id uuid.UUID) error
 
 	// POST

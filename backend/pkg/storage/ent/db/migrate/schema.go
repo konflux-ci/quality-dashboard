@@ -110,6 +110,7 @@ var (
 	TeamsColumns = []*schema.Column{
 		{Name: "team_id", Type: field.TypeUUID, Unique: true},
 		{Name: "team_name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString, Unique: true},
 	}
 	// TeamsTable holds the schema information for the "teams" table.
 	TeamsTable = &schema.Table{

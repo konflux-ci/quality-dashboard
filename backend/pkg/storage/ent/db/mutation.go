@@ -3044,6 +3044,7 @@ type TeamsMutation struct {
 	typ                 string
 	id                  *uuid.UUID
 	team_name           *string
+	description         *string
 	clearedFields       map[string]struct{}
 	repositories        map[uuid.UUID]struct{}
 	removedrepositories map[uuid.UUID]struct{}
@@ -3174,6 +3175,42 @@ func (m *TeamsMutation) ResetTeamName() {
 	m.team_name = nil
 }
 
+// SetDescription sets the "description" field.
+func (m *TeamsMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *TeamsMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Teams entity.
+// If the Teams object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TeamsMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *TeamsMutation) ResetDescription() {
+	m.description = nil
+}
+
 // AddRepositoryIDs adds the "repositories" edge to the Repository entity by ids.
 func (m *TeamsMutation) AddRepositoryIDs(ids ...uuid.UUID) {
 	if m.repositories == nil {
@@ -3247,9 +3284,12 @@ func (m *TeamsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TeamsMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 2)
 	if m.team_name != nil {
 		fields = append(fields, teams.FieldTeamName)
+	}
+	if m.description != nil {
+		fields = append(fields, teams.FieldDescription)
 	}
 	return fields
 }
@@ -3261,6 +3301,8 @@ func (m *TeamsMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case teams.FieldTeamName:
 		return m.TeamName()
+	case teams.FieldDescription:
+		return m.Description()
 	}
 	return nil, false
 }
@@ -3272,6 +3314,8 @@ func (m *TeamsMutation) OldField(ctx context.Context, name string) (ent.Value, e
 	switch name {
 	case teams.FieldTeamName:
 		return m.OldTeamName(ctx)
+	case teams.FieldDescription:
+		return m.OldDescription(ctx)
 	}
 	return nil, fmt.Errorf("unknown Teams field %s", name)
 }
@@ -3287,6 +3331,13 @@ func (m *TeamsMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTeamName(v)
+		return nil
+	case teams.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Teams field %s", name)
@@ -3339,6 +3390,9 @@ func (m *TeamsMutation) ResetField(name string) error {
 	switch name {
 	case teams.FieldTeamName:
 		m.ResetTeamName()
+		return nil
+	case teams.FieldDescription:
+		m.ResetDescription()
 		return nil
 	}
 	return fmt.Errorf("unknown Teams field %s", name)
