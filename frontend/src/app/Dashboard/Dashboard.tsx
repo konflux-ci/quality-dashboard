@@ -6,7 +6,8 @@ import {
   Gallery,
   PageSection,
   Title,
-  DescriptionList, DescriptionListGroup, DescriptionListTerm, DescriptionListDescription, Button, ButtonVariant
+  DescriptionList, DescriptionListGroup, DescriptionListTerm, 
+  DescriptionListDescription, TextContent, Text, PageSectionVariants
 } from '@patternfly/react-core';
 import { ExternalLinkAltIcon, PlusIcon } from '@patternfly/react-icons';
 import { getVersion } from '@app/utils/APIService';
@@ -32,6 +33,18 @@ export const Dashboard = () => {
 
   return (
     <React.Fragment>
+        <PageSection style={{
+          minHeight : "12%",
+          background:"url(https://console.redhat.com/apps/frontend-assets/background-images/new-landing-page/estate_section_banner.svg)",
+          backgroundSize: "cover",
+          backgroundColor : "black",
+          opacity: '0.9'
+        }} variant={PageSectionVariants.light}>
+          <TextContent style={{color: "white"}}>
+            <Text component="h2">Red Hat App Studio Quality Dashboard</Text>
+            <Text component="p">This is a demo that show app studio quality status.</Text>
+          </TextContent>
+        </PageSection>
         <PageSection>
           <Gallery hasGutter style={{ display:"flex" }}>
             <Card style={{width: "35%"}}>

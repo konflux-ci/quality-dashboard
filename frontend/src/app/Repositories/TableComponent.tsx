@@ -423,13 +423,12 @@ export const TableComponent = ({showCoverage, showDiscription, showTableToolbar,
           clearAllFilters={onClearAll}
         >
 
-        <ToolbarContent style={{marginLeft: "5%"}}>
+        <ToolbarContent>
           <ToolbarItem alignment={{default: 'alignLeft'}}>
             <Button variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
             <PlusIcon /> &nbsp; Add a repository
             </Button>
           </ToolbarItem>
-          <ToolbarItem variant="separator"></ToolbarItem>
           <ToolbarItem>
             {toolbarItems}
           </ToolbarItem>
