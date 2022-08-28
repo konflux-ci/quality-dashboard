@@ -131,39 +131,35 @@ export const Dashboard = () => {
 
   const totalIssues = computeJiraIssueCount(JIRA_BLOCKER) + computeJiraIssueCount(JIRA_CRITICAL) + computeJiraIssueCount(JIRA_MAJOR)
   const allIssueChart = () => (
-    <div style={{ height: '250px', width: '250px' }}>
+    <div style={{ height: '225px', width: '225px' }}>
       <ChartDonut
         ariaDesc="Jira Issues All"
         constrainToVisibleArea
         data={[{ x: 'Blocker', y: computeJiraIssueCount(JIRA_BLOCKER) }, { x: 'Critical', y: computeJiraIssueCount(JIRA_CRITICAL) }, { x: 'Major', y: computeJiraIssueCount(JIRA_MAJOR) }]}
-        height={175}
+        height={200}
         labels={({ datum }) => `${datum.x}: ${datum.y}/${totalIssues}`}
         title={totalIssues.toString()}
         subTitle="Active Issues"
         themeColor={ChartThemeColor.blue}
-        width={175}
+        width={200}
       />
     </div>
 
   )
 
   const issueChart = (jiraType) => (
-    <ChartPie
-      ariaDesc="Visual Pie Chart of Issue Categories"
-      ariaTitle="Issues Chart"
-      constrainToVisibleArea
-      data={[{ x: 'Issue', y: computeJiraIssueCount(jiraType) * 10 }, { x: ' ', y: 100 - (computeJiraIssueCount(jiraType) * 10) }]}
-      height={200}
-      labels={({ datum }) => null}
-      padding={{
-        bottom: 0,
-        left: 10,
-        right: 10,
-        top: 20
-      }}
-      themeColor={ChartThemeColor.gray}
-      width={250}
-    />
+    <div style={{ height: '150px', width: '150px' }}>
+      <ChartDonut
+        ariaDesc="Issues by type"
+        constrainToVisibleArea
+        data={[{ x: 'Issues', y: computeJiraIssueCount(jiraType) }, { x: 'Whitespace', y: 15 - computeJiraIssueCount(jiraType) }]}
+        height={150}
+        labels={({ datum }) => null}
+        title={computeJiraIssueCount(jiraType).toString()}
+        themeColor={ChartThemeColor.blue}
+        width={150}
+      />
+    </div>
 
   )
 
@@ -310,7 +306,7 @@ export const Dashboard = () => {
                       <GridItem style={{ margin: "5px", cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_BLOCKER)}>
                         <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
                           <div>
-                            <Title headingLevel="h1" size={TitleSizes['2xl']}>Blocker {computeJiraIssueCount(JIRA_BLOCKER)}</Title>
+                            <Title headingLevel="h1" size={TitleSizes['2xl']}>Blocker</Title>
                             {issueChart(JIRA_BLOCKER)}
                           </div>
                         </CardBody>
@@ -318,7 +314,7 @@ export const Dashboard = () => {
                       <GridItem style={{ margin: "5px", cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_CRITICAL)}>
                         <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
                           <div>
-                            <Title headingLevel="h1" size={TitleSizes['2xl']}>Critical {computeJiraIssueCount(JIRA_CRITICAL)}</Title>
+                            <Title headingLevel="h1" size={TitleSizes['2xl']}>Critical</Title>
                             {issueChart(JIRA_CRITICAL)}
                           </div>
                         </CardBody>
@@ -326,7 +322,7 @@ export const Dashboard = () => {
                       <GridItem style={{ margin: "5px", cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_MAJOR)}>
                         <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
                           <div>
-                            <Title headingLevel="h1" size={TitleSizes['2xl']}>Major {computeJiraIssueCount(JIRA_MAJOR)}</Title>
+                            <Title headingLevel="h1" size={TitleSizes['2xl']}>Major</Title>
                             {issueChart(JIRA_MAJOR)}
                           </div>
                         </CardBody>
