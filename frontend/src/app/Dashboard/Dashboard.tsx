@@ -31,7 +31,7 @@ import {
   Td,
   ThProps
 } from '@patternfly/react-table';
-import { ChartDonut, ChartPie, ChartThemeColor } from '@patternfly/react-charts';
+import { ChartDonut, ChartThemeColor } from '@patternfly/react-charts';
 import { ExternalLinkAltIcon, } from '@patternfly/react-icons';
 import { getVersion, getJiras } from '@app/utils/APIService';
 import { Context } from "src/app/store/store";
@@ -144,8 +144,7 @@ export const Dashboard = () => {
         width={200}
       />
     </div>
-
-  )
+  );
 
   const issueChart = (jiraType) => (
     <div style={{ height: '150px', width: '150px' }}>
@@ -160,8 +159,7 @@ export const Dashboard = () => {
         width={150}
       />
     </div>
-
-  )
+  );
 
   const dt = null;
   let visibleJiras = null;
@@ -217,8 +215,7 @@ export const Dashboard = () => {
       }
 
     </TableComposable>
-  )
-
+  );
 
   const panelContent = (
     <DrawerPanelContent isResizable defaultSize={'15vw'} minSize={'45vw'}>
