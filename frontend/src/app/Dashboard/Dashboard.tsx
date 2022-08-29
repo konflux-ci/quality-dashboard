@@ -116,17 +116,16 @@ export const Dashboard = () => {
 
   const totalIssues = computeJiraIssueCount(JIRA_BLOCKER) + computeJiraIssueCount(JIRA_CRITICAL) + computeJiraIssueCount(JIRA_MAJOR)
   const allIssueChart = () => (
-    <div style={{ height: '225px', width: '225px' }}>
+    <div style={{ height: '150px', width: '150px' }}>
       <ChartDonut
         ariaDesc="Jira Issues All"
         constrainToVisibleArea
         data={[{ x: 'Blocker', y: computeJiraIssueCount(JIRA_BLOCKER) }, { x: 'Critical', y: computeJiraIssueCount(JIRA_CRITICAL) }, { x: 'Major', y: computeJiraIssueCount(JIRA_MAJOR) }]}
-        height={200}
+        height={150}
         labels={({ datum }) => `${datum.x}: ${datum.y}/${totalIssues}`}
         title={totalIssues.toString()}
-        subTitle="Active Issues"
         themeColor={ChartThemeColor.blue}
-        width={200}
+        width={150}
       />
     </div>
 
@@ -290,50 +289,43 @@ export const Dashboard = () => {
                   </DescriptionList>
                 </CardBody>
               </Card>
-              <Card isRounded isCompact style={{ width: "65%" }}>
+              <Card isRounded isCompact style={{ width: "65%", padding: "5px" }}>
                 <CardTitle>
-                  <Title headingLevel="h2" size="xl" >
-                    Tracking Jira Issues
-                  </Title>
+                  <Title headingLevel="h2" size="xl" > Jira Issues blocking e2e-tests </Title>
                 </CardTitle>
-                <Grid>
-                  <GridItem style={{ margin: "5px", cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_ALL)}>
+                <Grid hasGutter span={3}>
+                  <GridItem aria-expanded={isExpanded} onClick={event => showJiras(JIRA_ALL)}>
                     <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "150px", margin: "auto 5px", textAlign: "center" }}>
-                      <div style={{ margin: "5px", cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_ALL)}>
+                      <div style={{ cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_ALL)}>
+                        <Title headingLevel="h2" size={TitleSizes['lg']}>All</Title>
                         {allIssueChart()}
                       </div>
                     </CardBody>
                   </GridItem>
-
-                  <GridItem style={{ margin: "5px" }}>
-                    <Grid md={4}>
-                      <GridItem style={{ margin: "5px", cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_BLOCKER)}>
-                        <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
-                          <div>
-                            <Title headingLevel="h1" size={TitleSizes['2xl']}>Blocker</Title>
-                            {issueChart(JIRA_BLOCKER)}
-                          </div>
-                        </CardBody>
-                      </GridItem>
-                      <GridItem style={{ margin: "5px", cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_CRITICAL)}>
-                        <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
-                          <div>
-                            <Title headingLevel="h1" size={TitleSizes['2xl']}>Critical</Title>
-                            {issueChart(JIRA_CRITICAL)}
-                          </div>
-                        </CardBody>
-                      </GridItem>
-                      <GridItem style={{ margin: "5px", cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_MAJOR)}>
-                        <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
-                          <div>
-                            <Title headingLevel="h1" size={TitleSizes['2xl']}>Major</Title>
-                            {issueChart(JIRA_MAJOR)}
-                          </div>
-                        </CardBody>
-                      </GridItem>
-                    </Grid>
+                  <GridItem style={{ cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_BLOCKER)}>
+                    <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
+                      <div>
+                        <Title headingLevel="h2" size={TitleSizes['lg']}>Blocker</Title>
+                        {issueChart(JIRA_BLOCKER)}
+                      </div>
+                      </CardBody>
                   </GridItem>
-
+                    <GridItem style={{ cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_CRITICAL)}>
+                      <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
+                        <div>
+                          <Title headingLevel="h2" size={TitleSizes['lg']}>Critical</Title>
+                          {issueChart(JIRA_CRITICAL)}
+                        </div>
+                      </CardBody>
+                      </GridItem>
+                    <GridItem style={{ cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_MAJOR)}>
+                      <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
+                        <div>
+                          <Title headingLevel="h2" size={TitleSizes['lg']}>Major</Title>
+                          {issueChart(JIRA_MAJOR)}
+                        </div>
+                      </CardBody>
+                    </GridItem>
                 </Grid>
               </Card>
             </Gallery>
