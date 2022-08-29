@@ -31,6 +31,21 @@ async function getVersion(){
     return result;
 }
 
+async function getJiras(){
+    const result: ApiResponse = { code: 0, data: {} };
+    const subPath ='/api/quality/jira/bugs/e2e';
+    const uri = API_URL + subPath;
+    await axios.get(uri).then((res: AxiosResponse) => {
+        result.code = res.status;
+        result.data = res.data;
+        
+    }).catch((err) => {
+        result.code = err.response.status;
+        result.data = err.response.data;
+    });
+    return result;
+}
+
 async function getRepositories(perPage = 5, team:string){
     const REPOS_IN_PAGE = perPage 
     const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
@@ -200,5 +215,5 @@ async function createTeam(data = {}) {
 export { 
     getVersion, getRepositories, createRepository, deleteRepositoryAPI, 
     getWorkflowByRepositoryName, getAllRepositoriesWithOrgs, 
-    getLatestProwJob, getProwJobStatistics, getTeams, createTeam
+    getLatestProwJob, getProwJobStatistics, getTeams, createTeam, getJiras
 }

@@ -9,6 +9,7 @@ interface IContextProps {
 
 const initialState = {
     APIData: [],
+    E2E_KNOWN_ISSUES: [],
     error: 'error',
     alerts: [],
     version: '',

@@ -2,6 +2,7 @@ import { ITeam } from '@app/Teams/TeamsSelect'
 
 export interface StateContext {
     APIData: [];
+    E2E_KNOWN_ISSUES: [];
     error: string;
     alerts: [];
     version: string;
@@ -19,6 +20,11 @@ const Reducer = (state, action) => {
                 ...state,
                 APIData: action.data
             };
+        case 'SET_JIRAS':
+            return {
+                ...state,
+                E2E_KNOWN_ISSUES: action.data
+            }
         case 'SET_Version':
             return {
                 ...state,
