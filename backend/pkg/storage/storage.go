@@ -21,31 +21,31 @@ var (
 // support timezones or standardize on UTC.
 type Storage interface {
 	Close() error
-	GetMetrics(gitOrganization string, repoName string, jobType string) ProwJobsMetrics
-	GetAllTeamsFromDB() ([]*db.Teams, error)
-	GetTeamByName(teamName string) (*db.Teams, error)
+
 	// GET
 	GetRepository(repositoryName string, gitOrganizationName string) (*db.Repository, error)
 	GetLatestProwTestExecution(r *db.Repository, jobType string) (*db.ProwJobs, error)
 	GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error)
 	GetProwJobsResults(*db.Repository) ([]*db.ProwSuites, error)
 	GetProwJobsResultsByJobID(jobID string) ([]*db.ProwJobs, error)
+	GetMetrics(gitOrganization string, repoName string, jobType string) ProwJobsMetrics
+	GetAllTeamsFromDB() ([]*db.Teams, error)
+	GetTeamByName(teamName string) (*db.Teams, error)
 	ListWorkflowsByRepository(repositoryName string) (w []GithubWorkflows, err error)
 	ListRepositories(team *db.Teams) ([]Repository, error)
 	ListRepositoriesQualityInfo(team *db.Teams) ([]RepositoryQualityInfo, error)
+
 	// POST
 	CreateRepository(p Repository, team_id uuid.UUID) (*db.Repository, error)
 	CreateQualityStudioTeam(teamName string, description string) (*db.Teams, error)
 	CreateWorkflows(p GithubWorkflows, repo_id uuid.UUID) error
-
-	// POST
 	CreateCoverage(p Coverage, repo_id uuid.UUID) error
 	CreateProwJobSuites(prowJobStatus ProwJobSuites, repo_id uuid.UUID) error
 	CreateProwJobResults(prowJobStatus ProwJobStatus, repo_id uuid.UUID) error
-
-	// Delete
 	ReCreateWorkflow(workflow GithubWorkflows, repoName string) error
 	UpdateCoverage(codecov Coverage, repoName string) error
+
+	// Delete
 	DeleteRepository(repositoryName string, gitOrganizationName string) error
 }
 

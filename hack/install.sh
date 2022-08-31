@@ -3,6 +3,7 @@
 export STORAGE_PASSWORD=""
 export STORAGE_USER=""
 export GITHUB_TOKEN=""
+export JIRA_TOKEN=""
 export WORKSPACE=$(dirname $(dirname $(readlink -f "$0")))
 export SECRET_DASHBOARD_TMP=$(mktemp)
 export FRONTEND_DEPLOYMENT_TMP=$(mktemp)
@@ -18,6 +19,9 @@ do
             ;;
         -g|--github-token)
             GITHUB_TOKEN=$(echo -n $2 | base64)
+            ;;
+        -jt|--jira-token)
+            JIRA_TOKEN=$(echo -n $2 | base64)
             ;;
         *)
             ;;
@@ -51,6 +55,7 @@ cat "${WORKSPACE}/backend/deploy/openshift/secret.yaml" |
     sed -e "s#REPLACE_STORAGE_PASSWORD#${STORAGE_PASSWORD}#g" |
     sed -e "s#REPLACE_STORAGE_USER#${STORAGE_USER}#g" |
     sed -e "s#REPLACE_GITHUB_TOKEN#${GITHUB_TOKEN}#g" |
+    sed -e "s#REPLACE_JIRA_TOKEN#${JIRA_TOKEN}#g" |
     cat > ${SECRET_DASHBOARD_TMP}
 
 # Namespace

@@ -251,7 +251,7 @@ export const Dashboard = () => {
         }} variant={PageSectionVariants.light}>
           <TextContent style={{color: "white"}}>
             <Text component="h2">Red Hat App Studio Quality Dashboard</Text>
-            <Text component="p">This is a demo that show app studio quality status.</Text>
+            <Text component="p">Global status about teams components.</Text>
           </TextContent>
         </PageSection>
         <Drawer isExpanded={isExpanded}>

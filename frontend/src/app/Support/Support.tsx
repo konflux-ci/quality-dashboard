@@ -397,7 +397,7 @@ let Support = () => {
 
               <GridItem span={4} rowSpan={4}><DashboardSimpleList title={<div>Jobs <Badge style={{float: "right"}}>{jobType}</Badge></div>} data={jobNames} onSelection={(value)=>{setSelectedJob(value)}}></DashboardSimpleList></GridItem>
               <GridItem span={8} rowSpan={5}><DashboardLineChart data={beautifiedData}></DashboardLineChart></GridItem>
-              <GridItem span={4} rowSpan={1}><DashboardCard cardType={'help'} title="About this dashboard" body={LoremIpsum}></DashboardCard></GridItem>
+              <GridItem span={4} rowSpan={1}><DashboardCard cardType={'help'} title="About this dashboard" body="Set of metrics gathered from Openshift CI"></DashboardCard></GridItem>
 
               <GridItem span={12}>
                 <Card style={{width: "100%", height: "100%", fontSize: "1rem"}}>
