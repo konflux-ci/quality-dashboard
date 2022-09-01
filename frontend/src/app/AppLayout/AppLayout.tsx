@@ -10,7 +10,7 @@ import {
   PageHeader,
   PageSidebar,
   SkipToContent,
-  PageSection,
+  PageSection
 } from '@patternfly/react-core';
 import { routes, IAppRoute, IAppRouteGroup } from '@app/routes';
 import logo from '@app/bgimages/Logo-RedHat-A-Reverse-RGB.svg';
