@@ -9,8 +9,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/predicate"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/workflows"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 )
 
 // WorkflowsDelete is the builder for deleting a Workflows entity.

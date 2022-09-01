@@ -3,11 +3,12 @@
 package db
 
 import (
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/codecov"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/repository"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/workflows"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/schema"
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/schema"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -46,6 +47,12 @@ func init() {
 	repositoryDescID := repositoryFields[0].Descriptor()
 	// repository.DefaultID holds the default value on creation for the id field.
 	repository.DefaultID = repositoryDescID.Default.(func() uuid.UUID)
+	teamsFields := schema.Teams{}.Fields()
+	_ = teamsFields
+	// teamsDescID is the schema descriptor for id field.
+	teamsDescID := teamsFields[0].Descriptor()
+	// teams.DefaultID holds the default value on creation for the id field.
+	teams.DefaultID = teamsDescID.Default.(func() uuid.UUID)
 	workflowsFields := schema.Workflows{}.Fields()
 	_ = workflowsFields
 	// workflowsDescWorkflowID is the schema descriptor for workflow_id field.

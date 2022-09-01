@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"hash"
 
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/migrate"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/migrate"
 )
 
 var _ storage.Storage = (*Database)(nil)

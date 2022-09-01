@@ -4,13 +4,14 @@ import (
 	"context"
 	"strings"
 
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/repository"
+	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
 // CreateRepository save provided repository information in database.
-func (d *Database) CreateRepository(repository storage.Repository) (*db.Repository, error) {
+func (d *Database) CreateRepository(repository storage.Repository, team_id uuid.UUID) (*db.Repository, error) {
 	repo, err := d.client.Repository.Create().
 		SetRepositoryName(repository.RepositoryName).
 		SetGitOrganization(repository.GitOrganization).
@@ -20,12 +21,17 @@ func (d *Database) CreateRepository(repository storage.Repository) (*db.Reposito
 	if err != nil {
 		return nil, convertDBError("create repository: %w", err)
 	}
+
+	_, err = d.client.Teams.UpdateOneID(team_id).AddRepositories(repo).Save(context.TODO())
+	if err != nil {
+		return nil, convertDBError("create workflows: %w", err)
+	}
 	return repo, nil
 }
 
 // ListPasswords extracts an array of repositories from the database.
-func (d *Database) ListRepositories() ([]storage.Repository, error) {
-	repositories, err := d.client.Repository.Query().All(context.TODO())
+func (d *Database) ListRepositories(team *db.Teams) ([]storage.Repository, error) {
+	repositories, err := d.client.Teams.QueryRepositories(team).All(context.TODO())
 	if err != nil {
 		return nil, convertDBError("list repositories: %w", err)
 	}
@@ -38,24 +44,20 @@ func (d *Database) ListRepositories() ([]storage.Repository, error) {
 }
 
 // GetRepository returns a git repo given its url
-func (d *Database) GetRepository(repositoryName string, gitOrganizationName string) (*storage.RepositoryQualityInfo, error) {
+func (d *Database) GetRepository(repositoryName string, gitOrganizationName string) (*db.Repository, error) {
 	repository, err := d.client.Repository.Query().
 		Where(repository.RepositoryName(repositoryName)).Where(repository.GitOrganization(gitOrganizationName)).Only(context.TODO())
-
-	w, _ := d.client.Repository.QueryWorkflows(repository).All(context.TODO())
-	c, _ := d.client.Repository.QueryCodecov(repository).Only(context.TODO())
-	storageRepository := toStorageRepositoryAllInfo(repository, w, c)
 
 	if err != nil {
 		return nil, convertDBError("get repository: %w", err)
 	}
 
-	return &storageRepository, nil
+	return repository, nil
 }
 
 // ListRepositoriesQualityInfo extracts an array of repositories from the database.
-func (d *Database) ListRepositoriesQualityInfo() ([]storage.RepositoryQualityInfo, error) {
-	repositories, err := d.client.Repository.Query().All(context.TODO())
+func (d *Database) ListRepositoriesQualityInfo(team *db.Teams) ([]storage.RepositoryQualityInfo, error) {
+	repositories, err := d.client.Teams.QueryRepositories(team).All(context.TODO())
 	if err != nil {
 		return nil, convertDBError("list repositories: %w", err)
 	}

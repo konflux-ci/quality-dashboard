@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 )
 
 // The CodeCovFunc type is an adapter to allow the use of ordinary
@@ -22,6 +22,32 @@ func (f CodeCovFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error
 	return f(ctx, mv)
 }
 
+// The ProwJobsFunc type is an adapter to allow the use of ordinary
+// function as ProwJobs mutator.
+type ProwJobsFunc func(context.Context, *db.ProwJobsMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProwJobsFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	mv, ok := m.(*db.ProwJobsMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ProwJobsMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The ProwSuitesFunc type is an adapter to allow the use of ordinary
+// function as ProwSuites mutator.
+type ProwSuitesFunc func(context.Context, *db.ProwSuitesMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProwSuitesFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	mv, ok := m.(*db.ProwSuitesMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ProwSuitesMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The RepositoryFunc type is an adapter to allow the use of ordinary
 // function as Repository mutator.
 type RepositoryFunc func(context.Context, *db.RepositoryMutation) (db.Value, error)
@@ -31,6 +57,19 @@ func (f RepositoryFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, er
 	mv, ok := m.(*db.RepositoryMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *db.RepositoryMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The TeamsFunc type is an adapter to allow the use of ordinary
+// function as Teams mutator.
+type TeamsFunc func(context.Context, *db.TeamsMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TeamsFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	mv, ok := m.(*db.TeamsMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TeamsMutation", m)
 	}
 	return f(ctx, mv)
 }
@@ -143,7 +182,6 @@ func HasFields(field string, fields ...string) Condition {
 // If executes the given hook under condition.
 //
 //	hook.If(ComputeAverage, And(HasFields(...), HasAddedFields(...)))
-//
 func If(hk db.Hook, cond Condition) db.Hook {
 	return func(next db.Mutator) db.Mutator {
 		return db.MutateFunc(func(ctx context.Context, m db.Mutation) (db.Value, error) {
@@ -158,7 +196,6 @@ func If(hk db.Hook, cond Condition) db.Hook {
 // On executes the given hook only for the given operation.
 //
 //	hook.On(Log, db.Delete|db.Create)
-//
 func On(hk db.Hook, op db.Op) db.Hook {
 	return If(hk, HasOp(op))
 }
@@ -166,7 +203,6 @@ func On(hk db.Hook, op db.Op) db.Hook {
 // Unless skips the given hook only for the given operation.
 //
 //	hook.Unless(Log, db.Update|db.UpdateOne)
-//
 func Unless(hk db.Hook, op db.Op) db.Hook {
 	return If(hk, Not(HasOp(op)))
 }
@@ -187,7 +223,6 @@ func FixedError(err error) db.Hook {
 //			Reject(db.Delete|db.Update),
 //		}
 //	}
-//
 func Reject(op db.Op) db.Hook {
 	hk := FixedError(fmt.Errorf("%s operation is not allowed", op))
 	return On(hk, op)

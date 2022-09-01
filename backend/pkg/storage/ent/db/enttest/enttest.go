@@ -5,9 +5,9 @@ package enttest
 import (
 	"context"
 
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	// required by schema hooks.
-	_ "github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/runtime"
+	_ "github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
 )

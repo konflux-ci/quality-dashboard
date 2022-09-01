@@ -3,8 +3,8 @@ package client
 import (
 	"fmt"
 
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 )
 
 func convertDBError(t string, err error) error {
