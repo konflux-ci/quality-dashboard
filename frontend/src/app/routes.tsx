@@ -8,7 +8,6 @@ import { ProfileSettings } from '@app/Settings/Profile/ProfileSettings';
 import { NotFound } from '@app/NotFound/NotFound';
 import { useDocumentTitle } from '@app/utils/useDocumentTitle';
 import { LastLocationProvider, useLastLocation } from 'react-router-last-location';
-import { Repositories } from './Repositories/Repositories';
 import { JobsComponent } from './Jobs/Jobs';
 
 let routeFocusTimer: number;
@@ -126,7 +125,7 @@ const AppRoutes = (): React.ReactElement => (
           isAsync={isAsync}
         />
       ))}
-      <Redirect to='/home/overview'  />
+      <Redirect from='/' to='/home/overview'  /> 
     </Switch>
   </LastLocationProvider>
 );

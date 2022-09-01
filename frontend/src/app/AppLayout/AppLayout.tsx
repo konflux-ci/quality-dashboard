@@ -1,4 +1,5 @@
-import * as React from 'react';
+
+import React, { useEffect } from 'react';
 import { NavLink, useLocation, useHistory } from 'react-router-dom';
 import {
   Nav,
@@ -8,19 +9,26 @@ import {
   Page,
   PageHeader,
   PageSidebar,
-  SkipToContent
+  SkipToContent,
+  PageHeaderTools,
+  Button
 } from '@patternfly/react-core';
 import { routes, IAppRoute, IAppRouteGroup } from '@app/routes';
 import logo from '@app/bgimages/Logo-RedHat-A-Reverse-RGB.svg';
+import {  SignOutAltIcon } from '@patternfly/react-icons';
+
 
 interface IAppLayout {
   children: React.ReactNode;
 }
 
 const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
+  const locationHistory = useLocation();
+  const history = useHistory();
   const [isNavOpen, setIsNavOpen] = React.useState(true);
   const [isMobileView, setIsMobileView] = React.useState(true);
   const [isNavOpenMobile, setIsNavOpenMobile] = React.useState(false);
+ 
   const onNavToggleMobile = () => {
     setIsNavOpenMobile(!isNavOpenMobile);
   };
@@ -31,6 +39,13 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
     setIsMobileView(props.mobileView);
   };
 
+  useEffect(()=>{
+    console.log(locationHistory.pathname)
+    if(locationHistory.pathname === '/'){
+      history.push('/home/overview');
+    }
+  },[])
+
   function LogoImg() {
     const history = useHistory();
     function handleClick() {
@@ -40,10 +55,25 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
       <img onClick={handleClick} style={{height: '32px'}}  src={logo} alt="Red Hat logo" />
     );
   }
+  
+  function HeaderTools() {
+    const history = useHistory();
+    function Log_out(){
+      history.push('/oauth/sign_out');
+      window.location.reload();
+    }
+    return (
+      <PageHeaderTools>
+    <Button onClick={Log_out} variant="link" icon={<SignOutAltIcon />} iconPosition="right">
+      Log out
+    </Button></PageHeaderTools>
+    );
+}
 
   const Header = (
     <PageHeader
       logo={<LogoImg />}
+      headerTools={<HeaderTools/>}
       showNavToggle
       isNavOpen={isNavOpen}
       onNavToggle={isMobileView ? onNavToggleMobile : onNavToggle}
