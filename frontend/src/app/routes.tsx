@@ -126,7 +126,6 @@ const AppRoutes = (): React.ReactElement => {
           isAsync={isAsync}
         />
       ))}
-      <Redirect from='/' to='/home/overview'  /> 
     </Switch>
   </LastLocationProvider>
 )};

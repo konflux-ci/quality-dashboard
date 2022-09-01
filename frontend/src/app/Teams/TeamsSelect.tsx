@@ -66,15 +66,12 @@ export const BasicMasthead = () => {
                 <ToolbarItem visibility={{ default: 'hidden', lg: 'visible' }}>
                   { !teamIsNotEmpty(state.Team) && <Button style={{verticalAlign: "middle", backgroundColor: "var(--pf-c-button--m-primary--Color)", color: "var(--pf-c-button--m-primary--BackgroundColor)"}} onClick={()=>{ history.push("/home/teams") }} type="button" width={300} variant="primary">Create your first Team <ArrowRightIcon /></Button>}
                 </ToolbarItem>
-
-                <ToolbarItem>
-                <Button onClick={Log_out} variant="link" icon={<SignOutAltIcon />} iconPosition="right">
-                  Log out
-                </Button>
-                </ToolbarItem>
               </ToolbarGroup>
             </ToolbarContent>
           </Toolbar>
+          <Button onClick={Log_out} variant="link" icon={<SignOutAltIcon />} iconPosition="right">
+            Log out
+          </Button>
         </MastheadContent>
       </Masthead>
     );
