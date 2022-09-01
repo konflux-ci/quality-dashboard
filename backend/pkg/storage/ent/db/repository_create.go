@@ -9,10 +9,13 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/codecov"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/repository"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/workflows"
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 )
 
 // RepositoryCreate is the builder for creating a Repository entity.
@@ -52,6 +55,25 @@ func (rc *RepositoryCreate) SetID(u uuid.UUID) *RepositoryCreate {
 	return rc
 }
 
+// SetRepositoriesID sets the "repositories" edge to the Teams entity by ID.
+func (rc *RepositoryCreate) SetRepositoriesID(id uuid.UUID) *RepositoryCreate {
+	rc.mutation.SetRepositoriesID(id)
+	return rc
+}
+
+// SetNillableRepositoriesID sets the "repositories" edge to the Teams entity by ID if the given value is not nil.
+func (rc *RepositoryCreate) SetNillableRepositoriesID(id *uuid.UUID) *RepositoryCreate {
+	if id != nil {
+		rc = rc.SetRepositoriesID(*id)
+	}
+	return rc
+}
+
+// SetRepositories sets the "repositories" edge to the Teams entity.
+func (rc *RepositoryCreate) SetRepositories(t *Teams) *RepositoryCreate {
+	return rc.SetRepositoriesID(t.ID)
+}
+
 // AddWorkflowIDs adds the "workflows" edge to the Workflows entity by IDs.
 func (rc *RepositoryCreate) AddWorkflowIDs(ids ...int) *RepositoryCreate {
 	rc.mutation.AddWorkflowIDs(ids...)
@@ -80,6 +102,36 @@ func (rc *RepositoryCreate) AddCodecov(c ...*CodeCov) *RepositoryCreate {
 		ids[i] = c[i].ID
 	}
 	return rc.AddCodecovIDs(ids...)
+}
+
+// AddProwSuiteIDs adds the "prow_suites" edge to the ProwSuites entity by IDs.
+func (rc *RepositoryCreate) AddProwSuiteIDs(ids ...int) *RepositoryCreate {
+	rc.mutation.AddProwSuiteIDs(ids...)
+	return rc
+}
+
+// AddProwSuites adds the "prow_suites" edges to the ProwSuites entity.
+func (rc *RepositoryCreate) AddProwSuites(p ...*ProwSuites) *RepositoryCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return rc.AddProwSuiteIDs(ids...)
+}
+
+// AddProwJobIDs adds the "prow_jobs" edge to the ProwJobs entity by IDs.
+func (rc *RepositoryCreate) AddProwJobIDs(ids ...int) *RepositoryCreate {
+	rc.mutation.AddProwJobIDs(ids...)
+	return rc
+}
+
+// AddProwJobs adds the "prow_jobs" edges to the ProwJobs entity.
+func (rc *RepositoryCreate) AddProwJobs(p ...*ProwJobs) *RepositoryCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return rc.AddProwJobIDs(ids...)
 }
 
 // Mutation returns the RepositoryMutation object of the builder.
@@ -162,35 +214,35 @@ func (rc *RepositoryCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (rc *RepositoryCreate) check() error {
 	if _, ok := rc.mutation.RepositoryName(); !ok {
-		return &ValidationError{Name: "repository_name", err: errors.New(`db: missing required field "Repository.repository_name"`)}
+		return &ValidationError{Name: "repository_name", err: errors.New(`db: missing required field "repository_name"`)}
 	}
 	if v, ok := rc.mutation.RepositoryName(); ok {
 		if err := repository.RepositoryNameValidator(v); err != nil {
-			return &ValidationError{Name: "repository_name", err: fmt.Errorf(`db: validator failed for field "Repository.repository_name": %w`, err)}
+			return &ValidationError{Name: "repository_name", err: fmt.Errorf(`db: validator failed for field "repository_name": %w`, err)}
 		}
 	}
 	if _, ok := rc.mutation.GitOrganization(); !ok {
-		return &ValidationError{Name: "git_organization", err: errors.New(`db: missing required field "Repository.git_organization"`)}
+		return &ValidationError{Name: "git_organization", err: errors.New(`db: missing required field "git_organization"`)}
 	}
 	if v, ok := rc.mutation.GitOrganization(); ok {
 		if err := repository.GitOrganizationValidator(v); err != nil {
-			return &ValidationError{Name: "git_organization", err: fmt.Errorf(`db: validator failed for field "Repository.git_organization": %w`, err)}
+			return &ValidationError{Name: "git_organization", err: fmt.Errorf(`db: validator failed for field "git_organization": %w`, err)}
 		}
 	}
 	if _, ok := rc.mutation.Description(); !ok {
-		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "Repository.description"`)}
+		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "description"`)}
 	}
 	if v, ok := rc.mutation.Description(); ok {
 		if err := repository.DescriptionValidator(v); err != nil {
-			return &ValidationError{Name: "description", err: fmt.Errorf(`db: validator failed for field "Repository.description": %w`, err)}
+			return &ValidationError{Name: "description", err: fmt.Errorf(`db: validator failed for field "description": %w`, err)}
 		}
 	}
 	if _, ok := rc.mutation.GitURL(); !ok {
-		return &ValidationError{Name: "git_url", err: errors.New(`db: missing required field "Repository.git_url"`)}
+		return &ValidationError{Name: "git_url", err: errors.New(`db: missing required field "git_url"`)}
 	}
 	if v, ok := rc.mutation.GitURL(); ok {
 		if err := repository.GitURLValidator(v); err != nil {
-			return &ValidationError{Name: "git_url", err: fmt.Errorf(`db: validator failed for field "Repository.git_url": %w`, err)}
+			return &ValidationError{Name: "git_url", err: fmt.Errorf(`db: validator failed for field "git_url": %w`, err)}
 		}
 	}
 	return nil
@@ -205,7 +257,7 @@ func (rc *RepositoryCreate) sqlSave(ctx context.Context) (*Repository, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = *_spec.ID.Value.(*uuid.UUID)
+		_node.ID = _spec.ID.Value.(uuid.UUID)
 	}
 	return _node, nil
 }
@@ -223,7 +275,7 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := rc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = &id
+		_spec.ID.Value = id
 	}
 	if value, ok := rc.mutation.RepositoryName(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -257,6 +309,26 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 		})
 		_node.GitURL = value
 	}
+	if nodes := rc.mutation.RepositoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   repository.RepositoriesTable,
+			Columns: []string{repository.RepositoriesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: teams.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.teams_repositories = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := rc.mutation.WorkflowsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -287,6 +359,44 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: codecov.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.ProwSuitesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwSuitesTable,
+			Columns: []string{repository.ProwSuitesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prowsuites.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.ProwJobsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.ProwJobsTable,
+			Columns: []string{repository.ProwJobsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: prowjobs.FieldID,
 				},
 			},
 		}

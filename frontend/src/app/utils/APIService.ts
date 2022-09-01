@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Repositories } from "@app/Repositories/Repositories";
 import axios, { AxiosResponse, AxiosError } from "axios";
 import _ from 'lodash';
+import {JobsStatistics} from '@app/utils/sharedComponents'
+import { teamIsNotEmpty } from '@app/utils/utils'
 
 type ApiResponse = {
     code: number;
@@ -18,7 +19,7 @@ const API_URL = (process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898'
 
 async function getVersion(){
     const result: ApiResponse = { code: 0, data: {} };
-    const subPath ='/api/version';
+    const subPath ='/api/quality/server/info';
     const uri = API_URL + subPath;
     await axios.get(uri).then((res: AxiosResponse) => {
         result.code = res.status;
@@ -30,12 +31,34 @@ async function getVersion(){
     return result;
 }
 
-async function getRepositories(perPage = 5){
+async function getJiras(){
+    const result: ApiResponse = { code: 0, data: {} };
+    const subPath ='/api/quality/jira/bugs/e2e';
+    const uri = API_URL + subPath;
+    await axios.get(uri).then((res: AxiosResponse) => {
+        result.code = res.status;
+        result.data = res.data;
+        
+    }).catch((err) => {
+        result.code = err.response.status;
+        result.data = err.response.data;
+    });
+    return result;
+}
+
+async function getRepositories(perPage = 5, team:string){
     const REPOS_IN_PAGE = perPage 
     const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
     const subPath ='/api/quality/repositories/list';
     const uri = API_URL + subPath;
+
+    if(!teamIsNotEmpty(team)) return result;
+
     await axios.get(uri, {
+        headers: {},
+        params: {
+            "team_name": team
+        }
       }).then((res: AxiosResponse) => {
         result.code = res.status;
         result.all = res.data;
@@ -50,6 +73,24 @@ async function getRepositories(perPage = 5){
         result.data = err.response.data;
     });
     return result;
+}
+
+async function getAllRepositoriesWithOrgs(team:string){
+    const subPath ='/api/quality/repositories/list?team_name='+team;
+    const uri = API_URL + subPath;
+    let repoAndOrgs = []
+
+    if(!teamIsNotEmpty(team)) return repoAndOrgs;
+
+    const response = await fetch(uri)
+    if (!response.ok) {
+        throw "Error fetching data from server"
+    }
+    else {
+        const data = await response.json()
+        repoAndOrgs = data.map((row, index) => {return {"repoName": row.repository_name, "organization": row.git_organization }})
+    }
+    return repoAndOrgs
 }
 
 async function getWorkflowByRepositoryName(repositoryName:string){
@@ -95,7 +136,69 @@ async function createRepository(data = {}) {
     const result: ApiResponse = { code: 0, data: {} };
     const subPath ='/api/quality/repositories/create';
     const uri = API_URL + subPath;
-    axios.request({
+    await axios.request({
+        method: 'POST',
+        url: uri,
+        data: {...data},
+      }).then((res: AxiosResponse) => {
+        result.code = res.status;
+        result.data = res.data;
+    }).catch((err) => {
+        result.code = err.response.status;
+        result.data = err.response.data;
+        return ;
+    });
+    return result;
+}
+
+async function getLatestProwJob(repoName: string, repoOrg:string, jobType:string){
+    const response = await fetch(API_URL + "/api/quality/prow/results/latest/get?repository_name="+repoName+"&git_organization="+repoOrg+"&job_type="+jobType)
+    if(!response.ok){
+      throw "Error fetching data from server. "
+    }
+    const data = await response.json()
+    return data
+}
+
+async function getProwJobStatistics(repoName: string, repoOrg:string, jobType:string){
+    
+    const response = await fetch(API_URL + "/api/quality/prow/metrics/get?repository_name="+repoName+"&git_organization="+repoOrg+"&job_type="+jobType)
+    if(!response.ok){
+        throw "Error fetching data from server. "
+    }
+    const statistics:JobsStatistics = await response.json()
+    
+    statistics.jobs.forEach((job, j_idx) => {
+      let j = job.metrics.sort(function(a,b){
+        return +new Date(a.date) - +new Date(b.date);
+      })
+      statistics.jobs[j_idx].metrics = j
+    })
+    
+    return statistics
+      
+}
+
+async function getTeams(){
+    const result: ApiResponse = { code: 0, data: {} };
+    const subPath = "/api/quality/teams/list/all"
+    const uri = API_URL + subPath;
+    await axios.get(uri)
+    .then((res: AxiosResponse) => {
+        result.code = res.status;
+        result.data = res.data;
+    }).catch((err) => {
+        result.code = err.response.status;
+        result.data = err.response.data;
+    });
+    return result;
+}
+
+async function createTeam(data = {}) {
+    const result: ApiResponse = { code: 0, data: {} };
+    const subPath ='/api/quality/teams/create';
+    const uri = API_URL + subPath;
+    await axios.request({
         method: 'POST',
         url: uri,
         data: {...data},
@@ -109,4 +212,8 @@ async function createRepository(data = {}) {
     return result;
 }
 
-export { getVersion, getRepositories, createRepository, deleteRepositoryAPI, getWorkflowByRepositoryName }
+export { 
+    getVersion, getRepositories, createRepository, deleteRepositoryAPI, 
+    getWorkflowByRepositoryName, getAllRepositoriesWithOrgs, 
+    getLatestProwJob, getProwJobStatistics, getTeams, createTeam, getJiras
+}

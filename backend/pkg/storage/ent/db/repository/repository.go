@@ -19,16 +19,35 @@ const (
 	FieldDescription = "description"
 	// FieldGitURL holds the string denoting the git_url field in the database.
 	FieldGitURL = "git_url"
+	// EdgeRepositories holds the string denoting the repositories edge name in mutations.
+	EdgeRepositories = "repositories"
 	// EdgeWorkflows holds the string denoting the workflows edge name in mutations.
 	EdgeWorkflows = "workflows"
 	// EdgeCodecov holds the string denoting the codecov edge name in mutations.
 	EdgeCodecov = "codecov"
+	// EdgeProwSuites holds the string denoting the prow_suites edge name in mutations.
+	EdgeProwSuites = "prow_suites"
+	// EdgeProwJobs holds the string denoting the prow_jobs edge name in mutations.
+	EdgeProwJobs = "prow_jobs"
+	// TeamsFieldID holds the string denoting the ID field of the Teams.
+	TeamsFieldID = "team_id"
 	// WorkflowsFieldID holds the string denoting the ID field of the Workflows.
 	WorkflowsFieldID = "id"
 	// CodeCovFieldID holds the string denoting the ID field of the CodeCov.
 	CodeCovFieldID = "id"
+	// ProwSuitesFieldID holds the string denoting the ID field of the ProwSuites.
+	ProwSuitesFieldID = "id"
+	// ProwJobsFieldID holds the string denoting the ID field of the ProwJobs.
+	ProwJobsFieldID = "id"
 	// Table holds the table name of the repository in the database.
 	Table = "repositories"
+	// RepositoriesTable is the table that holds the repositories relation/edge.
+	RepositoriesTable = "repositories"
+	// RepositoriesInverseTable is the table name for the Teams entity.
+	// It exists in this package in order to avoid circular dependency with the "teams" package.
+	RepositoriesInverseTable = "teams"
+	// RepositoriesColumn is the table column denoting the repositories relation/edge.
+	RepositoriesColumn = "teams_repositories"
 	// WorkflowsTable is the table that holds the workflows relation/edge.
 	WorkflowsTable = "workflows"
 	// WorkflowsInverseTable is the table name for the Workflows entity.
@@ -43,6 +62,20 @@ const (
 	CodecovInverseTable = "code_covs"
 	// CodecovColumn is the table column denoting the codecov relation/edge.
 	CodecovColumn = "repository_codecov"
+	// ProwSuitesTable is the table that holds the prow_suites relation/edge.
+	ProwSuitesTable = "prow_suites"
+	// ProwSuitesInverseTable is the table name for the ProwSuites entity.
+	// It exists in this package in order to avoid circular dependency with the "prowsuites" package.
+	ProwSuitesInverseTable = "prow_suites"
+	// ProwSuitesColumn is the table column denoting the prow_suites relation/edge.
+	ProwSuitesColumn = "repository_prow_suites"
+	// ProwJobsTable is the table that holds the prow_jobs relation/edge.
+	ProwJobsTable = "prow_jobs"
+	// ProwJobsInverseTable is the table name for the ProwJobs entity.
+	// It exists in this package in order to avoid circular dependency with the "prowjobs" package.
+	ProwJobsInverseTable = "prow_jobs"
+	// ProwJobsColumn is the table column denoting the prow_jobs relation/edge.
+	ProwJobsColumn = "repository_prow_jobs"
 )
 
 // Columns holds all SQL columns for repository fields.
@@ -54,10 +87,21 @@ var Columns = []string{
 	FieldGitURL,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "repositories"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"teams_repositories",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

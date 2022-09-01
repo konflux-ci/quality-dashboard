@@ -1,12 +1,16 @@
+import { ITeam } from '@app/Teams/TeamsSelect'
 
 export interface StateContext {
     APIData: [];
+    E2E_KNOWN_ISSUES: [];
     error: string;
     alerts: [];
     version: string;
-    repositories: []
-    workflows: []
-    Allrepositories: []
+    repositories: [];
+    workflows: [];
+    Allrepositories: [];
+    Team: string;
+    TeamsAvailable: ITeam[]
 }
 
 const Reducer = (state, action) => {
@@ -16,6 +20,11 @@ const Reducer = (state, action) => {
                 ...state,
                 APIData: action.data
             };
+        case 'SET_JIRAS':
+            return {
+                ...state,
+                E2E_KNOWN_ISSUES: action.data
+            }
         case 'SET_Version':
             return {
                 ...state,
@@ -50,6 +59,16 @@ const Reducer = (state, action) => {
             return {
                 ...state,
                 alerts: state.alerts.filter(el => el.key !== action.data)
+            };
+        case 'SET_TEAM':
+            return {
+                ...state,
+                Team: action.data
+            };
+        case 'SET_TEAMS_AVAILABLE':
+            return {
+                ...state,
+                TeamsAvailable: action.data
             };
         default:
             return state;

@@ -8,9 +8,12 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/codecov"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/repository"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/workflows"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -32,7 +35,10 @@ type OrderFunc func(*sql.Selector)
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		codecov.Table:    codecov.ValidColumn,
+		prowjobs.Table:   prowjobs.ValidColumn,
+		prowsuites.Table: prowsuites.ValidColumn,
 		repository.Table: repository.ValidColumn,
+		teams.Table:      teams.ValidColumn,
 		workflows.Table:  workflows.ValidColumn,
 	}
 	check, ok := checks[table]
@@ -83,7 +89,6 @@ type AggregateFunc func(*sql.Selector) string
 //	GroupBy(field1, field2).
 //	Aggregate(db.As(db.Sum(field1), "sum_field1"), (db.As(db.Sum(field2), "sum_field2")).
 //	Scan(ctx, &v)
-//
 func As(fn AggregateFunc, end string) AggregateFunc {
 	return func(s *sql.Selector) string {
 		return sql.As(fn(s), end)
@@ -145,7 +150,7 @@ func Sum(field string) AggregateFunc {
 	}
 }
 
-// ValidationError returns when validating a field or edge fails.
+// ValidationError returns when validating a field fails.
 type ValidationError struct {
 	Name string // Field or edge name.
 	err  error

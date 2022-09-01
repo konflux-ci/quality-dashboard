@@ -1,0 +1,1080 @@
+basePath: /api/quality/
+definitions:
+  jira.AffectsVersion:
+    properties:
+      archived:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      projectId:
+        description: Unlike other IDs, this is returned as a number
+        type: integer
+      releaseDate:
+        type: string
+      released:
+        type: boolean
+      self:
+        type: string
+      startDate:
+        type: string
+      userReleaseDate:
+        type: string
+    type: object
+  jira.Attachment:
+    properties:
+      author:
+        $ref: '#/definitions/jira.User'
+      content:
+        type: string
+      created:
+        type: string
+      filename:
+        type: string
+      id:
+        type: string
+      mimeType:
+        type: string
+      self:
+        type: string
+      size:
+        type: integer
+      thumbnail:
+        type: string
+    type: object
+  jira.AvatarUrls:
+    properties:
+      16x16:
+        type: string
+      24x24:
+        type: string
+      32x32:
+        type: string
+      48x48:
+        type: string
+    type: object
+  jira.Changelog:
+    properties:
+      histories:
+        items:
+          $ref: '#/definitions/jira.ChangelogHistory'
+        type: array
+    type: object
+  jira.ChangelogHistory:
+    properties:
+      author:
+        $ref: '#/definitions/jira.User'
+      created:
+        type: string
+      id:
+        type: string
+      items:
+        items:
+          $ref: '#/definitions/jira.ChangelogItems'
+        type: array
+    type: object
+  jira.ChangelogItems:
+    properties:
+      field:
+        type: string
+      fieldtype:
+        type: string
+      from: {}
+      fromString:
+        type: string
+      to: {}
+      toString:
+        type: string
+    type: object
+  jira.Comment:
+    properties:
+      author:
+        $ref: '#/definitions/jira.User'
+      body:
+        type: string
+      created:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      self:
+        type: string
+      updateAuthor:
+        $ref: '#/definitions/jira.User'
+      updated:
+        type: string
+      visibility:
+        $ref: '#/definitions/jira.CommentVisibility'
+    type: object
+  jira.CommentVisibility:
+    properties:
+      type:
+        type: string
+      value:
+        type: string
+    type: object
+  jira.Comments:
+    properties:
+      comments:
+        items:
+          $ref: '#/definitions/jira.Comment'
+        type: array
+    type: object
+  jira.Component:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      self:
+        type: string
+    type: object
+  jira.EntityProperty:
+    properties:
+      key:
+        type: string
+      value: {}
+    type: object
+  jira.Epic:
+    properties:
+      done:
+        type: boolean
+      id:
+        type: integer
+      key:
+        type: string
+      name:
+        type: string
+      self:
+        type: string
+      summary:
+        type: string
+    type: object
+  jira.FixVersion:
+    properties:
+      archived:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      projectId:
+        description: Unlike other IDs, this is returned as a number
+        type: integer
+      releaseDate:
+        type: string
+      released:
+        type: boolean
+      self:
+        type: string
+      startDate:
+        type: string
+      userReleaseDate:
+        type: string
+    type: object
+  jira.Issue:
+    properties:
+      changelog:
+        $ref: '#/definitions/jira.Changelog'
+      expand:
+        type: string
+      fields:
+        $ref: '#/definitions/jira.IssueFields'
+      id:
+        type: string
+      key:
+        type: string
+      names:
+        additionalProperties:
+          type: string
+        type: object
+      renderedFields:
+        $ref: '#/definitions/jira.IssueRenderedFields'
+      self:
+        type: string
+      transitions:
+        items:
+          $ref: '#/definitions/jira.Transition'
+        type: array
+    type: object
+  jira.IssueFields:
+    properties:
+      Creator:
+        $ref: '#/definitions/jira.User'
+      aggregateprogress:
+        $ref: '#/definitions/jira.Progress'
+      aggregatetimeestimate:
+        type: integer
+      aggregatetimeoriginalestimate:
+        type: integer
+      aggregatetimespent:
+        type: integer
+      assignee:
+        $ref: '#/definitions/jira.User'
+      attachment:
+        items:
+          $ref: '#/definitions/jira.Attachment'
+        type: array
+      comment:
+        $ref: '#/definitions/jira.Comments'
+      components:
+        items:
+          $ref: '#/definitions/jira.Component'
+        type: array
+      created:
+        type: string
+      description:
+        type: string
+      duedate:
+        type: string
+      environment:
+        type: string
+      epic:
+        $ref: '#/definitions/jira.Epic'
+      expand:
+        description: |-
+          TODO Missing fields
+               * "workratio": -1,
+               * "lastViewed": null,
+               * "environment": null,
+        type: string
+      fixVersions:
+        items:
+          $ref: '#/definitions/jira.FixVersion'
+        type: array
+      issuelinks:
+        items:
+          $ref: '#/definitions/jira.IssueLink'
+        type: array
+      issuetype:
+        $ref: '#/definitions/jira.IssueType'
+      labels:
+        items:
+          type: string
+        type: array
+      parent:
+        $ref: '#/definitions/jira.Parent'
+      priority:
+        $ref: '#/definitions/jira.Priority'
+      progress:
+        $ref: '#/definitions/jira.Progress'
+      project:
+        $ref: '#/definitions/jira.Project'
+      reporter:
+        $ref: '#/definitions/jira.User'
+      resolution:
+        $ref: '#/definitions/jira.Resolution'
+      resolutiondate:
+        type: string
+      sprint:
+        $ref: '#/definitions/jira.Sprint'
+      status:
+        $ref: '#/definitions/jira.Status'
+      subtasks:
+        items:
+          $ref: '#/definitions/jira.Subtasks'
+        type: array
+      summary:
+        type: string
+      timeestimate:
+        type: integer
+      timeoriginalestimate:
+        type: integer
+      timespent:
+        type: integer
+      timetracking:
+        $ref: '#/definitions/jira.TimeTracking'
+      unknowns:
+        $ref: '#/definitions/tcontainer.MarshalMap'
+      updated:
+        type: string
+      versions:
+        items:
+          $ref: '#/definitions/jira.AffectsVersion'
+        type: array
+      watches:
+        $ref: '#/definitions/jira.Watches'
+      worklog:
+        $ref: '#/definitions/jira.Worklog'
+    type: object
+  jira.IssueLink:
+    properties:
+      comment:
+        $ref: '#/definitions/jira.Comment'
+      id:
+        type: string
+      inwardIssue:
+        $ref: '#/definitions/jira.Issue'
+      outwardIssue:
+        $ref: '#/definitions/jira.Issue'
+      self:
+        type: string
+      type:
+        $ref: '#/definitions/jira.IssueLinkType'
+    type: object
+  jira.IssueLinkType:
+    properties:
+      id:
+        type: string
+      inward:
+        type: string
+      name:
+        type: string
+      outward:
+        type: string
+      self:
+        type: string
+    type: object
+  jira.IssueRenderedFields:
+    properties:
+      comment:
+        $ref: '#/definitions/jira.Comments'
+      created:
+        type: string
+      description:
+        type: string
+      duedate:
+        type: string
+      resolutiondate:
+        description: |-
+          TODO Missing fields
+               * "aggregatetimespent": null,
+               * "workratio": -1,
+               * "lastViewed": null,
+               * "aggregatetimeoriginalestimate": null,
+               * "aggregatetimeestimate": null,
+               * "environment": null,
+        type: string
+      updated:
+        type: string
+    type: object
+  jira.IssueType:
+    properties:
+      avatarId:
+        type: integer
+      description:
+        type: string
+      iconUrl:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      self:
+        type: string
+      subtask:
+        type: boolean
+    type: object
+  jira.Parent:
+    properties:
+      id:
+        type: string
+      key:
+        type: string
+    type: object
+  jira.Priority:
+    properties:
+      description:
+        type: string
+      iconUrl:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      self:
+        type: string
+      statusColor:
+        type: string
+    type: object
+  jira.Progress:
+    properties:
+      percent:
+        type: integer
+      progress:
+        type: integer
+      total:
+        type: integer
+    type: object
+  jira.Project:
+    properties:
+      assigneeType:
+        type: string
+      avatarUrls:
+        $ref: '#/definitions/jira.AvatarUrls'
+      components:
+        items:
+          $ref: '#/definitions/jira.ProjectComponent'
+        type: array
+      description:
+        type: string
+      email:
+        type: string
+      expand:
+        type: string
+      id:
+        type: string
+      issueTypes:
+        items:
+          $ref: '#/definitions/jira.IssueType'
+        type: array
+      key:
+        type: string
+      lead:
+        $ref: '#/definitions/jira.User'
+      name:
+        type: string
+      projectCategory:
+        $ref: '#/definitions/jira.ProjectCategory'
+      roles:
+        additionalProperties:
+          type: string
+        type: object
+      self:
+        type: string
+      url:
+        type: string
+      versions:
+        items:
+          $ref: '#/definitions/jira.Version'
+        type: array
+    type: object
+  jira.ProjectCategory:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      self:
+        type: string
+    type: object
+  jira.ProjectComponent:
+    properties:
+      assignee:
+        $ref: '#/definitions/jira.User'
+      assigneeType:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      isAssigneeTypeValid:
+        type: boolean
+      lead:
+        $ref: '#/definitions/jira.User'
+      name:
+        type: string
+      project:
+        type: string
+      projectId:
+        type: integer
+      realAssignee:
+        $ref: '#/definitions/jira.User'
+      realAssigneeType:
+        type: string
+      self:
+        type: string
+    type: object
+  jira.Resolution:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      self:
+        type: string
+    type: object
+  jira.Sprint:
+    properties:
+      completeDate:
+        type: string
+      endDate:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      originBoardId:
+        type: integer
+      self:
+        type: string
+      startDate:
+        type: string
+      state:
+        type: string
+    type: object
+  jira.Status:
+    properties:
+      description:
+        type: string
+      iconUrl:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      self:
+        type: string
+      statusCategory:
+        $ref: '#/definitions/jira.StatusCategory'
+    type: object
+  jira.StatusCategory:
+    properties:
+      colorName:
+        type: string
+      id:
+        type: integer
+      key:
+        type: string
+      name:
+        type: string
+      self:
+        type: string
+    type: object
+  jira.Subtasks:
+    properties:
+      fields:
+        $ref: '#/definitions/jira.IssueFields'
+      id:
+        type: string
+      key:
+        type: string
+      self:
+        type: string
+    type: object
+  jira.TimeTracking:
+    properties:
+      originalEstimate:
+        type: string
+      originalEstimateSeconds:
+        type: integer
+      remainingEstimate:
+        type: string
+      remainingEstimateSeconds:
+        type: integer
+      timeSpent:
+        type: string
+      timeSpentSeconds:
+        type: integer
+    type: object
+  jira.Transition:
+    properties:
+      fields:
+        additionalProperties:
+          $ref: '#/definitions/jira.TransitionField'
+        type: object
+      id:
+        type: string
+      name:
+        type: string
+      to:
+        $ref: '#/definitions/jira.Status'
+    type: object
+  jira.TransitionField:
+    properties:
+      required:
+        type: boolean
+    type: object
+  jira.User:
+    properties:
+      accountId:
+        type: string
+      accountType:
+        type: string
+      active:
+        type: boolean
+      applicationKeys:
+        items:
+          type: string
+        type: array
+      avatarUrls:
+        $ref: '#/definitions/jira.AvatarUrls'
+      displayName:
+        type: string
+      emailAddress:
+        type: string
+      key:
+        type: string
+      locale:
+        type: string
+      name:
+        type: string
+      self:
+        type: string
+      timeZone:
+        type: string
+    type: object
+  jira.Version:
+    properties:
+      archived:
+        type: boolean
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      projectId:
+        description: Unlike other IDs, this is returned as a number
+        type: integer
+      releaseDate:
+        type: string
+      released:
+        type: boolean
+      self:
+        type: string
+      startDate:
+        type: string
+      userReleaseDate:
+        type: string
+    type: object
+  jira.Watcher:
+    properties:
+      accountId:
+        type: string
+      active:
+        type: boolean
+      displayName:
+        type: string
+      name:
+        type: string
+      self:
+        type: string
+    type: object
+  jira.Watches:
+    properties:
+      isWatching:
+        type: boolean
+      self:
+        type: string
+      watchCount:
+        type: integer
+      watchers:
+        items:
+          $ref: '#/definitions/jira.Watcher'
+        type: array
+    type: object
+  jira.Worklog:
+    properties:
+      maxResults:
+        type: integer
+      startAt:
+        type: integer
+      total:
+        type: integer
+      worklogs:
+        items:
+          $ref: '#/definitions/jira.WorklogRecord'
+        type: array
+    type: object
+  jira.WorklogRecord:
+    properties:
+      author:
+        $ref: '#/definitions/jira.User'
+      comment:
+        type: string
+      created:
+        type: string
+      id:
+        type: string
+      issueId:
+        type: string
+      properties:
+        items:
+          $ref: '#/definitions/jira.EntityProperty'
+        type: array
+      self:
+        type: string
+      started:
+        type: string
+      timeSpent:
+        type: string
+      timeSpentSeconds:
+        type: integer
+      updateAuthor:
+        $ref: '#/definitions/jira.User'
+      updated:
+        type: string
+    type: object
+  prow.GitRepositoryRequest:
+    properties:
+      git_organization:
+        type: string
+      repository_name:
+        type: string
+    type: object
+  repositories.GitRepositoryRequest:
+    properties:
+      artifacts:
+        items:
+          type: string
+        type: array
+      git_organization:
+        type: string
+      jobs:
+        $ref: '#/definitions/repositories.JobSpec'
+      repository_name:
+        type: string
+    type: object
+  repositories.GithubActionsSpec:
+    properties:
+      monitor:
+        type: boolean
+    type: object
+  repositories.JobSpec:
+    properties:
+      github_actions:
+        $ref: '#/definitions/repositories.GithubActionsSpec'
+      openshift_ci:
+        $ref: '#/definitions/repositories.OpenshiftCISpec'
+    type: object
+  repositories.OpenshiftCISpec:
+    properties:
+      monitor:
+        type: boolean
+    type: object
+  storage.Coverage:
+    properties:
+      coverage_percentage:
+        type: number
+      git_organization:
+        type: string
+      repository_name:
+        description: RepositoryName identify an github repository
+        type: string
+    type: object
+  storage.GithubWorkflows:
+    properties:
+      badge_url:
+        type: string
+      html_url:
+        type: string
+      job_url:
+        type: string
+      state:
+        type: string
+      workflow_name:
+        description: RepositoryName identify an github repository
+        type: string
+    type: object
+  storage.RepositoryQualityInfo:
+    properties:
+      code_coverage:
+        $ref: '#/definitions/storage.Coverage'
+      description:
+        type: string
+      git_organization:
+        type: string
+      git_url:
+        type: string
+      github_actions:
+        description: Coverage
+        items:
+          $ref: '#/definitions/storage.GithubWorkflows'
+        type: array
+      repository_name:
+        description: RepositoryName identify an github repository
+        type: string
+    type: object
+  tcontainer.MarshalMap:
+    additionalProperties: true
+    type: object
+  types.ErrorResponse:
+    properties:
+      message:
+        description: |-
+          The error message.
+          Required: true
+        type: string
+      statusCode:
+        description: |-
+          The error message.
+          Required: false
+        type: integer
+    type: object
+  types.SuccessResponse:
+    properties:
+      message:
+        description: |-
+          The message.
+          Required: true
+        type: string
+      statusCode:
+        description: |-
+          The error message.
+          Required: false
+        type: integer
+    type: object
+  version.Version:
+    properties:
+      apiMaturity:
+        type: string
+      buildDate:
+        type: string
+      gitCommit:
+        type: string
+      goArch:
+        type: string
+      goOs:
+        type: string
+      goVersion:
+        type: string
+      serverAPIVersion:
+        type: string
+    type: object
+host: 127.0.0.1:9898
+info:
+  contact:
+    name: Source Code
+    url: https://github.com/redhat-appstudio/quality-studio
+  description: Go microservice API for Quality Studio Server.
+  license:
+    name: MIT License
+    url: https://github.com/redhat-appstudio/quality-studio/blob/main/LICENSE
+  title: Quality Studio API
+  version: v1alpha
+paths:
+  /jira/bugs/e2e:
+    get:
+      description: returns a list of jira issues which contain the label appstudio-e2e-tests-known-issues
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/jira.Issue'
+            type: array
+      summary: Jira API Info
+      tags:
+      - Jira API Info
+  /prow/results/get:
+    get:
+      consumes:
+      - application/json
+      description: returns all prow jobs related to git_organization and repository_name
+      parameters:
+      - description: repository name
+        in: body
+        name: repository
+        required: true
+        schema:
+          $ref: '#/definitions/prow.GitRepositoryRequest'
+      - description: git_organization
+        in: body
+        name: organization
+        required: true
+        schema:
+          $ref: '#/definitions/prow.GitRepositoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: Object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Prow Jobs info
+      tags:
+      - Prow Jobs info
+  /prow/results/latest/get:
+    get:
+      consumes:
+      - application/json
+      description: returns all prow jobs related to git_organization and repository_name
+      parameters:
+      - description: repository name
+        in: body
+        name: repository
+        required: true
+        schema:
+          $ref: '#/definitions/prow.GitRepositoryRequest'
+      - description: git_organization
+        in: body
+        name: organization
+        required: true
+        schema:
+          $ref: '#/definitions/prow.GitRepositoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: Object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Prow Jobs info
+      tags:
+      - Prow Jobs info
+  /prow/results/post:
+    post:
+      consumes:
+      - application/json
+      description: returns all prow jobs information stored in database
+      parameters:
+      - description: repository name
+        in: body
+        name: repository_name
+        required: true
+        schema:
+          $ref: '#/definitions/prow.GitRepositoryRequest'
+      - description: repository name
+        in: body
+        name: git_organization
+        required: true
+        schema:
+          $ref: '#/definitions/prow.GitRepositoryRequest'
+      - description: repository name
+        in: body
+        name: job_id
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: Object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Prow Jobs info
+      tags:
+      - Prow Jobs info
+  /repositories/create:
+    post:
+      consumes:
+      - application/json
+      description: returns the Server information as a JSON
+      parameters:
+      - description: repository name
+        in: body
+        name: repository
+        required: true
+        schema:
+          $ref: '#/definitions/repositories.GitRepositoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Github repositories info
+      tags:
+      - Github Repositories API
+  /repositories/delete:
+    delete:
+      description: delete a given repository from a organization
+      parameters:
+      - description: repository name
+        in: body
+        name: repository
+        required: true
+        schema:
+          $ref: '#/definitions/repositories.GitRepositoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Github repositories info
+      tags:
+      - Github Repositories API
+  /repositories/list:
+    get:
+      consumes:
+      - application/json
+      description: returns all repository information stored in database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/storage.RepositoryQualityInfo'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Github repositories info
+      tags:
+      - Github Repositories API
+  /server/info:
+    get:
+      consumes:
+      - application/json
+      description: returns the Server information as a JSON
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/version.Version'
+      summary: API Server info
+      tags:
+      - Server API
+  /workflows/get:
+    get:
+      description: return github workflows from a given repository
+      parameters:
+      - description: string example
+        example: string
+        in: query
+        name: repository_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/storage.GithubWorkflows'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Quality Repositories Workflow
+      tags:
+      - Github Workflows API
+schemes:
+- http
+- https
+swagger: "2.0"

@@ -10,13 +10,11 @@ import {
   PageHeader,
   PageSidebar,
   SkipToContent,
-  PageHeaderTools,
-  Button
+  PageSection,
 } from '@patternfly/react-core';
 import { routes, IAppRoute, IAppRouteGroup } from '@app/routes';
 import logo from '@app/bgimages/Logo-RedHat-A-Reverse-RGB.svg';
-import {  SignOutAltIcon } from '@patternfly/react-icons';
-
+import { BasicMasthead } from '@app/Teams/TeamsSelect';
 
 interface IAppLayout {
   children: React.ReactNode;
@@ -55,25 +53,11 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
       <img onClick={handleClick} style={{height: '32px'}}  src={logo} alt="Red Hat logo" />
     );
   }
-  
-  function HeaderTools() {
-    const history = useHistory();
-    function Log_out(){
-      history.push('/oauth/sign_out');
-      window.location.reload();
-    }
-    return (
-      <PageHeaderTools>
-    <Button onClick={Log_out} variant="link" icon={<SignOutAltIcon />} iconPosition="right">
-      Log out
-    </Button></PageHeaderTools>
-    );
-}
 
   const Header = (
     <PageHeader
       logo={<LogoImg />}
-      headerTools={<HeaderTools/>}
+      headerTools={<BasicMasthead></BasicMasthead>}
       showNavToggle
       isNavOpen={isNavOpen}
       onNavToggle={isMobileView ? onNavToggleMobile : onNavToggle}
@@ -129,14 +113,16 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
       Skip to Content
     </SkipToContent>
   );
+
   return (
     <Page
       mainContainerId={pageId}
       header={Header}
       sidebar={Sidebar}
       onPageResize={onPageResize}
-      skipToContent={PageSkipToContent}>
-      {children}
+      skipToContent={PageSkipToContent}
+    >
+    {children}
     </Page>
   );
 }

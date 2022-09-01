@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/repository"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/workflows"
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 )
 
 // Workflows is the model entity for the Workflows schema.

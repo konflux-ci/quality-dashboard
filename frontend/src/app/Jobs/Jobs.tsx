@@ -41,7 +41,8 @@ export const JobsComponent: React.FunctionComponent = () => {
   const [repos, setRepositories] = useState([])
 
   useEffect(()=> {
-    getRepositories().then((res) => {
+    clearAll()
+    getRepositories(5, state.Team).then((res) => {
       if(res.code === 200) {
           const result = res.data;
           dispatch({ type: "SET_REPOSITORIES", data: result });
@@ -50,10 +51,16 @@ export const JobsComponent: React.FunctionComponent = () => {
           dispatch({ type: "SET_ERROR", data: res });
       }
     });
-  }, [repos, setRepositories, dispatch])
+  }, [repos, setRepositories, dispatch, state.Team])
 
   function onToggle(_event: any, isOpen: boolean) {
     setOpen(isOpen);
+  }
+
+  function clearAll(){
+    setWorkflows([])
+    setSearchValue('')
+    setSelected('default')
   }
 
   function getworkflows(repo) {

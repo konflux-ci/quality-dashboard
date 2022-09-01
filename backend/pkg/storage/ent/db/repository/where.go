@@ -5,8 +5,8 @@ package repository
 import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/predicate"
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 )
 
 // ID filters vertices based on their ID field.
@@ -564,6 +564,34 @@ func GitURLContainsFold(v string) predicate.Repository {
 	})
 }
 
+// HasRepositories applies the HasEdge predicate on the "repositories" edge.
+func HasRepositories() predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RepositoriesTable, TeamsFieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RepositoriesTable, RepositoriesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasRepositoriesWith applies the HasEdge predicate on the "repositories" edge with a given conditions (other predicates).
+func HasRepositoriesWith(preds ...predicate.Teams) predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(RepositoriesInverseTable, TeamsFieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, RepositoriesTable, RepositoriesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasWorkflows applies the HasEdge predicate on the "workflows" edge.
 func HasWorkflows() predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
@@ -611,6 +639,62 @@ func HasCodecovWith(preds ...predicate.CodeCov) predicate.Repository {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(CodecovInverseTable, CodeCovFieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, CodecovTable, CodecovColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasProwSuites applies the HasEdge predicate on the "prow_suites" edge.
+func HasProwSuites() predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ProwSuitesTable, ProwSuitesFieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ProwSuitesTable, ProwSuitesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProwSuitesWith applies the HasEdge predicate on the "prow_suites" edge with a given conditions (other predicates).
+func HasProwSuitesWith(preds ...predicate.ProwSuites) predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ProwSuitesInverseTable, ProwSuitesFieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ProwSuitesTable, ProwSuitesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasProwJobs applies the HasEdge predicate on the "prow_jobs" edge.
+func HasProwJobs() predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ProwJobsTable, ProwJobsFieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ProwJobsTable, ProwJobsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProwJobsWith applies the HasEdge predicate on the "prow_jobs" edge with a given conditions (other predicates).
+func HasProwJobsWith(preds ...predicate.ProwJobs) predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ProwJobsInverseTable, ProwJobsFieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ProwJobsTable, ProwJobsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

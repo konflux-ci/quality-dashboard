@@ -11,10 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/predicate"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/repository"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/workflows"
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 )
 
 // WorkflowsQuery is the builder for querying Workflows entities.
@@ -300,7 +300,6 @@ func (wq *WorkflowsQuery) WithWorkflows(opts ...func(*RepositoryQuery)) *Workflo
 //		GroupBy(workflows.FieldWorkflowID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
-//
 func (wq *WorkflowsQuery) GroupBy(field string, fields ...string) *WorkflowsGroupBy {
 	group := &WorkflowsGroupBy{config: wq.config}
 	group.fields = append([]string{field}, fields...)
@@ -325,7 +324,6 @@ func (wq *WorkflowsQuery) GroupBy(field string, fields ...string) *WorkflowsGrou
 //	client.Workflows.Query().
 //		Select(workflows.FieldWorkflowID).
 //		Scan(ctx, &v)
-//
 func (wq *WorkflowsQuery) Select(fields ...string) *WorkflowsSelect {
 	wq.fields = append(wq.fields, fields...)
 	return &WorkflowsSelect{WorkflowsQuery: wq}
@@ -486,9 +484,6 @@ func (wq *WorkflowsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if wq.sql != nil {
 		selector = wq.sql
 		selector.Select(selector.Columns(columns...)...)
-	}
-	if wq.unique != nil && *wq.unique {
-		selector.Distinct()
 	}
 	for _, p := range wq.predicates {
 		p(selector)

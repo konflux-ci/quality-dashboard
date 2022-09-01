@@ -11,10 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/codecov"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/predicate"
-	"github.com/flacatus/qe-dashboard-backend/pkg/storage/ent/db/repository"
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
 // CodeCovQuery is the builder for querying CodeCov entities.
@@ -300,7 +300,6 @@ func (ccq *CodeCovQuery) WithCodecov(opts ...func(*RepositoryQuery)) *CodeCovQue
 //		GroupBy(codecov.FieldRepositoryName).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
-//
 func (ccq *CodeCovQuery) GroupBy(field string, fields ...string) *CodeCovGroupBy {
 	group := &CodeCovGroupBy{config: ccq.config}
 	group.fields = append([]string{field}, fields...)
@@ -325,7 +324,6 @@ func (ccq *CodeCovQuery) GroupBy(field string, fields ...string) *CodeCovGroupBy
 //	client.CodeCov.Query().
 //		Select(codecov.FieldRepositoryName).
 //		Scan(ctx, &v)
-//
 func (ccq *CodeCovQuery) Select(fields ...string) *CodeCovSelect {
 	ccq.fields = append(ccq.fields, fields...)
 	return &CodeCovSelect{CodeCovQuery: ccq}
@@ -486,9 +484,6 @@ func (ccq *CodeCovQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if ccq.sql != nil {
 		selector = ccq.sql
 		selector.Select(selector.Columns(columns...)...)
-	}
-	if ccq.unique != nil && *ccq.unique {
-		selector.Distinct()
 	}
 	for _, p := range ccq.predicates {
 		p(selector)

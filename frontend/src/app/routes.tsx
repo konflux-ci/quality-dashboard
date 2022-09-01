@@ -5,10 +5,11 @@ import { Dashboard } from '@app/Dashboard/Dashboard';
 import { Support } from '@app/Support/Support';
 import { GeneralSettings } from '@app/Settings/General/GeneralSettings';
 import { ProfileSettings } from '@app/Settings/Profile/ProfileSettings';
-import { NotFound } from '@app/NotFound/NotFound';
 import { useDocumentTitle } from '@app/utils/useDocumentTitle';
 import { LastLocationProvider, useLastLocation } from 'react-router-last-location';
 import { JobsComponent } from './Jobs/Jobs';
+import { Teams } from '@app/Teams/Teams';
+import { Context } from '@app/store/store';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -39,46 +40,34 @@ const routes: AppRouteConfig[] = [
         exact: true,
         label: 'Overview',
         path: '/home/overview',
-        title: 'Quality Dashboard | Overview',
+        title: 'Quality Studio | Overview',
       },
+      {
+        component: Teams,
+        exact: true,
+        isAsync: true,
+        label: 'Teams',
+        path: '/home/teams',
+        title: 'Quality Studio | Teams',
+      }
     ],
-  },
-
-  {
-    component: JobsComponent,
-    exact: true,
-    isAsync: true,
-    label: 'CI Jobs',
-    path: '/ci/jobs',
-    title: 'PatternFly Seed | Support Page',
   },
   {
     component: Support,
     exact: true,
     isAsync: true,
-    label: 'Tests Reports',
+    label: 'Openshift CI',
     path: '/reports/test',
-    title: 'PatternFly Seed | Support Page',
+    title: 'Quality Studio | Openshift CI',
   },
   {
-    label: 'Settings',
-    routes: [
-      {
-        component: GeneralSettings,
-        exact: true,
-        label: 'General',
-        path: '/settings/general',
-        title: 'PatternFly Seed | General Settings',
-      },
-      {
-        component: ProfileSettings,
-        exact: true,
-        label: 'Profile',
-        path: '/settings/profile',
-        title: 'PatternFly Seed | Profile Settings',
-      },
-    ],
-  },
+    component: JobsComponent,
+    exact: true,
+    isAsync: true,
+    label: 'Github Actions',
+    path: '/ci/jobs',
+    title: 'Quality Studio | Github Actions',
+  }
 ];
 
 // a custom hook for sending focus to the primary content container
@@ -103,7 +92,6 @@ const RouteWithTitleUpdates = ({ component: Component, isAsync = false, title, .
   function routeWithTitle(routeProps: RouteComponentProps) {
     return <Component {...rest} {...routeProps} />;
   }
-
   return <Route render={routeWithTitle} {...rest}/>;
 };
 
@@ -112,7 +100,20 @@ const flattenedRoutes: IAppRoute[] = routes.reduce(
   [] as IAppRoute[]
 );
 
-const AppRoutes = (): React.ReactElement => (
+const AppRoutes = (): React.ReactElement => {
+  const { state } = React.useContext(Context)
+  const [TeamsNotSet, setTeamsNotSet] = React.useState(false)
+
+  React.useEffect(() => {
+    if(state.Team == undefined || state.Team == "Select Team" || state.Team == ""){
+      setTeamsNotSet(true)
+    } else {
+      setTeamsNotSet(false)
+    }
+  }, [location.pathname, state.Team]);
+
+
+  return (
   <LastLocationProvider>
     <Switch>
       {flattenedRoutes.map(({ path, exact, component, title, isAsync }, idx) => (
@@ -128,6 +129,6 @@ const AppRoutes = (): React.ReactElement => (
       <Redirect from='/' to='/home/overview'  /> 
     </Switch>
   </LastLocationProvider>
-);
+)};
 
 export { AppRoutes, routes };

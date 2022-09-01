@@ -9,7 +9,7 @@ var textSchema = map[string]string{
 }
 
 var intSchema = map[string]string{
-	dialect.Postgres: "decimal",
+	dialect.Postgres: "numeric",
 }
 
 var timeSchema = map[string]string{

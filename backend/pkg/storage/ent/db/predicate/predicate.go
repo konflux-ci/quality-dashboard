@@ -9,8 +9,17 @@ import (
 // CodeCov is the predicate function for codecov builders.
 type CodeCov func(*sql.Selector)
 
+// ProwJobs is the predicate function for prowjobs builders.
+type ProwJobs func(*sql.Selector)
+
+// ProwSuites is the predicate function for prowsuites builders.
+type ProwSuites func(*sql.Selector)
+
 // Repository is the predicate function for repository builders.
 type Repository func(*sql.Selector)
+
+// Teams is the predicate function for teams builders.
+type Teams func(*sql.Selector)
 
 // Workflows is the predicate function for workflows builders.
 type Workflows func(*sql.Selector)
