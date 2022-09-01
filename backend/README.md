@@ -7,7 +7,7 @@ Server API solution to talk with quality dashboard.
 * Use swaggo to create a specific swagger for all server served endpoints
 # Setup
 
-A proper setup Go workspace using **Go 1.17+ is required**.
+A proper setup Go workspace using **Go 1.19+ is required**.
 
 Install dependencies:
 ```
@@ -25,3 +25,4 @@ Environments used by the server:
 | -- | -- | -- | -- |
 | `GITHUB_TOKEN` | Github token to make requests | `` | yes |
 | `CODECOV_TOKEN` | CodeCov token to make requests | `` | no |
+| `JIRA_TOKEN` | Jira token to read jira issues | yes | --jira-token xxxxx |
