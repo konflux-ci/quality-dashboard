@@ -16,6 +16,7 @@ import { Context } from '@app/store/store';
 import { useHistory } from 'react-router-dom';
 import { teamIsNotEmpty } from '@app/utils/utils';
 import ArrowRightIcon from '@patternfly/react-icons/dist/esm/icons/arrow-right-icon';
+import { SignOutAltIcon } from '@patternfly/react-icons';
 
 export interface ITeam {
   id: string
@@ -36,6 +37,10 @@ export const BasicMasthead = () => {
     setDropdownOpen(!isDropdownOpen)
     dispatch({ type: "SET_TEAM", data:  event.target.dataset.value });
   };
+  function Log_out(){
+      history.push('/oauth/sign_out');
+      window.location.reload();
+  }
 
   const dropdownItems = state.TeamsAvailable.map((team) => <DropdownItem key={team.id} data-value={team.team_name}>{team.team_name}</DropdownItem> )
 
@@ -64,6 +69,9 @@ export const BasicMasthead = () => {
               </ToolbarGroup>
             </ToolbarContent>
           </Toolbar>
+          <Button onClick={Log_out} variant="link" icon={<SignOutAltIcon />} iconPosition="right">
+            Log out
+          </Button>
         </MastheadContent>
       </Masthead>
     );

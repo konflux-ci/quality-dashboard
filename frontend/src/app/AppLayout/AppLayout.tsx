@@ -1,4 +1,5 @@
-import * as React from 'react';
+
+import React, { useEffect } from 'react';
 import { NavLink, useLocation, useHistory } from 'react-router-dom';
 import {
   Nav,
@@ -13,16 +14,19 @@ import {
 } from '@patternfly/react-core';
 import { routes, IAppRoute, IAppRouteGroup } from '@app/routes';
 import logo from '@app/bgimages/Logo-RedHat-A-Reverse-RGB.svg';
-import {BasicMasthead} from '@app/Teams/TeamsSelect'
+import { BasicMasthead } from '@app/Teams/TeamsSelect';
 
 interface IAppLayout {
   children: React.ReactNode;
 }
 
 const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
+  const locationHistory = useLocation();
+  const history = useHistory();
   const [isNavOpen, setIsNavOpen] = React.useState(true);
   const [isMobileView, setIsMobileView] = React.useState(true);
   const [isNavOpenMobile, setIsNavOpenMobile] = React.useState(false);
+ 
   const onNavToggleMobile = () => {
     setIsNavOpenMobile(!isNavOpenMobile);
   };
@@ -32,6 +36,13 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
   const onPageResize = (props: { mobileView: boolean; windowSize: number }) => {
     setIsMobileView(props.mobileView);
   };
+
+  useEffect(()=>{
+    console.log(locationHistory.pathname)
+    if(locationHistory.pathname === '/'){
+      history.push('/home/overview');
+    }
+  },[])
 
   function LogoImg() {
     const history = useHistory();
