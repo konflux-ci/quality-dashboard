@@ -1,5 +1,5 @@
 import React, {createContext, Dispatch, useReducer} from "react";
-import Reducer, {StateContext} from './reducer'
+import rootReducer, {StateContext} from './reducer'
 import { getTeams } from '@app/utils/APIService';
 
 interface IContextProps {
