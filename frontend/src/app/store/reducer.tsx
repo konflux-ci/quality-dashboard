@@ -1,15 +1,7 @@
 import { ITeam } from '@app/Teams/TeamsSelect'
-import { reduceRight } from 'lodash';
-import { combineReducers } from "redux";
-
-const rootReducer = combineReducers({
-    generalReducer,
-    jirasReducer,
-    repositoriesReducer,
-    alertsReducer,
-    teamsReducer
-});
-
+import { initial, reduceRight } from 'lodash';
+import { combineReducers } from 'redux';
+import { initialState } from './store';
 
 
 export interface StateContext {
@@ -24,6 +16,14 @@ export interface StateContext {
     Team: string;
     TeamsAvailable: ITeam[]
 }
+
+export const rootReducer = combineReducers({
+    general: generalReducer,
+    jira: jirasReducer,
+    repo: repositoriesReducer,
+    alert: alertsReducer,
+    team: teamsReducer
+});
 
 function generalReducer(state, action) {
     switch (action.type) {
@@ -47,10 +47,10 @@ function generalReducer(state, action) {
                 ...state,
                 error: action.data
             };
-        
-        default: return action.type;
+
+        default: return action;
     };
-    
+
 };
 function jirasReducer(state, action) {
     switch (action.type) {
@@ -59,7 +59,7 @@ function jirasReducer(state, action) {
                 ...state,
                 E2E_KNOWN_ISSUES: action.data
             };
-        default: return action.type
+        default: return action;
     }
 };
 
@@ -70,13 +70,12 @@ function repositoriesReducer(state, action) {
                 ...state,
                 repositories: action.data
             };
-
         case 'SET_REPOSITORIES_ALL':
             return {
                 ...state,
                 Allrepositories: action.data
             };
-        default: return action.type;
+        default: return action;
     }
 };
 
@@ -92,33 +91,28 @@ function alertsReducer(state, action) {
                 ...state,
                 alerts: state.alerts.filter(el => el.key !== action.data)
             };
-        default: return action.type;
-
-
+        default: return action;
     }
-    
 };
 
-function teamsReducer(state, action){
+function teamsReducer(state, action) {
     switch (action.type) {
         case 'SET_TEAM':
-        return {
-            ...state,
-            Team: action.data
-        };
-    case 'SET_TEAMS_AVAILABLE':
-        return {
-            ...state,
-            TeamsAvailable: action.data
-        };
-
-    case 'SET_TEAMS_AVAIBALE':
-        return {
-            ...state,
-            Team: action.data
-        };
-    
-    default: return action.type;
+            return {
+                ...state,
+                Team: action.data
+            };
+        case 'SET_TEAMS_AVAILABLE':
+            return {
+                ...state,
+                TeamsAvailable: action.data
+            };
+        case 'SET_TEAMS_AVAIBALE':
+            return {
+                ...state,
+                Team: action.data
+            };
+        default: return action;
     }
 };
 

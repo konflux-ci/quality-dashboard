@@ -1,13 +1,16 @@
 import React, {createContext, Dispatch, useReducer} from "react";
 import rootReducer, {StateContext} from './reducer'
 import { getTeams } from '@app/utils/APIService';
+import { configureStore } from '@reduxjs/toolkit'
+
 
 interface IContextProps {
     state: StateContext;
     dispatch: ({type}:{type:string, data: any}) => void;
-  }
+}
 
-const initialState = {
+
+export const initialState = {
     APIData: [],
     E2E_KNOWN_ISSUES: [],
     error: 'error',
@@ -18,6 +21,10 @@ const initialState = {
     Team: "",
     TeamsAvailable: []
 };
+
+export let storeConfig = configureStore({ 
+    reducer: rootReducer
+})
 
 export const Context = React.createContext({} as IContextProps);
 
@@ -32,9 +39,9 @@ const Store = ({children}) => {
     }, []);
 
     const [state, dispatch] = useReducer(rootReducer, initialState);
-    const value = { state, dispatch };
+    const val = { state, dispatch };
     return (
-        <Context.Provider value={value}>
+        <Context.Provider value={val}>
             {children}
         </Context.Provider>
     )
