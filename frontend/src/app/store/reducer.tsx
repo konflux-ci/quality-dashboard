@@ -1,7 +1,9 @@
-import { ITeam } from '@app/Teams/TeamsSelect'
+import { ITeam } from '@app/Teams/TeamsSelect';
 import { initial, reduceRight } from 'lodash';
 import { combineReducers } from 'redux';
-import { initialState } from './store';
+//import { initialState } from './store';
+import { Reducer } from 'react';
+import { configureStore } from '@reduxjs/toolkit';
 
 
 export interface StateContext {
@@ -15,17 +17,9 @@ export interface StateContext {
     Allrepositories: [];
     Team: string;
     TeamsAvailable: ITeam[]
-}
+};
 
-export const rootReducer = combineReducers({
-    general: generalReducer,
-    jira: jirasReducer,
-    repo: repositoriesReducer,
-    alert: alertsReducer,
-    team: teamsReducer
-});
-
-function generalReducer(state, action) {
+const generalReducer = (state, action) => {
     switch (action.type) {
         case 'APIData':
             return {
@@ -52,7 +46,8 @@ function generalReducer(state, action) {
     };
 
 };
-function jirasReducer(state, action) {
+
+const jirasReducer = (state, action) => {
     switch (action.type) {
         case 'SET_JIRAS':
             return {
@@ -63,7 +58,7 @@ function jirasReducer(state, action) {
     }
 };
 
-function repositoriesReducer(state, action) {
+const repositoriesReducer = (state, action) => {
     switch (action.type) {
         case 'SET_REPOSITORIES':
             return {
@@ -79,7 +74,7 @@ function repositoriesReducer(state, action) {
     }
 };
 
-function alertsReducer(state, action) {
+const alertsReducer = (state, action) => {
     switch (action.type) {
         case 'ADD_Alert':
             return {
@@ -95,7 +90,7 @@ function alertsReducer(state, action) {
     }
 };
 
-function teamsReducer(state, action) {
+const teamsReducer = (state, action) => {
     switch (action.type) {
         case 'SET_TEAM':
             return {
@@ -116,5 +111,20 @@ function teamsReducer(state, action) {
     }
 };
 
+export const rootReducer = combineReducers({
+    general : generalReducer,
+    jira: jirasReducer,
+    repo: repositoriesReducer,
+    alert: alertsReducer,
+    team: teamsReducer
+});
+
+    
+
+
+//const store = createStore(rootReducer)
 export default rootReducer;
 
+
+
+    
