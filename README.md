@@ -26,6 +26,7 @@ Different specific connectors are developed to pull data from different sources:
 * Github connector: to pull data from github, such as repositories information and actions status
 * Codecov connector: to pull code coverage data from Codecov
 * ProwJobs connector: to pull automatically data about prow jobs executions impacting the repositories 
+* Jira connector: to pull issues from Jira
 
 The database will retain last 10 days of CI job executions. 
 
