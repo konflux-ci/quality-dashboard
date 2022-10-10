@@ -103,11 +103,18 @@ First, you need to have a PostgreSQL instance running to host local data. You ca
 
 After that, you need to build the backend binaries. To do that you can follow the backend [instructions](./backend/README.md).
 
-Once built, run the backend server in a terminal with the arguments listed above (or export them as envirnoment variables, if you prefer): 
+Once built, run the backend server in a terminal: 
 ```bash
     # from the backend folder
-    ./bin/server-runtime --github-token <ghp_xxxxx>  --jira-token <token> --storage-user <user> --storage-password <password>
+    ./bin/server-runtime
 ```
+If you specified some different values for the database container, you can override the default values by exporting the following environment variables:
+* `POSTGRES_ENT_HOST`
+* `POSTGRES_ENT_PORT`
+* `POSTGRES_ENT_DATABASE`
+* `POSTGRES_ENT_USER`
+* `POSTGRES_ENT_PASSWORD`
+* `GITHUB_TOKEN`
 
 The server runtime will take care of initializing the database structure and pull the data.
 
