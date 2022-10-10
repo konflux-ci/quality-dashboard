@@ -35,7 +35,7 @@ Different specific connectors are developed to pull data from different sources:
 The database will retain last 10 days of CI job executions. 
 
 ##### About entgo framewrok
-Ent is an Object Relational Mapping (ORM) framework for modeling any database schema as Go objects. The only thing you need is define a schema and Ent will handle the rest. Your schema will be validated first, then Ent will generate a well-typed and idiomatic API.
+Ent is an Object Relational Mapping (ORM) framework for modeling any database schema as Go objects. The only thing you need to do is to define a schema and Ent will handle the rest. Your schema will be validated first, then Ent will generate a well-typed and idiomatic API.
 The generated API is used to manage the data and will contain:
 * Client objects used to interact with the database
 * CRUD builders for each schema type
@@ -44,6 +44,7 @@ The generated API is used to manage the data and will contain:
 You can use such generated code to build your endopints and manipulate the database in an easy and programmatic way. 
 
 The schema for Quality Dashboard data types is located [here](https://github.com/redhat-appstudio/quality-dashboard/tree/main/backend/pkg/storage/ent/schema). You can refer to entgo [documentation](https://entgo.io/docs/schema-def) for syntax details. 
+
 After adding new data types to the schema (or editing the existing ones), you have to execute the following command in `backend/pkg/storage/ent` to re-build the model:
 
 ```
@@ -51,8 +52,11 @@ go run -mod=mod entgo.io/ent/cmd/ent generate ./schema --target ./db
 ```
 
 The generated code will be saved into the `backend/pkg/storage/ent/db` folder.
+
 The `backend/pkg/storage/ent/client` package implements the database client used to interact with the database. 
+
 In turn, the database client package implements the storage interface used by the server.
+
 
 ##### APIs
 The backend server exposes a set of APIs to interact with data. The implementation of the API server is located at `backend/api` and uses a basic HTTP router configuration. 
@@ -99,13 +103,14 @@ First, you need to have a PostgreSQL instance running to host local data. You ca
 
 After that, you need to build the backend binaries. To do that you can follow the backend [instructions](./backend/README.md).
 
-Once built, run the backend server in a terminal: 
+Once built, run the backend server in a terminal with the arguments listed above (or export them as envirnoment variables, if you prefer): 
 ```bash
     # from the backend folder
-    ./bin/server-runtime
+    ./bin/server-runtime --github-token <ghp_xxxxx>  --jira-token <token> --storage-user <user> --storage-password <password>
 ```
 
-The server runtime will take care of initializing the database structure and pull the data. 
+The server runtime will take care of initializing the database structure and pull the data.
+
 
 ##### Frontend
 
