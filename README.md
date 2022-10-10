@@ -1,6 +1,8 @@
 # Quality Dashboard
 1. [Purpose](#purpose)
 2. [Specifications](#ppecifications)
+    * [Backend](#backend)
+    * [Frontend](#frontend)
 3. [Install](#installation)
     * [Install locally](#install-quality-dashboard-locally)
 4. [Connectors and features](#connectors-and-features)
@@ -21,7 +23,9 @@ The purpose of the quality dashboard is to collect the status of AppStudio servi
 
 # Specifications
 
+## Backend
 Quality Dashboard implements a Golang-based backed and stores data in a PostgreSQL database, modelled and queried with [entgo](https://entgo.io/) framework.
+
 Different specific connectors are developed to pull data from different sources:
 * Github connector: to pull data from github, such as repositories information and actions status
 * Codecov connector: to pull code coverage data from Codecov
@@ -30,7 +34,32 @@ Different specific connectors are developed to pull data from different sources:
 
 The database will retain last 10 days of CI job executions. 
 
-The frontend uses [patternfly project](https://www.patternfly.org/v4/get-started/develop/).
+##### About entgo framewrok
+Ent is an Object Relational Mapping (ORM) framework for modeling any database schema as Go objects. The only thing you need is define a schema and Ent will handle the rest. Your schema will be validated first, then Ent will generate a well-typed and idiomatic API.
+The generated API is used to manage the data and will contain:
+* Client objects used to interact with the database
+* CRUD builders for each schema type
+* Entity object (Go struct) for each the schema type
+
+You can use such generated code to build your endopints and manipulate the database in an easy and programmatic way. 
+
+The schema for Quality Dashboard data types is located [here](https://github.com/redhat-appstudio/quality-dashboard/tree/main/backend/pkg/storage/ent/schema). You can refer to entgo [documentation](https://entgo.io/docs/schema-def) for syntax details. 
+After adding new data types to the schema (or editing the existing ones), you have to execute the following command in `backend/pkg/storage/ent` to re-build the model:
+
+```
+go run -mod=mod entgo.io/ent/cmd/ent generate ./schema --target ./db
+```
+
+The generated code will be saved into the `backend/pkg/storage/ent/db` folder.
+The `backend/pkg/storage/ent/client` package implements the database client used to interact with the database. 
+In turn, the database client package implements the storage interface used by the server.
+
+##### APIs
+The backend server exposes a set of APIs to interact with data. The implementation of the API server is located at `backend/api` and uses a basic HTTP router configuration. 
+
+## Frontend 
+The frontend component is a React web application that uses [patternfly project](https://www.patternfly.org/v4/get-started/develop/) to build the UI.
+It interacts with the backend via HTTP api endpoints. 
 
 # Install
 
@@ -58,29 +87,42 @@ When running the install script, you need to specify these parameters:
 
 ## Install quality dashboard locally
 
-To install quality dashboard locally (for development purposes):
+To install quality dashboard locally (for development purposes) you will need to run both backend and frontend by your own. 
 
- - Start a postgres instance with your container engine (docker or podman for example
+##### Backend
+
+First, you need to have a PostgreSQL instance running to host local data. You can start one with your favourite container engine (docker or podman)
+
 ```bash
-    <container-engine> run -p 5432:5432 --name some-postgres -e POSTGRES_PASSWORD=postgres -d postgres
+    podman run -p 5432:5432 --name some-postgres -e POSTGRES_PASSWORD=postgres -d postgres
 ```
 
- - Open a new terminal and follow backend [instructions](./backend/README.md) to install binaries.
+After that, you need to build the backend binaries. To do that you can follow the backend [instructions](./backend/README.md).
 
- - Start the backend:
-
+Once built, run the backend server in a terminal: 
 ```bash
-    cd backend # Compile following step 2
+    # from the backend folder
     ./bin/server-runtime
 ```
 
-- Open a new terminal and install the frontend:
+The server runtime will take care of initializing the database structure and pull the data. 
+
+##### Frontend
+
+Open a new terminal, navigate to the frontend folder, install dependencies and run:
 
 ```bash
     cd frontend
-    yarn # to install the dependencies
+    yarn
     yarn start:dev
 ```
+or with npm:
+```bash
+    cd frontend
+    npm install 
+    npm run start:dev
+```
+
 ## Connectors and features
 
 ### Teams
