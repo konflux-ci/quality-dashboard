@@ -119,10 +119,6 @@ export const rootReducer = combineReducers({
     team: teamsReducer
 });
 
-    
-
-
-//const store = createStore(rootReducer)
 export default rootReducer;
 
 

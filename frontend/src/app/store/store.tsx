@@ -1,7 +1,7 @@
 import React, {createContext, Dispatch, useReducer} from "react";
 import rootReducer, {StateContext} from './reducer'
 import { getTeams } from '@app/utils/APIService';
-import { configureStore } from '@reduxjs/toolkit';
+import { $CombinedState, configureStore } from '@reduxjs/toolkit';
 import { Provider, useDispatch } from 'react-redux';
 
 interface IContextProps {
@@ -25,24 +25,26 @@ const initialState = { general : {
 export const Context = React.createContext({} as IContextProps);
 
 const Store = ({children}) => {
-
-    const dispatch = useDispatch();
-    const store = configureStore({reducer:rootReducer, preloadedState : initialState});
     
     React.useEffect(() => {
         
         getTeams().then(data => {
             if( data.data.length > 0){ 
-                dispatch({ type: "SET_TEAM", data:  data.data[0].team_name });
-                dispatch({ type: "SET_TEAMS_AVAILABLE", data:  data.data });
+                store.dispatch({ type: "SET_TEAM", data:  data.data[0].team_name });
+                store.dispatch({ type: "SET_TEAMS_AVAILABLE", data:  data.data });
             }
           }
         )
         
-        const state = store.getState();
-        const value = { state , dispatch };
+        
         
     }, []);
+
+    const dispatch = useDispatch();
+    const store = configureStore({reducer :rootReducer, preloadedState : initialState});
+
+    const state = store.getState();
+    const value = { state , useDispatch };
     
     return (
         <Provider store={store}>
