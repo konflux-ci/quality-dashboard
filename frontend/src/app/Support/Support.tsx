@@ -106,11 +106,11 @@ let Support = () => {
 
   // When component is mounted, get the list of repo and orgs from API and populate the dropdowns
   useEffect( () => {
-    if(state.Team != ""){
+    if(state.teams.Team != ""){
       setRepositories([])
       clearJobType()
       clearRepo()
-      getAllRepositoriesWithOrgs(state.Team)
+      getAllRepositoriesWithOrgs(state.teams.Team)
       .then((data:any) => {
         data.unshift({repoName: "Select a repository", organization: "", isPlaceholder: true}) // Adds placeholder at the beginning of the array, so it will be shown first
         setRepositories(data)
@@ -120,7 +120,7 @@ let Support = () => {
         validateGetProwJob()
       })
     }
-  }, [state.Team]);
+  }, [state.teams.Team]);
 
   // Static list of job types to populate the dropdown
   let jobTypes = [

@@ -105,12 +105,12 @@ const AppRoutes = (): React.ReactElement => {
   const [TeamsNotSet, setTeamsNotSet] = React.useState(false)
 
   React.useEffect(() => {
-    if(state.Team == undefined || state.Team == "Select Team" || state.Team == ""){
+    if(state.teams.Team == undefined || state.teams.Team == "Select Team" || state.teams.Team == ""){
       setTeamsNotSet(true)
     } else {
       setTeamsNotSet(false)
     }
-  }, [location.pathname, state.Team]);
+  }, [location.pathname, state.teams.Team]);
 
 
   return (

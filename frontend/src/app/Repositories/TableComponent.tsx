@@ -68,7 +68,7 @@ export const TableComponent = ({ showCoverage, showDiscription, showTableToolbar
   const [perpage, onperpageset] = useState(10)
   const [repos, setRepositories] = useState<any>([])
   const [page, onPageset] = useState(1)
-  const [allreps, setallreps] = useState<any>(state.Allrepositories);
+  const [allreps, setallreps] = useState<any>(state.repos.Allrepositories);
   const modalContext = useModalContext()
 
   async function deleteRepository(gitOrg: string, repoName: string) {
@@ -347,7 +347,7 @@ export const TableComponent = ({ showCoverage, showDiscription, showTableToolbar
   // End of filters helpers
 
   useEffect(()=> {
-    getRepositories(perpage, state.Team).then((res)=> {
+    getRepositories(perpage, state.teams.Team).then((res)=> {
       if(res.code === 200) {
         const result = res.data;
         setallreps(res.all)
@@ -365,7 +365,7 @@ export const TableComponent = ({ showCoverage, showDiscription, showTableToolbar
           dispatch({ type: "SET_ERROR", data: res });
       }
     })
-  }, [page, perpage, setRepositories, dispatch, state.Team])
+  }, [page, perpage, setRepositories, dispatch, state.teams.Team])
 
   return (
     <React.Fragment>

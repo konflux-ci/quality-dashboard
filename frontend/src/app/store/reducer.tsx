@@ -7,16 +7,25 @@ import { configureStore } from '@reduxjs/toolkit';
 
 
 export interface StateContext {
-    APIData: [];
-    E2E_KNOWN_ISSUES: [];
-    error: string;
-    alerts: [];
-    version: string;
-    repositories: [];
-    workflows: [];
-    Allrepositories: [];
-    Team: string;
-    TeamsAvailable: ITeam[]
+    general : {
+        APIData: [];
+        error: string;
+        workflows: []
+    }, 
+    alerts : {
+        alerts: [];
+        version: string;
+    }, jira : {
+        E2E_KNOWN_ISSUES: [];
+    },
+    repos : {
+        repositories: [];
+        Allrepositories: [];
+    }, 
+    teams : {
+        Team: string;
+        TeamsAvailable: ITeam[];
+    }, 
 };
 
 const generalReducer = (state, action) => {
@@ -42,7 +51,7 @@ const generalReducer = (state, action) => {
                 error: action.data
             };
 
-        default: return action;
+        default: return state || null;
     };
 
 };
@@ -54,7 +63,7 @@ const jirasReducer = (state, action) => {
                 ...state,
                 E2E_KNOWN_ISSUES: action.data
             };
-        default: return action;
+        default: return state || null;
     }
 };
 
@@ -70,7 +79,7 @@ const repositoriesReducer = (state, action) => {
                 ...state,
                 Allrepositories: action.data
             };
-        default: return action;
+        default: return state || null;
     }
 };
 
@@ -86,7 +95,7 @@ const alertsReducer = (state, action) => {
                 ...state,
                 alerts: state.alerts.filter(el => el.key !== action.data)
             };
-        default: return action;
+        default: return state || null;
     }
 };
 
@@ -107,16 +116,16 @@ const teamsReducer = (state, action) => {
                 ...state,
                 Team: action.data
             };
-        default: return action;
+        default: return state || null;
     }
 };
 
 export const rootReducer = combineReducers({
     general : generalReducer,
-    jira: jirasReducer,
-    repo: repositoriesReducer,
-    alert: alertsReducer,
-    team: teamsReducer
+    jiras : jirasReducer,
+    repos : repositoriesReducer,
+    alerts : alertsReducer,
+    teams : teamsReducer
 });
 
 export default rootReducer;

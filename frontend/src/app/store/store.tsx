@@ -1,28 +1,21 @@
-import React, {createContext, Dispatch, useReducer} from "react";
+import React, {createContext, Dispatch, useContext, useReducer} from "react";
 import rootReducer, {StateContext} from './reducer'
 import { getTeams } from '@app/utils/APIService';
 import { $CombinedState, configureStore } from '@reduxjs/toolkit';
 import { Provider, useDispatch } from 'react-redux';
+import { ReactReduxContext } from 'react-redux'
+import { initialState } from './initState'
+
+
 
 interface IContextProps {
     state: StateContext;
     dispatch: ({type}:{type:string, data: any}) => void;
   }
 
-const initialState = { general : {
-        APIData: [],
-        E2E_KNOWN_ISSUES: [],
-        error: 'error',
-        alerts: [],
-        version: '',
-        repositories: [],
-        Allrepositories: [],
-        Team: "",
-        TeamsAvailable: []
-    }
-};
 
 export const Context = React.createContext({} as IContextProps);
+
 
 const Store = ({children}) => {
     
@@ -35,17 +28,12 @@ const Store = ({children}) => {
             }
           }
         )
-        
-        
-        
+        //const { store } = useContext(ReactReduxContext); 
+        const state = store.getState(); 
+
     }, []);
 
-    const dispatch = useDispatch();
-    const store = configureStore({reducer :rootReducer, preloadedState : initialState});
-
-    const state = store.getState();
-    const value = { state , useDispatch };
-    
+    const store = configureStore({reducer :rootReducer, preloadedState : initialState});    
     return (
         <Provider store={store}>
             {children}
@@ -53,5 +41,4 @@ const Store = ({children}) => {
     )
 
 };
-
 export default Store;

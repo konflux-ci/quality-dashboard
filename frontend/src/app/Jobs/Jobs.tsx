@@ -35,14 +35,14 @@ export const JobsComponent: React.FunctionComponent = () => {
   const { state, dispatch } = useContext(Context) 
   const [workflows, setWorkflows] = useState([])
 
-  const repositories: Repository[] = state.Allrepositories
+  const repositories: Repository[] = state.repos.Allrepositories
 
   const [, setFilteredItems] = useState(repositories);
   const [repos, setRepositories] = useState([])
 
   useEffect(()=> {
     clearAll()
-    getRepositories(5, state.Team).then((res) => {
+    getRepositories(5, state.teams.Team).then((res) => {
       if(res.code === 200) {
           const result = res.data;
           dispatch({ type: "SET_REPOSITORIES", data: result });
@@ -51,7 +51,7 @@ export const JobsComponent: React.FunctionComponent = () => {
           dispatch({ type: "SET_ERROR", data: res });
       }
     });
-  }, [repos, setRepositories, dispatch, state.Team])
+  }, [repos, setRepositories, dispatch, state.teams.Team])
 
   function onToggle(_event: any, isOpen: boolean) {
     setOpen(isOpen);
@@ -114,7 +114,7 @@ export const JobsComponent: React.FunctionComponent = () => {
             isOpen={isOpen}
             searchInputValue={searchValue}
             onToggle={onToggle}
-            onSelect={onSelect}
+            //onSelect={onSelect}
             onSearchButtonClick={onSearchButtonClick}
             screenReaderLabel="Selected Project:"
             isPlain

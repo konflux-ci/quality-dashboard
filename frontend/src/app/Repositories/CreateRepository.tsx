@@ -92,7 +92,7 @@ export const FormModal = ()=> {
             }
           },
           artifacts: [],
-          team_name: state.Team
+          team_name: state.teams.Team
         }
         modalContext.handleModalToggle()
         await createRepository(data)
@@ -123,7 +123,7 @@ export const FormModal = ()=> {
           isOpen={modalContext.isModalOpen.value}
           onClose={modalContext.handleModalToggle}
           actions={[
-            <Button key="create" variant="primary" form="modal-with-form-form" onClick={onSubmit} isDisabled={!teamIsNotEmpty(state.Team)}>
+            <Button key="create" variant="primary" form="modal-with-form-form" onClick={onSubmit} isDisabled={!teamIsNotEmpty(state.teams.Team)}>
               { !modalContext.isEditRepo.value ? "Add" : "Update" }
             </Button>,
             <Button key="cancel" variant="link" onClick={modalContext.handleModalToggle}>
@@ -208,13 +208,13 @@ export const FormModal = ()=> {
               />
           </FormGroup>
           <FormGroup label="Team" isRequired isStack hasNoPaddingTop fieldId={''}>
-            { teamIsNotEmpty(state.Team) ? <TextInput
+            { teamIsNotEmpty(state.teams.Team) ? <TextInput
               isReadOnly={true}
               isRequired
               type="text"
               id="modal-with-form-form-team"
               name="modal-with-form-form-team"
-              value={state.Team}
+              value={state.teams.Team}
               /> : 
               <div>
                 <Button onClick={()=>{ history.push("/home/teams") }} type="button" width={300}>Create your first Team</Button>

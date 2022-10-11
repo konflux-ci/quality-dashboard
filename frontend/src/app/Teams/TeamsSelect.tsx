@@ -42,7 +42,7 @@ export const BasicMasthead = () => {
       window.location.reload();
   }
 
-  const dropdownItems = state.TeamsAvailable.map((team) => <DropdownItem key={team.id} data-value={team.team_name}>{team.team_name}</DropdownItem> )
+  const dropdownItems = state.teams.TeamsAvailable.map((team) => <DropdownItem key={team.id} data-value={team.team_name}>{team.team_name}</DropdownItem> )
 
     return (
       <Masthead id="basic-demo">
@@ -55,7 +55,7 @@ export const BasicMasthead = () => {
                     onSelect={onDropdownSelect}
                     toggle={
                       <DropdownToggle id="toggle-id" onToggle={onDropdownToggle} toggleIndicator={CaretDownIcon}>
-                        {state.Team}
+                        {state.teams.Team}
                       </DropdownToggle>
                     }
                     isOpen={isDropdownOpen}
@@ -64,7 +64,7 @@ export const BasicMasthead = () => {
                   />
                 </ToolbarItem>
                 <ToolbarItem visibility={{ default: 'hidden', lg: 'visible' }}>
-                  { !teamIsNotEmpty(state.Team) && <Button style={{verticalAlign: "middle", backgroundColor: "var(--pf-c-button--m-primary--Color)", color: "var(--pf-c-button--m-primary--BackgroundColor)"}} onClick={()=>{ history.push("/home/teams") }} type="button" width={300} variant="primary">Create your first Team <ArrowRightIcon /></Button>}
+                  { !teamIsNotEmpty(state.teams.Team) && <Button style={{verticalAlign: "middle", backgroundColor: "var(--pf-c-button--m-primary--Color)", color: "var(--pf-c-button--m-primary--BackgroundColor)"}} onClick={()=>{ history.push("/home/teams") }} type="button" width={300} variant="primary">Create your first Team <ArrowRightIcon /></Button>}
                 </ToolbarItem>
               </ToolbarGroup>
             </ToolbarContent>
