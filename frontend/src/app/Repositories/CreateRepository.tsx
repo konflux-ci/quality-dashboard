@@ -3,8 +3,9 @@ import { Button, Checkbox, Form, FormGroup, Modal, ModalVariant, Popover, TextAr
 import { HelpIcon } from "@patternfly/react-icons";
 import React, { useContext, SetStateAction, useEffect } from "react";
 import { Context } from '@app/store/store';
-import { teamIsNotEmpty } from '@app/utils/utils'
+import { teamIsNotEmpty } from '@app/utils/utils';
 import { useHistory } from 'react-router-dom';
+import { ReactReduxContext } from 'react-redux';
 
 interface IModalContext {
   isModalOpen: IModalContextMember;
@@ -61,7 +62,9 @@ export const FormModal = ()=> {
     const [monitorGithubActions, setMonitorGithubActions] = React.useState(false);
     const [checked, setChecked] = React.useState('');
   
-    const { state } = useContext(Context)
+    const { store } = useContext(ReactReduxContext);  
+    const state = store.getState();
+    //const dispatch = store.dispatch;  
 
     const handleGitRepositoryInput = value => {
       setGitRepositoryValue(value);

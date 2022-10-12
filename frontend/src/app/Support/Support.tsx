@@ -29,6 +29,7 @@ import {
   DashboardLineChartData
 } from '@app/utils/sharedComponents';
 import { Context } from '@app/store/store';
+import { ReactReduxContext } from 'react-redux';
 
 // eslint-disable-next-line prefer-const
 let Support = () => {
@@ -36,7 +37,10 @@ let Support = () => {
   const [prowVisible, setProwVisible] = useState(false)
   const [loadingState, setloadingState] = useState(false)
   const [alerts, setAlerts] = React.useState<React.ReactNode[]>([]);
-  const { state, dispatch } = useContext(Context)
+
+  const { store } = useContext(ReactReduxContext);  
+  const state = store.getState();
+  
 
   /* 
   Toolbar dropdowns logic and helpers

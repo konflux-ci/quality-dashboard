@@ -1,9 +1,7 @@
 import { ITeam } from '@app/Teams/TeamsSelect';
 import { initial, reduceRight } from 'lodash';
 import { combineReducers } from 'redux';
-//import { initialState } from './store';
-import { Reducer } from 'react';
-import { configureStore } from '@reduxjs/toolkit';
+
 
 
 export interface StateContext {
@@ -25,7 +23,7 @@ export interface StateContext {
     teams : {
         Team: string;
         TeamsAvailable: ITeam[];
-    }, 
+    }
 };
 
 const generalReducer = (state, action) => {

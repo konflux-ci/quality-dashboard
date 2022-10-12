@@ -1,10 +1,12 @@
-import React, {createContext, Dispatch, useContext, useReducer} from "react";
+import React, {createContext, Dispatch, useContext, useReducer } from "react";
 import rootReducer, {StateContext} from './reducer'
 import { getTeams } from '@app/utils/APIService';
-import { $CombinedState, configureStore } from '@reduxjs/toolkit';
-import { Provider, useDispatch } from 'react-redux';
-import { ReactReduxContext } from 'react-redux'
+import { configureStore } from '@reduxjs/toolkit';
+import { Provider } from 'react-redux';
 import { initialState } from './initState'
+
+
+import { ReactReduxContext } from 'react-redux'
 
 
 
@@ -28,7 +30,6 @@ const Store = ({children}) => {
             }
           }
         )
-        //const { store } = useContext(ReactReduxContext); 
         const state = store.getState(); 
 
     }, []);

@@ -6,6 +6,7 @@ import { Context } from '@app/store/store';
 import { getRepositories, getWorkflowByRepositoryName } from '@app/utils/APIService';
 import { Caption, TableComposable, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
+import { ReactReduxContext } from 'react-redux';
 
 interface Repository {
   git_organization: string;
@@ -29,17 +30,23 @@ const columnNames = {
 };
 
 
+
+
 export const JobsComponent: React.FunctionComponent = () => {
   const [isOpen, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const { state, dispatch } = useContext(Context) 
-  const [workflows, setWorkflows] = useState([])
 
-  const repositories: Repository[] = state.repos.Allrepositories
+  const { store } = useContext(ReactReduxContext);  
+  const state = store.getState();
+  const dispatch = store.dispatch;
+
+  const [workflows, setWorkflows] = useState([]);
+
+  const repositories: Repository[] = state.repos.Allrepositories;
 
   const [, setFilteredItems] = useState(repositories);
-  const [repos, setRepositories] = useState([])
-
+  const [repos, setRepositories] = useState([]);
+  
   useEffect(()=> {
     clearAll()
     getRepositories(5, state.teams.Team).then((res) => {
@@ -114,7 +121,7 @@ export const JobsComponent: React.FunctionComponent = () => {
             isOpen={isOpen}
             searchInputValue={searchValue}
             onToggle={onToggle}
-            //onSelect={onSelect}
+            onSelect={onSelect}
             onSearchButtonClick={onSearchButtonClick}
             screenReaderLabel="Selected Project:"
             isPlain

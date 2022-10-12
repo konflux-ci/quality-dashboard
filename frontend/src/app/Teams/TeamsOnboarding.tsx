@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useContext} from 'react';
 import { createTeam, createRepository } from "@app/utils/APIService";
 import { 
   Wizard, PageSection, PageSectionVariants, 
@@ -10,6 +10,7 @@ import { Context } from "src/app/store/store";
 import { useHistory } from 'react-router-dom';
 import { getTeams } from '@app/utils/APIService';
 import { PlusIcon } from '@patternfly/react-icons/dist/esm/icons';
+import { ReactReduxContext } from 'react-redux';
 
 interface AlertInfo {
   title: string;
@@ -21,7 +22,9 @@ import { Table, TableHeader, TableBody, TableProps } from '@patternfly/react-tab
 
 export const TeamsTable: React.FunctionComponent = () => {
   // In real usage, this data would come from some external source like an API via props.
-  const {state, dispatch} = React.useContext(Context) // required to access the global state
+  const { store } = useContext(ReactReduxContext);  
+  const state = store.getState();
+  const dispatch = store.dispatch;
 
   const columns: TableProps['cells'] = [ 'Name', 'Description'];
   const rows: TableProps['rows'] = state.teams.TeamsAvailable.map(team => [

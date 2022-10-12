@@ -10,6 +10,7 @@ import { LastLocationProvider, useLastLocation } from 'react-router-last-locatio
 import { JobsComponent } from './Jobs/Jobs';
 import { Teams } from '@app/Teams/Teams';
 import { Context } from '@app/store/store';
+import { ReactReduxContext } from 'react-redux';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -101,7 +102,11 @@ const flattenedRoutes: IAppRoute[] = routes.reduce(
 );
 
 const AppRoutes = (): React.ReactElement => {
-  const { state } = React.useContext(Context)
+  
+  const { store } = React.useContext(ReactReduxContext);  
+  const state = store.getState();
+  
+
   const [TeamsNotSet, setTeamsNotSet] = React.useState(false)
 
   React.useEffect(() => {

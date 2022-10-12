@@ -39,6 +39,7 @@ import { parse } from 'postcss';
 import { string } from 'prop-types';
 import { toInteger } from 'lodash';
 import { CheckCircleIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
+import { ReactReduxContext } from 'react-redux';
 
 export const Dashboard = () => {
 
@@ -224,7 +225,10 @@ export const Dashboard = () => {
   */
   const [dashboardVersion, setVersion] = useState('unknown')
   const [serverAvailable, setServerAvailable] = useState<boolean>(false)
-  const {state, dispatch} = useContext(Context) // required to access the global state
+  const { store } = useContext(ReactReduxContext);  
+  const state = store.getState();
+  const dispatch = store.dispatch;  
+
   useEffect(()=> {
     getVersion().then((res) => { // making the api call here
       if(res.code === 200){
