@@ -5,22 +5,22 @@ import { combineReducers } from 'redux';
 
 
 export interface StateContext {
-    general : {
+    general: {
         APIData: [];
         error: string;
         workflows: []
-    }, 
-    alerts : {
+    },
+    alerts: {
         alerts: [];
         version: string;
-    }, jira : {
+    }, jira: {
         E2E_KNOWN_ISSUES: [];
     },
-    repos : {
+    repos: {
         repositories: [];
         Allrepositories: [];
-    }, 
-    teams : {
+    },
+    teams: {
         Team: string;
         TeamsAvailable: ITeam[];
     }
@@ -119,15 +119,14 @@ const teamsReducer = (state, action) => {
 };
 
 export const rootReducer = combineReducers({
-    general : generalReducer,
-    jiras : jirasReducer,
-    repos : repositoriesReducer,
-    alerts : alertsReducer,
-    teams : teamsReducer
+    general: generalReducer,
+    jiras: jirasReducer,
+    repos: repositoriesReducer,
+    alerts: alertsReducer,
+    teams: teamsReducer
 });
 
 export default rootReducer;
 
 
 
-    
