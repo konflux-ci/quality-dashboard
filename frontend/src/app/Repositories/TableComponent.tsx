@@ -32,6 +32,7 @@ import { ExternalLinkAltIcon, FilterIcon, PlusIcon, BarsIcon, InfoCircleIcon } f
 import _ from 'lodash';
 import { useModalContext } from './CreateRepository';
 import { Repository } from './Repositories';
+import { ReactReduxContext } from 'react-redux';
 
 export interface TableComponentProps {
   showCoverage?: boolean
@@ -64,7 +65,11 @@ type IFilterItem = {
 }
 
 export const TableComponent = ({ showCoverage, showDiscription, showTableToolbar, enableFiltersOnTheseColumns }: TableComponentProps) => {
-  const { state, dispatch } = useContext(Context)
+  
+  const { store } = useContext(ReactReduxContext);
+  const state = store.getState();
+  const dispatch = store.dispatch;
+
   const [perpage, onperpageset] = useState(10)
   const [repos, setRepositories] = useState<any>([])
   const [page, onPageset] = useState(1)
