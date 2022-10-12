@@ -90,6 +90,7 @@
     "@patternfly/react-icons": "^4.13.1",
     "@patternfly/react-styles": "^4.12.5",
     "@patternfly/react-table": "^4.37.8",
+    "@reduxjs/toolkit": "^1.8.6",
     "@storybook/builder-webpack5": "^6.2.9",
     "axios": "^0.24.0",
     "lodash": "^4.17.21",
