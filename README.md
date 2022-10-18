@@ -5,8 +5,9 @@
     * [Frontend](#frontend)
 3. [Install](#installation)
     * [Install locally](#install-quality-dashboard-locally)
-4. [Connectors and features](#connectors-and-features)
+4. [Features](#features)
     * [Teams](#teams)
+5. [Connectors](#connectors)
     * [Openshift CI and Prow Jobs](#openshift-ci-and-prow-jobs)
     * [Github](#github)
     * [Codecov](#codecov)
@@ -135,12 +136,14 @@ or with npm:
     npm run start:dev
 ```
 
-## Connectors and features
+## Features
 
 ### Teams
 All data is organized by Teams: a team groups a set of repositories to show data in a more concise manner and acts as a global filter. 
 All the teams that have been created will be listed in a table in the Teams page, where they can also be managed.
 Switching a team from the main toolbar, will update the context for the whole view in the dashboard.
+
+## Connectors
 
 ### Openshift CI and Prow Jobs
 The Openshift CI connector will collect and show an overview of the last 10 days of jobs execution, by repository and job type. 
