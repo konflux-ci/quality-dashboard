@@ -1,7 +1,7 @@
 import { createRepository } from "@app/utils/APIService";
 import { Button, Checkbox, Form, FormGroup, Modal, ModalVariant, Popover, TextArea, TextInput, Alert } from "@patternfly/react-core";
 import { HelpIcon } from "@patternfly/react-icons";
-import React, { useContext, SetStateAction, useEffect } from "react";
+import React, { useContext, SetStateAction, useEffect, useState } from "react";
 import { Context } from '@app/store/store';
 import { teamIsNotEmpty } from '@app/utils/utils';
 import { useHistory } from 'react-router-dom';
@@ -27,7 +27,7 @@ export const ModalContext = React.createContext<IModalContext>({
 });
 
 export const useModalContext = () => {
-  return useContext(ModalContext)
+  return useContext(ModalContext);
 }
 
 export const useDefaultModalContextState = () => {
@@ -62,8 +62,8 @@ export const FormModal = ()=> {
     const [monitorGithubActions, setMonitorGithubActions] = React.useState(false);
     const [checked, setChecked] = React.useState('');
   
-    const { store } = useContext(ReactReduxContext);  
-    const state = store.getState();
+    const { store } = useContext(ReactReduxContext)  
+    const state = store.getState()
     //const dispatch = store.dispatch;  
 
     const handleGitRepositoryInput = value => {

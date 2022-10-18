@@ -30,8 +30,8 @@ import { Context } from '@app/store/store';
 import { deleteRepositoryAPI, getRepositories } from '@app/utils/APIService';
 import { ExternalLinkAltIcon, FilterIcon, PlusIcon, BarsIcon, InfoCircleIcon } from '@patternfly/react-icons';
 import _ from 'lodash';
-import { useModalContext } from './CreateRepository';
-import { Repository } from './Repositories';
+import { useModalContext } from '@app/Repositories/CreateRepository';
+import { Repository } from '@app/Repositories/';
 import { ReactReduxContext } from 'react-redux';
 
 export interface TableComponentProps {

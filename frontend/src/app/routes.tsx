@@ -7,7 +7,7 @@ import { GeneralSettings } from '@app/Settings/General/GeneralSettings';
 import { ProfileSettings } from '@app/Settings/Profile/ProfileSettings';
 import { useDocumentTitle } from '@app/utils/useDocumentTitle';
 import { LastLocationProvider, useLastLocation } from 'react-router-last-location';
-import { JobsComponent } from './Jobs/Jobs';
+import { JobsComponent } from '@app/Jobs/Jobs';
 import { Teams } from '@app/Teams/Teams';
 import { Context } from '@app/store/store';
 import { ReactReduxContext } from 'react-redux';

@@ -18,18 +18,16 @@ interface Repository {
 interface Workflows {
   workflow_name: string;
   badge_url: string;
-  state: string;
+  job: string;
   html_url: string
 }
 
 const columnNames = {
   name: 'Name',
   html_url: 'Job URL',
-  state: 'Job State',
+  job: 'Job State',
   badge: 'Last Execution'
 };
-
-
 
 
 export const JobsComponent: React.FunctionComponent = () => {
@@ -121,7 +119,7 @@ export const JobsComponent: React.FunctionComponent = () => {
             isOpen={isOpen}
             searchInputValue={searchValue}
             onToggle={onToggle}
-            onSelect={onSelect}
+            //onSelect={onSelect}
             onSearchButtonClick={onSearchButtonClick}
             screenReaderLabel="Selected Project:"
             isPlain
@@ -141,7 +139,7 @@ export const JobsComponent: React.FunctionComponent = () => {
             <Thead>
               <Tr>
                 <Th>{columnNames.name}</Th>
-                <Th>{columnNames.state}</Th>
+                <Th>{columnNames.job}</Th>
                 <Th>{columnNames.badge}</Th>
                 <Th>{columnNames.html_url}</Th>
               </Tr>
@@ -153,7 +151,7 @@ export const JobsComponent: React.FunctionComponent = () => {
                 return (
                   <Tr key={workflow.workflow_name || ""}>
                     <Td dataLabel={columnNames.name}>{workflow.workflow_name || ""}</Td>
-                    <Td dataLabel={columnNames.state}>{workflow.state || ""}</Td>
+                    <Td dataLabel={columnNames.job}>{workflow.job || ""}</Td>
                     <Td dataLabel={columnNames.badge}><img src={workflow.badge_url}></img></Td>
                     <Td dataLabel={columnNames.html_url}><a href={workflow.html_url}><ExternalLinkAltIcon>Link</ExternalLinkAltIcon>Go to job</a></Td>
                   </Tr>

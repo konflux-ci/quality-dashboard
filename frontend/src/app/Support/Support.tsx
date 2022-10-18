@@ -38,9 +38,8 @@ let Support = () => {
   const [loadingState, setloadingState] = useState(false)
   const [alerts, setAlerts] = React.useState<React.ReactNode[]>([]);
 
-  const { store } = useContext(ReactReduxContext);
+  const { store } = React.useContext(ReactReduxContext);
   const state = store.getState();
-
 
   /* 
   Toolbar dropdowns logic and helpers

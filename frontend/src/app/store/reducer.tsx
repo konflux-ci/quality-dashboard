@@ -1,7 +1,9 @@
+import { useContext } from "react";
 import { ITeam } from '@app/Teams/TeamsSelect';
+import { saveStateItem } from '@app/utils/utils';
 import { initial, reduceRight } from 'lodash';
 import { combineReducers } from 'redux';
-
+import { ReactReduxContext } from 'react-redux';
 
 
 export interface StateContext {
@@ -25,6 +27,8 @@ export interface StateContext {
         TeamsAvailable: ITeam[];
     }
 };
+
+
 
 const generalReducer = (state, action) => {
     switch (action.type) {
@@ -99,7 +103,9 @@ const alertsReducer = (state, action) => {
 
 const teamsReducer = (state, action) => {
     switch (action.type) {
-        case 'SET_TEAM':
+        case 'SET_TEAM': 
+            saveStateItem('TEAM', action.data);
+            console.log(action.data);
             return {
                 ...state,
                 Team: action.data

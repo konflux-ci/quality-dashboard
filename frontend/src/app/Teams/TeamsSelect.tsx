@@ -31,6 +31,7 @@ export const BasicMasthead = () => {
   const { store } = useContext(ReactReduxContext);
   const state = store.getState();
   const dispatch = store.dispatch;
+  
   const [isDropdownOpen, setDropdownOpen] = useState(false)
 
   const onDropdownToggle = (isDropdownOpen: boolean) => {

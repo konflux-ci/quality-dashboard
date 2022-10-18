@@ -146,7 +146,7 @@ async function createRepository(data = {}) {
     }).catch((err) => {
         result.code = err.response.status;
         result.data = err.response.data;
-        return ;
+        return result;
     });
     return result;
 }
