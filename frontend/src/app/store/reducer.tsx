@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import { ITeam } from '@app/Teams/TeamsSelect';
-import { saveStateContext } from '@app/utils/utils';
+import { loadStateContext, saveStateContext } from '@app/utils/utils';
 import { initial, reduceRight } from 'lodash';
 import { combineReducers } from 'redux';
 import { ReactReduxContext } from 'react-redux';
@@ -104,8 +104,9 @@ const alertsReducer = (state, action) => {
 const teamsReducer = (state, action) => {
     switch (action.type) {
         case 'SET_TEAM': 
+            // Change the persisted 'saved' team when it is changed
             saveStateContext('TEAM', action.data);
-            console.log(action.data);
+            console.log('TEAM SELECT', loadStateContext('TEAM')); 
             return {
                 ...state,
                 Team: action.data
@@ -114,11 +115,6 @@ const teamsReducer = (state, action) => {
             return {
                 ...state,
                 TeamsAvailable: action.data
-            };
-        case 'SET_TEAMS_AVAIBALE':
-            return {
-                ...state,
-                Team: action.data
             };
         default: return state || null;
     }

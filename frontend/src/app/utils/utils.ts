@@ -22,9 +22,8 @@ export function loadStateContext(key) {
     if (serializedItem == null) return null;
     else return JSON.parse(serializedItem);
   } catch (err) {
-    return null;
+    return undefined;
   }
-
 }
 
 export function saveStateContext(key: string, item) {
@@ -39,8 +38,8 @@ export function saveStateContext(key: string, item) {
 
 export function stateContextExists(key: string) {
   try {
-    localStorage.getItem(key);
-    return true;
+    if (localStorage.getItem(key) == null) return false;
+    else return true;
   }
   catch(err) {
     return false;

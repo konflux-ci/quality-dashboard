@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { createTeam, createRepository } from "@app/utils/APIService";
 import {
   Wizard, PageSection, PageSectionVariants,
@@ -10,7 +10,7 @@ import { Context } from "src/app/store/store";
 import { useHistory } from 'react-router-dom';
 import { getTeams } from '@app/utils/APIService';
 import { PlusIcon } from '@patternfly/react-icons/dist/esm/icons';
-import { ReactReduxContext } from 'react-redux';
+import { ReactReduxContext, useSelector } from 'react-redux';
 
 interface AlertInfo {
   title: string;
@@ -52,6 +52,7 @@ export const TeamsWizard = () => {
     }
 
     createTeam(data).then(response => {
+      //console.log("NEW TEAM", data)
       if (response.code == 200) {
         setAlerts(prevAlertInfo => [...prevAlertInfo, {
           title: 'Team created',
@@ -271,9 +272,11 @@ export const TeamsTable: React.FunctionComponent = () => {
 
   const { store } = useContext(ReactReduxContext);
   const state = store.getState();
-
   const columns: TableProps['cells'] = ['Name', 'Description'];
-  const rows: TableProps['rows'] = state.teams.TeamsAvailable.map(team => [
+
+  const currentTeamsAvailable = useSelector((state:any) => state.teams.TeamsAvailable);
+  
+  const rows: TableProps['rows'] = currentTeamsAvailable.map(team => [
     team.team_name,
     team.description
   ]);

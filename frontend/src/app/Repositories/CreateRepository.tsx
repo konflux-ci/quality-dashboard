@@ -34,7 +34,7 @@ export const useDefaultModalContextState = () => {
   const [isModalOpen, setModalOpen] = React.useState(false)
   const [isEditRepo, setEditRepo] = React.useState(false);
   const [data, setData] = React.useState({});
-  const defaultModalContext = useModalContext()
+  const defaultModalContext = useModalContext();
 
   defaultModalContext.isModalOpen = {set: setModalOpen, value: isModalOpen}
   defaultModalContext.isEditRepo = {set: setEditRepo, value: isEditRepo}
@@ -64,7 +64,8 @@ export const FormModal = ()=> {
   
     const { store } = useContext(ReactReduxContext)  
     const state = store.getState()
-    //const dispatch = store.dispatch;  
+
+    const dispatch = store.dispatch;  
 
     const handleGitRepositoryInput = value => {
       setGitRepositoryValue(value);

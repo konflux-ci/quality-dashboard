@@ -201,7 +201,7 @@ async function createTeam(data = {}) {
     await axios.request({
         method: 'POST',
         url: uri,
-        data: {...data},
+        data: {...data}
       }).then((res: AxiosResponse) => {
         result.code = res.status;
         result.data = res.data;
