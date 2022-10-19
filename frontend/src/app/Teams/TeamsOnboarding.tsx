@@ -22,9 +22,11 @@ import { Table, TableHeader, TableBody, TableProps } from '@patternfly/react-tab
 import { initialState } from '@app/store/initState';
 
 
+
+
 export const TeamsWizard = () => {
   const history = useHistory();
-
+  
   const { store } = useContext(ReactReduxContext);
   const state = store.getState();
   const dispatch = store.dispatch;

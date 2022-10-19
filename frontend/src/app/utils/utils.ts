@@ -16,7 +16,7 @@ export function teamIsNotEmpty(team: string) {
   return false;
 };
 
-export function loadStateItem(key) {
+export function loadStateContext(key) {
   try {
     let serializedItem = localStorage.getItem(key);
     if (serializedItem == null) return null;
@@ -27,7 +27,7 @@ export function loadStateItem(key) {
 
 }
 
-export function saveStateItem(key: string, item) {
+export function saveStateContext(key: string, item) {
   try {
     let serializedItem = JSON.stringify(item);
     localStorage.setItem(key, serializedItem);
@@ -37,7 +37,7 @@ export function saveStateItem(key: string, item) {
   }
 }
 
-export function stateItemExists(key: string) {
+export function stateContextExists(key: string) {
   try {
     localStorage.getItem(key);
     return true;

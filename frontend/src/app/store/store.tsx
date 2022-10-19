@@ -4,7 +4,7 @@ import { getTeams } from '@app/utils/APIService';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { initialState } from '@app/store/initState';
-import { loadStateItem, stateItemExists } from '@app/utils/utils'
+import { loadStateContext, stateContextExists } from '@app/utils/utils'
 
 interface IContextProps {
     state: StateContext;
@@ -25,8 +25,8 @@ const Store = ({ children }) => {
         
         getTeams().then(data => {
             let selectedTeam = data.data[0].team_name;
-            if (stateItemExists('TEAM')){
-                selectedTeam = loadStateItem('TEAM');
+            if (stateContextExists('TEAM')){
+                selectedTeam = loadStateContext('TEAM');
             }
 
             if (data.data.length > 0) {
