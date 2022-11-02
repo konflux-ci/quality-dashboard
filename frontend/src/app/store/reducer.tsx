@@ -105,8 +105,8 @@ const teamsReducer = (state, action) => {
     switch (action.type) {
         case 'SET_TEAM': 
             // Change the persisted 'saved' team when it is changed
-            saveStateContext('TEAM', action.data);
-            console.log('TEAM SELECT', loadStateContext('TEAM')); 
+            saveStateContext('TEAM', action.data)
+            console.log('TEAM SELECT', loadStateContext('TEAM'))
             return {
                 ...state,
                 Team: action.data

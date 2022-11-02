@@ -119,7 +119,7 @@ export const JobsComponent: React.FunctionComponent = () => {
             isOpen={isOpen}
             searchInputValue={searchValue}
             onToggle={onToggle}
-            //onSelect={onSelect}
+            onSelect={onSelect}
             onSearchButtonClick={onSearchButtonClick}
             screenReaderLabel="Selected Project:"
             isPlain

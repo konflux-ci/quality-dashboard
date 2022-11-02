@@ -48,11 +48,11 @@ export const TeamsWizard = () => {
     setCreationLoading(true)
     const data = {
       "team_name": newTeamName,
-      "description": newTeamDesc
+      "description": newTeamDesc,
     }
 
+    //ONLY works with desacription specified??
     createTeam(data).then(response => {
-      //console.log("NEW TEAM", data)
       if (response.code == 200) {
         setAlerts(prevAlertInfo => [...prevAlertInfo, {
           title: 'Team created',
@@ -68,7 +68,8 @@ export const TeamsWizard = () => {
         setCreationError(true)
       }
     }).catch(error => {
-      console.log(error)
+      console.log("NEW TEAM", data);
+      console.log(error);
     })
 
 
@@ -86,7 +87,7 @@ export const TeamsWizard = () => {
           artifacts: [],
           team_name: newTeamName
         }
-        let response = await createRepository(data)
+        const response = await createRepository(data)
         if (response.code == 200) {
           setAlerts(prevAlertInfo => [...prevAlertInfo, {
             title: 'Repository created',
@@ -274,8 +275,9 @@ export const TeamsTable: React.FunctionComponent = () => {
   const state = store.getState();
   const columns: TableProps['cells'] = ['Name', 'Description'];
 
-  const currentTeamsAvailable = useSelector((state:any) => state.teams.TeamsAvailable);
-  
+  let currentTeamsAvailable = useSelector((state:any) => state.teams.TeamsAvailable);
+  //store.subscribe(currentTeamsAvailable = useSelector((state:any) => state.teams.TeamsAvailable));
+
   const rows: TableProps['rows'] = currentTeamsAvailable.map(team => [
     team.team_name,
     team.description

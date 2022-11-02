@@ -123,7 +123,7 @@ let Support = () => {
           validateGetProwJob()
         })
     }
-  }, [state.teams.Team]);
+  });
 
   // Static list of job types to populate the dropdown
   let jobTypes = [
