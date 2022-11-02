@@ -194,6 +194,7 @@ async function getTeams(){
     return result;
 }
 
+//Only works with description specified?
 async function createTeam(data = {}) {
     const result: ApiResponse = { code: 0, data: {} };
     const subPath ='/api/quality/teams/create';

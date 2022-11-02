@@ -26,7 +26,6 @@ const loadTeamSelection = (data) => {
 
 const Store = ({ children }) => {
     const store = configureStore({ reducer: rootReducer, preloadedState: initialState });
-    //let initState = initialState;
 
     React.useEffect(() => {
         const state = store.getState()
@@ -34,23 +33,17 @@ const Store = ({ children }) => {
 
         getTeams().then(data => {
             if (data.data.length > 0) {
-
                 const loadedTeam = loadTeamSelection(data);
-                if (loadedTeam == null){
-                    dispatch({ type: "SET_TEAM", data: data.data[0].team_name })
-                }
-                else{
-                    dispatch({ type: "SET_TEAM", data: loadedTeam })
-                }
-                
-                dispatch({ type: "SET_TEAMS_AVAILABLE", data: data.data });
+                switch (loadedTeam){
+                    case null: 
+                        dispatch({ type: "SET_TEAM", data: data.data[0].team_name })
+                    default:
+                        dispatch({ type: "SET_TEAM", data: loadedTeam })
+                }  
+                dispatch({ type: "SET_TEAMS_AVAILABLE", data: data.data })       
             }
-
-
         }
-        )
-
-    }, []);
+    )}, []);
 
     
 

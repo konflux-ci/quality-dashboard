@@ -51,7 +51,7 @@ export const TeamsWizard = () => {
       "description": newTeamDesc,
     }
 
-    //ONLY works with desacription specified??
+    //ONLY works with description specified??
     createTeam(data).then(response => {
       if (response.code == 200) {
         setAlerts(prevAlertInfo => [...prevAlertInfo, {
