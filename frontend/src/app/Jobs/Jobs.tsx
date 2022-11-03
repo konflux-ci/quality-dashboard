@@ -6,7 +6,7 @@ import { Context } from '@app/store/store';
 import { getRepositories, getWorkflowByRepositoryName } from '@app/utils/APIService';
 import { Caption, TableComposable, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
-import { ReactReduxContext } from 'react-redux';
+import { ReactReduxContext, useSelector } from 'react-redux';
 
 interface Repository {
   git_organization: string;
@@ -40,24 +40,44 @@ export const JobsComponent: React.FunctionComponent = () => {
 
   const [workflows, setWorkflows] = useState([]);
 
-  const repositories: Repository[] = state.repos.Allrepositories;
+  const [repositories, setallreps] = useState<any>(state.repos.Allrepositories);
 
   const [, setFilteredItems] = useState(repositories);
   const [repos, setRepositories] = useState([]);
   
+  const currentTeam = useSelector((state:any) => state.teams.Team);
   useEffect(()=> {
     clearAll()
     getRepositories(5, state.teams.Team).then((res) => {
       if(res.code === 200) {
           const result = res.data;
+          setallreps(res.all)
           dispatch({ type: "SET_REPOSITORIES", data: result });
           dispatch({type: "SET_REPOSITORIES_ALL", data: res.all});
       } else {
           dispatch({ type: "SET_ERROR", data: res });
       }
     });
-  }, [repos, setRepositories, dispatch, state.teams.Team])
+  }, [repos, setRepositories, dispatch, state.teams.Team, currentTeam])
 
+  /*
+ 
+  const currentTeam = useSelector((state:any) => state.teams.Team);
+  useEffect(()=> {
+    getRepositories(5, state.teams.Team).then((res)=> {
+      if(res.code === 200) {
+        const result = res.data;
+        setallreps(res.all)
+        setRepositories(res.all)
+        dispatch({ type: "SET_REPOSITORIES", data: result });
+        dispatch({type: "SET_REPOSITORIES_ALL", data: res.all});
+      } else {
+          dispatch({ type: "SET_ERROR", data: res });
+      }
+    })
+  }, [setRepositories, dispatch, state.teams.Team, currentTeam])
+
+  */
   function onToggle(_event: any, isOpen: boolean) {
     setOpen(isOpen);
   }

@@ -29,7 +29,7 @@ import {
   DashboardLineChartData
 } from '@app/utils/sharedComponents';
 import { Context } from '@app/store/store';
-import { ReactReduxContext } from 'react-redux';
+import { ReactReduxContext, useSelector } from 'react-redux';
 
 // eslint-disable-next-line prefer-const
 let Support = () => {
@@ -51,6 +51,7 @@ let Support = () => {
   const [jobType, setjobType] = useState("");
   const [jobTypeToggle, setjobTypeToggle] = useState(false);
   const [repoNameToggle, setRepoNameToggle] = useState(false);
+  const currentTeam = useSelector((state:any) => state.teams.Team);
 
   // Called onChange of the repository dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
   const setRepoNameOnChange = (event, selection, isPlaceholder) => {
@@ -108,6 +109,7 @@ let Support = () => {
   }, [repoName, jobType]);
 
   // When component is mounted, get the list of repo and orgs from API and populate the dropdowns
+  
   useEffect(() => {
     if (state.teams.Team != "") {
       setRepositories([])
@@ -115,15 +117,20 @@ let Support = () => {
       clearRepo()
       getAllRepositoriesWithOrgs(state.teams.Team)
         .then((data: any) => {
-          data.unshift({ repoName: "Select a repository", organization: "", isPlaceholder: true }) // Adds placeholder at the beginning of the array, so it will be shown first
+          let dropDescr = ""
+          if(repositories.length < 1){dropDescr = "No Repositories"}
+          else{dropDescr = "Select a repository"}
+          data.unshift({ repoName: dropDescr, organization: "", isPlaceholder: true }) // Adds placeholder at the beginning of the array, so it will be shown first
           setRepositories(data)
-          setRepoName(data[1].repoName)
-          setRepoOrg(data[1].organization)
-          setjobType("presubmit")
-          validateGetProwJob()
+          try{setRepoName(data[1].repoName)
+            setRepoOrg(data[1].organization)
+            setjobType("presubmit")
+            validateGetProwJob()}
+          catch(e){console.log(e)}
+          
         })
     }
-  });
+  },[setRepositories, state.teams.team, currentTeam]);
 
   // Static list of job types to populate the dropdown
   let jobTypes = [

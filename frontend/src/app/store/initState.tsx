@@ -16,6 +16,6 @@ export const initialState = {
     }, 
     teams : {
         Team: "",
-        TeamsAvailable: [""]
+        TeamsAvailable: []
     }, 
 };

@@ -15,9 +15,9 @@ interface IContextProps {
 export const Context = React.createContext({} as IContextProps);
 
 const loadTeamSelection = (data) => {
-    if (stateContextExists('TEAM')){
+    if (stateContextExists('TEAM')) {
         const teamPersisted = loadStateContext('TEAM')
-        if (data.data.map(( team ) => team.team_name).includes( teamPersisted )){
+        if (data.map((team) => team.team_name).includes(teamPersisted)) {
             return teamPersisted;
         }
     }
@@ -33,19 +33,15 @@ const Store = ({ children }) => {
 
         getTeams().then(data => {
             if (data.data.length > 0) {
-                const loadedTeam = loadTeamSelection(data);
-                switch (loadedTeam){
-                    case null: 
-                        dispatch({ type: "SET_TEAM", data: data.data[0].team_name })
-                    default:
-                        dispatch({ type: "SET_TEAM", data: loadedTeam })
-                }  
-                dispatch({ type: "SET_TEAMS_AVAILABLE", data: data.data })       
+                const loadedTeam = loadTeamSelection(data.data);
+                if (loadedTeam == null) { dispatch({ type: "SET_TEAM", data: data.data[0].team_name }) }
+                else { dispatch({ type: "SET_TEAM", data: loadedTeam }) }
+
+                dispatch({ type: "SET_TEAMS_AVAILABLE", data: data.data })
             }
         }
-    )}, []);
-
-    
+        )
+    }, []);
 
     return (
         <Provider store={store}>

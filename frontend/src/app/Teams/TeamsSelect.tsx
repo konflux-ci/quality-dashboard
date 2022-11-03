@@ -32,6 +32,7 @@ export const BasicMasthead = () => {
   const state = store.getState();
   const dispatch = store.dispatch;
   const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [dropdownItems, setDropdownItems] = useState([]);
 
   const onDropdownToggle = (isDropdownOpen: boolean) => {
     setDropdownOpen(isDropdownOpen);
@@ -46,12 +47,12 @@ export const BasicMasthead = () => {
       window.location.reload();
   }
   
-  const currentTeamsAvailable = useSelector((state:any) => state.teams.TeamsAvailable)
+  const currentTeamsAvailable = useSelector((state:any) => state.teams.TeamsAvailable);
 
-  // Updates for teams dropdown on state change 
-  const dropdownItems = currentTeamsAvailable.map((team) => <DropdownItem key={team.id + '-' + Math.random()} data-value={team.team_name}>{team.team_name}</DropdownItem> )
-
-  //let dropdownItems = state.teams.TeamsAvailable.map((team) => <DropdownItem key={team.id + '-' + Math.random()} data-value={team.team_name}>{team.team_name}</DropdownItem> )
+  useEffect(() => {
+    let ddi=currentTeamsAvailable.map((team) => <DropdownItem key={team.id} data-value={team.team_name}>{team.team_name}</DropdownItem>)
+    setDropdownItems(ddi)
+  }, [currentTeamsAvailable]);
 
     return (
       <Masthead id="basic-demo">
