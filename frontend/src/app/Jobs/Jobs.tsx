@@ -34,7 +34,7 @@ export const JobsComponent: React.FunctionComponent = () => {
   const [isOpen, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
 
-  const { store } = useContext(ReactReduxContext);  
+  const { store } = useContext(ReactReduxContext);
   const state = store.getState();
   const dispatch = store.dispatch;
 
@@ -44,18 +44,20 @@ export const JobsComponent: React.FunctionComponent = () => {
 
   const [, setFilteredItems] = useState(repositories);
   const [repos, setRepositories] = useState([]);
+
+  const currentTeam = useSelector((state: any) => state.teams.Team);
   
-  const currentTeam = useSelector((state:any) => state.teams.Team);
-  useEffect(()=> {
+  useEffect(() => {
     clearAll()
     getRepositories(5, state.teams.Team).then((res) => {
-      if(res.code === 200) {
-          const result = res.data;
-          setallreps(res.all)
-          dispatch({ type: "SET_REPOSITORIES", data: result });
-          dispatch({type: "SET_REPOSITORIES_ALL", data: res.all});
+      if (res.code === 200) {
+        const result = res.data;
+        setallreps(res.all)
+        dispatch({ type: "SET_REPOSITORIES", data: result });
+        dispatch({ type: "SET_REPOSITORIES_ALL", data: res.all });
       } else {
-          dispatch({ type: "SET_ERROR", data: res });
+        dispatch({ type: "SET_ERROR", data: res });
+        clearAll()
       }
     });
   }, [repos, setRepositories, dispatch, state.teams.Team, currentTeam])
@@ -82,7 +84,7 @@ export const JobsComponent: React.FunctionComponent = () => {
     setOpen(isOpen);
   }
 
-  function clearAll(){
+  function clearAll() {
     setWorkflows([])
     setSearchValue('')
     setSelected('default')
@@ -90,12 +92,12 @@ export const JobsComponent: React.FunctionComponent = () => {
 
   function getworkflows(repo) {
     getWorkflowByRepositoryName(repo).then((res) => {
-      if(res.code === 200) {
-          const result = res.data;
-          setWorkflows(result)
-          dispatch({ type: "SET_WORKFLOWS", data: result });
+      if (res.code === 200) {
+        const result = res.data;
+        setWorkflows(result)
+        dispatch({ type: "SET_WORKFLOWS", data: result });
       } else {
-          dispatch({ type: "SET_ERROR", data: res });
+        dispatch({ type: "SET_ERROR", data: res });
       }
     });
   }
@@ -131,8 +133,8 @@ export const JobsComponent: React.FunctionComponent = () => {
 
   return (
     <PageSection>
-      <div style = {{backgroundColor: "white", paddingTop: "5px"}}>
-        <div style = {{ padding : "10px"}}>
+      <div style={{ backgroundColor: "white", paddingTop: "5px" }}>
+        <div style={{ padding: "10px" }}>
           <ContextSelector
             toggleText={selected}
             onSearchInputChange={onSearchInputChange}
@@ -154,31 +156,31 @@ export const JobsComponent: React.FunctionComponent = () => {
           </ContextSelector>
         </div>
         <hr />
-        <TableComposable aria-label="Actions table" style={{padding: "10px"}}>
+        <TableComposable aria-label="Actions table" style={{ padding: "10px" }}>
           <Caption>All Github Actions available in the repository {selected}</Caption>
-            <Thead>
-              <Tr>
-                <Th>{columnNames.name}</Th>
-                <Th>{columnNames.job}</Th>
-                <Th>{columnNames.badge}</Th>
-                <Th>{columnNames.html_url}</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {workflows.map(workf => {
-                //const rowActions: IAction[] | null = defaultActions(repo);
-                const workflow: Workflows = workf
-                return (
-                  <Tr key={workflow.workflow_name || ""}>
-                    <Td dataLabel={columnNames.name}>{workflow.workflow_name || ""}</Td>
-                    <Td dataLabel={columnNames.job}>{workflow.job || ""}</Td>
-                    <Td dataLabel={columnNames.badge}><img src={workflow.badge_url}></img></Td>
-                    <Td dataLabel={columnNames.html_url}><a href={workflow.html_url}><ExternalLinkAltIcon>Link</ExternalLinkAltIcon>Go to job</a></Td>
-                  </Tr>
+          <Thead>
+            <Tr>
+              <Th>{columnNames.name}</Th>
+              <Th>{columnNames.job}</Th>
+              <Th>{columnNames.badge}</Th>
+              <Th>{columnNames.html_url}</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {workflows.map(workf => {
+              //const rowActions: IAction[] | null = defaultActions(repo);
+              const workflow: Workflows = workf
+              return (
+                <Tr key={workflow.workflow_name || ""}>
+                  <Td dataLabel={columnNames.name}>{workflow.workflow_name || ""}</Td>
+                  <Td dataLabel={columnNames.job}>{workflow.job || ""}</Td>
+                  <Td dataLabel={columnNames.badge}><img src={workflow.badge_url}></img></Td>
+                  <Td dataLabel={columnNames.html_url}><a href={workflow.html_url}><ExternalLinkAltIcon>Link</ExternalLinkAltIcon>Go to job</a></Td>
+                </Tr>
 
-                );
-              })}
-            </Tbody>
+              );
+            })}
+          </Tbody>
         </TableComposable>
       </div>
     </PageSection>

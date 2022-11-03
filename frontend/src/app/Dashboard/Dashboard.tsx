@@ -79,7 +79,7 @@ export const Dashboard = () => {
         dispatch({ type: "SET_ERROR", data: res });
       }
     })
-  }, [])
+  }, [jiras, setJiras]);
 
   function computeJiraIssueCount(type) {
     try {
