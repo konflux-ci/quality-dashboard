@@ -50,12 +50,16 @@ echo "   Storage Database   : "${STORAGE_USER}""
 echo "   Github Token       : "${GITHUB_TOKEN}""
 echo ""
 
+# Postgres service name from file quality-dashboard/backend/deploy/openshift/service.yaml
+export POSTGRES_SERVICE="cG9zdGdyZXMtc2VydmljZQ=="
+
 # Replace variables in /backend/deploy/openshift/secret.yaml
 cat "${WORKSPACE}/backend/deploy/openshift/secret.yaml" |
     sed -e "s#REPLACE_STORAGE_PASSWORD#${STORAGE_PASSWORD}#g" |
     sed -e "s#REPLACE_STORAGE_USER#${STORAGE_USER}#g" |
     sed -e "s#REPLACE_GITHUB_TOKEN#${GITHUB_TOKEN}#g" |
     sed -e "s#REPLACE_JIRA_TOKEN#${JIRA_TOKEN}#g" |
+    sed -e "s#REPLACE_WITH_RDS_ENDPOINT#${POSTGRES_SERVICE}#g" |
     cat > ${SECRET_DASHBOARD_TMP}
 
 # Namespace

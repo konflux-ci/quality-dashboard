@@ -27,28 +27,12 @@ kind: Service
 metadata:
   name: postgres-service
   namespace: appstudio-qe
-  labels:
-    app: postgres
 spec:
   type: NodePort
-  ports:
-   - port: 5432
   selector:
-   app: postgres
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: pgweb-service
-  namespace: appstudio-qe
-  labels:
-    service: quality-backend-pg-web
-spec:
-  type: NodePort
+    app: quality-dashboard
+    component: postgres
   ports:
-   - name: "http"
-     port: 8081
-     protocol: TCP
-     targetPort: 8081
-  selector:
-   app: quality-backend-pg-web
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
