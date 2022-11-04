@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: quay.io/flacatus/postgres:14
+          image: quay.io/redhat-appstudio-qe/postgres:14
           env:
           - name: PGDATA
             value: /work/data
