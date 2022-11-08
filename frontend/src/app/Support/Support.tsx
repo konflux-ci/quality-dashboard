@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { CubesIcon } from '@patternfly/react-icons';
+import { CubesIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
 import {
   PageSection, PageSectionVariants,
   EmptyState,
@@ -152,6 +152,7 @@ let Support = () => {
   const [prowJobsStats, setprowJobsStats] = useState<JobsStatistics | null>(null);
   const [prowJobSuite, setProwJobSuite] = useState([])
 
+
   // Get the prow jobs from API
   const getProwJob = async () => {
     setSelectedJob(0)
@@ -171,7 +172,7 @@ let Support = () => {
     }
     catch {
       // Set UI to empty page and show error alert
-      
+
       setProwVisible(false);
       setloadingState(false)
       setAlerts(prevAlerts => {
@@ -196,11 +197,11 @@ let Support = () => {
 
   // Extract a simple list of jobs from data: this will be used to let users select the job they want to see details for
   let jobNames: SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function (job, index) { return { "value": job.name, "index": index } }) : []
-  
-  
+  let ci_html: string = prowJobsStats?.jobs != null ? "https://prow.ci.openshift.org/?repo=" + prowJobsStats?.git_organization + "%2F" + prowJobsStats?.repository_name + "&type=" + prowJobsStats?.type : ''
 
-  
-  
+
+
+
 
   // Prepare data for the line chart
   let beautifiedData: DashboardLineChartData = {
@@ -338,11 +339,16 @@ let Support = () => {
     setPage(newPage);
   };
 
-  let ci_html = "https://prow.ci.openshift.org/?repo="+ prowJobsStats?.git_org + "%2F" + prowJobsStats?.repository_name + "&type=" + prowJobsStats?.type
+  /*
+  const buttonLink = (repositories, link) => {
+    if(repositories.)
+  }
 
-  
+  */
+
+
   return (
-    
+
     <React.Fragment>
       {/* page title bar */}
       <PageSection variant={PageSectionVariants.light}>
@@ -408,13 +414,12 @@ let Support = () => {
             {/* this section will show the job's chart over time and last execution stats */}
             
             {prowJobsStats !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
-              <GridItem span={3}><InfoCard data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_org }]}></InfoCard></GridItem>
+              <GridItem span={3}><InfoCard data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_organization }]}></InfoCard></GridItem>
               <GridItem span={2}><DashboardCard cardType={'danger'} title="avg of ci failures" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.ci_failed_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
               <GridItem span={2}><DashboardCard cardType={'danger'} title="avg of failures" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.failure_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
               <GridItem span={2}><DashboardCard cardType={'success'} title="avg of passed tests" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.success_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
               <GridItem span={3}><DashboardCard cardType={'default'} title="Time Range" body={prowJobsStats?.jobs != null ? new Date(prowJobsStats.jobs[selectedJob].summary.date_from.split(" ")[0]).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }) + " - " + new Date(prowJobsStats.jobs[selectedJob].summary.date_to.split(" ")[0]).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }) : "-"}></DashboardCard></GridItem>
-
-              <GridItem span={4} rowSpan={4}><DashboardSimpleList title={<div>Jobs <Badge style={{ float: "right" }}>{jobType}</Badge></div>} data={jobNames} onSelection={(value) => { setSelectedJob(value) }}></DashboardSimpleList></GridItem>
+              <GridItem span={4} rowSpan={4}><DashboardSimpleList title={<div>Jobs  <a href={ci_html} target="blank" rel="noopener noreferrer"><Badge style={{ float: "right" }}>{jobType} &nbsp; <ExternalLinkAltIcon></ExternalLinkAltIcon></Badge></a></div>} data={jobNames} onSelection={(value) => { setSelectedJob(value) }}></DashboardSimpleList></GridItem>
               <GridItem span={8} rowSpan={5}><DashboardLineChart data={beautifiedData}></DashboardLineChart></GridItem>
               <GridItem span={4} rowSpan={1}><DashboardCard cardType={'help'} title="About this dashboard" body="Set of metrics gathered from Openshift CI"></DashboardCard></GridItem>
 

@@ -11,8 +11,8 @@ Some common useful types definition
 
 export interface JobsStatistics {
   repository_name: string;
+  git_organization: string;
   type: string;
-  git_org: string;
   jobs: (JobsEntity)[] ;
 }
 
