@@ -8,23 +8,23 @@ import { ReactReduxContext } from 'react-redux';
 
 export interface StateContext {
     general: {
-        APIData: [];
-        error: string;
+        APIData: []
+        error: string
         workflows: []
     },
     alerts: {
-        alerts: [];
-        version: string;
+        alerts: []
+        version: string
     }, jira: {
-        E2E_KNOWN_ISSUES: [];
+        E2E_KNOWN_ISSUES: []
     },
     repos: {
-        repositories: [];
-        Allrepositories: [];
+        repositories: []
+        Allrepositories: []
     },
     teams: {
-        Team: string;
-        TeamsAvailable: ITeam[];
+        Team: string
+        TeamsAvailable: ITeam[]
     }
 };
 
@@ -104,9 +104,8 @@ const alertsReducer = (state, action) => {
 const teamsReducer = (state, action) => {
     switch (action.type) {
         case 'SET_TEAM': 
-            // Change the persisted 'saved' team when it is changed
+            // Change the persisted 'saved' team when its state has been changed
             saveStateContext('TEAM', action.data)
-            console.log('TEAM SELECT', loadStateContext('TEAM'))
             return {
                 ...state,
                 Team: action.data

@@ -62,24 +62,7 @@ export const JobsComponent: React.FunctionComponent = () => {
     });
   }, [repos, setRepositories, dispatch, state.teams.Team, currentTeam])
 
-  /*
- 
-  const currentTeam = useSelector((state:any) => state.teams.Team);
-  useEffect(()=> {
-    getRepositories(5, state.teams.Team).then((res)=> {
-      if(res.code === 200) {
-        const result = res.data;
-        setallreps(res.all)
-        setRepositories(res.all)
-        dispatch({ type: "SET_REPOSITORIES", data: result });
-        dispatch({type: "SET_REPOSITORIES_ALL", data: res.all});
-      } else {
-          dispatch({ type: "SET_ERROR", data: res });
-      }
-    })
-  }, [setRepositories, dispatch, state.teams.Team, currentTeam])
 
-  */
   function onToggle(_event: any, isOpen: boolean) {
     setOpen(isOpen);
   }
@@ -168,7 +151,6 @@ export const JobsComponent: React.FunctionComponent = () => {
           </Thead>
           <Tbody>
             {workflows.map(workf => {
-              //const rowActions: IAction[] | null = defaultActions(repo);
               const workflow: Workflows = workf
               return (
                 <Tr key={workflow.workflow_name || ""}>
@@ -177,7 +159,6 @@ export const JobsComponent: React.FunctionComponent = () => {
                   <Td dataLabel={columnNames.badge}><img src={workflow.badge_url}></img></Td>
                   <Td dataLabel={columnNames.html_url}><a href={workflow.html_url}><ExternalLinkAltIcon>Link</ExternalLinkAltIcon>Go to job</a></Td>
                 </Tr>
-
               );
             })}
           </Tbody>

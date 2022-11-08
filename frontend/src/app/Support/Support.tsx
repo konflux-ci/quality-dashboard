@@ -107,7 +107,7 @@ let Support = () => {
   // Triggers automatic validation when state variables change
   useEffect(() => {
     validateGetProwJob();
-  }, [repoName, jobType]);
+  }, [repoOrg, repoName, jobType]);
 
   // When component is mounted, get the list of repo and orgs from API and populate the dropdowns
 
@@ -123,17 +123,14 @@ let Support = () => {
           else { dropDescr = "Select a repository" }
           data.unshift({ repoName: dropDescr, organization: "", isPlaceholder: true }) // Adds placeholder at the beginning of the array, so it will be shown first
           setRepositories(data)
-          try {
-            setRepoName(data[1].repoName)
-            setRepoOrg(data[1].organization)
-            setjobType("presubmit")
-            validateGetProwJob()
-          }
-          catch (error) { console.log(error) } //no repositories with jobs
-
+          setRepoName(data[1].repoName)
+          setRepoOrg(data[1].organization)
+          setjobType("presubmit")
+          validateGetProwJob()
         })
     }
-  }, [setRepositories, state.teams.team, currentTeam]);
+  }, [setRepositories, currentTeam]);
+
 
   // Static list of job types to populate the dropdown
   let jobTypes = [
@@ -163,10 +160,10 @@ let Support = () => {
     setloadingState(true)
     try {
       // Get job suite details
-      let data = await getLatestProwJob(repoName, repoOrg, jobType)
+      const data = await getLatestProwJob(repoName, repoOrg, jobType)
       setProwJobSuite(data)
       // Get statistics and metrics
-      let stats = await getProwJobStatistics(repoName, repoOrg, jobType)
+      const stats = await getProwJobStatistics(repoName, repoOrg, jobType)
       // Set UI for showing data and disable spinner
       setprowJobsStats(stats)
       setloadingState(false)
@@ -174,6 +171,7 @@ let Support = () => {
     }
     catch {
       // Set UI to empty page and show error alert
+      
       setProwVisible(false);
       setloadingState(false)
       setAlerts(prevAlerts => {
@@ -196,8 +194,13 @@ let Support = () => {
     }
   }
 
-  // Extract a simple list of jobs from data: this will be used to le users select the job they want to see details for
+  // Extract a simple list of jobs from data: this will be used to let users select the job they want to see details for
   let jobNames: SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function (job, index) { return { "value": job.name, "index": index } }) : []
+  
+  
+
+  
+  
 
   // Prepare data for the line chart
   let beautifiedData: DashboardLineChartData = {
@@ -335,9 +338,11 @@ let Support = () => {
     setPage(newPage);
   };
 
+  let ci_html = "https://prow.ci.openshift.org/?repo="+ prowJobsStats?.git_org + "%2F" + prowJobsStats?.repository_name + "&type=" + prowJobsStats?.type
 
+  
   return (
-
+    
     <React.Fragment>
       {/* page title bar */}
       <PageSection variant={PageSectionVariants.light}>
@@ -401,6 +406,7 @@ let Support = () => {
         <React.Fragment>
           {prowVisible && <div style={{ marginTop: '20px' }}>
             {/* this section will show the job's chart over time and last execution stats */}
+            
             {prowJobsStats !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
               <GridItem span={3}><InfoCard data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_org }]}></InfoCard></GridItem>
               <GridItem span={2}><DashboardCard cardType={'danger'} title="avg of ci failures" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.ci_failed_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>

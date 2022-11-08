@@ -48,7 +48,6 @@ const Store = ({ children }) => {
             {children}
         </Provider>
     )
-
 };
 
 export default Store;
