@@ -30,22 +30,15 @@ spec:
         - resources:
             limits:
               cpu: 500m
-              memory: 256Mi
+              memory: 1Gi
             requests:
-              cpu: 100m
-              memory: 32Mi
+              cpu: 200m
+              memory: 512Mi
           name: quality-backend-dashboard
-          command: ["/root/qe-dashboard-backend"]
+          command: ["/root/server-runtime"]
           env:
-            - name: MODE_SSL
-              value: "disable"
-            - name: MAX_CONNECTIONS
-              value: "100"
             - name: POSTGRES_ENT_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: quality-dashboard-secrets
-                  key: rds-endpoint
+              value: "postgres-service"
             - name: POSTGRES_ENT_DATABASE
               valueFrom:
                 secretKeyRef:
@@ -79,4 +72,3 @@ spec:
           imagePullPolicy: Always
           image: >-
             quay.io/redhat-appstudio/quality-dashboard-backend:latest
-

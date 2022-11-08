@@ -1,42 +1,59 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: postgres
   namespace: appstudio-qe
 spec:
+  serviceName: postgres
   replicas: 1
   selector:
     matchLabels:
-      app: postgres
+      app: quality-dashboard
+      component: postgres
   template:
     metadata:
       labels:
-        app: postgres
+        app: quality-dashboard
+        component: postgres
     spec:
       containers:
         - name: postgres
-          image: quay.io/bitnami/postgresql:14.1.0
-          imagePullPolicy: "IfNotPresent"
-          ports:
-            - containerPort: 5432
+          image: quay.io/redhat-appstudio-qe/postgres:14
           env:
-            - name: POSTGRES_DB
-              valueFrom:
-                secretKeyRef:
-                  name: quality-dashboard-secrets
-                  key: storage-database
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: quality-dashboard-secrets
-                  key: storage-password
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: quality-dashboard-secrets
-                  key: storage-user
+          - name: PGDATA
+            value: /work/data
+          - name: POSTGRES_DB
+            valueFrom:
+              secretKeyRef:
+                name: quality-dashboard-secrets
+                key: storage-database
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: quality-dashboard-secrets
+                key: storage-password
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: quality-dashboard-secrets
+                key: storage-user
+          ports:
+          - containerPort: 5432
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
           volumeMounts:
-            - mountPath: /var/lib/postgresql/data
-              name: postgredb
-      volumes:
-        - name: postgredb
+          - name: data
+            mountPath: /work
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 2Gi
