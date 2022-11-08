@@ -48,11 +48,10 @@ export const TeamsWizard = () => {
     setCreationLoading(true)
     const data = {
       "team_name": newTeamName,
-      "description": newTeamDesc
+      "description": newTeamDesc,
     }
 
     createTeam(data).then(response => {
-      //console.log("NEW TEAM", data)
       if (response.code == 200) {
         setAlerts(prevAlertInfo => [...prevAlertInfo, {
           title: 'Team created',
@@ -68,7 +67,8 @@ export const TeamsWizard = () => {
         setCreationError(true)
       }
     }).catch(error => {
-      console.log(error)
+      console.log("NEW TEAM", data);
+      console.log(error);
     })
 
 
@@ -86,7 +86,7 @@ export const TeamsWizard = () => {
           artifacts: [],
           team_name: newTeamName
         }
-        let response = await createRepository(data)
+        const response = await createRepository(data)
         if (response.code == 200) {
           setAlerts(prevAlertInfo => [...prevAlertInfo, {
             title: 'Repository created',
@@ -146,8 +146,8 @@ export const TeamsWizard = () => {
         <FormGroup label="Team Name" isRequired fieldId="team-name" helperText="Include the name for your team">
           <TextInput value={newTeamName} type="text" onChange={(value) => { setNewTeamName(value) }} aria-label="text input example" placeholder="Include the name for your team" />
         </FormGroup>
-        <FormGroup label="Description" fieldId='team-description' helperText="Include a description for your team">
-          <TextArea value={newTeamDesc} onChange={(value) => { setNewTeamDesc(value) }} aria-label="text area example" placeholder="Include a description for your team" />
+        <FormGroup label="Description" isRequired fieldId='team-description' helperText="Include a description for your team">
+          <TextArea value={newTeamDesc} type="text" onChange={(value) => { setNewTeamDesc(value) }} aria-label="text area example" placeholder="Include a description for your team" />
         </FormGroup>
       </Form>
     </div>
@@ -201,7 +201,7 @@ export const TeamsWizard = () => {
     </div>
   )
 
-  const ValidateTeamName = () => { return newTeamName != "" }
+  const ValidateTeam = () => { return newTeamName != "" && newTeamDesc != "" }
   const ValidateRepoAndOrg = () => {
     if (newRepoName != "" || newOrgName != "") {
       return newRepoName != "" && newOrgName != ""
@@ -214,14 +214,14 @@ export const TeamsWizard = () => {
   }
 
   const steps = [
-    { id: 'team', name: 'Team Name', component: TeamData, enableNext: ValidateTeamName() },
-    { id: 'repo', name: 'Add a repository', component: AddRepo, canJumpTo: ValidateTeamName(), enableNext: ValidateRepoAndOrg() },
+    { id: 'team', name: 'Team Name', component: TeamData, enableNext: ValidateTeam() },
+    { id: 'repo', name: 'Add a repository', component: AddRepo, canJumpTo: ValidateTeam(), enableNext: ValidateRepoAndOrg() },
     {
       id: 'review',
       name: 'Review',
       component: DataReview,
       nextButtonText: 'Create',
-      canJumpTo: (ValidateTeamName() && ValidateRepoAndOrg()),
+      canJumpTo: (ValidateTeam() && ValidateRepoAndOrg()),
       hideCancelButton: true,
       isFinishedStep: isFinishedWizard
     }
@@ -274,8 +274,9 @@ export const TeamsTable: React.FunctionComponent = () => {
   const state = store.getState();
   const columns: TableProps['cells'] = ['Name', 'Description'];
 
-  const currentTeamsAvailable = useSelector((state:any) => state.teams.TeamsAvailable);
-  
+  let currentTeamsAvailable = useSelector((state:any) => state.teams.TeamsAvailable);
+  //store.subscribe(currentTeamsAvailable = useSelector((state:any) => state.teams.TeamsAvailable));
+
   const rows: TableProps['rows'] = currentTeamsAvailable.map(team => [
     team.team_name,
     team.description

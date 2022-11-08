@@ -32,7 +32,7 @@ import { ExternalLinkAltIcon, FilterIcon, PlusIcon, BarsIcon, InfoCircleIcon } f
 import _ from 'lodash';
 import { useModalContext } from '@app/Repositories/CreateRepository';
 import { Repository } from '@app/Repositories/';
-import { ReactReduxContext } from 'react-redux';
+import { ReactReduxContext, useSelector } from 'react-redux';
 
 export interface TableComponentProps {
   showCoverage?: boolean
@@ -351,6 +351,7 @@ export const TableComponent = ({ showCoverage, showDiscription, showTableToolbar
   );
   // End of filters helpers
 
+  const currentTeam = useSelector((state:any) => state.teams.Team);
   useEffect(()=> {
     getRepositories(perpage, state.teams.Team).then((res)=> {
       if(res.code === 200) {
@@ -370,7 +371,7 @@ export const TableComponent = ({ showCoverage, showDiscription, showTableToolbar
           dispatch({ type: "SET_ERROR", data: res });
       }
     })
-  }, [page, perpage, setRepositories, dispatch, state.teams.Team])
+  }, [page, perpage, setRepositories, dispatch, state.teams.Team, currentTeam])
 
   return (
     <React.Fragment>

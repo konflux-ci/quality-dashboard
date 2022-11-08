@@ -17,6 +17,7 @@ type RepositoriesApiResponse = {
 
 const API_URL = (process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898')
 
+
 async function getVersion(){
     const result: ApiResponse = { code: 0, data: {} };
     const subPath ='/api/quality/server/info';
@@ -38,7 +39,6 @@ async function getJiras(){
     await axios.get(uri).then((res: AxiosResponse) => {
         result.code = res.status;
         result.data = res.data;
-        
     }).catch((err) => {
         result.code = err.response.status;
         result.data = err.response.data;
@@ -194,6 +194,7 @@ async function getTeams(){
     return result;
 }
 
+//Only works with description specified?
 async function createTeam(data = {}) {
     const result: ApiResponse = { code: 0, data: {} };
     const subPath ='/api/quality/teams/create';
