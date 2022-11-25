@@ -5,23 +5,23 @@ export STORAGE_USER=""
 export GITHUB_TOKEN=""
 export JIRA_TOKEN=""
 export WORKSPACE=$(dirname $(dirname $(readlink -f "$0")))
-export SECRET_DASHBOARD_TMP=$(mktemp)
+export SECRET_DASHBOARD_TMP=${WORKSPACE}/backend/deploy/overlays/local/secrets.txt
 export FRONTEND_DEPLOYMENT_TMP=$(mktemp)
 
 while [[ $# -gt 0 ]]
 do
     case "$1" in
         -p|--storage-password)
-            STORAGE_PASSWORD=$(echo -n $2 | base64)
+            STORAGE_PASSWORD=$2
             ;;
         -u|--storage-user)
-            STORAGE_USER=$(echo -n $2 | base64)
+            STORAGE_USER=$2
             ;;
         -g|--github-token)
-            GITHUB_TOKEN=$(echo -n $2 | base64)
+            GITHUB_TOKEN=$2
             ;;
         -jt|--jira-token)
-            JIRA_TOKEN=$(echo -n $2 | base64)
+            JIRA_TOKEN=$2
             ;;
         *)
             ;;
@@ -50,17 +50,14 @@ echo "   Storage Database   : "${STORAGE_USER}""
 echo "   Github Token       : "${GITHUB_TOKEN}""
 echo ""
 
-# Postgres service name from file quality-dashboard/backend/deploy/openshift/service.yaml
-export POSTGRES_SERVICE="cG9zdGdyZXMtc2VydmljZQ=="
-
-# Replace variables in /backend/deploy/openshift/secret.yaml
-cat "${WORKSPACE}/backend/deploy/openshift/secret.yaml" |
-    sed -e "s#REPLACE_STORAGE_PASSWORD#${STORAGE_PASSWORD}#g" |
-    sed -e "s#REPLACE_STORAGE_USER#${STORAGE_USER}#g" |
-    sed -e "s#REPLACE_GITHUB_TOKEN#${GITHUB_TOKEN}#g" |
-    sed -e "s#REPLACE_JIRA_TOKEN#${JIRA_TOKEN}#g" |
-    sed -e "s#REPLACE_WITH_RDS_ENDPOINT#${POSTGRES_SERVICE}#g" |
-    cat > ${SECRET_DASHBOARD_TMP}
+cat << EOF > ${SECRET_DASHBOARD_TMP}
+storage-database=quality
+storage-user=${STORAGE_USER}
+storage-password=${STORAGE_PASSWORD}
+github-token=${GITHUB_TOKEN}
+rds-endpoint=postgres-service
+jira-token=${JIRA_TOKEN}
+EOF
 
 # Namespace
 oc create namespace appstudio-qe || true
@@ -68,24 +65,17 @@ oc create namespace appstudio-qe || true
 # BACKEND
 echo -e "[INFO] Deploying Quality dashboard backend"
 
-oc apply -f ${SECRET_DASHBOARD_TMP}
-oc apply -f "${WORKSPACE}/backend/deploy/openshift/postgres.yaml"
-oc apply -f "${WORKSPACE}/backend/deploy/openshift/deployment.yaml"
-oc apply -f "${WORKSPACE}/backend/deploy/openshift/service.yaml"
-oc apply -f "${WORKSPACE}/backend/deploy/openshift/route.yaml"
+oc apply -k ${WORKSPACE}/backend/deploy/overlays/local
 
-export BACKEND_ROUTE=$(oc get route quality-backend-route -n appstudio-qe -o json | jq -r '.spec.host')
+# oc apply -k ${WORKSPACE}/frontend/deploy/openshift
+
+# export BACKEND_ROUTE=$(oc get route quality-backend-route -n appstudio-qe -o json | jq -r '.spec.host')
+echo "BACKEND_ROUTE=$(oc get route quality-backend-route -n appstudio-qe -o json | jq -r '.spec.host')" > ${WORKSPACE}/frontend/deploy/overlays/local/configmap.txt
 
 # FRONTEND
 echo -e "[INFO] Deploying Quality dashboard frontend"
 
-cat "${WORKSPACE}/frontend/deploy/openshift/deployment.yaml" |
-    sed -e "s#REPLACE_BACKEND_URL#${BACKEND_ROUTE}#g" |
-    cat > ${FRONTEND_DEPLOYMENT_TMP}
-
-oc apply -f ${FRONTEND_DEPLOYMENT_TMP}
-oc apply -f "${WORKSPACE}/frontend/deploy/openshift/service.yaml"
-oc apply -f "${WORKSPACE}/frontend/deploy/openshift/route.yaml"
+oc apply -k ${WORKSPACE}/frontend/deploy/overlays/local
 
 echo ""
 echo "Frontend is accessible from: http://"$(oc get route/quality-frontend-route -n appstudio-qe -o go-template='{{.spec.host}}{{"\n"}}')""
