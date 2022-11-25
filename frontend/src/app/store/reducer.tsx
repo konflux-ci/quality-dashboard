@@ -1,44 +1,46 @@
-import { ITeam } from '@app/Teams/TeamsSelect'
+import { useContext } from "react";
+import { ITeam } from '@app/Teams/TeamsSelect';
+import { loadStateContext, saveStateContext } from '@app/utils/utils';
+import { initial, reduceRight } from 'lodash';
+import { combineReducers } from 'redux';
+import { ReactReduxContext } from 'react-redux';
+
 
 export interface StateContext {
-    APIData: [];
-    E2E_KNOWN_ISSUES: [];
-    error: string;
-    alerts: [];
-    version: string;
-    repositories: [];
-    workflows: [];
-    Allrepositories: [];
-    Team: string;
-    TeamsAvailable: ITeam[]
-}
+    general: {
+        APIData: []
+        error: string
+        workflows: []
+    },
+    alerts: {
+        alerts: []
+        version: string
+    }, jira: {
+        E2E_KNOWN_ISSUES: []
+    },
+    repos: {
+        repositories: []
+        Allrepositories: []
+    },
+    teams: {
+        Team: string
+        TeamsAvailable: ITeam[]
+    }
+};
 
-const Reducer = (state, action) => {
+
+
+const generalReducer = (state, action) => {
     switch (action.type) {
         case 'APIData':
             return {
                 ...state,
                 APIData: action.data
             };
-        case 'SET_JIRAS':
-            return {
-                ...state,
-                E2E_KNOWN_ISSUES: action.data
-            }
         case 'SET_Version':
             return {
                 ...state,
                 version: action.data
-            };
-        case 'SET_REPOSITORIES':
-            return {
-                ...state,
-                repositories: action.data
-            };
-        case 'SET_REPOSITORIES_ALL':
-            return {
-                ...state,
-                Allrepositories: action.data
             };
         case 'SET_WORKFLOWS':
             return {
@@ -50,6 +52,41 @@ const Reducer = (state, action) => {
                 ...state,
                 error: action.data
             };
+
+        default: return state || null;
+    };
+
+};
+
+const jirasReducer = (state, action) => {
+    switch (action.type) {
+        case 'SET_JIRAS':
+            return {
+                ...state,
+                E2E_KNOWN_ISSUES: action.data
+            };
+        default: return state || null;
+    }
+};
+
+const repositoriesReducer = (state, action) => {
+    switch (action.type) {
+        case 'SET_REPOSITORIES':
+            return {
+                ...state,
+                repositories: action.data
+            };
+        case 'SET_REPOSITORIES_ALL':
+            return {
+                ...state,
+                Allrepositories: action.data
+            };
+        default: return state || null;
+    }
+};
+
+const alertsReducer = (state, action) => {
+    switch (action.type) {
         case 'ADD_Alert':
             return {
                 ...state,
@@ -60,7 +97,15 @@ const Reducer = (state, action) => {
                 ...state,
                 alerts: state.alerts.filter(el => el.key !== action.data)
             };
-        case 'SET_TEAM':
+        default: return state || null;
+    }
+};
+
+const teamsReducer = (state, action) => {
+    switch (action.type) {
+        case 'SET_TEAM': 
+            // Change the persisted 'saved' team when its state has been changed
+            saveStateContext('TEAM', action.data)
             return {
                 ...state,
                 Team: action.data
@@ -70,9 +115,19 @@ const Reducer = (state, action) => {
                 ...state,
                 TeamsAvailable: action.data
             };
-        default:
-            return state;
+        default: return state || null;
     }
 };
 
-export default Reducer;
+export const rootReducer = combineReducers({
+    general: generalReducer,
+    jiras: jirasReducer,
+    repos: repositoriesReducer,
+    alerts: alertsReducer,
+    teams: teamsReducer
+});
+
+export default rootReducer;
+
+
+

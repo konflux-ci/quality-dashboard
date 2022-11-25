@@ -7,9 +7,10 @@ import { GeneralSettings } from '@app/Settings/General/GeneralSettings';
 import { ProfileSettings } from '@app/Settings/Profile/ProfileSettings';
 import { useDocumentTitle } from '@app/utils/useDocumentTitle';
 import { LastLocationProvider, useLastLocation } from 'react-router-last-location';
-import { JobsComponent } from './Jobs/Jobs';
+import { JobsComponent } from '@app/Jobs/Jobs';
 import { Teams } from '@app/Teams/Teams';
 import { Context } from '@app/store/store';
+import { ReactReduxContext } from 'react-redux';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -92,7 +93,7 @@ const RouteWithTitleUpdates = ({ component: Component, isAsync = false, title, .
   function routeWithTitle(routeProps: RouteComponentProps) {
     return <Component {...rest} {...routeProps} />;
   }
-  return <Route render={routeWithTitle} {...rest}/>;
+  return <Route render={routeWithTitle} {...rest} />;
 };
 
 const flattenedRoutes: IAppRoute[] = routes.reduce(
@@ -101,33 +102,38 @@ const flattenedRoutes: IAppRoute[] = routes.reduce(
 );
 
 const AppRoutes = (): React.ReactElement => {
-  const { state } = React.useContext(Context)
+
+  const { store } = React.useContext(ReactReduxContext);
+  const state = store.getState();
+
+
   const [TeamsNotSet, setTeamsNotSet] = React.useState(false)
 
   React.useEffect(() => {
-    if(state.Team == undefined || state.Team == "Select Team" || state.Team == ""){
+    if (state.teams.Team == undefined || state.teams.Team == "Select Team" || state.teams.Team == "") {
       setTeamsNotSet(true)
     } else {
       setTeamsNotSet(false)
     }
-  }, [location.pathname, state.Team]);
+  }, [location.pathname, state.teams.Team]);
 
 
   return (
-  <LastLocationProvider>
-    <Switch>
-      {flattenedRoutes.map(({ path, exact, component, title, isAsync }, idx) => (
-        <RouteWithTitleUpdates
-          path={path}
-          exact={exact}
-          component={component}
-          key={idx}
-          title={title}
-          isAsync={isAsync}
-        />
-      ))}
-    </Switch>
-  </LastLocationProvider>
-)};
+    <LastLocationProvider>
+      <Switch>
+        {flattenedRoutes.map(({ path, exact, component, title, isAsync }, idx) => (
+          <RouteWithTitleUpdates
+            path={path}
+            exact={exact}
+            component={component}
+            key={idx}
+            title={title}
+            isAsync={isAsync}
+          />
+        ))}
+      </Switch>
+    </LastLocationProvider>
+  )
+};
 
 export { AppRoutes, routes };

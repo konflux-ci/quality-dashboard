@@ -39,6 +39,7 @@ import { parse } from 'postcss';
 import { string } from 'prop-types';
 import { toInteger } from 'lodash';
 import { CheckCircleIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
+import { ReactReduxContext } from 'react-redux';
 
 export const Dashboard = () => {
 
@@ -68,6 +69,10 @@ export const Dashboard = () => {
   const JIRA_BLOCKER = "Blocker"
   const JIRA_MAJOR = "Major"
 
+  const { store } = useContext(ReactReduxContext);  
+  const state = store.getState();
+  const dispatch = store.dispatch;  
+
   useEffect(() => {
     getJiras().then((res) => {
       if (res.code === 200) {
@@ -78,7 +83,7 @@ export const Dashboard = () => {
         dispatch({ type: "SET_ERROR", data: res });
       }
     })
-  }, [])
+  }, [jiras, setJiras, dispatch]);
 
   function computeJiraIssueCount(type) {
     try {
@@ -224,7 +229,7 @@ export const Dashboard = () => {
   */
   const [dashboardVersion, setVersion] = useState('unknown')
   const [serverAvailable, setServerAvailable] = useState<boolean>(false)
-  const {state, dispatch} = useContext(Context) // required to access the global state
+
   useEffect(()=> {
     getVersion().then((res) => { // making the api call here
       if(res.code === 200){
