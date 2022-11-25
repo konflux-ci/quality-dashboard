@@ -1,10 +1,9 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: quality-frontend-service
-  namespace: appstudio-qe
+  name: quality-backend-service
   labels:
-    app.kubernetes.io/component: quality-frontend
+    app.kubernetes.io/component: quality-backend
     app.kubernetes.io/instance: quality-dashboard
     app.kubernetes.io/name: quality-dashboard
 spec:
@@ -13,11 +12,11 @@ spec:
   ports:
     - name: http
       protocol: TCP
-      port: 8080
-      targetPort: 8080
+      port: 8000
+      targetPort: 8000
   internalTrafficPolicy: Cluster
   ipFamilyPolicy: SingleStack
   selector:
-    app.kubernetes.io/component: quality-frontend
+    app.kubernetes.io/component: quality-backend
     app.kubernetes.io/instance: quality-dashboard
     app.kubernetes.io/name: quality-dashboard

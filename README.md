@@ -72,7 +72,7 @@ You need to be logged in to an OpenShift cluster first.
 Example (oc command): `oc login -u <user> -p <password> <oc_api_url>.`
 
 The install script will deploy quality dashboard and all resources to your OpenShift cluster.
-The script will create a namespace `appstudio-qe` and deploy all OpenShift resources needed by [backend](https://github.com/redhat-appstudio/quality-dashboard/tree/main/backend/deploy/openshift) and [frontend](https://github.com/redhat-appstudio/quality-dashboard/tree/main/frontend/deploy/openshift).
+The script will create a namespace `appstudio-qe` and deploy [backend](https://github.com/redhat-appstudio/quality-dashboard/tree/main/backend/deploy/base/local) and [frontend](https://github.com/redhat-appstudio/quality-dashboard/tree/main/frontend/deploy/base/local) using [kustomize](https://kustomize.io/)
 
 To run the script:
 
