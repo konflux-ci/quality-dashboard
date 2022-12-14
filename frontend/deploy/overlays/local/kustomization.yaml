@@ -8,7 +8,6 @@ namespace: appstudio-qe
 
 configMapGenerator:
 - name: quality-dashboard-configmap
-  behavior: replace
   envs:
   - configmap.txt
 
