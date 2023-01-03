@@ -4,7 +4,7 @@ metadata:
   name: dashboard-frontend-on-push
   annotations:
     pipelinesascode.tekton.dev/on-cel-expression: |
-      event == "push" && target_branch == "*main" && "frontend/***".pathChanged()
+      event == "push" && target_branch == "main" && "frontend/***".pathChanged()
     pipelinesascode.tekton.dev/max-keep-runs: "2"
 spec:
   params:
