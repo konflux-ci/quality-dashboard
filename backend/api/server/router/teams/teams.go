@@ -19,7 +19,7 @@ type TeamsRequest struct {
 // @Description returns a list of teams created in quality studio
 // @Tags Teams API Info
 // @Produce json
-// @Router //teams/list/all [get]
+// @Router /teams/list/all [get]
 // @Success 200 {object} []db.Teams
 func (s *teamsRouter) listAllQualityStudioTeams(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	teams, err := s.Storage.GetAllTeamsFromDB()
@@ -38,7 +38,8 @@ func (s *teamsRouter) listAllQualityStudioTeams(ctx context.Context, w http.Resp
 // @Description create a team in quality studio
 // @Tags Teams API Info
 // @Produce json
-// @Router /teams/create [get]
+// @Router /teams/create [post]
+// @Param request body TeamsRequest true "Body json params"
 // @Success 200 {object} db.Teams
 func (s *teamsRouter) createQualityStudioTeam(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	var team TeamsRequest

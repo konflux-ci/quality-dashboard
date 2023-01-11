@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"net/http"
-	"os"
 )
 
 type API struct {
@@ -13,9 +12,17 @@ type API struct {
 	githubAPIURL string
 }
 
+type TotalsSpec struct {
+	Coverage json.Number `json:"coverage"`
+}
+
+type CoverageSpec struct {
+	Totals TotalsSpec `json:"totals"`
+}
+
 func NewCodeCoverageClient() *API {
 	api := API{
-		githubAPIURL: "https://codecov.io/api/gh/",
+		githubAPIURL: "https://codecov.io/api/v2/github/",
 	}
 	api.httpClient = &http.Client{
 		Transport: &http.Transport{
@@ -33,35 +40,24 @@ func (c *API) Do(req *http.Request) (*http.Response, error) {
 }
 
 func (c *API) Get(ctx context.Context, contentType string, organization string, repository string) (*http.Response, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", c.githubAPIURL+organization+"/"+repository, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", c.githubAPIURL+organization+"/repos/"+repository+"/report/", nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", contentType)
-	req.Header.Set("Authorization", os.Getenv("CODECOV_TOKEN"))
+
 	return c.Do(req)
 }
 
-type TotalsSpec struct {
-	TotalCoverage json.Number `json:"c"`
-}
-
-type CommitSpec struct {
-	Totals TotalsSpec `json:"totals"`
-}
-
-type GitHubTagResponse struct {
-	Commit CommitSpec `json:"commit"`
-}
-
-func (c *API) GetCodeCovInfo(organization string, repo string) (repository GitHubTagResponse, err error) {
-	gh := GitHubTagResponse{}
+func (c *API) GetCodeCovInfo(organization string, repo string) (repository CoverageSpec, err error) {
+	gh := CoverageSpec{}
 	response, err := c.Get(context.Background(), "aplication/json", organization, repo)
+
 	if err != nil {
 		return gh, err
 	}
-	err = json.NewDecoder(response.Body).Decode(&gh)
-	if err != nil {
+
+	if err = json.NewDecoder(response.Body).Decode(&gh); err != nil {
 		return gh, err
 	}
 
