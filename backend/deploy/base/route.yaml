@@ -2,12 +2,11 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: quality-backend-route
-  namespace: appstudio-qe
 spec:
   to:
     kind: Service
     name: quality-backend-service
-    weight: 100
   port:
-    targetPort: 8080
-  wildcardPolicy: None
+    targetPort: 8000
+  tls:
+    termination: edge

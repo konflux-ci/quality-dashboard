@@ -6,6 +6,7 @@ import { Context } from '@app/store/store';
 import { getRepositories, getWorkflowByRepositoryName } from '@app/utils/APIService';
 import { Caption, TableComposable, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
+import { ReactReduxContext, useSelector } from 'react-redux';
 
 interface Repository {
   git_organization: string;
@@ -17,14 +18,14 @@ interface Repository {
 interface Workflows {
   workflow_name: string;
   badge_url: string;
-  state: string;
+  job: string;
   html_url: string
 }
 
 const columnNames = {
   name: 'Name',
   html_url: 'Job URL',
-  state: 'Job State',
+  job: 'Job State',
   badge: 'Last Execution'
 };
 
@@ -32,32 +33,41 @@ const columnNames = {
 export const JobsComponent: React.FunctionComponent = () => {
   const [isOpen, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const { state, dispatch } = useContext(Context) 
-  const [workflows, setWorkflows] = useState([])
 
-  const repositories: Repository[] = state.Allrepositories
+  const { store } = useContext(ReactReduxContext);
+  const state = store.getState();
+  const dispatch = store.dispatch;
+
+  const [workflows, setWorkflows] = useState([]);
+
+  const [repositories, setallreps] = useState<any>(state.repos.Allrepositories);
 
   const [, setFilteredItems] = useState(repositories);
-  const [repos, setRepositories] = useState([])
+  const [repos, setRepositories] = useState([]);
 
-  useEffect(()=> {
+  const currentTeam = useSelector((state: any) => state.teams.Team);
+  
+  useEffect(() => {
     clearAll()
-    getRepositories(5, state.Team).then((res) => {
-      if(res.code === 200) {
-          const result = res.data;
-          dispatch({ type: "SET_REPOSITORIES", data: result });
-          dispatch({type: "SET_REPOSITORIES_ALL", data: res.all});
+    getRepositories(5, state.teams.Team).then((res) => {
+      if (res.code === 200) {
+        const result = res.data;
+        setallreps(res.all)
+        dispatch({ type: "SET_REPOSITORIES", data: result });
+        dispatch({ type: "SET_REPOSITORIES_ALL", data: res.all });
       } else {
-          dispatch({ type: "SET_ERROR", data: res });
+        dispatch({ type: "SET_ERROR", data: res });
+        clearAll()
       }
     });
-  }, [repos, setRepositories, dispatch, state.Team])
+  }, [repos, setRepositories, dispatch, state.teams.Team, currentTeam])
+
 
   function onToggle(_event: any, isOpen: boolean) {
     setOpen(isOpen);
   }
 
-  function clearAll(){
+  function clearAll() {
     setWorkflows([])
     setSearchValue('')
     setSelected('default')
@@ -65,12 +75,12 @@ export const JobsComponent: React.FunctionComponent = () => {
 
   function getworkflows(repo) {
     getWorkflowByRepositoryName(repo).then((res) => {
-      if(res.code === 200) {
-          const result = res.data;
-          setWorkflows(result)
-          dispatch({ type: "SET_WORKFLOWS", data: result });
+      if (res.code === 200) {
+        const result = res.data;
+        setWorkflows(result)
+        dispatch({ type: "SET_WORKFLOWS", data: result });
       } else {
-          dispatch({ type: "SET_ERROR", data: res });
+        dispatch({ type: "SET_ERROR", data: res });
       }
     });
   }
@@ -106,8 +116,8 @@ export const JobsComponent: React.FunctionComponent = () => {
 
   return (
     <PageSection>
-      <div style = {{backgroundColor: "white", paddingTop: "5px"}}>
-        <div style = {{ padding : "10px"}}>
+      <div style={{ backgroundColor: "white", paddingTop: "5px" }}>
+        <div style={{ padding: "10px" }}>
           <ContextSelector
             toggleText={selected}
             onSearchInputChange={onSearchInputChange}
@@ -129,31 +139,29 @@ export const JobsComponent: React.FunctionComponent = () => {
           </ContextSelector>
         </div>
         <hr />
-        <TableComposable aria-label="Actions table" style={{padding: "10px"}}>
+        <TableComposable aria-label="Actions table" style={{ padding: "10px" }}>
           <Caption>All Github Actions available in the repository {selected}</Caption>
-            <Thead>
-              <Tr>
-                <Th>{columnNames.name}</Th>
-                <Th>{columnNames.state}</Th>
-                <Th>{columnNames.badge}</Th>
-                <Th>{columnNames.html_url}</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {workflows.map(workf => {
-                //const rowActions: IAction[] | null = defaultActions(repo);
-                const workflow: Workflows = workf
-                return (
-                  <Tr key={workflow.workflow_name || ""}>
-                    <Td dataLabel={columnNames.name}>{workflow.workflow_name || ""}</Td>
-                    <Td dataLabel={columnNames.state}>{workflow.state || ""}</Td>
-                    <Td dataLabel={columnNames.badge}><img src={workflow.badge_url}></img></Td>
-                    <Td dataLabel={columnNames.html_url}><a href={workflow.html_url}><ExternalLinkAltIcon>Link</ExternalLinkAltIcon>Go to job</a></Td>
-                  </Tr>
-
-                );
-              })}
-            </Tbody>
+          <Thead>
+            <Tr>
+              <Th>{columnNames.name}</Th>
+              <Th>{columnNames.job}</Th>
+              <Th>{columnNames.badge}</Th>
+              <Th>{columnNames.html_url}</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {workflows.map(workf => {
+              const workflow: Workflows = workf
+              return (
+                <Tr key={workflow.workflow_name || ""}>
+                  <Td dataLabel={columnNames.name}>{workflow.workflow_name || ""}</Td>
+                  <Td dataLabel={columnNames.job}>{workflow.job || ""}</Td>
+                  <Td dataLabel={columnNames.badge}><img src={workflow.badge_url}></img></Td>
+                  <Td dataLabel={columnNames.html_url}><a href={workflow.html_url}><ExternalLinkAltIcon>Link</ExternalLinkAltIcon>Go to job</a></Td>
+                </Tr>
+              );
+            })}
+          </Tbody>
         </TableComposable>
       </div>
     </PageSection>

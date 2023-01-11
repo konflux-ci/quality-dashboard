@@ -1,42 +1,52 @@
-import React, {createContext, Dispatch, useReducer} from "react";
-import Reducer, {StateContext} from './reducer'
+import React, { createContext, Dispatch, useContext, useReducer } from "react";
+import rootReducer, { StateContext } from './reducer'
 import { getTeams } from '@app/utils/APIService';
+import { configureStore } from '@reduxjs/toolkit';
+import { Provider } from 'react-redux';
+import { initialState } from '@app/store/initState';
+import { loadStateContext, stateContextExists } from '@app/utils/utils'
 
 interface IContextProps {
     state: StateContext;
-    dispatch: ({type}:{type:string, data: any}) => void;
-  }
+    dispatch: ({ type }: { type: string, data: any }) => void;
+}
 
-const initialState = {
-    APIData: [],
-    E2E_KNOWN_ISSUES: [],
-    error: 'error',
-    alerts: [],
-    version: '',
-    repositories: [],
-    Allrepositories: [],
-    Team: "",
-    TeamsAvailable: []
-};
 
 export const Context = React.createContext({} as IContextProps);
 
-const Store = ({children}) => {
+const loadTeamSelection = (data) => {
+    if (stateContextExists('TEAM')) {
+        const teamPersisted = loadStateContext('TEAM')
+        if (data.map((team) => team.team_name).includes(teamPersisted)) {
+            return teamPersisted;
+        }
+    }
+    return null;
+}
+
+const Store = ({ children }) => {
+    const store = configureStore({ reducer: rootReducer, preloadedState: initialState });
+
     React.useEffect(() => {
+        const state = store.getState()
+        const dispatch = store.dispatch
+
         getTeams().then(data => {
-            if( data.data.length > 0){ 
-                dispatch({ type: "SET_TEAM", data:  data.data[0].team_name });
-                dispatch({ type: "SET_TEAMS_AVAILABLE", data:  data.data });
+            if (data.data.length > 0) {
+                const loadedTeam = loadTeamSelection(data.data);
+                if (loadedTeam == null) { dispatch({ type: "SET_TEAM", data: data.data[0].team_name }) }
+                else { dispatch({ type: "SET_TEAM", data: loadedTeam }) }
+
+                dispatch({ type: "SET_TEAMS_AVAILABLE", data: data.data })
             }
-          })
+        }
+        )
     }, []);
 
-    const [state, dispatch] = useReducer(Reducer, initialState);
-    const value = { state, dispatch };
     return (
-        <Context.Provider value={value}>
+        <Provider store={store}>
             {children}
-        </Context.Provider>
+        </Provider>
     )
 };
 

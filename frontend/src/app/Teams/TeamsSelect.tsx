@@ -17,6 +17,7 @@ import { useHistory } from 'react-router-dom';
 import { teamIsNotEmpty } from '@app/utils/utils';
 import ArrowRightIcon from '@patternfly/react-icons/dist/esm/icons/arrow-right-icon';
 import { SignOutAltIcon } from '@patternfly/react-icons';
+import { ReactReduxContext, useSelector } from 'react-redux';
 
 export interface ITeam {
   id: string
@@ -25,24 +26,33 @@ export interface ITeam {
 }
 
 export const BasicMasthead = () => {
-  const history = useHistory()  
-  const { state, dispatch } = useContext(Context)
-  const [isDropdownOpen, setDropdownOpen] = useState(false)
+  const history = useHistory();  
+  
+  const { store } = useContext(ReactReduxContext);
+  const state = store.getState();
+  const dispatch = store.dispatch;
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
+  const [dropdownItems, setDropdownItems] = useState([]);
 
   const onDropdownToggle = (isDropdownOpen: boolean) => {
-    setDropdownOpen(isDropdownOpen)
-  };
+    setDropdownOpen(isDropdownOpen);
+  }
 
   const onDropdownSelect = (event: any) => {
-    setDropdownOpen(!isDropdownOpen)
+    setDropdownOpen(!isDropdownOpen);
     dispatch({ type: "SET_TEAM", data:  event.target.dataset.value });
-  };
+  }
   function Log_out(){
       history.push('/oauth/sign_out');
       window.location.reload();
   }
+  
+  const currentTeamsAvailable = useSelector((state:any) => state.teams.TeamsAvailable);
 
-  const dropdownItems = state.TeamsAvailable.map((team) => <DropdownItem key={team.id} data-value={team.team_name}>{team.team_name}</DropdownItem> )
+  useEffect(() => {
+    let ddi=currentTeamsAvailable.map((team) => <DropdownItem key={team.id} data-value={team.team_name}>{team.team_name}</DropdownItem>)
+    setDropdownItems(ddi)
+  }, [currentTeamsAvailable]);
 
     return (
       <Masthead id="basic-demo">
@@ -55,7 +65,7 @@ export const BasicMasthead = () => {
                     onSelect={onDropdownSelect}
                     toggle={
                       <DropdownToggle id="toggle-id" onToggle={onDropdownToggle} toggleIndicator={CaretDownIcon}>
-                        {state.Team}
+                        {state.teams.Team}
                       </DropdownToggle>
                     }
                     isOpen={isDropdownOpen}
@@ -64,7 +74,7 @@ export const BasicMasthead = () => {
                   />
                 </ToolbarItem>
                 <ToolbarItem visibility={{ default: 'hidden', lg: 'visible' }}>
-                  { !teamIsNotEmpty(state.Team) && <Button style={{verticalAlign: "middle", backgroundColor: "var(--pf-c-button--m-primary--Color)", color: "var(--pf-c-button--m-primary--BackgroundColor)"}} onClick={()=>{ history.push("/home/teams") }} type="button" width={300} variant="primary">Create your first Team <ArrowRightIcon /></Button>}
+                  { !teamIsNotEmpty(state.teams.Team) && <Button style={{verticalAlign: "middle", backgroundColor: "var(--pf-c-button--m-primary--Color)", color: "var(--pf-c-button--m-primary--BackgroundColor)"}} onClick={()=>{ history.push("/home/teams") }} type="button" width={300} variant="primary">Create your first Team <ArrowRightIcon /></Button>}
                 </ToolbarItem>
               </ToolbarGroup>
             </ToolbarContent>

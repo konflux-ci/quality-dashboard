@@ -1,0 +1,30 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: dashboard-backend-on-pull-request
+  annotations:
+    pipelinesascode.tekton.dev/on-cel-expression: |
+      event == "pull_request" && target_branch == "main" && "backend/***".pathChanged()
+    pipelinesascode.tekton.dev/max-keep-runs: "2"
+spec:
+  params:
+    - name: git-url
+      value: "{{repo_url}}"
+    - name: revision
+      value: "{{revision}}"
+    - name: output-image
+      value: "quay.io/redhat-appstudio/pull-request-builds:quality-dashboard-backend-{{revision}}"
+    - name: path-context
+      value: "backend"
+  pipelineRef:
+    name: docker-build
+    bundle: quay.io/redhat-appstudio/hacbs-core-service-templates-bundle:latest
+  workspaces:
+    - name: workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi

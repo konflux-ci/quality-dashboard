@@ -3,6 +3,7 @@ import { ExclamationCircleIcon, OkIcon, HelpIcon } from '@patternfly/react-icons
 import { Card, CardTitle, CardBody } from '@patternfly/react-core';
 import { Chart, ChartAxis, ChartBar, ChartLine, ChartGroup, ChartVoronoiContainer, ChartLegend, ChartLabel } from '@patternfly/react-charts';
 import { SimpleList, SimpleListItem } from '@patternfly/react-core';
+import { JobsComponent } from '@app/Jobs/Jobs';
 
 /* 
 Some common useful types definition
@@ -10,12 +11,13 @@ Some common useful types definition
 
 export interface JobsStatistics {
   repository_name: string;
+  git_organization: string;
   type: string;
-  git_org: string;
   jobs: (JobsEntity)[] ;
 }
 
 export interface JobsEntity {
+  html_url: string;
   name: string;
   metrics: (MetricsEntity)[];
   summary: (MetricsSummary);

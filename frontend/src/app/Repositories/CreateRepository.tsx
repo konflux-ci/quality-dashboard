@@ -1,10 +1,11 @@
 import { createRepository } from "@app/utils/APIService";
 import { Button, Checkbox, Form, FormGroup, Modal, ModalVariant, Popover, TextArea, TextInput, Alert } from "@patternfly/react-core";
 import { HelpIcon } from "@patternfly/react-icons";
-import React, { useContext, SetStateAction, useEffect } from "react";
+import React, { useContext, SetStateAction, useEffect, useState } from "react";
 import { Context } from '@app/store/store';
-import { teamIsNotEmpty } from '@app/utils/utils'
+import { teamIsNotEmpty } from '@app/utils/utils';
 import { useHistory } from 'react-router-dom';
+import { ReactReduxContext } from 'react-redux';
 
 interface IModalContext {
   isModalOpen: IModalContextMember;
@@ -26,14 +27,14 @@ export const ModalContext = React.createContext<IModalContext>({
 });
 
 export const useModalContext = () => {
-  return useContext(ModalContext)
+  return useContext(ModalContext);
 }
 
 export const useDefaultModalContextState = () => {
   const [isModalOpen, setModalOpen] = React.useState(false)
   const [isEditRepo, setEditRepo] = React.useState(false);
   const [data, setData] = React.useState({});
-  const defaultModalContext = useModalContext()
+  const defaultModalContext = useModalContext();
 
   defaultModalContext.isModalOpen = {set: setModalOpen, value: isModalOpen}
   defaultModalContext.isEditRepo = {set: setEditRepo, value: isEditRepo}
@@ -61,7 +62,10 @@ export const FormModal = ()=> {
     const [monitorGithubActions, setMonitorGithubActions] = React.useState(false);
     const [checked, setChecked] = React.useState('');
   
-    const { state } = useContext(Context)
+    const { store } = useContext(ReactReduxContext)  
+    const state = store.getState()
+
+    const dispatch = store.dispatch;  
 
     const handleGitRepositoryInput = value => {
       setGitRepositoryValue(value);
@@ -92,7 +96,7 @@ export const FormModal = ()=> {
             }
           },
           artifacts: [],
-          team_name: state.Team
+          team_name: state.teams.Team
         }
         modalContext.handleModalToggle()
         await createRepository(data)
@@ -123,7 +127,7 @@ export const FormModal = ()=> {
           isOpen={modalContext.isModalOpen.value}
           onClose={modalContext.handleModalToggle}
           actions={[
-            <Button key="create" variant="primary" form="modal-with-form-form" onClick={onSubmit} isDisabled={!teamIsNotEmpty(state.Team)}>
+            <Button key="create" variant="primary" form="modal-with-form-form" onClick={onSubmit} isDisabled={!teamIsNotEmpty(state.teams.Team)}>
               { !modalContext.isEditRepo.value ? "Add" : "Update" }
             </Button>,
             <Button key="cancel" variant="link" onClick={modalContext.handleModalToggle}>
@@ -208,13 +212,13 @@ export const FormModal = ()=> {
               />
           </FormGroup>
           <FormGroup label="Team" isRequired isStack hasNoPaddingTop fieldId={''}>
-            { teamIsNotEmpty(state.Team) ? <TextInput
+            { teamIsNotEmpty(state.teams.Team) ? <TextInput
               isReadOnly={true}
               isRequired
               type="text"
               id="modal-with-form-form-team"
               name="modal-with-form-form-team"
-              value={state.Team}
+              value={state.teams.Team}
               /> : 
               <div>
                 <Button onClick={()=>{ history.push("/home/teams") }} type="button" width={300}>Create your first Team</Button>
