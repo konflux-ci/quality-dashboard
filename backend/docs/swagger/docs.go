@@ -144,64 +144,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/prow/results/post": {
-            "post": {
-                "description": "returns all prow jobs information stored in database",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Prow Jobs info"
-                ],
-                "summary": "Prow Jobs info",
-                "parameters": [
-                    {
-                        "description": "repository name",
-                        "name": "repository_name",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/prow.GitRepositoryRequest"
-                        }
-                    },
-                    {
-                        "description": "repository name",
-                        "name": "git_organization",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/prow.GitRepositoryRequest"
-                        }
-                    },
-                    {
-                        "description": "repository name",
-                        "name": "job_id",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "Object"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/repositories/create": {
             "post": {
                 "description": "returns the Server information as a JSON",
@@ -334,6 +276,60 @@ const docTemplate = `{
                 }
             }
         },
+        "/teams/create": {
+            "post": {
+                "description": "create a team in quality studio",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Teams API Info"
+                ],
+                "summary": "Teams API Info",
+                "parameters": [
+                    {
+                        "description": "Body json params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/teams.TeamsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/db.Teams"
+                        }
+                    }
+                }
+            }
+        },
+        "/teams/list/all": {
+            "get": {
+                "description": "returns a list of teams created in quality studio",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Teams API Info"
+                ],
+                "summary": "Teams API Info",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/db.Teams"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/workflows/get": {
             "get": {
                 "description": "return github workflows from a given repository",
@@ -374,6 +370,333 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "db.CodeCov": {
+            "type": "object",
+            "properties": {
+                "coverage_percentage": {
+                    "description": "CoveragePercentage holds the value of the \"coverage_percentage\" field.",
+                    "type": "number"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the CodeCovQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/db.CodeCovEdges"
+                        }
+                    ]
+                },
+                "git_organization": {
+                    "description": "GitOrganization holds the value of the \"git_organization\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "repository_name": {
+                    "description": "RepositoryName holds the value of the \"repository_name\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "db.CodeCovEdges": {
+            "type": "object",
+            "properties": {
+                "codecov": {
+                    "description": "Codecov holds the value of the codecov edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/db.Repository"
+                        }
+                    ]
+                }
+            }
+        },
+        "db.ProwJobs": {
+            "type": "object",
+            "properties": {
+                "ci_failed": {
+                    "description": "CiFailed holds the value of the \"ci_failed\" field.",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "description": "CreatedAt holds the value of the \"created_at\" field.",
+                    "type": "string"
+                },
+                "duration": {
+                    "description": "Duration holds the value of the \"duration\" field.",
+                    "type": "number"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the ProwJobsQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/db.ProwJobsEdges"
+                        }
+                    ]
+                },
+                "failed_count": {
+                    "description": "FailedCount holds the value of the \"failed_count\" field.",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "integer"
+                },
+                "job_id": {
+                    "description": "JobID holds the value of the \"job_id\" field.",
+                    "type": "string"
+                },
+                "job_name": {
+                    "description": "JobName holds the value of the \"job_name\" field.",
+                    "type": "string"
+                },
+                "job_type": {
+                    "description": "JobType holds the value of the \"job_type\" field.",
+                    "type": "string"
+                },
+                "job_url": {
+                    "description": "JobURL holds the value of the \"job_url\" field.",
+                    "type": "string"
+                },
+                "skipped_count": {
+                    "description": "SkippedCount holds the value of the \"skipped_count\" field.",
+                    "type": "integer"
+                },
+                "state": {
+                    "description": "State holds the value of the \"state\" field.",
+                    "type": "string"
+                },
+                "tests_count": {
+                    "description": "TestsCount holds the value of the \"tests_count\" field.",
+                    "type": "integer"
+                }
+            }
+        },
+        "db.ProwJobsEdges": {
+            "type": "object",
+            "properties": {
+                "prow_jobs": {
+                    "description": "ProwJobs holds the value of the prow_jobs edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/db.Repository"
+                        }
+                    ]
+                }
+            }
+        },
+        "db.ProwSuites": {
+            "type": "object",
+            "properties": {
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the ProwSuitesQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/db.ProwSuitesEdges"
+                        }
+                    ]
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "integer"
+                },
+                "job_id": {
+                    "description": "JobID holds the value of the \"job_id\" field.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name holds the value of the \"name\" field.",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status holds the value of the \"status\" field.",
+                    "type": "string"
+                },
+                "time": {
+                    "description": "Time holds the value of the \"time\" field.",
+                    "type": "number"
+                }
+            }
+        },
+        "db.ProwSuitesEdges": {
+            "type": "object",
+            "properties": {
+                "prow_suites": {
+                    "description": "ProwSuites holds the value of the prow_suites edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/db.Repository"
+                        }
+                    ]
+                }
+            }
+        },
+        "db.Repository": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "Description holds the value of the \"description\" field.",
+                    "type": "string"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the RepositoryQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/db.RepositoryEdges"
+                        }
+                    ]
+                },
+                "git_organization": {
+                    "description": "GitOrganization holds the value of the \"git_organization\" field.",
+                    "type": "string"
+                },
+                "git_url": {
+                    "description": "GitURL holds the value of the \"git_url\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "repository_name": {
+                    "description": "RepositoryName holds the value of the \"repository_name\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "db.RepositoryEdges": {
+            "type": "object",
+            "properties": {
+                "codecov": {
+                    "description": "Codecov holds the value of the codecov edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/db.CodeCov"
+                    }
+                },
+                "prow_jobs": {
+                    "description": "ProwJobs holds the value of the prow_jobs edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/db.ProwJobs"
+                    }
+                },
+                "prow_suites": {
+                    "description": "ProwSuites holds the value of the prow_suites edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/db.ProwSuites"
+                    }
+                },
+                "repositories": {
+                    "description": "Repositories holds the value of the repositories edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/db.Teams"
+                        }
+                    ]
+                },
+                "workflows": {
+                    "description": "Workflows holds the value of the workflows edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/db.Workflows"
+                    }
+                }
+            }
+        },
+        "db.Teams": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "Description holds the value of the \"description\" field.",
+                    "type": "string"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the TeamsQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/db.TeamsEdges"
+                        }
+                    ]
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "team_name": {
+                    "description": "TeamName holds the value of the \"team_name\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "db.TeamsEdges": {
+            "type": "object",
+            "properties": {
+                "repositories": {
+                    "description": "Repositories holds the value of the repositories edge.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/db.Repository"
+                    }
+                }
+            }
+        },
+        "db.Workflows": {
+            "type": "object",
+            "properties": {
+                "badge_url": {
+                    "description": "BadgeURL holds the value of the \"badge_url\" field.",
+                    "type": "string"
+                },
+                "edges": {
+                    "description": "Edges holds the relations/edges for other nodes in the graph.\nThe values are being populated by the WorkflowsQuery when eager-loading is set.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/db.WorkflowsEdges"
+                        }
+                    ]
+                },
+                "html_url": {
+                    "description": "HTMLURL holds the value of the \"html_url\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "integer"
+                },
+                "job_url": {
+                    "description": "JobURL holds the value of the \"job_url\" field.",
+                    "type": "string"
+                },
+                "state": {
+                    "description": "State holds the value of the \"state\" field.",
+                    "type": "string"
+                },
+                "workflow_id": {
+                    "description": "WorkflowID holds the value of the \"workflow_id\" field.",
+                    "type": "string"
+                },
+                "workflow_name": {
+                    "description": "WorkflowName holds the value of the \"workflow_name\" field.",
+                    "type": "string"
+                }
+            }
+        },
+        "db.WorkflowsEdges": {
+            "type": "object",
+            "properties": {
+                "workflows": {
+                    "description": "Workflows holds the value of the workflows edge.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/db.Repository"
+                        }
+                    ]
+                }
+            }
+        },
         "jira.AffectsVersion": {
             "type": "object",
             "properties": {
@@ -1463,6 +1786,9 @@ const docTemplate = `{
                 },
                 "repository_name": {
                     "type": "string"
+                },
+                "team_name": {
+                    "type": "string"
                 }
             }
         },
@@ -1560,6 +1886,17 @@ const docTemplate = `{
         "tcontainer.MarshalMap": {
             "type": "object",
             "additionalProperties": true
+        },
+        "teams.TeamsRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "team_name": {
+                    "type": "string"
+                }
+            }
         },
         "types.ErrorResponse": {
             "type": "object",

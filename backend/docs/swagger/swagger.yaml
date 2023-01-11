@@ -1,5 +1,231 @@
 basePath: /api/quality/
 definitions:
+  db.CodeCov:
+    properties:
+      coverage_percentage:
+        description: CoveragePercentage holds the value of the "coverage_percentage"
+          field.
+        type: number
+      edges:
+        allOf:
+        - $ref: '#/definitions/db.CodeCovEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the CodeCovQuery when eager-loading is set.
+      git_organization:
+        description: GitOrganization holds the value of the "git_organization" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      repository_name:
+        description: RepositoryName holds the value of the "repository_name" field.
+        type: string
+    type: object
+  db.CodeCovEdges:
+    properties:
+      codecov:
+        allOf:
+        - $ref: '#/definitions/db.Repository'
+        description: Codecov holds the value of the codecov edge.
+    type: object
+  db.ProwJobs:
+    properties:
+      ci_failed:
+        description: CiFailed holds the value of the "ci_failed" field.
+        type: integer
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      duration:
+        description: Duration holds the value of the "duration" field.
+        type: number
+      edges:
+        allOf:
+        - $ref: '#/definitions/db.ProwJobsEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the ProwJobsQuery when eager-loading is set.
+      failed_count:
+        description: FailedCount holds the value of the "failed_count" field.
+        type: integer
+      id:
+        description: ID of the ent.
+        type: integer
+      job_id:
+        description: JobID holds the value of the "job_id" field.
+        type: string
+      job_name:
+        description: JobName holds the value of the "job_name" field.
+        type: string
+      job_type:
+        description: JobType holds the value of the "job_type" field.
+        type: string
+      job_url:
+        description: JobURL holds the value of the "job_url" field.
+        type: string
+      skipped_count:
+        description: SkippedCount holds the value of the "skipped_count" field.
+        type: integer
+      state:
+        description: State holds the value of the "state" field.
+        type: string
+      tests_count:
+        description: TestsCount holds the value of the "tests_count" field.
+        type: integer
+    type: object
+  db.ProwJobsEdges:
+    properties:
+      prow_jobs:
+        allOf:
+        - $ref: '#/definitions/db.Repository'
+        description: ProwJobs holds the value of the prow_jobs edge.
+    type: object
+  db.ProwSuites:
+    properties:
+      edges:
+        allOf:
+        - $ref: '#/definitions/db.ProwSuitesEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the ProwSuitesQuery when eager-loading is set.
+      id:
+        description: ID of the ent.
+        type: integer
+      job_id:
+        description: JobID holds the value of the "job_id" field.
+        type: string
+      name:
+        description: Name holds the value of the "name" field.
+        type: string
+      status:
+        description: Status holds the value of the "status" field.
+        type: string
+      time:
+        description: Time holds the value of the "time" field.
+        type: number
+    type: object
+  db.ProwSuitesEdges:
+    properties:
+      prow_suites:
+        allOf:
+        - $ref: '#/definitions/db.Repository'
+        description: ProwSuites holds the value of the prow_suites edge.
+    type: object
+  db.Repository:
+    properties:
+      description:
+        description: Description holds the value of the "description" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/db.RepositoryEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the RepositoryQuery when eager-loading is set.
+      git_organization:
+        description: GitOrganization holds the value of the "git_organization" field.
+        type: string
+      git_url:
+        description: GitURL holds the value of the "git_url" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      repository_name:
+        description: RepositoryName holds the value of the "repository_name" field.
+        type: string
+    type: object
+  db.RepositoryEdges:
+    properties:
+      codecov:
+        description: Codecov holds the value of the codecov edge.
+        items:
+          $ref: '#/definitions/db.CodeCov'
+        type: array
+      prow_jobs:
+        description: ProwJobs holds the value of the prow_jobs edge.
+        items:
+          $ref: '#/definitions/db.ProwJobs'
+        type: array
+      prow_suites:
+        description: ProwSuites holds the value of the prow_suites edge.
+        items:
+          $ref: '#/definitions/db.ProwSuites'
+        type: array
+      repositories:
+        allOf:
+        - $ref: '#/definitions/db.Teams'
+        description: Repositories holds the value of the repositories edge.
+      workflows:
+        description: Workflows holds the value of the workflows edge.
+        items:
+          $ref: '#/definitions/db.Workflows'
+        type: array
+    type: object
+  db.Teams:
+    properties:
+      description:
+        description: Description holds the value of the "description" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/db.TeamsEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the TeamsQuery when eager-loading is set.
+      id:
+        description: ID of the ent.
+        type: string
+      team_name:
+        description: TeamName holds the value of the "team_name" field.
+        type: string
+    type: object
+  db.TeamsEdges:
+    properties:
+      repositories:
+        description: Repositories holds the value of the repositories edge.
+        items:
+          $ref: '#/definitions/db.Repository'
+        type: array
+    type: object
+  db.Workflows:
+    properties:
+      badge_url:
+        description: BadgeURL holds the value of the "badge_url" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/db.WorkflowsEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the WorkflowsQuery when eager-loading is set.
+      html_url:
+        description: HTMLURL holds the value of the "html_url" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: integer
+      job_url:
+        description: JobURL holds the value of the "job_url" field.
+        type: string
+      state:
+        description: State holds the value of the "state" field.
+        type: string
+      workflow_id:
+        description: WorkflowID holds the value of the "workflow_id" field.
+        type: string
+      workflow_name:
+        description: WorkflowName holds the value of the "workflow_name" field.
+        type: string
+    type: object
+  db.WorkflowsEdges:
+    properties:
+      workflows:
+        allOf:
+        - $ref: '#/definitions/db.Repository'
+        description: Workflows holds the value of the workflows edge.
+    type: object
   jira.AffectsVersion:
     properties:
       archived:
@@ -727,6 +953,8 @@ definitions:
         $ref: '#/definitions/repositories.JobSpec'
       repository_name:
         type: string
+      team_name:
+        type: string
     type: object
   repositories.GithubActionsSpec:
     properties:
@@ -790,6 +1018,13 @@ definitions:
     type: object
   tcontainer.MarshalMap:
     additionalProperties: true
+    type: object
+  teams.TeamsRequest:
+    properties:
+      description:
+        type: string
+      team_name:
+        type: string
     type: object
   types.ErrorResponse:
     properties:
@@ -925,44 +1160,6 @@ paths:
       summary: Prow Jobs info
       tags:
       - Prow Jobs info
-  /prow/results/post:
-    post:
-      consumes:
-      - application/json
-      description: returns all prow jobs information stored in database
-      parameters:
-      - description: repository name
-        in: body
-        name: repository_name
-        required: true
-        schema:
-          $ref: '#/definitions/prow.GitRepositoryRequest'
-      - description: repository name
-        in: body
-        name: git_organization
-        required: true
-        schema:
-          $ref: '#/definitions/prow.GitRepositoryRequest'
-      - description: repository name
-        in: body
-        name: job_id
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: Object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/types.ErrorResponse'
-      summary: Prow Jobs info
-      tags:
-      - Prow Jobs info
   /repositories/create:
     post:
       consumes:
@@ -1049,6 +1246,41 @@ paths:
       summary: API Server info
       tags:
       - Server API
+  /teams/create:
+    post:
+      description: create a team in quality studio
+      parameters:
+      - description: Body json params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/teams.TeamsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.Teams'
+      summary: Teams API Info
+      tags:
+      - Teams API Info
+  /teams/list/all:
+    get:
+      description: returns a list of teams created in quality studio
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/db.Teams'
+            type: array
+      summary: Teams API Info
+      tags:
+      - Teams API Info
   /workflows/get:
     get:
       description: return github workflows from a given repository

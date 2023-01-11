@@ -5,7 +5,6 @@ import (
 	"regexp"
 	"time"
 
-	gh "github.com/google/go-github/v44/github"
 	"github.com/redhat-appstudio/quality-studio/api/apis/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"go.uber.org/zap"
@@ -51,7 +50,7 @@ func (s *Server) rotate() error {
 }
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
-		rotationFrequency: time.Minute * 1,
+		rotationFrequency: time.Minute * 30,
 	}
 }
 
@@ -60,36 +59,21 @@ func (s *Server) UpdateDataBaseRepoByTeam() error {
 
 	for _, team := range teamArr {
 		repo, _ := s.cfg.Storage.ListRepositories(team)
-		return s.CacheRepositoriesInformation(repo)
+		if err := s.CacheRepositoriesInformation(repo); err != nil {
+			s.cfg.Logger.Sugar().Errorf("failed to update repository %s", repo)
+		}
 	}
 	return nil
 }
 
 func (s *Server) CacheRepositoriesInformation(storageRepos []storage.Repository) error {
 	for _, repo := range storageRepos {
-		workf, err := s.getGithubWorkflows(repo.GitOrganization, repo.RepositoryName)
-		if err != nil {
-			return err
-		}
-
-		for _, w := range workf.Workflows {
-			err = s.cfg.Storage.ReCreateWorkflow(storage.GithubWorkflows{
-				WorkflowName: w.GetName(),
-				BadgeURL:     w.GetBadgeURL(),
-				HTMLURL:      w.GetHTMLURL(),
-				JobURL:       w.GetURL(),
-				State:        w.GetState(),
-			}, repo.RepositoryName)
-			if err != nil {
-				return err
-			}
-		}
-
 		coverage, err := s.getCodeCoverage(repo.GitOrganization, repo.RepositoryName)
+
 		if err != nil {
 			return err
 		}
-		totalCoverageConverted, _ := coverage.Commit.Totals.TotalCoverage.Float64()
+		totalCoverageConverted, _ := coverage.Totals.Coverage.Float64()
 		err = s.cfg.Storage.UpdateCoverage(storage.Coverage{
 			GitOrganization:    repo.GitOrganization,
 			RepositoryName:     repo.RepositoryName,
@@ -104,10 +88,6 @@ func (s *Server) CacheRepositoriesInformation(storageRepos []storage.Repository)
 	return nil
 }
 
-func (s *Server) getGithubWorkflows(gitOrganization string, repoName string) (*gh.Workflows, error) {
-	return s.cfg.Github.GetRepositoryWorkflows(gitOrganization, repoName)
-}
-
-func (s *Server) getCodeCoverage(gitOrganization string, repoName string) (codecov.GitHubTagResponse, error) {
+func (s *Server) getCodeCoverage(gitOrganization string, repoName string) (codecov.CoverageSpec, error) {
 	return s.cfg.CodeCov.GetCodeCovInfo(gitOrganization, repoName)
 }

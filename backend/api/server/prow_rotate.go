@@ -87,7 +87,7 @@ func SaveProwJobsinDatabase(s storage.Storage, pj prow.ProwJob, ts prow.TestSuit
 	prowJob.CIFailed = getCIFailed(pj, ts)
 
 	if err := s.CreateProwJobResults(prowJob, repositoryId); err != nil {
-		return fmt.Errorf("Failed to save job to db %s", err)
+		return fmt.Errorf("failed to save job to db %s", err)
 	}
 
 	if pj.Spec.Type == "periodic" {

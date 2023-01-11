@@ -118,7 +118,7 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 		})
 	}
 
-	totalCoverageConverted, _ := coverage.Commit.Totals.TotalCoverage.Float64()
+	totalCoverageConverted, _ := coverage.Totals.Coverage.Float64()
 	err = rp.Storage.CreateCoverage(storage.Coverage{
 		GitOrganization:    githubRepo.Owner.GetLogin(),
 		RepositoryName:     githubRepo.GetName(),
