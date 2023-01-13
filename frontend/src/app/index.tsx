@@ -8,11 +8,11 @@ import '@app/app.css';
 
 const App: React.FunctionComponent = () => (
   <Store>
-  <Router>
-    <AppLayout>
-      <AppRoutes />
-    </AppLayout>
-  </Router>
+    <Router>
+      <AppLayout>
+        <AppRoutes />
+      </AppLayout>
+    </Router>
   </Store>
 );
 

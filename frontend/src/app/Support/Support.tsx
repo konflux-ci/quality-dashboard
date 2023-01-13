@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CubesIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
 import {
   PageSection, PageSectionVariants,
@@ -18,7 +18,7 @@ import { Button } from '@patternfly/react-core';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
 import { getAllRepositoriesWithOrgs, getLatestProwJob, getProwJobStatistics } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
-import { Table, TableHeader, TableBody, TableProps, sortable, cellWidth, truncate, info } from '@patternfly/react-table';
+import { Table, TableHeader, TableBody, TableProps, sortable, cellWidth, info } from '@patternfly/react-table';
 import {
   JobsStatistics,
   DashboardCard,
@@ -28,9 +28,7 @@ import {
   SimpleListData,
   DashboardLineChartData
 } from '@app/utils/sharedComponents';
-import { Context } from '@app/store/store';
 import { ReactReduxContext, useSelector } from 'react-redux';
-import { clearAllListeners } from '@reduxjs/toolkit';
 
 // eslint-disable-next-line prefer-const
 let Support = () => {
@@ -133,13 +131,13 @@ let Support = () => {
 
 
   // Static list of job types to populate the dropdown
-  let jobTypes = [
+  const jobTypes = [
     <SelectOption key={0} value="periodic" />,
     <SelectOption key={1} value="presubmit" />,
     <SelectOption key={2} value="postsubmit" />,
   ]
 
-  /* 
+  /*
   Some helpers and definitions
   */
   const LoremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat"
@@ -404,7 +402,7 @@ let Support = () => {
             No job selected yet.
           </Title>
           <EmptyStateBody>
-            Please select a repository and an organization to see the last job's details
+            Please select a repository and an organization to see the last job&apos;s details
           </EmptyStateBody>
         </EmptyState>
         }
@@ -412,7 +410,7 @@ let Support = () => {
         <React.Fragment>
           {prowVisible && <div style={{ marginTop: '20px' }}>
             {/* this section will show the job's chart over time and last execution stats */}
-            
+
             {prowJobsStats !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
               <GridItem span={3}><InfoCard data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_organization }]}></InfoCard></GridItem>
               <GridItem span={2}><DashboardCard cardType={'danger'} title="avg of ci failures" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.ci_failed_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>

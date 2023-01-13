@@ -27,7 +27,6 @@ func (d *Database) CreateProwJobSuites(suites storage.ProwJobSuites, repo_id uui
 	return nil
 }
 
-// GetRepository returns a git repo given its url
 func (d *Database) GetProwJobsResults(db *db.Repository) ([]*db.ProwSuites, error) {
 	prowJobs, err := d.client.Repository.QueryProwSuites(db).Where().All(context.TODO())
 

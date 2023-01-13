@@ -71,7 +71,7 @@ type TestCase struct {
 	// Duration is the time taken in seconds to run the test
 	Duration float64 `xml:"time,attr"`
 
-	// Status show if the test case was succed or not
+	// Status show if the test case was succeed or not
 	Status string `xml:"status,attr"`
 
 	// SkipMessage holds the reason why the test was skipped

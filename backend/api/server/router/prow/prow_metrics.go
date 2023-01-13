@@ -21,7 +21,7 @@ import (
 // @Failure 400 {object} types.ErrorResponse
 func (s *jobRouter) getProwMetrics(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	repositoryName := r.URL.Query()["repository_name"]
-	gitOrgazanitation := r.URL.Query()["git_organization"]
+	gitOrganization := r.URL.Query()["git_organization"]
 	jobType := r.URL.Query()["job_type"]
 
 	if len(repositoryName) == 0 {
@@ -29,7 +29,7 @@ func (s *jobRouter) getProwMetrics(ctx context.Context, w http.ResponseWriter, r
 			Message:    "repository_name value not present in query",
 			StatusCode: 400,
 		})
-	} else if len(gitOrgazanitation) == 0 {
+	} else if len(gitOrganization) == 0 {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "git_organization value not present in query",
 			StatusCode: 400,
@@ -40,5 +40,5 @@ func (s *jobRouter) getProwMetrics(ctx context.Context, w http.ResponseWriter, r
 			StatusCode: 400,
 		})
 	}
-	return httputils.WriteJSON(w, http.StatusOK, s.Storage.GetMetrics(gitOrgazanitation[0], repositoryName[0], jobType[0]))
+	return httputils.WriteJSON(w, http.StatusOK, s.Storage.GetMetrics(gitOrganization[0], repositoryName[0], jobType[0]))
 }

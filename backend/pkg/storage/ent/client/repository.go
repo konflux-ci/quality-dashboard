@@ -43,7 +43,7 @@ func (d *Database) ListRepositories(team *db.Teams) ([]storage.Repository, error
 	return storageRepositories, nil
 }
 
-// GetRepository returns a git repo given its url
+// GetRepository returns a git repo given its repository name and git organization name.
 func (d *Database) GetRepository(repositoryName string, gitOrganizationName string) (*db.Repository, error) {
 	repository, err := d.client.Repository.Query().
 		Where(repository.RepositoryName(repositoryName)).Where(repository.GitOrganization(gitOrganizationName)).Only(context.TODO())
@@ -71,7 +71,7 @@ func (d *Database) ListRepositoriesQualityInfo(team *db.Teams) ([]storage.Reposi
 	return storageRepositories, nil
 }
 
-// DeletePassword deletes a password from the database by email.
+// DeleteRepository deletes a repository from the database by repository name and git organization name.
 func (d *Database) DeleteRepository(repositoryName string, gitOrganizationName string) error {
 	repositoryName = strings.ToLower(repositoryName)
 	_, err := d.client.Repository.Delete().

@@ -3,7 +3,7 @@ package jira
 import (
 	"log"
 
-	"github.com/andygrunwald/go-jira"
+	jira "github.com/andygrunwald/go-jira"
 )
 
 func (t *clientFactory) GetIssueByJQLQuery(JQLQuery string) []jira.Issue {

@@ -18,7 +18,7 @@ func (d *Database) GetMetrics(gitOrganization string, repoName string, jobType s
 	var metrics storage.ProwJobsMetrics
 	metrics.GitOrganization = gitOrganization
 	metrics.JobType = jobType
-	metrics.RepostitoryName = repoName
+	metrics.RepositoryName = repoName
 
 	repo, _ := d.client.Repository.Query().Where(repository.GitOrganization(gitOrganization)).Where(repository.RepositoryName(repoName)).First(context.Background())
 

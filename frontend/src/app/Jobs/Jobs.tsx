@@ -1,8 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useContext, useEffect, useState } from 'react';
-import { ContextSelector, ContextSelectorItem, PageSection, TextContent } from '@patternfly/react-core';
-import { Context } from '@app/store/store';
+import { ContextSelector, ContextSelectorItem, PageSection } from '@patternfly/react-core';
 import { getRepositories, getWorkflowByRepositoryName } from '@app/utils/APIService';
 import { Caption, TableComposable, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
@@ -46,7 +45,7 @@ export const JobsComponent: React.FunctionComponent = () => {
   const [repos, setRepositories] = useState([]);
 
   const currentTeam = useSelector((state: any) => state.teams.Team);
-  
+
   useEffect(() => {
     clearAll()
     getRepositories(5, state.teams.Team).then((res) => {

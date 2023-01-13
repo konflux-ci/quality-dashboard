@@ -48,7 +48,6 @@ func (d *Database) GetLatestProwTestExecution(r *db.Repository, jobType string) 
 	return prowJob, nil
 }
 
-// GetRepository returns a git repo given its url
 func (d *Database) GetProwJobsResultsByJobID(jobID string) ([]*db.ProwJobs, error) {
 	prowSuites, err := d.client.ProwJobs.Query().Where(prowjobs.JobID(jobID)).All(context.TODO())
 

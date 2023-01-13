@@ -9,8 +9,7 @@ import {
   Page,
   PageHeader,
   PageSidebar,
-  SkipToContent,
-  PageSection
+  SkipToContent
 } from '@patternfly/react-core';
 import { routes, IAppRoute, IAppRouteGroup } from '@app/routes';
 import logo from '@app/bgimages/Logo-RedHat-A-Reverse-RGB.svg';
@@ -26,7 +25,7 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
   const [isNavOpen, setIsNavOpen] = React.useState(true);
   const [isMobileView, setIsMobileView] = React.useState(true);
   const [isNavOpenMobile, setIsNavOpenMobile] = React.useState(false);
- 
+
   const onNavToggleMobile = () => {
     setIsNavOpenMobile(!isNavOpenMobile);
   };
@@ -37,12 +36,12 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
     setIsMobileView(props.mobileView);
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log(locationHistory.pathname)
-    if(locationHistory.pathname === '/'){
+    if (locationHistory.pathname === '/') {
       history.push('/home/overview');
     }
-  },[])
+  }, [])
 
   function LogoImg() {
     const history = useHistory();
@@ -50,7 +49,7 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
       history.push('/home/overview');
     }
     return (
-      <img onClick={handleClick} style={{height: '32px'}}  src={logo} alt="Red Hat logo" />
+      <img onClick={handleClick} style={{ height: '32px' }} src={logo} alt="Red Hat logo" />
     );
   }
 
@@ -122,7 +121,7 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
       onPageResize={onPageResize}
       skipToContent={PageSkipToContent}
     >
-    {children}
+      {children}
     </Page>
   );
 }

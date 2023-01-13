@@ -6,7 +6,7 @@ import {
   Gallery,
   PageSection,
   Title,
-  DescriptionList, DescriptionListGroup, DescriptionListTerm, 
+  DescriptionList, DescriptionListGroup, DescriptionListTerm,
   DescriptionListDescription, TextContent, Text, PageSectionVariants,
   Grid,
   GridItem,
@@ -26,18 +26,11 @@ import {
   Tr,
   Th,
   Tbody,
-  Td,
-  ThProps
+  Td
 } from '@patternfly/react-table';
-import { ChartDonut, ChartPie, ChartThemeColor } from '@patternfly/react-charts';
-import { ExternalLinkAltIcon, } from '@patternfly/react-icons';
+import { ChartDonut, ChartThemeColor } from '@patternfly/react-charts';
 import { getVersion, getJiras } from '@app/utils/APIService';
-import { Context } from "src/app/store/store";
 import { RepositoriesTable } from '@app/Repositories/RepositoriesTable';
-import { TableComponent } from '@app/Repositories/TableComponent';
-import { parse } from 'postcss';
-import { string } from 'prop-types';
-import { toInteger } from 'lodash';
 import { CheckCircleIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
 import { ReactReduxContext } from 'react-redux';
 
@@ -69,9 +62,9 @@ export const Dashboard = () => {
   const JIRA_BLOCKER = "Blocker"
   const JIRA_MAJOR = "Major"
 
-  const { store } = useContext(ReactReduxContext);  
+  const { store } = useContext(ReactReduxContext);
   const state = store.getState();
-  const dispatch = store.dispatch;  
+  const dispatch = store.dispatch;
 
   useEffect(() => {
     getJiras().then((res) => {
@@ -153,7 +146,6 @@ export const Dashboard = () => {
   )
 
   const dt = null;
-  let visibleJiras = null;
   const JiraIssuesList = () => (
     <TableComposable aria-label="Jiras table">
       <Thead>
@@ -230,14 +222,14 @@ export const Dashboard = () => {
   const [dashboardVersion, setVersion] = useState('unknown')
   const [serverAvailable, setServerAvailable] = useState<boolean>(false)
 
-  useEffect(()=> {
+  useEffect(() => {
     getVersion().then((res) => { // making the api call here
-      if(res.code === 200){
-          const result = res.data;
-          dispatch({ type: "SET_Version", data: result['serverAPIVersion'] });
-          // not really required to store it in the global state , just added it to make it better understandable
-          setVersion(result['serverAPIVersion'])
-          setServerAvailable(true)
+      if (res.code === 200) {
+        const result = res.data;
+        dispatch({ type: "SET_Version", data: result['serverAPIVersion'] });
+        // not really required to store it in the global state , just added it to make it better understandable
+        setVersion(result['serverAPIVersion'])
+        setServerAvailable(true)
       } else {
         setServerAvailable(false)
         dispatch({ type: "SET_ERROR", data: res });
@@ -247,19 +239,19 @@ export const Dashboard = () => {
 
   return (
     <React.Fragment>
-        <PageSection style={{
-          minHeight : "12%",
-          background:"url(https://console.redhat.com/apps/frontend-assets/background-images/new-landing-page/estate_section_banner.svg)",
-          backgroundSize: "cover",
-          backgroundColor : "black",
-          opacity: '0.9'
-        }} variant={PageSectionVariants.light}>
-          <TextContent style={{color: "white"}}>
-            <Text component="h2">Red Hat App Studio Quality Dashboard</Text>
-            <Text component="p">Global status about teams components.</Text>
-          </TextContent>
-        </PageSection>
-        <Drawer isExpanded={isExpanded}>
+      <PageSection style={{
+        minHeight: "12%",
+        background: "url(https://console.redhat.com/apps/frontend-assets/background-images/new-landing-page/estate_section_banner.svg)",
+        backgroundSize: "cover",
+        backgroundColor: "black",
+        opacity: '0.9'
+      }} variant={PageSectionVariants.light}>
+        <TextContent style={{ color: "white" }}>
+          <Text component="h2">Red Hat App Studio Quality Dashboard</Text>
+          <Text component="p">Global status about teams components.</Text>
+        </TextContent>
+      </PageSection>
+      <Drawer isExpanded={isExpanded}>
         <DrawerContent panelContent={panelContent} className={'pf-m-no-background'}>
           <PageSection>
             <Gallery hasGutter style={{ display: "flex" }}>
@@ -271,7 +263,7 @@ export const Dashboard = () => {
                 </CardTitle>
                 <CardBody>
                   <DescriptionList>
-                  <DescriptionListGroup>
+                    <DescriptionListGroup>
                       <DescriptionListTerm>Quality Studio version</DescriptionListTerm>
                       <DescriptionListDescription>
                         <span>{dashboardVersion}</span>
@@ -280,15 +272,15 @@ export const Dashboard = () => {
                     <DescriptionListGroup>
                       <DescriptionListTerm>Server API Status</DescriptionListTerm>
                       <DescriptionListDescription>
-                        { serverAvailable &&  <span style={{color: "darkgreen", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500}}> <CheckCircleIcon size={'sm'} ></CheckCircleIcon> OK </span> }
-                        {!serverAvailable &&  <span style={{color: "darkred", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500}}> <ExclamationCircleIcon size={'sm'} ></ExclamationCircleIcon> DOWN </span> }
+                        {serverAvailable && <span style={{ color: "darkgreen", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500 }}> <CheckCircleIcon size={'sm'} ></CheckCircleIcon> OK </span>}
+                        {!serverAvailable && <span style={{ color: "darkred", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500 }}> <ExclamationCircleIcon size={'sm'} ></ExclamationCircleIcon> DOWN </span>}
                       </DescriptionListDescription>
                     </DescriptionListGroup>
                     <DescriptionListGroup>
                       <DescriptionListTerm>Database Status</DescriptionListTerm>
                       <DescriptionListDescription>
-                        { serverAvailable &&  <span style={{color: "darkgreen", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500}}> <CheckCircleIcon size={'sm'} ></CheckCircleIcon> OK </span> }
-                        {!serverAvailable &&  <span style={{color: "darkred", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500}}> <ExclamationCircleIcon size={'sm'} ></ExclamationCircleIcon> DOWN </span> }
+                        {serverAvailable && <span style={{ color: "darkgreen", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500 }}> <CheckCircleIcon size={'sm'} ></CheckCircleIcon> OK </span>}
+                        {!serverAvailable && <span style={{ color: "darkred", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500 }}> <ExclamationCircleIcon size={'sm'} ></ExclamationCircleIcon> DOWN </span>}
                       </DescriptionListDescription>
                     </DescriptionListGroup>
                   </DescriptionList>
@@ -313,24 +305,24 @@ export const Dashboard = () => {
                         <Title headingLevel="h2" size={TitleSizes['lg']}>Blocker</Title>
                         {issueChart(JIRA_BLOCKER)}
                       </div>
-                      </CardBody>
+                    </CardBody>
                   </GridItem>
-                    <GridItem style={{ cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_CRITICAL)}>
-                      <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
-                        <div>
-                          <Title headingLevel="h2" size={TitleSizes['lg']}>Critical</Title>
-                          {issueChart(JIRA_CRITICAL)}
-                        </div>
-                      </CardBody>
-                      </GridItem>
-                    <GridItem style={{ cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_MAJOR)}>
-                      <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
-                        <div>
-                          <Title headingLevel="h2" size={TitleSizes['lg']}>Major</Title>
-                          {issueChart(JIRA_MAJOR)}
-                        </div>
-                      </CardBody>
-                    </GridItem>
+                  <GridItem style={{ cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_CRITICAL)}>
+                    <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
+                      <div>
+                        <Title headingLevel="h2" size={TitleSizes['lg']}>Critical</Title>
+                        {issueChart(JIRA_CRITICAL)}
+                      </div>
+                    </CardBody>
+                  </GridItem>
+                  <GridItem style={{ cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_MAJOR)}>
+                    <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
+                      <div>
+                        <Title headingLevel="h2" size={TitleSizes['lg']}>Major</Title>
+                        {issueChart(JIRA_MAJOR)}
+                      </div>
+                    </CardBody>
+                  </GridItem>
                 </Grid>
               </Card>
             </Gallery>
@@ -338,7 +330,7 @@ export const Dashboard = () => {
           <PageSection style={{
             minHeight: "12%"
           }}>
-            <RepositoriesTable showTableToolbar={true} showCoverage={true} showDiscription={false} enableFiltersOnTheseColumns={['git_organization']}></RepositoriesTable>
+            <RepositoriesTable showTableToolbar={true} showCoverage={true} showDescription={false} enableFiltersOnTheseColumns={['git_organization']}></RepositoriesTable>
             <React.Fragment>
             </React.Fragment>
           </PageSection>
