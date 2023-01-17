@@ -142,7 +142,7 @@ type GithubWorkflows struct {
 }
 
 type ProwJobsMetrics struct {
-	RepostitoryName string `json:"repository_name"`
+	RepositoryName  string `json:"repository_name"`
 	JobType         string `json:"type"`
 	GitOrganization string `json:"git_organization"`
 	Jobs            []Jobs `json:"jobs"`

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import { createTeam, createRepository } from "@app/utils/APIService";
 import {
   Wizard, PageSection, PageSectionVariants,
@@ -6,7 +6,6 @@ import {
   DescriptionList, DescriptionListGroup, DescriptionListDescription, DescriptionListTerm, Title, Spinner,
   Alert, AlertGroup, AlertVariant, Button, Toolbar, ToolbarContent, ToolbarItem, ToolbarGroup
 } from '@patternfly/react-core';
-import { Context } from "src/app/store/store";
 import { useHistory } from 'react-router-dom';
 import { getTeams } from '@app/utils/APIService';
 import { PlusIcon } from '@patternfly/react-icons/dist/esm/icons';
@@ -19,14 +18,12 @@ interface AlertInfo {
 }
 
 import { Table, TableHeader, TableBody, TableProps } from '@patternfly/react-table';
-import { initialState } from '@app/store/initState';
-
 
 
 
 export const TeamsWizard = () => {
   const history = useHistory();
-  
+
   const { store } = useContext(ReactReduxContext);
   const state = store.getState();
   const dispatch = store.dispatch;
@@ -105,7 +102,7 @@ export const TeamsWizard = () => {
       catch (error) {
         console.log(error)
       }
-    };
+    }
 
     setCreationLoading(false)
     if (!creationError) {
@@ -274,7 +271,7 @@ export const TeamsTable: React.FunctionComponent = () => {
   const state = store.getState();
   const columns: TableProps['cells'] = ['Name', 'Description'];
 
-  let currentTeamsAvailable = useSelector((state:any) => state.teams.TeamsAvailable);
+  let currentTeamsAvailable = useSelector((state: any) => state.teams.TeamsAvailable);
   //store.subscribe(currentTeamsAvailable = useSelector((state:any) => state.teams.TeamsAvailable));
 
   const rows: TableProps['rows'] = currentTeamsAvailable.map(team => [

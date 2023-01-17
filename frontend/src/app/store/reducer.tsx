@@ -1,10 +1,6 @@
-import { useContext } from "react";
 import { ITeam } from '@app/Teams/TeamsSelect';
-import { loadStateContext, saveStateContext } from '@app/utils/utils';
-import { initial, reduceRight } from 'lodash';
+import { saveStateContext } from '@app/utils/utils';
 import { combineReducers } from 'redux';
-import { ReactReduxContext } from 'react-redux';
-
 
 export interface StateContext {
     general: {
@@ -26,7 +22,7 @@ export interface StateContext {
         Team: string
         TeamsAvailable: ITeam[]
     }
-};
+}
 
 
 
@@ -54,8 +50,7 @@ const generalReducer = (state, action) => {
             };
 
         default: return state || null;
-    };
-
+    }
 };
 
 const jirasReducer = (state, action) => {
@@ -103,7 +98,7 @@ const alertsReducer = (state, action) => {
 
 const teamsReducer = (state, action) => {
     switch (action.type) {
-        case 'SET_TEAM': 
+        case 'SET_TEAM':
             // Change the persisted 'saved' team when its state has been changed
             saveStateContext('TEAM', action.data)
             return {

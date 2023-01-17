@@ -1,4 +1,4 @@
-import { Component } from "react";
+import { Component } from 'react';
 
 export function accessibleRouteChangeHandler() {
   return window.setTimeout(() => {
@@ -7,14 +7,14 @@ export function accessibleRouteChangeHandler() {
       mainContainer.focus();
     }
   }, 50);
-};
+}
 
 export function teamIsNotEmpty(team: string) {
-  if (team != "" && team != undefined && team != null && team != "Select Team") {
+  if (team != '' && team != undefined && team != null && team != 'Select Team') {
     return true;
   }
   return false;
-};
+}
 
 export function loadStateContext(key) {
   try {
@@ -30,8 +30,7 @@ export function saveStateContext(key: string, item) {
   try {
     let serializedItem = JSON.stringify(item);
     localStorage.setItem(key, serializedItem);
-  }
-  catch (err) {
+  } catch (err) {
     console.log(err);
   }
 }
@@ -40,8 +39,7 @@ export function stateContextExists(key: string) {
   try {
     if (localStorage.getItem(key) == null) return false;
     else return true;
-  }
-  catch(err) {
+  } catch (err) {
     return false;
   }
 }

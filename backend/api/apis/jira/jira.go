@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/andygrunwald/go-jira"
+	jira "github.com/andygrunwald/go-jira"
 	utils "github.com/redhat-appstudio/quality-studio/pkg/utils"
 )
 

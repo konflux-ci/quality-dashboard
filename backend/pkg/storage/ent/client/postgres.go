@@ -1,4 +1,4 @@
-package ent
+package client
 
 import (
 	"context"
@@ -11,10 +11,12 @@ import (
 	"strings"
 	"time"
 
+	_ "github.com/lib/pq"
+
 	entSQL "entgo.io/ent/dialect/sql"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/client"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
+	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
 )
 
 // nolint
@@ -24,6 +26,15 @@ const (
 	pgSSLRequire    = "require"
 	pgSSLVerifyCA   = "verify-ca"
 	pgSSLVerifyFull = "verify-full"
+)
+
+const (
+	PostgresEntHostEnv     = "POSTGRES_ENT_HOST"
+	PostgresEntPortEnv     = "POSTGRES_ENT_PORT"
+	PostgresEntDatabaseEnv = "POSTGRES_ENT_DATABASE"
+	PostgresEntUserEnv     = "POSTGRES_ENT_USER"
+	PostgresEntPasswordEnv = "POSTGRES_ENT_PASSWORD"
+	DefaultGithubTokenEnv  = "GITHUB_TOKEN"
 )
 
 // Postgres options for creating an SQL db.
@@ -39,14 +50,14 @@ func (p *Postgres) Open() (storage.Storage, error) {
 		return nil, err
 	}
 
-	databaseClient := client.NewDatabase(
-		client.WithClient(db.NewClient(db.Driver(drv))),
-		client.WithHasher(sha256.New),
+	databaseClient := NewDatabase(
+		WithClient(db.NewClient(db.Driver(drv))),
+		WithHasher(sha256.New),
 		// The default behavior for Postgres transactions is consistent reads, not consistent writes.
 		// For each transaction opened, ensure it has the correct isolation level.
 		//
 		// See: https://www.postgresql.org/docs/9.3/static/sql-set-transaction.html
-		client.WithTxIsolationLevel(sql.LevelSerializable),
+		WithTxIsolationLevel(sql.LevelSerializable),
 	)
 
 	if err := databaseClient.Schema().Create(context.TODO()); err != nil {
@@ -142,4 +153,20 @@ var strEsc = regexp.MustCompile(`([\\'])`)
 
 func dataSourceStr(str string) string {
 	return "'" + strEsc.ReplaceAllString(str, `\$1`) + "'"
+}
+
+// GetPostgresConnectionDetails returns postgres configurations from given environments
+func GetPostgresConnectionDetails() Postgres {
+	return Postgres{
+		NetworkDB: NetworkDB{
+			Database: util.GetEnv(PostgresEntDatabaseEnv, "postgres"),
+			User:     util.GetEnv(PostgresEntUserEnv, "postgres"),
+			Password: util.GetEnv(PostgresEntPasswordEnv, "postgres"),
+			Host:     util.GetEnv(PostgresEntHostEnv, "localhost"),
+			Port:     util.GetPortEnv(PostgresEntPortEnv, 5432),
+		},
+		SSL: SSL{
+			Mode: "disable", // Postgres container doesn't support SSL.
+		},
+	}
 }

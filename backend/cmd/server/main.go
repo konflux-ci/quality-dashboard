@@ -13,7 +13,7 @@ import (
 	version "github.com/redhat-appstudio/quality-studio/api/server/router/version"
 	"github.com/redhat-appstudio/quality-studio/pkg/logger"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/client"
 	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -81,7 +81,7 @@ func main() {
 		logger.Fatal("tcp listen fail")
 	}
 	defer listener.Close()
-	cfg := GetPostgresConnectionDetails()
+	cfg := client.GetPostgresConnectionDetails()
 
 	storage, err := cfg.Open()
 	if err != nil {
@@ -106,20 +106,4 @@ func newKeyCacher(s storage.Storage, now func() time.Time) storage.Storage {
 		now = time.Now
 	}
 	return &keyCacher{Storage: s, now: now}
-}
-
-// Return postgres configurations from given environments
-func GetPostgresConnectionDetails() ent.Postgres {
-	return ent.Postgres{
-		NetworkDB: ent.NetworkDB{
-			Database: util.GetEnv(PostgresEntDatabaseEnv, "postgres"),
-			User:     util.GetEnv(PostgresEntUserEnv, "postgres"),
-			Password: util.GetEnv(PostgresEntPasswordEnv, "postgres"),
-			Host:     util.GetEnv(PostgresEntHostEnv, "localhost"),
-			Port:     util.GetPortEnv(PostgresEntPortEnv, 5432),
-		},
-		SSL: ent.SSL{
-			Mode: "disable", // Postgres container doesn't support SSL.
-		},
-	}
 }

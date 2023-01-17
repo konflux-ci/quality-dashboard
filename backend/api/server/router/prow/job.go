@@ -27,21 +27,21 @@ type GitRepositoryRequest struct {
 // @Failure 400 {object} types.ErrorResponse
 func (s *jobRouter) getProwJobs(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	repositoryName := r.URL.Query()["repository_name"]
-	gitOrgazanitation := r.URL.Query()["git_organization"]
+	gitOrganization := r.URL.Query()["git_organization"]
 
 	if len(repositoryName) == 0 {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "repository_name value not present in query",
 			StatusCode: 400,
 		})
-	} else if len(gitOrgazanitation) == 0 {
+	} else if len(gitOrganization) == 0 {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "git_organization value not present in query",
 			StatusCode: 400,
 		})
 	}
 
-	repoInfo, err := s.Storage.GetRepository(repositoryName[0], gitOrgazanitation[0])
+	repoInfo, err := s.Storage.GetRepository(repositoryName[0], gitOrganization[0])
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "failed to get repository from database; check if repository exist in quality studio",
@@ -73,7 +73,7 @@ func (s *jobRouter) getProwJobs(ctx context.Context, w http.ResponseWriter, r *h
 // @Failure 400 {object} types.ErrorResponse
 func (s *jobRouter) getLatestSuitesExecution(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	repositoryName := r.URL.Query()["repository_name"]
-	gitOrgazanitation := r.URL.Query()["git_organization"]
+	gitOrganization := r.URL.Query()["git_organization"]
 	jobType := r.URL.Query()["job_type"]
 
 	if len(repositoryName) == 0 {
@@ -81,7 +81,7 @@ func (s *jobRouter) getLatestSuitesExecution(ctx context.Context, w http.Respons
 			Message:    "repository_name value not present in query",
 			StatusCode: 400,
 		})
-	} else if len(gitOrgazanitation) == 0 {
+	} else if len(gitOrganization) == 0 {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "git_organization value not present in query",
 			StatusCode: 400,
@@ -93,7 +93,7 @@ func (s *jobRouter) getLatestSuitesExecution(ctx context.Context, w http.Respons
 		})
 	}
 
-	repoInfo, err := s.Storage.GetRepository(repositoryName[0], gitOrgazanitation[0])
+	repoInfo, err := s.Storage.GetRepository(repositoryName[0], gitOrganization[0])
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    fmt.Sprintf("Repository '%s' doesn't exists in quality studio database", repositoryName[0]),

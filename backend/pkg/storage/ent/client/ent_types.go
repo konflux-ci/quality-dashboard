@@ -1,4 +1,4 @@
-package ent
+package client
 
 // NetworkDB contains options common to SQL databases accessed over network.
 type NetworkDB struct {

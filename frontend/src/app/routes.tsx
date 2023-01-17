@@ -1,15 +1,12 @@
 import * as React from 'react';
-import { Redirect, Route, RouteComponentProps, Switch } from 'react-router-dom';
+import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { accessibleRouteChangeHandler } from '@app/utils/utils';
 import { Dashboard } from '@app/Dashboard/Dashboard';
 import { Support } from '@app/Support/Support';
-import { GeneralSettings } from '@app/Settings/General/GeneralSettings';
-import { ProfileSettings } from '@app/Settings/Profile/ProfileSettings';
 import { useDocumentTitle } from '@app/utils/useDocumentTitle';
 import { LastLocationProvider, useLastLocation } from 'react-router-last-location';
 import { JobsComponent } from '@app/Jobs/Jobs';
 import { Teams } from '@app/Teams/Teams';
-import { Context } from '@app/store/store';
 import { ReactReduxContext } from 'react-redux';
 
 let routeFocusTimer: number;
@@ -50,7 +47,7 @@ const routes: AppRouteConfig[] = [
         label: 'Teams',
         path: '/home/teams',
         title: 'Quality Studio | Teams',
-      }
+      },
     ],
   },
   {
@@ -65,10 +62,10 @@ const routes: AppRouteConfig[] = [
     component: JobsComponent,
     exact: true,
     isAsync: true,
-    label: 'Github Actions',
+    label: 'GitHub Actions',
     path: '/ci/jobs',
-    title: 'Quality Studio | Github Actions',
-  }
+    title: 'Quality Studio | GitHub Actions',
+  },
 ];
 
 // a custom hook for sending focus to the primary content container
@@ -102,21 +99,18 @@ const flattenedRoutes: IAppRoute[] = routes.reduce(
 );
 
 const AppRoutes = (): React.ReactElement => {
-
   const { store } = React.useContext(ReactReduxContext);
   const state = store.getState();
 
-
-  const [TeamsNotSet, setTeamsNotSet] = React.useState(false)
+  const [TeamsNotSet, setTeamsNotSet] = React.useState(false);
 
   React.useEffect(() => {
-    if (state.teams.Team == undefined || state.teams.Team == "Select Team" || state.teams.Team == "") {
-      setTeamsNotSet(true)
+    if (state.teams.Team == undefined || state.teams.Team == 'Select Team' || state.teams.Team == '') {
+      setTeamsNotSet(true);
     } else {
-      setTeamsNotSet(false)
+      setTeamsNotSet(false);
     }
   }, [location.pathname, state.teams.Team]);
-
 
   return (
     <LastLocationProvider>
@@ -133,7 +127,7 @@ const AppRoutes = (): React.ReactElement => {
         ))}
       </Switch>
     </LastLocationProvider>
-  )
+  );
 };
 
 export { AppRoutes, routes };

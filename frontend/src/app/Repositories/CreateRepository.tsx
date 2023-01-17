@@ -1,8 +1,7 @@
 import { createRepository } from "@app/utils/APIService";
 import { Button, Checkbox, Form, FormGroup, Modal, ModalVariant, Popover, TextArea, TextInput, Alert } from "@patternfly/react-core";
 import { HelpIcon } from "@patternfly/react-icons";
-import React, { useContext, SetStateAction, useEffect, useState } from "react";
-import { Context } from '@app/store/store';
+import React, { useContext, SetStateAction, useEffect } from "react";
 import { teamIsNotEmpty } from '@app/utils/utils';
 import { useHistory } from 'react-router-dom';
 import { ReactReduxContext } from 'react-redux';
@@ -20,10 +19,10 @@ interface IModalContextMember {
 }
 
 export const ModalContext = React.createContext<IModalContext>({
-  isModalOpen: {set: undefined, value: false},
-  isEditRepo: {set: undefined, value: false},
-  handleModalToggle: () => {},
-  data: {set: undefined, value: false}
+  isModalOpen: { set: undefined, value: false },
+  isEditRepo: { set: undefined, value: false },
+  handleModalToggle: () => { },
+  data: { set: undefined, value: false }
 });
 
 export const useModalContext = () => {
@@ -36,16 +35,16 @@ export const useDefaultModalContextState = () => {
   const [data, setData] = React.useState({});
   const defaultModalContext = useModalContext();
 
-  defaultModalContext.isModalOpen = {set: setModalOpen, value: isModalOpen}
-  defaultModalContext.isEditRepo = {set: setEditRepo, value: isEditRepo}
-  defaultModalContext.data = {set: setData, value: data}
-  defaultModalContext.handleModalToggle = (edit : Boolean, data: any) => {
+  defaultModalContext.isModalOpen = { set: setModalOpen, value: isModalOpen }
+  defaultModalContext.isEditRepo = { set: setEditRepo, value: isEditRepo }
+  defaultModalContext.data = { set: setData, value: data }
+  defaultModalContext.handleModalToggle = (edit: Boolean, data: any) => {
     defaultModalContext.isModalOpen.set(!defaultModalContext.isModalOpen.value)
-    if(edit==true){
+    if (edit == true) {
       defaultModalContext.isEditRepo.set(true)
       defaultModalContext.data.set(data)
     }
-    else{ 
+    else {
       defaultModalContext.isEditRepo.set(false)
     }
   }
@@ -54,89 +53,89 @@ export const useDefaultModalContextState = () => {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const FormModal = ()=> {
-    const modalContext=useModalContext()
-    const history = useHistory()  
-    const [gitRepositoryValue, setGitRepositoryValue] = React.useState("");
-    const [gitOrganizationValue, setGitOrganizationValue] = React.useState("");
-    const [monitorGithubActions, setMonitorGithubActions] = React.useState(false);
-    const [checked, setChecked] = React.useState('');
-  
-    const { store } = useContext(ReactReduxContext)  
-    const state = store.getState()
+export const FormModal = () => {
+  const modalContext = useModalContext()
+  const history = useHistory()
+  const [gitRepositoryValue, setGitRepositoryValue] = React.useState("");
+  const [gitOrganizationValue, setGitOrganizationValue] = React.useState("");
+  const [monitorGithubActions, setMonitorGithubActions] = React.useState(false);
+  const [checked, setChecked] = React.useState('');
 
-    const dispatch = store.dispatch;  
+  const { store } = useContext(ReactReduxContext)
+  const state = store.getState()
 
-    const handleGitRepositoryInput = value => {
-      setGitRepositoryValue(value);
-    };
-  
-    const handleGitOrganizationInput = value => {
-      setGitOrganizationValue(value);
-    };
-  
-    const handleGithubActionsMonitor = value => {
-      setMonitorGithubActions(value);
-      setChecked(value);
-    };
-    
-    const onUpdateSubmit = async() => {
+  const dispatch = store.dispatch;
+
+  const handleGitRepositoryInput = value => {
+    setGitRepositoryValue(value);
+  };
+
+  const handleGitOrganizationInput = value => {
+    setGitOrganizationValue(value);
+  };
+
+  const handleGithubActionsMonitor = value => {
+    setMonitorGithubActions(value);
+    setChecked(value);
+  };
+
+  const onUpdateSubmit = async () => {
+    modalContext.handleModalToggle()
+    window.location.reload();
+  }
+
+  const onCreateSubmit = async () => {
+    try {
+      const data = {
+        git_organization: gitOrganizationValue,
+        repository_name: gitRepositoryValue,
+        jobs: {
+          github_actions: {
+            monitor: monitorGithubActions
+          }
+        },
+        artifacts: [],
+        team_name: state.teams.Team
+      }
       modalContext.handleModalToggle()
+      await createRepository(data)
       window.location.reload();
     }
-
-    const onCreateSubmit = async() => {
-      try{
-        const data = {
-          git_organization: gitOrganizationValue,
-          repository_name : gitRepositoryValue,
-          jobs: {
-            github_actions: {
-              monitor: monitorGithubActions
-            }
-          },
-          artifacts: [],
-          team_name: state.teams.Team
-        }
-        modalContext.handleModalToggle()
-        await createRepository(data)
-        window.location.reload();
-      }
-      catch (error) {
-        console.log(error)
-      }
+    catch (error) {
+      console.log(error)
     }
+  }
 
-    const  onSubmit = async() => {
-      !modalContext.isEditRepo.value ? onCreateSubmit() : onUpdateSubmit();
+  const onSubmit = async () => {
+    !modalContext.isEditRepo.value ? onCreateSubmit() : onUpdateSubmit();
+  }
+
+  useEffect(() => {
+    if (modalContext.isEditRepo.value) {
+      setGitRepositoryValue(modalContext.data.value.repository_name)
+      setGitOrganizationValue(modalContext.data.value.git_organization)
     }
+  });
 
-    useEffect(() => {
-      if(modalContext.isEditRepo.value){
-        setGitRepositoryValue(modalContext.data.value.repository_name)
-        setGitOrganizationValue(modalContext.data.value.git_organization)
-      }
-    });
-  
   return (
-      <React.Fragment>
-        <Modal
-         variant={ModalVariant.medium}
-          title={ !modalContext.isEditRepo.value ? "Add new git repository" : "Update git repository" }
-          description={ !modalContext.isEditRepo.value ? "Enter a new git repository to obtain information in the quality quality studio." : ""}
-          isOpen={modalContext.isModalOpen.value}
-          onClose={modalContext.handleModalToggle}
-          actions={[
-            <Button key="create" variant="primary" form="modal-with-form-form" onClick={onSubmit} isDisabled={!teamIsNotEmpty(state.teams.Team)}>
-              { !modalContext.isEditRepo.value ? "Add" : "Update" }
-            </Button>,
-            <Button key="cancel" variant="link" onClick={modalContext.handleModalToggle}>
-              Cancel
-            </Button>
-          ]}
-        >
-         <Form isHorizontal id="modal-with-form-form">
-          <FormGroup 
+    <React.Fragment>
+      <Modal
+        variant={ModalVariant.medium}
+        title={!modalContext.isEditRepo.value ? "Add new git repository" : "Update git repository"}
+        description={!modalContext.isEditRepo.value ? "Enter a new git repository to obtain information in the quality quality studio." : ""}
+        isOpen={modalContext.isModalOpen.value}
+        onClose={modalContext.handleModalToggle}
+        actions={[
+          <Button key="create" variant="primary" form="modal-with-form-form" onClick={onSubmit} isDisabled={!teamIsNotEmpty(state.teams.Team)}>
+            {!modalContext.isEditRepo.value ? "Add" : "Update"}
+          </Button>,
+          <Button key="cancel" variant="link" onClick={modalContext.handleModalToggle}>
+            Cancel
+          </Button>
+        ]}
+      >
+        <Form isHorizontal id="modal-with-form-form">
+          <FormGroup
             label="Git Organization"
             labelIcon={
               <Popover
@@ -163,17 +162,17 @@ export const FormModal = ()=> {
             }
             isRequired
             fieldId="modal-with-form-form-name">
-              <TextInput
-                isReadOnly={modalContext.isEditRepo.value}
-                isRequired
-                type="email"
-                id="modal-with-form-form-name"
-                name="modal-with-form-form-name"
-                value={gitOrganizationValue}
-                onChange={handleGitOrganizationInput}
-              />
+            <TextInput
+              isReadOnly={modalContext.isEditRepo.value}
+              isRequired
+              type="email"
+              id="modal-with-form-form-name"
+              name="modal-with-form-form-name"
+              value={gitOrganizationValue}
+              onChange={handleGitOrganizationInput}
+            />
           </FormGroup>
-          <FormGroup 
+          <FormGroup
             label="Repository name"
             labelIcon={
               <Popover
@@ -201,38 +200,38 @@ export const FormModal = ()=> {
             }
             isRequired
             fieldId="modal-with-form-form-email">
-              <TextInput
-                isReadOnly={modalContext.isEditRepo.value}
-                isRequired
-                type="email"
-                id="modal-with-form-form-email"
-                name="modal-with-form-form-email"
-                value={gitRepositoryValue}
-                onChange={handleGitRepositoryInput}
-              />
+            <TextInput
+              isReadOnly={modalContext.isEditRepo.value}
+              isRequired
+              type="email"
+              id="modal-with-form-form-email"
+              name="modal-with-form-form-email"
+              value={gitRepositoryValue}
+              onChange={handleGitRepositoryInput}
+            />
           </FormGroup>
           <FormGroup label="Team" isRequired isStack hasNoPaddingTop fieldId={''}>
-            { teamIsNotEmpty(state.teams.Team) ? <TextInput
+            {teamIsNotEmpty(state.teams.Team) ? <TextInput
               isReadOnly={true}
               isRequired
               type="text"
               id="modal-with-form-form-team"
               name="modal-with-form-form-team"
               value={state.teams.Team}
-              /> : 
+            /> :
               <div>
-                <Button onClick={()=>{ history.push("/home/teams") }} type="button" width={300}>Create your first Team</Button>
-                <Alert style={{marginTop: "1em"}} variant="danger" isInline isPlain title="You need to create a team before adding a repository" />
-              </div>  
-              }
+                <Button onClick={() => { history.push("/home/teams") }} type="button" width={300}>Create your first Team</Button>
+                <Alert style={{ marginTop: "1em" }} variant="danger" isInline isPlain title="You need to create a team before adding a repository" />
+              </div>
+            }
           </FormGroup>
           <FormGroup label="Monitor CI Jobs" isRequired isStack hasNoPaddingTop fieldId={''}>
-            <Checkbox label="Github Actions" id="alt-form-checkbox-1" name="alt-form-checkbox-1" value={String(monitorGithubActions)} onChange={handleGithubActionsMonitor} isChecked={Boolean(checked)}/>
+            <Checkbox label="GitHub Actions" id="alt-form-checkbox-1" name="alt-form-checkbox-1" value={String(monitorGithubActions)} onChange={handleGithubActionsMonitor} isChecked={Boolean(checked)} />
           </FormGroup>
           <FormGroup label="Code Coverage" isRequired isStack hasNoPaddingTop fieldId={''}>
             <Checkbox label="codecov.io" id="alt-form-checkbox-2" name="alt-form-checkbox-2" />
           </FormGroup>
-          <FormGroup 
+          <FormGroup
             label="Quay.io Artifacts"
             labelIcon={
               <Popover
@@ -266,9 +265,9 @@ export const FormModal = ()=> {
               id="horizontal-form-exp"
             />
           </FormGroup>
-         </Form>
-        </Modal>
-      </React.Fragment>
-    );
+        </Form>
+      </Modal>
+    </React.Fragment>
+  );
 };
 

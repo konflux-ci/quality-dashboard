@@ -4,14 +4,14 @@ import { FormModal, ModalContext, useDefaultModalContextState } from '@app/Repos
 
 type RepositoriesTableProps = TableComponentProps
 
-export const RepositoriesTable = ({showCoverage, showDiscription, showTableToolbar, enableFiltersOnTheseColumns} : RepositoriesTableProps) => {
+export const RepositoriesTable = ({ showCoverage, showDescription, showTableToolbar, enableFiltersOnTheseColumns }: RepositoriesTableProps) => {
 
     const defaultModalContext = useDefaultModalContextState();
 
     return (
         <ModalContext.Provider value={defaultModalContext}>
             <React.Fragment>
-                <TableComponent showCoverage={showCoverage} showDiscription={showDiscription} showTableToolbar={showTableToolbar} enableFiltersOnTheseColumns={enableFiltersOnTheseColumns}/>
+                <TableComponent showCoverage={showCoverage} showDescription={showDescription} showTableToolbar={showTableToolbar} enableFiltersOnTheseColumns={enableFiltersOnTheseColumns} />
                 <FormModal></FormModal>
             </React.Fragment>
         </ModalContext.Provider>
