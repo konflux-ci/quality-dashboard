@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-key */
 import React, { useContext, useEffect, useState } from 'react';
 import {
   Card,
@@ -61,6 +62,9 @@ export const Dashboard = () => {
   const JIRA_CRITICAL = "Critical"
   const JIRA_BLOCKER = "Blocker"
   const JIRA_MAJOR = "Major"
+  const JIRA_NORMAL = "Normal"
+  const JIRA_MINOR = "Minor"
+  const UNDEFINED_JIRA_Priority = "Undefined"
 
   const { store } = useContext(ReactReduxContext);
   const state = store.getState();
@@ -91,7 +95,7 @@ export const Dashboard = () => {
 
   const issuesColumnNames = {
     issue_name: 'Issue',
-    assignee: 'Assignee',
+    creator: 'Creator',
     dt_updated: 'Date',
     time_open: 'Age'
   };
@@ -112,7 +116,7 @@ export const Dashboard = () => {
     return dateTime
   }
 
-  const totalIssues = computeJiraIssueCount(JIRA_BLOCKER) + computeJiraIssueCount(JIRA_CRITICAL) + computeJiraIssueCount(JIRA_MAJOR)
+  const totalIssues = computeJiraIssueCount(JIRA_BLOCKER) + computeJiraIssueCount(JIRA_CRITICAL) + computeJiraIssueCount(JIRA_MAJOR) +computeJiraIssueCount(JIRA_NORMAL) + computeJiraIssueCount(JIRA_MINOR) + computeJiraIssueCount(UNDEFINED_JIRA_Priority)
   const allIssueChart = () => (
     <div style={{ height: '150px', width: '150px' }}>
       <ChartDonut
@@ -152,7 +156,7 @@ export const Dashboard = () => {
         <Tr>
           <Th>{issuesColumnNames.issue_name}</Th>
           <Th>{issuesColumnNames.dt_updated}</Th>
-          <Th>{issuesColumnNames.assignee}</Th>
+          <Th>{issuesColumnNames.creator}</Th>
         </Tr>
       </Thead>
       {computeJiraIssueCount(jiraType) == 0 &&
@@ -160,6 +164,7 @@ export const Dashboard = () => {
       }
       {computeJiraIssueCount(jiraType) > 0 && jiraType == JIRA_ALL &&
         jiras.map(j => (
+          // eslint-disable-next-line react/jsx-key
           <Tbody style={{ marginTop: "5px" }}>
             <Tr>
               <Td>
@@ -172,7 +177,7 @@ export const Dashboard = () => {
               <Td><div>{parseDate(j['fields']['updated'])['month']} {parseDate(j['fields']['updated'])['day']}, {parseDate(j['fields']['updated'])['year']}</div>
                 <div>{parseDate(j['fields']['updated'])['hour']}:{parseDate(j['fields']['updated'])['minute']}</div>
               </Td>
-              <Td>{j["fields"]["assignee"]["displayName"]}</Td>
+              <Td>{j["fields"]["Creator"]["displayName"]}</Td>
             </Tr>
           </Tbody>
         ))
@@ -191,7 +196,7 @@ export const Dashboard = () => {
               <Td><div>{parseDate(j['fields']['updated'])['month']} {parseDate(j['fields']['updated'])['day']}, {parseDate(j['fields']['updated'])['year']}</div>
                 <div>{parseDate(j['fields']['updated'])['hour']}:{parseDate(j['fields']['updated'])['minute']}</div>
               </Td>
-              <Td>{j["fields"]["assignee"]["displayName"]}</Td>
+              <Td>{j["fields"]["Creator"]["displayName"]}</Td>
             </Tr>
           </Tbody>
         ))
@@ -288,7 +293,7 @@ export const Dashboard = () => {
               </Card>
               <Card isRounded isCompact style={{ width: "65%", padding: "5px" }}>
                 <CardTitle>
-                  <Title headingLevel="h2" size="xl" > Jira Issues blocking e2e-tests </Title>
+                  <Title headingLevel="h2" size="xl" > Issues affecting CI pass rate </Title>
                 </CardTitle>
                 <Grid hasGutter span={3}>
                   <GridItem aria-expanded={isExpanded} onClick={event => showJiras(JIRA_ALL)}>

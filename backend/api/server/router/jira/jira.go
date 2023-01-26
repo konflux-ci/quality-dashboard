@@ -2,14 +2,9 @@ package jira
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
-)
-
-const (
-	KNOWN_E2E_ISSUE_LABEL = "appstudio-e2e-tests-known-issues"
 )
 
 // Jira godoc
@@ -20,7 +15,7 @@ const (
 // @Router /jira/bugs/e2e [get]
 // @Success 200 {object} []jira.Issue
 func (s *jiraRouter) listE2EBugsKnown(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
-	issues := s.Jira.GetIssueByJQLQuery(fmt.Sprintf("labels in (%s) AND status not in (resolved, closed)", KNOWN_E2E_ISSUE_LABEL))
+	issues := s.Jira.GetIssueByJQLQuery(`project in (STONE, DEVHAS, SRVKP, GITOPSRVCE, HACBS) AND status not in (Closed) AND labels = ci-fail`)
 
 	return httputils.WriteJSON(w, http.StatusOK, issues)
 }
