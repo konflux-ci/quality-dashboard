@@ -40,7 +40,23 @@ export const BasicMasthead = () => {
   const onDropdownSelect = (event: any) => {
     setDropdownOpen(!isDropdownOpen);
     dispatch({ type: "SET_TEAM", data: event.target.dataset.value });
+
+    const params = new URLSearchParams(window.location.search)
+    const team = params.get("team")
+
+    if (history.location.pathname == "/reports/test" && team != null && team != event.target.dataset.value) {
+      history.push('/reports/test?team=' + event.target.dataset.value)
+    }
+
+    if (history.location.pathname == "/ci/jobs" && team != null && team != event.target.dataset.value) {
+      history.push('/ci/jobs?team=' + event.target.dataset.value)
+    }
+
+    if (history.location.pathname == "/home/overview" && team != null && team != event.target.dataset.value) {
+      history.push('/home/overview?team=' + event.target.dataset.value)
+    }
   }
+
   function Log_out() {
     history.push('/oauth/sign_out');
     window.location.reload();

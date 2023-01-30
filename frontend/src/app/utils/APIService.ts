@@ -94,6 +94,7 @@ async function getAllRepositoriesWithOrgs(team: string) {
     throw 'Error fetching data from server';
   } else {
     const data = await response.json();
+    data.sort((a, b) => (a.repository_name < b.repository_name ? -1 : 1));
     repoAndOrgs = data.map((row, index) => {
       return { repoName: row.repository_name, organization: row.git_organization };
     });
@@ -171,12 +172,12 @@ async function createRepository(data = {}) {
 async function getLatestProwJob(repoName: string, repoOrg: string, jobType: string) {
   const response = await fetch(
     API_URL +
-      '/api/quality/prow/results/latest/get?repository_name=' +
-      repoName +
-      '&git_organization=' +
-      repoOrg +
-      '&job_type=' +
-      jobType
+    '/api/quality/prow/results/latest/get?repository_name=' +
+    repoName +
+    '&git_organization=' +
+    repoOrg +
+    '&job_type=' +
+    jobType
   );
   if (!response.ok) {
     throw 'Error fetching data from server. ';
@@ -188,12 +189,12 @@ async function getLatestProwJob(repoName: string, repoOrg: string, jobType: stri
 async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: string) {
   const response = await fetch(
     API_URL +
-      '/api/quality/prow/metrics/get?repository_name=' +
-      repoName +
-      '&git_organization=' +
-      repoOrg +
-      '&job_type=' +
-      jobType
+    '/api/quality/prow/metrics/get?repository_name=' +
+    repoName +
+    '&git_organization=' +
+    repoOrg +
+    '&job_type=' +
+    jobType
   );
   if (!response.ok) {
     throw 'Error fetching data from server. ';

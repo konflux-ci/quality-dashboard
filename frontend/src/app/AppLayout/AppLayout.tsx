@@ -43,10 +43,17 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
     }
   }, [])
 
+  const params = new URLSearchParams(window.location.search)
+  const team = params.get("team")
+
   function LogoImg() {
     const history = useHistory();
     function handleClick() {
-      history.push('/home/overview');
+      if (team != null) {
+        history.push('/home/overview?team=' + team);
+      } else {
+        history.push('/home/overview?team=');
+      }
     }
     return (
       <img onClick={handleClick} style={{ height: '32px' }} src={logo} alt="Red Hat logo" />
@@ -65,9 +72,18 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
 
   const location = useLocation();
 
+
+  // Handles the route in other to keep the query parameters in nav item multiples clicks
+  const handleRoute = (route) => {
+    if (history.location.pathname == route && team != null) {
+      return history.location.pathname + history.location.search
+    }
+    return route
+  }
+
   const renderNavItem = (route: IAppRoute, index: number) => (
     <NavItem key={`${route.label}-${index}`} id={`${route.label}-${index}`}>
-      <NavLink exact={route.exact} to={route.path} activeClassName="pf-m-current">
+      <NavLink exact={route.exact} to={handleRoute(route.path)} activeClassName="pf-m-current">
         {route.label}
       </NavLink>
     </NavItem>

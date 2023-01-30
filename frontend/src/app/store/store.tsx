@@ -33,9 +33,18 @@ const Store = ({ children }) => {
 
         getTeams().then(data => {
             if (data.data.length > 0) {
+                data.data.sort((a, b) => (a.team_name < b.team_name ? -1 : 1));
                 const loadedTeam = loadTeamSelection(data.data);
                 if (loadedTeam == null) { dispatch({ type: "SET_TEAM", data: data.data[0].team_name }) }
                 else { dispatch({ type: "SET_TEAM", data: loadedTeam }) }
+
+                const params = new URLSearchParams(window.location.search)
+                const team = params.get('team')
+
+                // team query param exists in the teams available
+                if (team != null && data.data.find(t => t.team_name === team)) {
+                    dispatch({ type: "SET_TEAM", data: team })
+                }
 
                 dispatch({ type: "SET_TEAMS_AVAILABLE", data: data.data })
             }

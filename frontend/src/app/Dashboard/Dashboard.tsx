@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-key */
 import React, { useContext, useEffect, useState } from 'react';
 import {
   Card,
@@ -20,6 +19,7 @@ import {
   DrawerPanelBody,
   DrawerActions,
   DrawerCloseButton,
+  Button
 } from '@patternfly/react-core';
 import {
   TableComposable,
@@ -32,8 +32,9 @@ import {
 import { ChartDonut, ChartThemeColor } from '@patternfly/react-charts';
 import { getVersion, getJiras } from '@app/utils/APIService';
 import { RepositoriesTable } from '@app/Repositories/RepositoriesTable';
-import { CheckCircleIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
+import { CheckCircleIcon, CopyIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
 import { ReactReduxContext } from 'react-redux';
+import { isValidTeam } from '@app/utils/utils';
 
 export const Dashboard = () => {
 
@@ -116,7 +117,7 @@ export const Dashboard = () => {
     return dateTime
   }
 
-  const totalIssues = computeJiraIssueCount(JIRA_BLOCKER) + computeJiraIssueCount(JIRA_CRITICAL) + computeJiraIssueCount(JIRA_MAJOR) +computeJiraIssueCount(JIRA_NORMAL) + computeJiraIssueCount(JIRA_MINOR) + computeJiraIssueCount(UNDEFINED_JIRA_Priority)
+  const totalIssues = computeJiraIssueCount(JIRA_BLOCKER) + computeJiraIssueCount(JIRA_CRITICAL) + computeJiraIssueCount(JIRA_MAJOR) + computeJiraIssueCount(JIRA_NORMAL) + computeJiraIssueCount(JIRA_MINOR) + computeJiraIssueCount(UNDEFINED_JIRA_Priority)
   const allIssueChart = () => (
     <div style={{ height: '150px', width: '150px' }}>
       <ChartDonut
@@ -252,13 +253,18 @@ export const Dashboard = () => {
         opacity: '0.9'
       }} variant={PageSectionVariants.light}>
         <TextContent style={{ color: "white" }}>
-          <Text component="h2">Red Hat App Studio Quality Dashboard</Text>
+          <Text component="h2">
+            Red Hat App Studio Quality Dashboard
+            <Button onClick={() => navigator.clipboard.writeText(window.location.href)} variant="link" icon={<CopyIcon />} iconPosition="right">
+              Copy link
+            </Button>
+          </Text>
           <Text component="p">Global status about teams components.</Text>
         </TextContent>
       </PageSection>
       <Drawer isExpanded={isExpanded}>
         <DrawerContent panelContent={panelContent} className={'pf-m-no-background'}>
-          <PageSection>
+          {isValidTeam() && <PageSection>
             <Gallery hasGutter style={{ display: "flex" }}>
               <Card isRounded style={{ width: "35%" }}>
                 <CardTitle>
@@ -332,6 +338,7 @@ export const Dashboard = () => {
               </Card>
             </Gallery>
           </PageSection>
+          }
           <PageSection style={{
             minHeight: "12%"
           }}>
