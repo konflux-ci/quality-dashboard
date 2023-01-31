@@ -3,7 +3,7 @@ module github.com/redhat-appstudio/quality-studio
 go 1.18
 
 require (
-	entgo.io/ent v0.11.4
+	entgo.io/ent v0.11.7
 	github.com/andygrunwald/go-jira v1.16.0
 	github.com/devfile/library v1.3.0
 	github.com/etherlabsio/healthcheck/v2 v2.0.0
@@ -24,7 +24,7 @@ require (
 )
 
 require (
-	ariga.io/atlas v0.8.3 // indirect
+	ariga.io/atlas v0.9.1-0.20230119145809-92243f7c55cb // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/Microsoft/go-winio v0.5.1 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20210428141323-04723f9f07d7 // indirect
