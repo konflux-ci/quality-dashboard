@@ -23,14 +23,19 @@ import {
   Select,
   SelectOption,
   SelectVariant,
-  Title
+  Title,
+  EmptyStateVariant,
+  EmptyState,
+  EmptyStateIcon
 } from '@patternfly/react-core';
 import { deleteRepositoryAPI, getRepositories } from '@app/utils/APIService';
-import { ExternalLinkAltIcon, FilterIcon, PlusIcon, BarsIcon, InfoCircleIcon } from '@patternfly/react-icons';
+import { ExternalLinkAltIcon, FilterIcon, PlusIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
 import _ from 'lodash';
 import { useModalContext } from '@app/Repositories/CreateRepository';
 import { Repository } from '@app/Repositories/';
 import { ReactReduxContext, useSelector } from 'react-redux';
+import { useHistory } from 'react-router-dom';
+import { isValidTeam } from '@app/utils/utils';
 
 export interface TableComponentProps {
   showCoverage?: boolean
@@ -349,7 +354,9 @@ export const TableComponent = ({ showCoverage, showDescription, showTableToolbar
   );
   // End of filters helpers
 
+  const history = useHistory();
   const currentTeam = useSelector((state: any) => state.teams.Team);
+
   useEffect(() => {
     getRepositories(perpage, state.teams.Team).then((res) => {
       if (res.code === 200) {
@@ -365,6 +372,11 @@ export const TableComponent = ({ showCoverage, showDescription, showTableToolbar
         onPageset(page)
         dispatch({ type: "SET_REPOSITORIES", data: result });
         dispatch({ type: "SET_REPOSITORIES_ALL", data: res.all });
+        const params = new URLSearchParams(window.location.search)
+        const team = params.get("team")
+        if (team == state.teams.Team || team == null) {
+          history.push('/home/overview?team=' + currentTeam)
+        }
       } else {
         dispatch({ type: "SET_ERROR", data: res });
       }
@@ -373,7 +385,7 @@ export const TableComponent = ({ showCoverage, showDescription, showTableToolbar
 
   return (
     <React.Fragment>
-      <TableComposable aria-label="Actions table">
+      {isValidTeam() && <TableComposable aria-label="Actions table">
         <Caption>Repositories Summary</Caption>
         <Thead>
           <Tr>
@@ -438,7 +450,8 @@ export const TableComponent = ({ showCoverage, showDescription, showTableToolbar
           })}
         </Tbody>
       </TableComposable>
-      {showTableToolbar &&
+      }
+      {isValidTeam() && showTableToolbar &&
         <Toolbar id="toolbar-with-filter"
           className="pf-m-toggle-group-container"
           collapseListedFiltersBreakpoint="xl"
@@ -466,6 +479,13 @@ export const TableComponent = ({ showCoverage, showDescription, showTableToolbar
             </ToolbarItem>
           </ToolbarContent>
         </Toolbar>
+      }
+      {!isValidTeam() && <EmptyState variant={EmptyStateVariant.xl}>
+        <EmptyStateIcon icon={ExclamationCircleIcon} />
+        <Title headingLevel="h1" size="lg">
+          Something went wrong. Please, check the URL.
+        </Title>
+      </EmptyState>
       }
 
     </React.Fragment>

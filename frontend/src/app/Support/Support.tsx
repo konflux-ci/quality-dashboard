@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CubesIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
+import { CopyIcon, CubesIcon, ExclamationCircleIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
 import {
   PageSection, PageSectionVariants,
   EmptyState,
@@ -16,7 +16,7 @@ import SearchIcon from '@patternfly/react-icons/dist/esm/icons/search-icon';
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
-import { getAllRepositoriesWithOrgs, getLatestProwJob, getProwJobStatistics } from '@app/utils/APIService';
+import { getAllRepositoriesWithOrgs, getLatestProwJob, getProwJobStatistics, getTeams } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { Table, TableHeader, TableBody, TableProps, sortable, cellWidth, info } from '@patternfly/react-table';
 import {
@@ -29,6 +29,8 @@ import {
   DashboardLineChartData
 } from '@app/utils/sharedComponents';
 import { ReactReduxContext, useSelector } from 'react-redux';
+import { useHistory } from 'react-router-dom';
+import { isValidTeam } from '@app/utils/utils';
 
 // eslint-disable-next-line prefer-const
 let Support = () => {
@@ -51,6 +53,8 @@ let Support = () => {
   const [jobTypeToggle, setjobTypeToggle] = useState(false);
   const [repoNameToggle, setRepoNameToggle] = useState(false);
   const currentTeam = useSelector((state: any) => state.teams.Team);
+  const history = useHistory();
+  const params = new URLSearchParams(window.location.search)
 
   // Called onChange of the repository dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
   const setRepoNameOnChange = (event, selection, isPlaceholder) => {
@@ -61,6 +65,9 @@ let Support = () => {
       setRepoName(repositories[selection].repoName);
       setRepoOrg(repositories[selection].organization);
       setRepoNameToggle(false)
+      params.set("repository", repositories[selection].repoName)
+      params.set("organization", repositories[selection].organization)
+      history.push(window.location.pathname + '?' + params.toString());
     }
   };
 
@@ -92,6 +99,8 @@ let Support = () => {
     else {
       setjobType(selection);
       setjobTypeToggle(false);
+      params.set("job_type", selection)
+      history.push(window.location.pathname + '?' + params.toString());
     }
   };
 
@@ -100,6 +109,22 @@ let Support = () => {
     if (repoName != "" && repoOrg != "" && jobType != "") {
       getProwJob()
     }
+  }
+
+  // Validates if the repository, organization, and job_type are correct
+  const validQueryParams = (repository, organization, job_type) => {
+    const validJobTypes = ["periodic", "presubmit", "postsubmit"]
+
+    if (isValidTeam()) {
+      if (repositories.find(r => r.organization == organization && r.repoName == repository) &&
+        validJobTypes.find(j => j == job_type)) {
+        return true;
+      }
+      if (repository == "" && organization == "" && job_type == "") {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Triggers automatic validation when state variables change
@@ -114,17 +139,39 @@ let Support = () => {
       setRepositories([])
       clearJobType()
       clearRepo()
+      clearProwJob()
+
+      const repository = params.get("repository")
+      const organization = params.get("organization")
+      const job_type = params.get("job_type")
+      const team = params.get("team")
+
+
       getAllRepositoriesWithOrgs(state.teams.Team)
         .then((data: any) => {
           let dropDescr = ""
-          if (data.length < 1) { dropDescr = "No Repositories" }
+          if (data.length < 1 && (team == state.teams.Team || team == null)) {
+            dropDescr = "No Repositories"
+            history.push('/reports/test?team=' + currentTeam)
+          }
           else { dropDescr = "Select a repository" }
-          data.unshift({ repoName: dropDescr, organization: "", isPlaceholder: true }) // Adds placeholder at the beginning of the array, so it will be shown first
-          setRepositories(data)
-          setRepoName(data[1].repoName)
-          setRepoOrg(data[1].organization)
-          setjobType("presubmit")
-          validateGetProwJob()
+
+          if (data.length > 0 && (team == state.teams.Team || team == null)) {
+            data.unshift({ repoName: dropDescr, organization: "", isPlaceholder: true }) // Adds placeholder at the beginning of the array, so it will be shown first
+            setRepositories(data)
+
+            if (repository == null || organization == null || job_type == null) { // first click on OpenShift CI or team
+              setRepoName(data[1].repoName)
+              setRepoOrg(data[1].organization)
+              setjobType("presubmit")
+              history.push('/reports/test?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName + '&job_type=presubmit')
+            } else {
+              setRepoName(repository)
+              setRepoOrg(organization)
+              setjobType(job_type)
+              history.push('/reports/test?team=' + currentTeam + '&organization=' + organization + '&repository=' + repository + '&job_type=' + job_type)
+            }
+          }
         })
     }
   }, [setRepositories, currentTeam]);
@@ -136,11 +183,6 @@ let Support = () => {
     <SelectOption key={1} value="presubmit" />,
     <SelectOption key={2} value="postsubmit" />,
   ]
-
-  /*
-  Some helpers and definitions
-  */
-  const LoremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat"
 
   /* 
   ProwJobs logic to populate dashboard
@@ -154,7 +196,7 @@ let Support = () => {
   // Get the prow jobs from API
   const getProwJob = async () => {
     setSelectedJob(0)
-    // Hide components and show laoding spinner 
+    // Hide components and show loading spinner 
     setProwVisible(false)
     setloadingState(true)
     try {
@@ -196,10 +238,6 @@ let Support = () => {
   // Extract a simple list of jobs from data: this will be used to let users select the job they want to see details for
   let jobNames: SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function (job, index) { return { "value": job.name, "index": index } }) : []
   let ci_html: string = prowJobsStats?.jobs != null ? "https://prow.ci.openshift.org/?repo=" + prowJobsStats?.git_organization + "%2F" + prowJobsStats?.repository_name + "&type=" + prowJobsStats?.type : ''
-
-
-
-
 
   // Prepare data for the line chart
   let beautifiedData: DashboardLineChartData = {
@@ -352,6 +390,9 @@ let Support = () => {
       <PageSection variant={PageSectionVariants.light}>
         <Title headingLevel="h3" size={TitleSizes['2xl']}>
           Tests Reports
+          <Button onClick={() => navigator.clipboard.writeText(window.location.href)} variant="link" icon={<CopyIcon />} iconPosition="right">
+            Copy link
+          </Button>
         </Title>
       </PageSection>
       {/* main content  */}
@@ -396,7 +437,7 @@ let Support = () => {
           <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />
         </div>
         }
-        {!prowVisible && !loadingState && <EmptyState variant={EmptyStateVariant.xl}>
+        {validQueryParams(repoName, repoOrg, jobType) && !prowVisible && !loadingState && <EmptyState variant={EmptyStateVariant.xl}>
           <EmptyStateIcon icon={CubesIcon} />
           <Title headingLevel="h1" size="lg">
             No job selected yet.
@@ -406,9 +447,16 @@ let Support = () => {
           </EmptyStateBody>
         </EmptyState>
         }
+        {!validQueryParams(repoName, repoOrg, jobType) && <EmptyState variant={EmptyStateVariant.xl}>
+          <EmptyStateIcon icon={ExclamationCircleIcon} />
+          <Title headingLevel="h1" size="lg">
+            Something went wrong. Please, check the URL.
+          </Title>
+        </EmptyState>
+        }
         {/* this section will show statistics and details about job and suites */}
         <React.Fragment>
-          {prowVisible && <div style={{ marginTop: '20px' }}>
+          {validQueryParams(repoName, repoOrg, jobType) && prowVisible && <div style={{ marginTop: '20px' }}>
             {/* this section will show the job's chart over time and last execution stats */}
 
             {prowJobsStats !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>

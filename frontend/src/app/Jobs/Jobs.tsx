@@ -1,11 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useContext, useEffect, useState } from 'react';
-import { ContextSelector, ContextSelectorItem, PageSection } from '@patternfly/react-core';
+import { Button, ContextSelector, ContextSelectorItem, EmptyState, EmptyStateIcon, EmptyStateVariant, PageSection, Title } from '@patternfly/react-core';
 import { getRepositories, getWorkflowByRepositoryName } from '@app/utils/APIService';
 import { Caption, TableComposable, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
-import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 import { ReactReduxContext, useSelector } from 'react-redux';
+import { useHistory } from 'react-router-dom';
+import { CopyIcon, ExclamationCircleIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
+import { isValidTeam } from '@app/utils/utils';
 
 interface Repository {
   git_organization: string;
@@ -39,27 +41,61 @@ export const JobsComponent: React.FunctionComponent = () => {
 
   const [workflows, setWorkflows] = useState([]);
 
-  const [repositories, setallreps] = useState<any>(state.repos.Allrepositories);
+  const [repositories, setAllReps] = useState<any>(state.repos.Allrepositories);
 
   const [, setFilteredItems] = useState(repositories);
   const [repos, setRepositories] = useState([]);
 
   const currentTeam = useSelector((state: any) => state.teams.Team);
 
+  let firstItemText = "default"
+  const [selected, setSelected] = useState(firstItemText);
+  const [org, setOrg] = useState('');
+
+  const history = useHistory();
+  const params = new URLSearchParams(window.location.search)
+
   useEffect(() => {
     clearAll()
+
+    const repository = params.get("repository")
+    const organization = params.get("organization")
+    const team = params.get("team")
+
     getRepositories(5, state.teams.Team).then((res) => {
       if (res.code === 200) {
         const result = res.data;
-        setallreps(res.all)
+        res.all.sort((a, b) => (a.repository_name < b.repository_name ? -1 : 1));
+        setAllReps(res.all)
         dispatch({ type: "SET_REPOSITORIES", data: result });
         dispatch({ type: "SET_REPOSITORIES_ALL", data: res.all });
+
+        console.log(res.all.length)
+
+        if (res.all.length < 1 && (team == state.teams.Team || team == null)) {
+          history.push('/ci/jobs?team=' + currentTeam)
+        }
+
+        if (res.all.length > 0 && (team == state.teams.Team || team == null)) {
+          if (repository == null || organization == null) { // first click on GitHub Actions or team
+            setSelected(res.all[0].repository_name)
+            setOrg(res.all[0].git_organization)
+            getWorkflows(res.all[0].repository_name)
+            history.push('/ci/jobs?team=' + currentTeam + '&organization=' + res.all[0].git_organization + '&repository=' + res.all[0].repository_name)
+          } else {
+            setSelected(repository)
+            setOrg(organization)
+            getWorkflows(repository)
+            history.push('/ci/jobs?team=' + currentTeam + '&organization=' + organization + '&repository=' + repository)
+          }
+        }
+
       } else {
         dispatch({ type: "SET_ERROR", data: res });
         clearAll()
       }
     });
-  }, [repos, setRepositories, dispatch, state.teams.Team, currentTeam])
+  }, [repos, setRepositories, setAllReps, dispatch, state.teams.Team, currentTeam])
 
 
   function onToggle(_event: any, isOpen: boolean) {
@@ -70,12 +106,13 @@ export const JobsComponent: React.FunctionComponent = () => {
     setWorkflows([])
     setSearchValue('')
     setSelected('default')
+    setOrg('')
   }
 
-  function getworkflows(repo) {
+  function getWorkflows(repo) {
     getWorkflowByRepositoryName(repo).then((res) => {
       if (res.code === 200) {
-        const result = res.data;
+        const result = res.data.sort((a, b) => (a.workflow_name < b.workflow_name ? -1 : 1));
         setWorkflows(result)
         dispatch({ type: "SET_WORKFLOWS", data: result });
       } else {
@@ -87,7 +124,9 @@ export const JobsComponent: React.FunctionComponent = () => {
   function onSelect(_event: any, value: string) {
     setSelected(value);
     setOpen(!isOpen);
-    getworkflows(value);
+    getWorkflows(value);
+    params.set("repository", value)
+    history.push(window.location.pathname + '?' + params.toString());
   }
 
   function onSearchInputChange(value: string) {
@@ -106,11 +145,24 @@ export const JobsComponent: React.FunctionComponent = () => {
     setFilteredItems(filtered || []);
   }
 
-  let firstItemText = "default"
-  const [selected, setSelected] = useState(firstItemText);
-
   if (typeof repositories[0] !== 'undefined') {
     firstItemText = repositories[0].repository_name
+  }
+
+  // Validates if the repository and organization are correct
+  const validParams = (repository, organization) => {
+    console.log(repository)
+    console.log(organization)
+    console.log(repositories)
+    if (isValidTeam()) {
+      if (repositories.find(r => r.git_organization == organization && r.repository_name == repository)) {
+        return true;
+      }
+      if (repository == "default" && organization == "") {
+        return true;
+      }
+    }
+    return false;
   }
 
   return (
@@ -136,10 +188,13 @@ export const JobsComponent: React.FunctionComponent = () => {
               return <ContextSelectorItem key={index}>{text.repository_name}</ContextSelectorItem>;
             })}
           </ContextSelector>
+          <Button onClick={() => navigator.clipboard.writeText(window.location.href)} variant="link" icon={<CopyIcon />} iconPosition="right">
+            Copy link
+          </Button>
         </div>
         <hr />
-        <TableComposable aria-label="Actions table" style={{ padding: "10px" }}>
-          <Caption>All Github Actions available in the repository {selected}</Caption>
+        {validParams(selected, org) && <TableComposable aria-label="Actions table" style={{ padding: "10px" }}>
+          <Caption>All GitHub Actions available in the repository {selected}</Caption>
           <Thead>
             <Tr>
               <Th>{columnNames.name}</Th>
@@ -162,6 +217,14 @@ export const JobsComponent: React.FunctionComponent = () => {
             })}
           </Tbody>
         </TableComposable>
+        }
+        {!validParams(selected, org) && <EmptyState variant={EmptyStateVariant.xl}>
+          <EmptyStateIcon icon={ExclamationCircleIcon} />
+          <Title headingLevel="h1" size="lg">
+            Something went wrong. Please, check the URL.
+          </Title>
+        </EmptyState>
+        }
       </div>
     </PageSection>
 
