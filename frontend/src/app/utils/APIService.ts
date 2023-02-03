@@ -82,8 +82,13 @@ async function getRepositories(perPage = 5, team: string) {
   return result;
 }
 
-async function getAllRepositoriesWithOrgs(team: string) {
-  const subPath = '/api/quality/repositories/list?team_name=' + team;
+async function getAllRepositoriesWithOrgs(team: string, isOpenShiftCI: boolean) {
+  let subPath = '/api/quality/repositories/list?team_name=' + team;
+
+  if (isOpenShiftCI) {
+    subPath += '&openshift_ci=true';
+  }
+
   const uri = API_URL + subPath;
   let repoAndOrgs = [];
 
@@ -172,12 +177,12 @@ async function createRepository(data = {}) {
 async function getLatestProwJob(repoName: string, repoOrg: string, jobType: string) {
   const response = await fetch(
     API_URL +
-    '/api/quality/prow/results/latest/get?repository_name=' +
-    repoName +
-    '&git_organization=' +
-    repoOrg +
-    '&job_type=' +
-    jobType
+      '/api/quality/prow/results/latest/get?repository_name=' +
+      repoName +
+      '&git_organization=' +
+      repoOrg +
+      '&job_type=' +
+      jobType
   );
   if (!response.ok) {
     throw 'Error fetching data from server. ';
@@ -189,17 +194,20 @@ async function getLatestProwJob(repoName: string, repoOrg: string, jobType: stri
 async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: string) {
   const response = await fetch(
     API_URL +
-    '/api/quality/prow/metrics/get?repository_name=' +
-    repoName +
-    '&git_organization=' +
-    repoOrg +
-    '&job_type=' +
-    jobType
+      '/api/quality/prow/metrics/get?repository_name=' +
+      repoName +
+      '&git_organization=' +
+      repoOrg +
+      '&job_type=' +
+      jobType
   );
   if (!response.ok) {
     throw 'Error fetching data from server. ';
   }
   const statistics: JobsStatistics = await response.json();
+  if (statistics.jobs == null) {
+    throw 'No jobs detected in OpenShift CI';
+  }
 
   statistics.jobs.forEach((job, j_idx) => {
     let j = job.metrics.sort(function (a, b) {
@@ -249,6 +257,21 @@ async function createTeam(data = {}) {
   return result;
 }
 
+async function getJobTypes(repoName: string, repoOrg: string) {
+  const response = await fetch(
+    API_URL +
+      '/api/quality/repositories/getJobTypesFromRepo?repository_name=' +
+      repoName +
+      '&git_organization=' +
+      repoOrg
+  );
+  if (!response.ok) {
+    throw 'Error fetching data from server. ';
+  }
+  const data = await response.json();
+  return data.sort((a, b) => (a < b ? -1 : 1));
+}
+
 export {
   getVersion,
   getRepositories,
@@ -261,4 +284,5 @@ export {
   getTeams,
   createTeam,
   getJiras,
+  getJobTypes,
 };

@@ -16,7 +16,7 @@ import SearchIcon from '@patternfly/react-icons/dist/esm/icons/search-icon';
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
-import { getAllRepositoriesWithOrgs, getLatestProwJob, getProwJobStatistics, getTeams } from '@app/utils/APIService';
+import { getAllRepositoriesWithOrgs, getJobTypes, getLatestProwJob, getProwJobStatistics } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { Table, TableHeader, TableBody, TableProps, sortable, cellWidth, info } from '@patternfly/react-table';
 import {
@@ -31,12 +31,14 @@ import {
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { isValidTeam } from '@app/utils/utils';
+import { createNoSubstitutionTemplateLiteral } from 'typescript';
 
 // eslint-disable-next-line prefer-const
 let Support = () => {
 
   const [prowVisible, setProwVisible] = useState(false)
-  const [loadingState, setloadingState] = useState(false)
+  const [loadingState, setLoadingState] = useState(false)
+  const [noData, setNoData] = useState(false)
   const [alerts, setAlerts] = React.useState<React.ReactNode[]>([]);
 
   const { store } = React.useContext(ReactReduxContext);
@@ -50,6 +52,7 @@ let Support = () => {
   const [repoName, setRepoName] = useState("");
   const [repoOrg, setRepoOrg] = useState("");
   const [jobType, setjobType] = useState("");
+  const [jobTypes, setJobTypes] = useState<string[]>([]);
   const [jobTypeToggle, setjobTypeToggle] = useState(false);
   const [repoNameToggle, setRepoNameToggle] = useState(false);
   const currentTeam = useSelector((state: any) => state.teams.Team);
@@ -67,13 +70,21 @@ let Support = () => {
       setRepoNameToggle(false)
       params.set("repository", repositories[selection].repoName)
       params.set("organization", repositories[selection].organization)
-      history.push(window.location.pathname + '?' + params.toString());
+
+      getJobTypes(repositories[selection].repoName, repositories[selection].organization)
+        .then((data: any) => {
+          setJobTypes(data)
+          setjobType("presubmit") // all repos in OpenShift CI have presubmit type job
+          params.set("job_type", "presubmit")
+          history.push(window.location.pathname + '?' + params.toString());
+        });
     }
   };
 
   // Reset all dropwdowns and state variables
   const clearProwJob = () => {
     setProwVisible(false); // hide the dashboard leaving only the toolbar
+    setNoData(false)
     clearJobType()
     clearRepo()
   }
@@ -106,18 +117,21 @@ let Support = () => {
 
   // Validates that the required variables are not empty; if not, the "get" button is enabled
   const validateGetProwJob = () => {
-    if (repoName != "" && repoOrg != "" && jobType != "") {
-      getProwJob()
+    if (repositories.find(r => r.organization == repoOrg && r.repoName == repoName)) {
+      getJobTypes(repoName, repoOrg)
+        .then((data: any) => {
+          if (data.find(j => j == jobType)) { 
+            getProwJob()
+          }
+        });
     }
   }
 
   // Validates if the repository, organization, and job_type are correct
   const validQueryParams = (repository, organization, job_type) => {
-    const validJobTypes = ["periodic", "presubmit", "postsubmit"]
-
     if (isValidTeam()) {
       if (repositories.find(r => r.organization == organization && r.repoName == repository) &&
-        validJobTypes.find(j => j == job_type)) {
+        jobTypes.find(j => j == job_type)) {
         return true;
       }
       if (repository == "" && organization == "" && job_type == "") {
@@ -147,7 +161,7 @@ let Support = () => {
       const team = params.get("team")
 
 
-      getAllRepositoriesWithOrgs(state.teams.Team)
+      getAllRepositoriesWithOrgs(state.teams.Team, true)
         .then((data: any) => {
           let dropDescr = ""
           if (data.length < 1 && (team == state.teams.Team || team == null)) {
@@ -163,26 +177,29 @@ let Support = () => {
             if (repository == null || organization == null || job_type == null) { // first click on OpenShift CI or team
               setRepoName(data[1].repoName)
               setRepoOrg(data[1].organization)
-              setjobType("presubmit")
+              setjobType("presubmit") // all repos in OpenShift CI have presubmit type job
+
+              getJobTypes(data[1].repoName, data[1].organization)
+                .then((data: any) => {
+                  setJobTypes(data)
+                });
               history.push('/reports/test?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName + '&job_type=presubmit')
+
             } else {
               setRepoName(repository)
               setRepoOrg(organization)
               setjobType(job_type)
-              history.push('/reports/test?team=' + currentTeam + '&organization=' + organization + '&repository=' + repository + '&job_type=' + job_type)
+
+              getJobTypes(repository, organization)
+                .then((data: any) => {
+                  setJobTypes(data)
+                  history.push('/reports/test?team=' + currentTeam + '&organization=' + organization + '&repository=' + repository + '&job_type=' + job_type)
+                });
             }
           }
         })
     }
   }, [setRepositories, currentTeam]);
-
-
-  // Static list of job types to populate the dropdown
-  const jobTypes = [
-    <SelectOption key={0} value="periodic" />,
-    <SelectOption key={1} value="presubmit" />,
-    <SelectOption key={2} value="postsubmit" />,
-  ]
 
   /* 
   ProwJobs logic to populate dashboard
@@ -198,40 +215,50 @@ let Support = () => {
     setSelectedJob(0)
     // Hide components and show loading spinner 
     setProwVisible(false)
-    setloadingState(true)
+    setLoadingState(true)
+    setNoData(false)
     try {
       // Get job suite details
-      const data = await getLatestProwJob(repoName, repoOrg, jobType)
-      setProwJobSuite(data)
+      if (jobType == "periodic") {
+        const data = await getLatestProwJob(repoName, repoOrg, jobType)
+        setProwJobSuite(data)
+      }
       // Get statistics and metrics
       const stats = await getProwJobStatistics(repoName, repoOrg, jobType)
       // Set UI for showing data and disable spinner
       setprowJobsStats(stats)
-      setloadingState(false)
+      setLoadingState(false)
       setProwVisible(true)
     }
-    catch {
-      // Set UI to empty page and show error alert
-
+    catch (e) {
+      // Set UI to empty page
       setProwVisible(false);
-      setloadingState(false)
-      setAlerts(prevAlerts => {
-        return [...prevAlerts,
-        <Alert
-          variant="danger"
-          timeout={5000}
-          title="Error fetching data from server"
-          key={0}
-          actionClose={
-            <AlertActionCloseButton
-              title="Error fetching data"
-              variantLabel={`danger alert`}
-              onClose={() => setAlerts([])}
-            />
-          }
-        />
-        ]
-      });
+      setLoadingState(false);
+
+
+      // Show error alert
+      if (e != "No jobs detected in OpenShift CI") {
+        setAlerts(prevAlerts => {
+          return [...prevAlerts,
+          <Alert
+            variant="danger"
+            timeout={5000}
+            title="Error fetching data from server"
+            key={0}
+            actionClose={
+              <AlertActionCloseButton
+                title="Error fetching data"
+                variantLabel={`danger alert`}
+                onClose={() => setAlerts([])}
+              />
+            }
+          />
+          ]
+        });
+      } else {
+        // Set UI to no data page
+        setNoData(true)
+      }
     }
   }
 
@@ -424,7 +451,9 @@ let Support = () => {
             </ToolbarItem>
             <ToolbarItem style={{ minWidth: "20%", maxWidth: "40%" }}>
               <Select placeholderText="Filter by status/vendor" isOpen={jobTypeToggle} onToggle={setjobTypeToggle} selections={jobType} onSelect={setjobTypeOnChange} aria-label="Select Input">
-                {jobTypes}
+                {jobTypes.map((value, index) => (
+                  <SelectOption key={index} value={value}>{value}</SelectOption>
+                ))}
               </Select>
             </ToolbarItem>
             <ToolbarItem >
@@ -437,7 +466,7 @@ let Support = () => {
           <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />
         </div>
         }
-        {validQueryParams(repoName, repoOrg, jobType) && !prowVisible && !loadingState && <EmptyState variant={EmptyStateVariant.xl}>
+        {validQueryParams(repoName, repoOrg, jobType) && !prowVisible && !loadingState && !noData && <EmptyState variant={EmptyStateVariant.xl}>
           <EmptyStateIcon icon={CubesIcon} />
           <Title headingLevel="h1" size="lg">
             No job selected yet.
@@ -445,6 +474,13 @@ let Support = () => {
           <EmptyStateBody>
             Please select a repository and an organization to see the last job&apos;s details
           </EmptyStateBody>
+        </EmptyState>
+        }
+        {validQueryParams(repoName, repoOrg, jobType) && noData && <EmptyState variant={EmptyStateVariant.xl}>
+          <EmptyStateIcon icon={ExclamationCircleIcon} />
+          <Title headingLevel="h1" size="lg">
+            No jobs detected in OpenShift CI.
+          </Title>
         </EmptyState>
         }
         {!validQueryParams(repoName, repoOrg, jobType) && <EmptyState variant={EmptyStateVariant.xl}>
