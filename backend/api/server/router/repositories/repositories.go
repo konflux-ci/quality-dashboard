@@ -50,6 +50,16 @@ func (rp *repositoryRouter) listAllRepositoriesQuality(ctx context.Context, w ht
 		})
 	}
 
+	// in the OpenShift CI tab, do not include repos that do not exist in OpenShift CI
+	isOpenShiftCI := r.URL.Query()["openshift_ci"]
+	if len(isOpenShiftCI) != 0 && isOpenShiftCI[0] == "true" {
+		for r, repo := range repos {
+			if !rp.Github.CheckIfRepoExistsInOpenshiftCI(repo.GitOrganization, repo.RepositoryName) {
+				repos = append(repos[:r], repos[r+1:]...)
+			}
+		}
+	}
+
 	return httputils.WriteJSON(w, http.StatusOK, repos)
 }
 
@@ -192,4 +202,25 @@ func (rp *repositoryRouter) deleteRepositoryHandler(ctx context.Context, w http.
 	return httputils.WriteJSON(w, http.StatusOK, types.SuccessResponse{
 		Message: "Repository deleted",
 	})
+}
+
+func (rp *repositoryRouter) getJobTypesFromRepo(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	repositoryName := r.URL.Query()["repository_name"]
+	gitOrganization := r.URL.Query()["git_organization"]
+
+	if len(repositoryName) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "repository_name value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(gitOrganization) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "git_organization value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	jobTypes := rp.Github.GetJobTypes(gitOrganization[0], repositoryName[0])
+
+	return httputils.WriteJSON(w, http.StatusOK, jobTypes)
 }

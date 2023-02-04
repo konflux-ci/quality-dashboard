@@ -47,12 +47,12 @@ export function stateContextExists(key: string) {
 
 // Validates if the team pointed in the query parameter exists in the teams available
 export function isValidTeam() {
-  const params = new URLSearchParams(window.location.search)
-  const team = params.get("team")
+  const params = new URLSearchParams(window.location.search);
+  const team = params.get('team');
   const teams = useSelector((state: any) => state.teams);
 
-  if (teams.TeamsAvailable.find(t => t.team_name === team) || team == null) {
-    return true
+  if (teams.TeamsAvailable.find((t) => t.team_name === team) || team == null) {
+    return true;
   }
-  return false
+  return false;
 }

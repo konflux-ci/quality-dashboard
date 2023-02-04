@@ -70,8 +70,6 @@ export const JobsComponent: React.FunctionComponent = () => {
         dispatch({ type: "SET_REPOSITORIES", data: result });
         dispatch({ type: "SET_REPOSITORIES_ALL", data: res.all });
 
-        console.log(res.all.length)
-
         if (res.all.length < 1 && (team == state.teams.Team || team == null)) {
           history.push('/ci/jobs?team=' + currentTeam)
         }
@@ -151,9 +149,6 @@ export const JobsComponent: React.FunctionComponent = () => {
 
   // Validates if the repository and organization are correct
   const validParams = (repository, organization) => {
-    console.log(repository)
-    console.log(organization)
-    console.log(repositories)
     if (isValidTeam()) {
       if (repositories.find(r => r.git_organization == organization && r.repository_name == repository)) {
         return true;
