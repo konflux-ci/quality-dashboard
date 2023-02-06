@@ -119,14 +119,6 @@ export const JobsComponent: React.FunctionComponent = () => {
     });
   }
 
-  function onSelect(_event: any, value: string) {
-    setSelected(value);
-    setOpen(!isOpen);
-    getWorkflows(value);
-    params.set("repository", value)
-    history.push(window.location.pathname + '?' + params.toString());
-  }
-
   function onSearchInputChange(value: string) {
     setSearchValue(value);
   }
@@ -170,7 +162,6 @@ export const JobsComponent: React.FunctionComponent = () => {
             isOpen={isOpen}
             searchInputValue={searchValue}
             onToggle={onToggle}
-            onSelect={onSelect}
             onSearchButtonClick={onSearchButtonClick}
             screenReaderLabel="Selected Project:"
             isPlain
@@ -180,7 +171,15 @@ export const JobsComponent: React.FunctionComponent = () => {
               const [text] = (typeof item === 'string')
                 ? [item]
                 : [item];
-              return <ContextSelectorItem key={index}>{text.repository_name}</ContextSelectorItem>;
+              return <ContextSelectorItem key={index} onClick={() => {
+                setSelected(text.repository_name);
+                setOrg(text.git_organization)
+                setOpen(!isOpen);
+                getWorkflows(text.repository_name);
+                params.set("repository", text.repository_name)
+                params.set("organization", text.git_organization)
+                history.push(window.location.pathname + '?' + params.toString());
+              }} >{text.repository_name}</ContextSelectorItem>;
             })}
           </ContextSelector>
           <Button onClick={() => navigator.clipboard.writeText(window.location.href)} variant="link" icon={<CopyIcon />} iconPosition="right">

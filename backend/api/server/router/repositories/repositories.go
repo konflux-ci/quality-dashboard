@@ -53,11 +53,14 @@ func (rp *repositoryRouter) listAllRepositoriesQuality(ctx context.Context, w ht
 	// in the OpenShift CI tab, do not include repos that do not exist in OpenShift CI
 	isOpenShiftCI := r.URL.Query()["openshift_ci"]
 	if len(isOpenShiftCI) != 0 && isOpenShiftCI[0] == "true" {
-		for r, repo := range repos {
-			if !rp.Github.CheckIfRepoExistsInOpenshiftCI(repo.GitOrganization, repo.RepositoryName) {
-				repos = append(repos[:r], repos[r+1:]...)
+		clean := make([]storage.RepositoryQualityInfo, 0)
+		for _, repo := range repos {
+			if rp.Github.CheckIfRepoExistsInOpenshiftCI(repo.GitOrganization, repo.RepositoryName) &&
+				len(rp.Github.GetJobTypes(repo.GitOrganization, repo.RepositoryName)) > 0 {
+				clean = append(clean, repo)
 			}
 		}
+		repos = clean
 	}
 
 	return httputils.WriteJSON(w, http.StatusOK, repos)

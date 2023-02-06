@@ -82,19 +82,15 @@ async function getRepositories(perPage = 5, team: string) {
   return result;
 }
 
-async function getAllRepositoriesWithOrgs(team: string, isOpenShiftCI: boolean) {
-  let subPath = '/api/quality/repositories/list?team_name=' + team;
-
-  if (isOpenShiftCI) {
-    subPath += '&openshift_ci=true';
-  }
-
-  const uri = API_URL + subPath;
+async function getAllRepositoriesWithOrgs(team: string, openshift: boolean) {
   let repoAndOrgs = [];
 
   if (!teamIsNotEmpty(team)) return repoAndOrgs;
 
-  const response = await fetch(uri);
+  const response = await fetch(
+    API_URL + '/api/quality/repositories/list?team_name=' + team + '&openshift_ci=' + (openshift ? 'true' : 'false')
+  );
+
   if (!response.ok) {
     throw 'Error fetching data from server';
   } else {
