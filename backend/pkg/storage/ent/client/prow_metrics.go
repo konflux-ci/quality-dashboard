@@ -14,7 +14,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
-func (d *Database) GetMetrics(gitOrganization string, repoName string, jobType string) storage.ProwJobsMetrics {
+func (d *Database) GetMetrics(gitOrganization, repoName, jobType, startDate, endDate string) storage.ProwJobsMetrics {
 	var metrics storage.ProwJobsMetrics
 	metrics.GitOrganization = gitOrganization
 	metrics.JobType = jobType
@@ -29,30 +29,54 @@ func (d *Database) GetMetrics(gitOrganization string, repoName string, jobType s
 			Where(prowjobs.JobName(job)).
 			Where(prowjobs.JobType(jobType)).
 			Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
-				s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", time.Now().AddDate(0, 0, -10).Format("2006-01-02 15:04:05"), time.Now().Format("2006-01-02 15:04:05"))))
+				s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 			}).All(context.TODO())
-		metrics.Jobs = append(metrics.Jobs, d.getProwJobSummary(jMetric, repo, job, jobType))
+
+		metrics.Jobs = append(metrics.Jobs, d.getProwJobSummary(jMetric, repo, job, jobType, startDate, endDate))
 	}
 
 	return metrics
 }
 
-func (d *Database) getMetricsSummaryByDay(job string, repo *db.Repository, jobType string) []storage.Metrics {
-	var metrics []storage.Metrics
+func (d *Database) getMetric(repo *db.Repository, job, jobType, startDate, endDate string) storage.Metrics {
+	jMetric, _ := d.client.Repository.QueryProwJobs(repo).Select().
+		Where(prowjobs.JobName(job)).
+		Where(prowjobs.JobType(jobType)).
+		Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
+			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
+		}).All(context.TODO())
 
-	var dayArr []string
-	for i := 0; i < 10; i++ {
-		dayArr = append(dayArr, time.Now().AddDate(0, 0, -i).Format("2006-01-02"))
+	return getProwMetricsByDay(jMetric, startDate)
+}
+
+func (d *Database) getMetricsSummaryByDay(repo *db.Repository, job, jobType, startDate, endDate string) []storage.Metrics {
+	var metrics []storage.Metrics
+	dayArr := getDatesBetweenRange(startDate, endDate)
+
+	// range between one day (same day)
+	if len(dayArr) == 2 && isSameDay(startDate, endDate) {
+		metric := d.getMetric(repo, job, jobType, startDate, endDate)
+		metrics = append(metrics, metric)
+		return metrics
 	}
-	for _, day := range dayArr {
-		t, _ := time.Parse("2006-01-02", day)
-		jMetric, _ := d.client.Repository.QueryProwJobs(repo).Select().
-			Where(prowjobs.JobName(job)).
-			Where(prowjobs.JobType(jobType)).
-			Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
-				s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", day, t.AddDate(0, 0, +1).Format("2006-01-02"))))
-			}).All(context.TODO())
-		metrics = append(metrics, getProwMetricsByDay(jMetric, day))
+
+	// range between more than one day
+	for i, day := range dayArr {
+		t, _ := time.Parse("2006-01-02 15:04:05", day)
+		y, m, dd := t.Date()
+
+		if i == 0 { // first day
+			metric := d.getMetric(repo, job, jobType, day, fmt.Sprintf("%d-%d-%d 23:59:59", y, m, dd))
+			metrics = append(metrics, metric)
+		} else {
+			if i == len(dayArr)-1 { // last day
+				metric := d.getMetric(repo, job, jobType, fmt.Sprintf("%d-%d-%d 00:00:00", y, m, dd), day)
+				metrics = append(metrics, metric)
+			} else { // middle days
+				metric := d.getMetric(repo, job, jobType, fmt.Sprintf("%d-%d-%d 00:00:00", y, m, dd), fmt.Sprintf("%d-%d-%d 23:59:59", y, m, dd))
+				metrics = append(metrics, metric)
+			}
+		}
 	}
 	return metrics
 }
@@ -99,7 +123,7 @@ func getProwMetricsByDay(jobs []*db.ProwJobs, date string) storage.Metrics {
 
 }
 
-func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, jobName string, jobType string) storage.Jobs {
+func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, jobName, jobType, startDate, endDate string) storage.Jobs {
 	var success_rate_total, failed_rate_total, ci_failed_total float64
 
 	for _, j := range jobs {
@@ -116,17 +140,18 @@ func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, j
 		}
 	}
 	job_nums := float64(len(jobs))
-	metricsByDat := d.getMetricsSummaryByDay(jobName, repo, jobType)
+	metricsByDat := d.getMetricsSummaryByDay(repo, jobName, jobType, startDate, endDate)
 
 	return storage.Jobs{
 		Name:    jobName,
 		Metrics: metricsByDat,
 		Summary: storage.Summary{
-			DateFrom:       time.Now().AddDate(0, 0, -9).Format("2006-01-02 15:04:05"),
-			DateTo:         time.Now().Format("2006-01-02 15:04:05"),
+			DateFrom:       startDate,
+			DateTo:         endDate,
 			SuccessRateAvg: success_rate_total / job_nums * 100,
 			JobFailedAvg:   failed_rate_total / job_nums * 100,
 			CIFailedAvg:    ci_failed_total / job_nums * 100,
+			TotalJobs:      len(jobs),
 		},
 	}
 }

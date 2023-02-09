@@ -3,6 +3,7 @@ import axios, { AxiosResponse, AxiosError } from 'axios';
 import _ from 'lodash';
 import { JobsStatistics } from '@app/utils/sharedComponents';
 import { teamIsNotEmpty } from '@app/utils/utils';
+import moment from 'moment';
 
 type ApiResponse = {
   code: number;
@@ -187,7 +188,15 @@ async function getLatestProwJob(repoName: string, repoOrg: string, jobType: stri
   return data;
 }
 
-async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: string) {
+async function getProwJobStatistics(
+  repoName: string,
+  repoOrg: string,
+  jobType: string,
+  rangeDateTime: moment.Moment[]
+) {
+  const start_date = rangeDateTime[0].format('YYYY-MM-DD HH:mm:ss');
+  const end_date = rangeDateTime[1].format('YYYY-MM-DD HH:mm:ss');
+
   const response = await fetch(
     API_URL +
       '/api/quality/prow/metrics/get?repository_name=' +
@@ -195,7 +204,11 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
       '&git_organization=' +
       repoOrg +
       '&job_type=' +
-      jobType
+      jobType +
+      '&start_date=' +
+      start_date +
+      '&end_date=' +
+      end_date
   );
   if (!response.ok) {
     throw 'Error fetching data from server. ';

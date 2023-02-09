@@ -23,6 +23,8 @@ func (s *jobRouter) getProwMetrics(ctx context.Context, w http.ResponseWriter, r
 	repositoryName := r.URL.Query()["repository_name"]
 	gitOrganization := r.URL.Query()["git_organization"]
 	jobType := r.URL.Query()["job_type"]
+	startDate := r.URL.Query()["start_date"]
+	endDate := r.URL.Query()["end_date"]
 
 	if len(repositoryName) == 0 {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
@@ -39,6 +41,16 @@ func (s *jobRouter) getProwMetrics(ctx context.Context, w http.ResponseWriter, r
 			Message:    "job_type value not present in query",
 			StatusCode: 400,
 		})
+	} else if len(startDate) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "start_date value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(endDate) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "end_date value not present in query",
+			StatusCode: 400,
+		})
 	}
-	return httputils.WriteJSON(w, http.StatusOK, s.Storage.GetMetrics(gitOrganization[0], repositoryName[0], jobType[0]))
+	return httputils.WriteJSON(w, http.StatusOK, s.Storage.GetMetrics(gitOrganization[0], repositoryName[0], jobType[0], startDate[0], endDate[0]))
 }

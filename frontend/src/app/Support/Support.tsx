@@ -31,7 +31,10 @@ import {
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { isValidTeam } from '@app/utils/utils';
-import { createNoSubstitutionTemplateLiteral } from 'typescript';
+import { getRangeDateTime, getRangeDates } from './utils';
+import moment from 'moment';
+import DateTimeRangeContainer from 'react-advanced-datetimerange-picker'
+import { FormControl } from 'react-bootstrap'
 
 // eslint-disable-next-line prefer-const
 let Support = () => {
@@ -53,11 +56,14 @@ let Support = () => {
   const [repoOrg, setRepoOrg] = useState("");
   const [jobType, setjobType] = useState("");
   const [jobTypes, setJobTypes] = useState<string[]>([]);
+  const [quickRange, setQuickRange] = useState("");
   const [jobTypeToggle, setjobTypeToggle] = useState(false);
   const [repoNameToggle, setRepoNameToggle] = useState(false);
+  const [quickRangeToggle, setQuickRangeToggle] = useState(false);
   const currentTeam = useSelector((state: any) => state.teams.Team);
   const history = useHistory();
-  const params = new URLSearchParams(window.location.search)
+  const params = new URLSearchParams(window.location.search);
+  const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(10));
 
   // Called onChange of the repository dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
   const setRepoNameOnChange = (event, selection, isPlaceholder) => {
@@ -82,11 +88,12 @@ let Support = () => {
   };
 
   // Reset all dropwdowns and state variables
-  const clearProwJob = () => {
+  const clearAll = () => {
     setProwVisible(false); // hide the dashboard leaving only the toolbar
     setNoData(false)
     clearJobType()
     clearRepo()
+    clearRangeDateTime()
   }
 
   // Reset the repository dropdown
@@ -100,6 +107,11 @@ let Support = () => {
   const clearJobType = () => {
     setjobType("");
     setjobTypeToggle(false);
+  }
+
+  // Reset rangeDateTime
+  const clearRangeDateTime = () => {
+    setRangeDateTime(getRangeDates(10))
   }
 
   // Called onChange of the jobType dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
@@ -120,7 +132,7 @@ let Support = () => {
     if (repositories.find(r => r.organization == repoOrg && r.repoName == repoName)) {
       getJobTypes(repoName, repoOrg)
         .then((data: any) => {
-          if (data.find(j => j == jobType)) { 
+          if (data.find(j => j == jobType)) {
             getProwJob()
           }
         });
@@ -144,22 +156,21 @@ let Support = () => {
   // Triggers automatic validation when state variables change
   useEffect(() => {
     validateGetProwJob();
-  }, [repoOrg, repoName, jobType]);
+  }, [repoOrg, repoName, jobType, rangeDateTime]);
 
   // When component is mounted, get the list of repo and orgs from API and populate the dropdowns
 
   useEffect(() => {
     if (state.teams.Team != "") {
       setRepositories([])
-      clearJobType()
-      clearRepo()
-      clearProwJob()
+      clearAll()
 
       const repository = params.get("repository")
       const organization = params.get("organization")
       const job_type = params.get("job_type")
       const team = params.get("team")
-
+      const start = params.get("start")
+      const end = params.get("end")
 
       getAllRepositoriesWithOrgs(state.teams.Team, true)
         .then((data: any) => {
@@ -174,7 +185,7 @@ let Support = () => {
             data.unshift({ repoName: dropDescr, organization: "", isPlaceholder: true }) // Adds placeholder at the beginning of the array, so it will be shown first
             setRepositories(data)
 
-            if (repository == null || organization == null || job_type == null) { // first click on OpenShift CI or team
+            if (repository == null || organization == null || job_type == null || start == null || end == null) { // first click on OpenShift CI or team
               setRepoName(data[1].repoName)
               setRepoOrg(data[1].organization)
               setjobType("presubmit") // all repos in OpenShift CI have presubmit type job
@@ -183,17 +194,24 @@ let Support = () => {
                 .then((data: any) => {
                   setJobTypes(data)
                 });
-              history.push('/reports/test?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName + '&job_type=presubmit')
+
+              const start_date = rangeDateTime[0].format('YYYY-MM-DD HH:mm:ss')
+              const end_date = rangeDateTime[1].format('YYYY-MM-DD HH:mm:ss')
+
+              history.push('/reports/test?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName
+                + '&job_type=presubmit' + '&start=' + start_date + ' & end=' + end_date)
 
             } else {
               setRepoName(repository)
               setRepoOrg(organization)
               setjobType(job_type)
+              setRangeDateTime([moment(new Date(start)), moment(new Date(end))])
 
               getJobTypes(repository, organization)
                 .then((data: any) => {
                   setJobTypes(data)
-                  history.push('/reports/test?team=' + currentTeam + '&organization=' + organization + '&repository=' + repository + '&job_type=' + job_type)
+                  history.push('/reports/test?team=' + currentTeam + '&organization=' + organization + '&repository=' + repository +
+                    '&job_type=' + job_type + '&start=' + start + '&end=' + end)
                 });
             }
           }
@@ -224,7 +242,7 @@ let Support = () => {
         setProwJobSuite(data)
       }
       // Get statistics and metrics
-      const stats = await getProwJobStatistics(repoName, repoOrg, jobType)
+      const stats = await getProwJobStatistics(repoName, repoOrg, jobType, rangeDateTime)
       // Set UI for showing data and disable spinner
       setprowJobsStats(stats)
       setLoadingState(false)
@@ -263,7 +281,7 @@ let Support = () => {
   }
 
   // Extract a simple list of jobs from data: this will be used to let users select the job they want to see details for
-  let jobNames: SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function (job, index) { return { "value": job.name, "index": index } }) : []
+  let jobNames: SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function (job, index) { return { "value": job.name + " (Total: "+job.summary.total_jobs+")", "index": index } }) : []
   let ci_html: string = prowJobsStats?.jobs != null ? "https://prow.ci.openshift.org/?repo=" + prowJobsStats?.git_organization + "%2F" + prowJobsStats?.repository_name + "&type=" + prowJobsStats?.type : ''
 
   // Prepare data for the line chart
@@ -409,6 +427,19 @@ let Support = () => {
 
   */
 
+  let ranges = {
+    "Last 12 hours": getRangeDateTime(12),
+    "Last day": getRangeDates(1),
+    "Last 2 days": getRangeDates(2),
+    "Last 1 week": getRangeDates(7),
+    "Last 2 weeks": getRangeDates(15),
+    "Last month": getRangeDates(30),
+  }
+
+  let local = {
+    "format": "YYYY-MM-DD HH:mm:ss",
+    "sundayFirst": false
+  }
 
   return (
 
@@ -456,8 +487,31 @@ let Support = () => {
                 ))}
               </Select>
             </ToolbarItem>
-            <ToolbarItem >
-              <Button variant="link" onClick={clearProwJob}>Clear</Button>
+            <ToolbarItem>
+              <DateTimeRangeContainer
+                ranges={ranges}
+                start={rangeDateTime[0]}
+                end={rangeDateTime[1]}
+                local={local}
+                applyCallback={(start, end) => {
+                  setRangeDateTime([start, end])
+                  params.set("start", moment(start).format('YYYY-MM-DD HH:mm:ss'))
+                  params.set("end", moment(end).format('YYYY-MM-DD HH:mm:ss'))
+                  history.push(window.location.pathname + '?' + params.toString());
+                }}
+              >
+                <FormControl
+                  style={{ width: 'fit-content', minWidth: 350, textAlign: 'center' }}
+                  readOnly={true}
+                  id="form"
+                  type="text"
+                  label="form"
+                  placeholder={rangeDateTime[0].format('YYYY-MM-DD HH:mm:ss') + " to " + rangeDateTime[1].format('YYYY-MM-DD HH:mm:ss')}
+                />
+              </DateTimeRangeContainer>
+            </ToolbarItem>
+            <ToolbarItem>
+              <Button variant="link" onClick={clearAll}>Clear</Button>
             </ToolbarItem>
           </ToolbarContent>
         </Toolbar>
@@ -497,10 +551,10 @@ let Support = () => {
 
             {prowJobsStats !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
               <GridItem span={3}><InfoCard data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_organization }]}></InfoCard></GridItem>
-              <GridItem span={2}><DashboardCard cardType={'danger'} title="avg of ci failures" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.ci_failed_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
-              <GridItem span={2}><DashboardCard cardType={'danger'} title="avg of failures" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.failure_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
-              <GridItem span={2}><DashboardCard cardType={'success'} title="avg of passed tests" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.success_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
-              <GridItem span={3}><DashboardCard cardType={'default'} title="Time Range" body={prowJobsStats?.jobs != null ? new Date(prowJobsStats.jobs[selectedJob].summary.date_from.split(" ")[0]).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }) + " - " + new Date(prowJobsStats.jobs[selectedJob].summary.date_to.split(" ")[0]).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }) : "-"}></DashboardCard></GridItem>
+              <GridItem span={2}><DashboardCard cardType={'danger'} title="CI Failures Avg" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.ci_failed_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
+              <GridItem span={2}><DashboardCard cardType={'danger'} title="Failures Avg" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.failure_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
+              <GridItem span={2}><DashboardCard cardType={'success'} title="Passed tests Avg" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.success_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
+              <GridItem span={3}><DashboardCard cardType={'default'} title="Total CI Jobs Executed" body={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.total_jobs.toString() : "N/A"}></DashboardCard></GridItem>
               <GridItem span={4} rowSpan={4}><DashboardSimpleList title={<div>Jobs  <a href={ci_html} target="blank" rel="noopener noreferrer"><Badge style={{ float: "right" }}>{jobType} &nbsp; <ExternalLinkAltIcon></ExternalLinkAltIcon></Badge></a></div>} data={jobNames} onSelection={(value) => { setSelectedJob(value) }}></DashboardSimpleList></GridItem>
               <GridItem span={8} rowSpan={5}><DashboardLineChart data={beautifiedData}></DashboardLineChart></GridItem>
               <GridItem span={4} rowSpan={1}><DashboardCard cardType={'help'} title="About this dashboard" body="Set of metrics gathered from Openshift CI"></DashboardCard></GridItem>
