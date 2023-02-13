@@ -18,7 +18,6 @@ import { Button } from '@patternfly/react-core';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
 import { getAllRepositoriesWithOrgs, getJobTypes, getLatestProwJob, getProwJobStatistics } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
-import { Table, TableHeader, TableBody, TableProps, sortable, cellWidth, info } from '@patternfly/react-table';
 import {
   JobsStatistics,
   DashboardCard,
@@ -31,10 +30,9 @@ import {
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { isValidTeam } from '@app/utils/utils';
-import { getRangeDateTime, getRangeDates } from './utils';
-import moment from 'moment';
-import DateTimeRangeContainer from 'react-advanced-datetimerange-picker'
-import { FormControl } from 'react-bootstrap'
+import { formatDate, getRangeDates } from './utils';
+import { DateTimeRangePicker } from './DateTimeRangePicker';
+import { Table, TableBody, TableHeader, TableProps, cellWidth, info, sortable } from '@patternfly/react-table';
 
 // eslint-disable-next-line prefer-const
 let Support = () => {
@@ -56,10 +54,8 @@ let Support = () => {
   const [repoOrg, setRepoOrg] = useState("");
   const [jobType, setjobType] = useState("");
   const [jobTypes, setJobTypes] = useState<string[]>([]);
-  const [quickRange, setQuickRange] = useState("");
   const [jobTypeToggle, setjobTypeToggle] = useState(false);
   const [repoNameToggle, setRepoNameToggle] = useState(false);
-  const [quickRangeToggle, setQuickRangeToggle] = useState(false);
   const currentTeam = useSelector((state: any) => state.teams.Team);
   const history = useHistory();
   const params = new URLSearchParams(window.location.search);
@@ -93,7 +89,6 @@ let Support = () => {
     setNoData(false)
     clearJobType()
     clearRepo()
-    clearRangeDateTime()
   }
 
   // Reset the repository dropdown
@@ -107,11 +102,6 @@ let Support = () => {
   const clearJobType = () => {
     setjobType("");
     setjobTypeToggle(false);
-  }
-
-  // Reset rangeDateTime
-  const clearRangeDateTime = () => {
-    setRangeDateTime(getRangeDates(10))
   }
 
   // Called onChange of the jobType dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
@@ -195,8 +185,8 @@ let Support = () => {
                   setJobTypes(data)
                 });
 
-              const start_date = rangeDateTime[0].format('YYYY-MM-DD HH:mm:ss')
-              const end_date = rangeDateTime[1].format('YYYY-MM-DD HH:mm:ss')
+              const start_date = formatDate(rangeDateTime[0])
+              const end_date = formatDate(rangeDateTime[1])
 
               history.push('/reports/test?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName
                 + '&job_type=presubmit' + '&start=' + start_date + ' & end=' + end_date)
@@ -205,7 +195,7 @@ let Support = () => {
               setRepoName(repository)
               setRepoOrg(organization)
               setjobType(job_type)
-              setRangeDateTime([moment(new Date(start)), moment(new Date(end))])
+              setRangeDateTime([new Date(start), new Date(end)])
 
               getJobTypes(repository, organization)
                 .then((data: any) => {
@@ -281,7 +271,7 @@ let Support = () => {
   }
 
   // Extract a simple list of jobs from data: this will be used to let users select the job they want to see details for
-  let jobNames: SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function (job, index) { return { "value": job.name + " (Total: "+job.summary.total_jobs+")", "index": index } }) : []
+  let jobNames: SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function (job, index) { return { "value": job.name + " (Total: " + job.summary.total_jobs + ")", "index": index } }) : []
   let ci_html: string = prowJobsStats?.jobs != null ? "https://prow.ci.openshift.org/?repo=" + prowJobsStats?.git_organization + "%2F" + prowJobsStats?.repository_name + "&type=" + prowJobsStats?.type : ''
 
   // Prepare data for the line chart
@@ -427,19 +417,15 @@ let Support = () => {
 
   */
 
-  let ranges = {
-    "Last 12 hours": getRangeDateTime(12),
-    "Last day": getRangeDates(1),
-    "Last 2 days": getRangeDates(2),
-    "Last 1 week": getRangeDates(7),
-    "Last 2 weeks": getRangeDates(15),
-    "Last month": getRangeDates(30),
+  function handleChange(event, from, to) {
+    setRangeDateTime([from, to])
+    params.set("start", formatDate(from))
+    params.set("end", formatDate(to))
+    history.push(window.location.pathname + '?' + params.toString());
   }
 
-  let local = {
-    "format": "YYYY-MM-DD HH:mm:ss",
-    "sundayFirst": false
-  }
+  const start = rangeDateTime[0]
+  const end = rangeDateTime[1]
 
   return (
 
@@ -487,28 +473,13 @@ let Support = () => {
                 ))}
               </Select>
             </ToolbarItem>
-            <ToolbarItem>
-              <DateTimeRangeContainer
-                ranges={ranges}
-                start={rangeDateTime[0]}
-                end={rangeDateTime[1]}
-                local={local}
-                applyCallback={(start, end) => {
-                  setRangeDateTime([start, end])
-                  params.set("start", moment(start).format('YYYY-MM-DD HH:mm:ss'))
-                  params.set("end", moment(end).format('YYYY-MM-DD HH:mm:ss'))
-                  history.push(window.location.pathname + '?' + params.toString());
-                }}
-              >
-                <FormControl
-                  style={{ width: 'fit-content', minWidth: 350, textAlign: 'center' }}
-                  readOnly={true}
-                  id="form"
-                  type="text"
-                  label="form"
-                  placeholder={rangeDateTime[0].format('YYYY-MM-DD HH:mm:ss') + " to " + rangeDateTime[1].format('YYYY-MM-DD HH:mm:ss')}
-                />
-              </DateTimeRangeContainer>
+            <ToolbarItem style={{ minWidth: "20%", maxWidth: "40%" }}>
+                <DateTimeRangePicker
+                  startDate={start}
+                  endDate={end}
+                  handleChange={(event, from, to) => handleChange(event, from, to)}
+                >
+                </DateTimeRangePicker>
             </ToolbarItem>
             <ToolbarItem>
               <Button variant="link" onClick={clearAll}>Clear</Button>

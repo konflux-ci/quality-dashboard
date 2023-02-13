@@ -3,7 +3,7 @@ import axios, { AxiosResponse, AxiosError } from 'axios';
 import _ from 'lodash';
 import { JobsStatistics } from '@app/utils/sharedComponents';
 import { teamIsNotEmpty } from '@app/utils/utils';
-import moment from 'moment';
+import { formatDate } from '@app/Support/utils';
 
 type ApiResponse = {
   code: number;
@@ -188,14 +188,9 @@ async function getLatestProwJob(repoName: string, repoOrg: string, jobType: stri
   return data;
 }
 
-async function getProwJobStatistics(
-  repoName: string,
-  repoOrg: string,
-  jobType: string,
-  rangeDateTime: moment.Moment[]
-) {
-  const start_date = rangeDateTime[0].format('YYYY-MM-DD HH:mm:ss');
-  const end_date = rangeDateTime[1].format('YYYY-MM-DD HH:mm:ss');
+async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: string, rangeDateTime: Date[]) {
+  const start_date = formatDate(rangeDateTime[0]);
+  const end_date = formatDate(rangeDateTime[1]);
 
   const response = await fetch(
     API_URL +
