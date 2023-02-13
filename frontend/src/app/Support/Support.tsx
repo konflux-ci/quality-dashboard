@@ -89,6 +89,13 @@ let Support = () => {
     setNoData(false)
     clearJobType()
     clearRepo()
+    clearRangeDateTime()
+  }
+
+  // Reset params
+  const clearParams = () => {
+    clearAll()
+    history.push(window.location.pathname + '?' + "team=" + params.get("team"));
   }
 
   // Reset the repository dropdown
@@ -102,6 +109,11 @@ let Support = () => {
   const clearJobType = () => {
     setjobType("");
     setjobTypeToggle(false);
+  }
+
+  // Reset rangeDateTime
+  const clearRangeDateTime = () => {
+    setRangeDateTime(getRangeDates(10))
   }
 
   // Called onChange of the jobType dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
@@ -482,7 +494,7 @@ let Support = () => {
                 </DateTimeRangePicker>
             </ToolbarItem>
             <ToolbarItem>
-              <Button variant="link" onClick={clearAll}>Clear</Button>
+              <Button variant="link" onClick={clearParams}>Clear</Button>
             </ToolbarItem>
           </ToolbarContent>
         </Toolbar>

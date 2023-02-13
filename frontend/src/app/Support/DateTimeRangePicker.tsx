@@ -1,29 +1,23 @@
 import { Flex, FlexItem, InputGroup, DatePicker, isValidDate, TimePicker, yyyyMMddFormat, Select, SelectOption, Button, Popover } from '@patternfly/react-core';
 import { SearchIcon } from '@patternfly/react-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { formatDate, getRangeDateTime, getRangeDates, ranges } from './utils';
 
 export const DateTimeRangePicker = (props) => {
-    let start = new Date(props.startDate)
-    let end = new Date(props.endDate)
-
-    const params = new URLSearchParams(window.location.search);
-    const paramStart = params.get("start")
-    const paramEnd = params.get("end")
-
-    if (paramStart != null && paramEnd != null) {
-        const s = new Date(paramStart)
-        start = s
-        const e = new Date(paramEnd)
-        end = e
-    }
-
-    const [from, setFrom] = React.useState(start);
-    const [to, setTo] = React.useState(end);
+    const [from, setFrom] = React.useState(props.startDate);
+    const [to, setTo] = React.useState(props.endDate);
     const [quickRangeToggle, setQuickRangeToggle] = useState(true);
     const [quickRange, setQuickRange] = useState("");
     const popoverRef = React.useRef<HTMLButtonElement>(null);
     const [isVisible, setIsVisible] = React.useState(false);
+
+    useEffect(
+        () => {
+            setFrom(props.startDate);
+            setTo(props.endDate);
+        },
+        [props.startDate, props.endDate],
+    );
 
     const setDateTimeRange = (range: Date[]) => {
         setFrom(range[0])
