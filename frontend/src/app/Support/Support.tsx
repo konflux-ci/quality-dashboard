@@ -485,7 +485,7 @@ let Support = () => {
                 ))}
               </Select>
             </ToolbarItem>
-            <ToolbarItem style={{ minWidth: "20%", maxWidth: "40%" }}>
+            <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent" }}>
                 <DateTimeRangePicker
                   startDate={start}
                   endDate={end}
@@ -493,7 +493,7 @@ let Support = () => {
                 >
                 </DateTimeRangePicker>
             </ToolbarItem>
-            <ToolbarItem>
+            <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent" }}>
               <Button variant="link" onClick={clearParams}>Clear</Button>
             </ToolbarItem>
           </ToolbarContent>
