@@ -6,7 +6,7 @@ import { formatDate, getRangeDateTime, getRangeDates, ranges } from './utils';
 export const DateTimeRangePicker = (props) => {
     const [from, setFrom] = React.useState(props.startDate);
     const [to, setTo] = React.useState(props.endDate);
-    const [quickRangeToggle, setQuickRangeToggle] = useState(true);
+    const [quickRangeToggle, setQuickRangeToggle] = useState(false);
     const [quickRange, setQuickRange] = useState("");
     const popoverRef = React.useRef<HTMLButtonElement>(null);
     const [isVisible, setIsVisible] = React.useState(false);
@@ -26,6 +26,7 @@ export const DateTimeRangePicker = (props) => {
 
     const clearQuickRange = () => {
         setQuickRange("");
+        setQuickRangeToggle(false);
     }
 
     const setQuickRangeOnChange = (event, selection, isPlaceholder) => {
@@ -42,6 +43,7 @@ export const DateTimeRangePicker = (props) => {
                 setDateTimeRange(range)
             }
             setQuickRange(ranges[selection].type);
+            setQuickRangeToggle(false);
         }
     };
 
@@ -99,6 +101,11 @@ export const DateTimeRangePicker = (props) => {
         setIsVisible(false)
     }
 
+    const open = () => {
+        setIsVisible(true)
+        clearQuickRange()
+    }
+
     return (
         <div>
             <button ref={popoverRef}>{formatDate(from) + " to " + formatDate(to)}</button>
@@ -106,7 +113,7 @@ export const DateTimeRangePicker = (props) => {
                 aria-label={formatDate(from) + " " + formatDate(to)}
                 hasAutoWidth={true}
                 isVisible={isVisible}
-                shouldOpen={() => setIsVisible(true)}
+                shouldOpen={() => open()}
                 shouldClose={() => setIsVisible(false)}
                 flipBehavior={["bottom"]}
                 headerContent={<div>Select date time range</div>}
@@ -157,7 +164,7 @@ export const DateTimeRangePicker = (props) => {
                             </Flex>
                         </Flex>
                         <Flex direction={{ default: 'row' }}>
-                            <Select placeholderText="Search quick ranges" isOpen={true} onToggle={setQuickRangeToggle} selections={quickRange} onSelect={setQuickRangeOnChange} aria-label="Select Input" toggleIcon={<SearchIcon />}>
+                            <Select placeholderText="Search quick ranges" isOpen={quickRangeToggle} onToggle={setQuickRangeToggle} selections={quickRange} onSelect={setQuickRangeOnChange} aria-label="Select Input" toggleIcon={<SearchIcon />}>
                                 {ranges.map((value, index) => (
                                     <SelectOption key={index} value={index}>{value.type}</SelectOption>
                                 ))}
