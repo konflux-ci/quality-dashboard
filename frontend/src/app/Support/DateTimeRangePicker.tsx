@@ -1,4 +1,4 @@
-import { Flex, FlexItem, InputGroup, DatePicker, isValidDate, TimePicker, yyyyMMddFormat, Select, SelectOption, Button, Popover } from '@patternfly/react-core';
+import { Flex, FlexItem, InputGroup, DatePicker, isValidDate, TimePicker, yyyyMMddFormat, Select, SelectOption, Button, Popover, InputGroupText } from '@patternfly/react-core';
 import { SearchIcon } from '@patternfly/react-icons';
 import React, { useEffect, useState } from 'react';
 import { formatDate, getRangeDateTime, getRangeDates, ranges } from './utils';
@@ -124,6 +124,9 @@ export const DateTimeRangePicker = (props) => {
                                 <FlexItem>
                                     From
                                     <InputGroup>
+                                        <InputGroupText id="searchFrom">
+                                            <SearchIcon />
+                                        </InputGroupText>
                                         <DatePicker
                                             value={isValidDate(from) ? yyyyMMddFormat(from) : from.toString()}
                                             onChange={onFromDateChange}
@@ -141,6 +144,9 @@ export const DateTimeRangePicker = (props) => {
                                 <FlexItem>
                                     To
                                     <InputGroup>
+                                        <InputGroupText id="searchTo">
+                                            <SearchIcon />
+                                        </InputGroupText>
                                         <DatePicker
                                             value={isValidDate(to) ? yyyyMMddFormat(to) : to.toString()}
                                             onChange={onToDateChange}
