@@ -28,6 +28,7 @@ export interface MetricsSummary {
   ci_failed_rate_avg: string;
   date_from: string;
   date_to: string;
+  total_jobs: number;
 }
 
 export interface MetricsEntity {
@@ -144,8 +145,8 @@ export const DashboardLineChart = ({ data, colorScale }: { data: DashboardLineCh
           }}
           width={width}
         >
-          <ChartAxis showGrid></ChartAxis>
-          <ChartAxis dependentAxis showGrid />
+          <ChartAxis fixLabelOverlap={true} showGrid></ChartAxis>
+          <ChartAxis fixLabelOverlap={true} dependentAxis showGrid />
           <ChartGroup>
             {
               Object.keys(data).map((key, index) => {
