@@ -108,7 +108,12 @@ export const DateTimeRangePicker = (props) => {
 
     return (
         <div>
-            <button ref={popoverRef}>{formatDate(from) + " to " + formatDate(to)}</button>
+            <button ref={popoverRef}>
+                <InputGroupText id="searchFrom">
+                    <SearchIcon style={{ marginRight: "5px" }} />
+                    {formatDate(from) + " to " + formatDate(to)}
+                </InputGroupText>
+            </button>
             <Popover
                 aria-label={formatDate(from) + " " + formatDate(to)}
                 hasAutoWidth={true}
@@ -124,9 +129,6 @@ export const DateTimeRangePicker = (props) => {
                                 <FlexItem>
                                     From
                                     <InputGroup>
-                                        <InputGroupText id="searchFrom">
-                                            <SearchIcon />
-                                        </InputGroupText>
                                         <DatePicker
                                             value={isValidDate(from) ? yyyyMMddFormat(from) : from.toString()}
                                             onChange={onFromDateChange}
@@ -144,9 +146,6 @@ export const DateTimeRangePicker = (props) => {
                                 <FlexItem>
                                     To
                                     <InputGroup>
-                                        <InputGroupText id="searchTo">
-                                            <SearchIcon />
-                                        </InputGroupText>
                                         <DatePicker
                                             value={isValidDate(to) ? yyyyMMddFormat(to) : to.toString()}
                                             onChange={onToDateChange}
