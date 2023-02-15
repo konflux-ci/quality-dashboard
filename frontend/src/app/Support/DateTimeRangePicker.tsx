@@ -161,7 +161,7 @@ export const DateTimeRangePicker = (props) => {
                                         />
                                     </InputGroup>
                                 </FlexItem>
-                                <FlexItem>
+                                <FlexItem style={{ marginTop: 15 }}>
                                     <Button variant="primary" isSmall onClick={wrapHandleChange}>
                                         Apply date time range
                                     </Button>
