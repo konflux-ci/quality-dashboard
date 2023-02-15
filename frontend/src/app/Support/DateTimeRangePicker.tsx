@@ -123,7 +123,7 @@ export const DateTimeRangePicker = (props) => {
                 flipBehavior={["bottom"]}
                 headerContent={<div>Select date time range</div>}
                 bodyContent={
-                    <Flex style={{ minHeight: 300 }}>
+                    <Flex style={{ minHeight: 300, display: 'flex' }} direction={{ default: 'row' }}>
                         <Flex direction={{ default: 'column' }}>
                             <Flex direction={{ default: 'column' }}>
                                 <FlexItem>
@@ -161,14 +161,14 @@ export const DateTimeRangePicker = (props) => {
                                         />
                                     </InputGroup>
                                 </FlexItem>
-                            </Flex>
-                            <Flex>
-                                <Button variant="primary" isSmall onClick={wrapHandleChange}>
-                                    Apply date time range
-                                </Button>
+                                <FlexItem>
+                                    <Button variant="primary" isSmall onClick={wrapHandleChange}>
+                                        Apply date time range
+                                    </Button>
+                                </FlexItem>
                             </Flex>
                         </Flex>
-                        <Flex direction={{ default: 'row' }}>
+                        <Flex style={{ marginLeft: 15 }} direction={{ default: 'row' }}>
                             <Select placeholderText="Search quick ranges" isOpen={quickRangeToggle} onToggle={setQuickRangeToggle} selections={quickRange} onSelect={setQuickRangeOnChange} aria-label="Select Input" toggleIcon={<SearchIcon />}>
                                 {ranges.map((value, index) => (
                                     <SelectOption key={index} value={index}>{value.type}</SelectOption>
