@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { NavLink, useLocation, useHistory } from 'react-router-dom';
 import {
@@ -9,7 +8,7 @@ import {
   Page,
   PageHeader,
   PageSidebar,
-  SkipToContent
+  SkipToContent,
 } from '@patternfly/react-core';
 import { routes, IAppRoute, IAppRouteGroup } from '@app/routes';
 import logo from '@app/bgimages/Logo-RedHat-A-Reverse-RGB.svg';
@@ -31,20 +30,20 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
   };
   const onNavToggle = () => {
     setIsNavOpen(!isNavOpen);
-  }
+  };
   const onPageResize = (props: { mobileView: boolean; windowSize: number }) => {
     setIsMobileView(props.mobileView);
   };
 
   useEffect(() => {
-    console.log(locationHistory.pathname)
+    console.log(locationHistory.pathname);
     if (locationHistory.pathname === '/') {
       history.push('/home/overview');
     }
-  }, [])
+  }, []);
 
-  const params = new URLSearchParams(window.location.search)
-  const team = params.get("team")
+  const params = new URLSearchParams(window.location.search);
+  const team = params.get('team');
 
   function LogoImg() {
     const history = useHistory();
@@ -55,9 +54,7 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
         history.push('/home/overview?team=');
       }
     }
-    return (
-      <img onClick={handleClick} style={{ height: '32px' }} src={logo} alt="Red Hat logo" />
-    );
+    return <img onClick={handleClick} style={{ height: '32px' }} src={logo} alt="Red Hat logo" />;
   }
 
   const Header = (
@@ -72,14 +69,13 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
 
   const location = useLocation();
 
-
   // Handles the route in other to keep the query parameters in nav item multiples clicks
   const handleRoute = (route) => {
     if (history.location.pathname == route && team != null) {
-      return history.location.pathname + history.location.search
+      return history.location.pathname + history.location.search;
     }
-    return route
-  }
+    return route;
+  };
 
   const renderNavItem = (route: IAppRoute, index: number) => (
     <NavItem key={`${route.label}-${index}`} id={`${route.label}-${index}`}>
@@ -110,21 +106,19 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
     </Nav>
   );
 
-  const Sidebar = (
-    <PageSidebar
-      theme="dark"
-      nav={Navigation}
-      isNavOpen={isMobileView ? isNavOpenMobile : isNavOpen} />
-  );
+  const Sidebar = <PageSidebar theme="dark" nav={Navigation} isNavOpen={isMobileView ? isNavOpenMobile : isNavOpen} />;
 
   const pageId = 'primary-app-container';
 
   const PageSkipToContent = (
-    <SkipToContent onClick={(event) => {
-      event.preventDefault();
-      const primaryContentContainer = document.getElementById(pageId);
-      primaryContentContainer && primaryContentContainer.focus();
-    }} href={`#${pageId}`}>
+    <SkipToContent
+      onClick={(event) => {
+        event.preventDefault();
+        const primaryContentContainer = document.getElementById(pageId);
+        primaryContentContainer && primaryContentContainer.focus();
+      }}
+      href={`#${pageId}`}
+    >
       Skip to Content
     </SkipToContent>
   );
@@ -140,6 +134,6 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
       {children}
     </Page>
   );
-}
+};
 
 export { AppLayout };

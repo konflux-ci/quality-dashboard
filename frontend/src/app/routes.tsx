@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { accessibleRouteChangeHandler } from '@app/utils/utils';
 import { Dashboard } from '@app/Dashboard/Dashboard';
-import { Support } from '@app/Support/Support';
+import { Reports } from '@app/Reports/Reports';
 import { useDocumentTitle } from '@app/utils/useDocumentTitle';
 import { LastLocationProvider, useLastLocation } from 'react-router-last-location';
 import { JobsComponent } from '@app/Jobs/Jobs';
@@ -51,7 +51,7 @@ const routes: AppRouteConfig[] = [
     ],
   },
   {
-    component: Support,
+    component: Reports,
     exact: true,
     isAsync: true,
     label: 'Openshift CI',
