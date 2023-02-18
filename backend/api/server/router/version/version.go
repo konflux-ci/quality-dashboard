@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	ServerVersion = "1.0.0"
+	ServerVersion = "1.0.1"
 	// apiMaturity is the level of maturity the Server has achieved at this version, eg. planning, pre-alpha, alpha, beta, stable, mature, inactive, or deprecated.
 	APIMaturity = "planning"
 	// gitCommit is a constant representing the source version that
