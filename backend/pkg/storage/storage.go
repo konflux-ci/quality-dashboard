@@ -28,7 +28,7 @@ type Storage interface {
 	GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error)
 	GetProwJobsResults(*db.Repository) ([]*db.ProwSuites, error)
 	GetProwJobsResultsByJobID(jobID string) ([]*db.ProwJobs, error)
-	GetMetrics(gitOrganization string, repoName string, jobType string) ProwJobsMetrics
+	GetMetrics(gitOrganization string, repoName string, jobType string, startDate string, endDate string) ProwJobsMetrics
 	GetAllTeamsFromDB() ([]*db.Teams, error)
 	GetTeamByName(teamName string) (*db.Teams, error)
 	ListWorkflowsByRepository(repositoryName string) (w []GithubWorkflows, err error)
@@ -167,4 +167,5 @@ type Summary struct {
 	SuccessRateAvg float64 `json:"success_rate_avg"`
 	JobFailedAvg   float64 `json:"failure_rate_avg"`
 	CIFailedAvg    float64 `json:"ci_failed_rate_avg"`
+	TotalJobs      int     `json:"total_jobs"`
 }

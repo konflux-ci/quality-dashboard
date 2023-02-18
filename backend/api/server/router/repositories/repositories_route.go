@@ -34,6 +34,7 @@ func NewRouter(s storage.Storage) router.Router {
 	r.Route = []router.Route{
 		router.NewGetRoute("/repositories/list", r.listAllRepositoriesQuality),
 		router.NewGetRoute("/workflows/get", r.getWorkflowByRepositoryName),
+		router.NewGetRoute("/repositories/getJobTypesFromRepo", r.getJobTypesFromRepo),
 		router.NewPostRoute("/repositories/create", r.createRepositoryHandler),
 		router.NewDeleteRoute("/repositories/delete", r.deleteRepositoryHandler),
 	}

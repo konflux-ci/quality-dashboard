@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CubesIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
+import { CopyIcon, CubesIcon, ExclamationCircleIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
 import {
   PageSection, PageSectionVariants,
   EmptyState,
@@ -16,9 +16,8 @@ import SearchIcon from '@patternfly/react-icons/dist/esm/icons/search-icon';
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
-import { getAllRepositoriesWithOrgs, getLatestProwJob, getProwJobStatistics } from '@app/utils/APIService';
+import { getAllRepositoriesWithOrgs, getJobTypes, getLatestProwJob, getProwJobStatistics } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
-import { Table, TableHeader, TableBody, TableProps, sortable, cellWidth, info } from '@patternfly/react-table';
 import {
   JobsStatistics,
   DashboardCard,
@@ -29,12 +28,18 @@ import {
   DashboardLineChartData
 } from '@app/utils/sharedComponents';
 import { ReactReduxContext, useSelector } from 'react-redux';
+import { useHistory } from 'react-router-dom';
+import { isValidTeam } from '@app/utils/utils';
+import { formatDate, getRangeDates } from './utils';
+import { DateTimeRangePicker } from './DateTimeRangePicker';
+import { Table, TableBody, TableHeader, TableProps, cellWidth, info, sortable } from '@patternfly/react-table';
 
 // eslint-disable-next-line prefer-const
-let Support = () => {
+let Reports = () => {
 
   const [prowVisible, setProwVisible] = useState(false)
-  const [loadingState, setloadingState] = useState(false)
+  const [loadingState, setLoadingState] = useState(false)
+  const [noData, setNoData] = useState(false)
   const [alerts, setAlerts] = React.useState<React.ReactNode[]>([]);
 
   const { store } = React.useContext(ReactReduxContext);
@@ -48,9 +53,13 @@ let Support = () => {
   const [repoName, setRepoName] = useState("");
   const [repoOrg, setRepoOrg] = useState("");
   const [jobType, setjobType] = useState("");
+  const [jobTypes, setJobTypes] = useState<string[]>([]);
   const [jobTypeToggle, setjobTypeToggle] = useState(false);
   const [repoNameToggle, setRepoNameToggle] = useState(false);
   const currentTeam = useSelector((state: any) => state.teams.Team);
+  const history = useHistory();
+  const params = new URLSearchParams(window.location.search);
+  const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(10));
 
   // Called onChange of the repository dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
   const setRepoNameOnChange = (event, selection, isPlaceholder) => {
@@ -61,14 +70,32 @@ let Support = () => {
       setRepoName(repositories[selection].repoName);
       setRepoOrg(repositories[selection].organization);
       setRepoNameToggle(false)
+      params.set("repository", repositories[selection].repoName)
+      params.set("organization", repositories[selection].organization)
+
+      getJobTypes(repositories[selection].repoName, repositories[selection].organization)
+        .then((data: any) => {
+          setJobTypes(data)
+          setjobType("presubmit") // all repos in OpenShift CI have presubmit type job
+          params.set("job_type", "presubmit")
+          history.push(window.location.pathname + '?' + params.toString());
+        });
     }
   };
 
   // Reset all dropwdowns and state variables
-  const clearProwJob = () => {
+  const clearAll = () => {
     setProwVisible(false); // hide the dashboard leaving only the toolbar
+    setNoData(false)
     clearJobType()
     clearRepo()
+    clearRangeDateTime()
+  }
+
+  // Reset params
+  const clearParams = () => {
+    clearAll()
+    history.push(window.location.pathname + '?' + "team=" + params.get("team"));
   }
 
   // Reset the repository dropdown
@@ -84,6 +111,11 @@ let Support = () => {
     setjobTypeToggle(false);
   }
 
+  // Reset rangeDateTime
+  const clearRangeDateTime = () => {
+    setRangeDateTime(getRangeDates(10))
+  }
+
   // Called onChange of the jobType dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
   const setjobTypeOnChange = (event, selection, isPlaceholder) => {
     if (isPlaceholder) {
@@ -92,55 +124,102 @@ let Support = () => {
     else {
       setjobType(selection);
       setjobTypeToggle(false);
+      params.set("job_type", selection)
+      history.push(window.location.pathname + '?' + params.toString());
     }
   };
 
   // Validates that the required variables are not empty; if not, the "get" button is enabled
   const validateGetProwJob = () => {
-    if (repoName != "" && repoOrg != "" && jobType != "") {
-      getProwJob()
+    if (repositories.find(r => r.organization == repoOrg && r.repoName == repoName)) {
+      getJobTypes(repoName, repoOrg)
+        .then((data: any) => {
+          if (data.find(j => j == jobType)) {
+            getProwJob()
+          }
+        });
     }
+  }
+
+  // Validates if the repository, organization, and job_type are correct
+  const validQueryParams = (repository, organization, job_type) => {
+    if (isValidTeam()) {
+      if (repositories.find(r => r.organization == organization && r.repoName == repository) &&
+        jobTypes.find(j => j == job_type)) {
+        return true;
+      }
+      if (repository == "" && organization == "" && job_type == "") {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Triggers automatic validation when state variables change
   useEffect(() => {
     validateGetProwJob();
-  }, [repoOrg, repoName, jobType]);
+  }, [repoOrg, repoName, jobType, rangeDateTime]);
 
   // When component is mounted, get the list of repo and orgs from API and populate the dropdowns
 
   useEffect(() => {
     if (state.teams.Team != "") {
       setRepositories([])
-      clearJobType()
-      clearRepo()
-      getAllRepositoriesWithOrgs(state.teams.Team)
+      clearAll()
+
+      const repository = params.get("repository")
+      const organization = params.get("organization")
+      const job_type = params.get("job_type")
+      const team = params.get("team")
+      const start = params.get("start")
+      const end = params.get("end")
+
+      getAllRepositoriesWithOrgs(state.teams.Team, true)
         .then((data: any) => {
           let dropDescr = ""
-          if (data.length < 1) { dropDescr = "No Repositories" }
+          if (data.length < 1 && (team == state.teams.Team || team == null)) {
+            dropDescr = "No Repositories"
+            history.push('/reports/test?team=' + currentTeam)
+          }
           else { dropDescr = "Select a repository" }
-          data.unshift({ repoName: dropDescr, organization: "", isPlaceholder: true }) // Adds placeholder at the beginning of the array, so it will be shown first
-          setRepositories(data)
-          setRepoName(data[1].repoName)
-          setRepoOrg(data[1].organization)
-          setjobType("presubmit")
-          validateGetProwJob()
+
+          if (data.length > 0 && (team == state.teams.Team || team == null)) {
+            data.unshift({ repoName: dropDescr, organization: "", isPlaceholder: true }) // Adds placeholder at the beginning of the array, so it will be shown first
+            setRepositories(data)
+
+            if (repository == null || organization == null || job_type == null || start == null || end == null) { // first click on OpenShift CI or team
+              setRepoName(data[1].repoName)
+              setRepoOrg(data[1].organization)
+              setjobType("presubmit") // all repos in OpenShift CI have presubmit type job
+
+              getJobTypes(data[1].repoName, data[1].organization)
+                .then((data: any) => {
+                  setJobTypes(data)
+                });
+
+              const start_date = formatDate(rangeDateTime[0])
+              const end_date = formatDate(rangeDateTime[1])
+
+              history.push('/reports/test?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName
+                + '&job_type=presubmit' + '&start=' + start_date + ' & end=' + end_date)
+
+            } else {
+              setRepoName(repository)
+              setRepoOrg(organization)
+              setjobType(job_type)
+              setRangeDateTime([new Date(start), new Date(end)])
+
+              getJobTypes(repository, organization)
+                .then((data: any) => {
+                  setJobTypes(data)
+                  history.push('/reports/test?team=' + currentTeam + '&organization=' + organization + '&repository=' + repository +
+                    '&job_type=' + job_type + '&start=' + start + '&end=' + end)
+                });
+            }
+          }
         })
     }
   }, [setRepositories, currentTeam]);
-
-
-  // Static list of job types to populate the dropdown
-  const jobTypes = [
-    <SelectOption key={0} value="periodic" />,
-    <SelectOption key={1} value="presubmit" />,
-    <SelectOption key={2} value="postsubmit" />,
-  ]
-
-  /*
-  Some helpers and definitions
-  */
-  const LoremIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat"
 
   /* 
   ProwJobs logic to populate dashboard
@@ -154,52 +233,58 @@ let Support = () => {
   // Get the prow jobs from API
   const getProwJob = async () => {
     setSelectedJob(0)
-    // Hide components and show laoding spinner 
+    // Hide components and show loading spinner 
     setProwVisible(false)
-    setloadingState(true)
+    setLoadingState(true)
+    setNoData(false)
     try {
       // Get job suite details
-      const data = await getLatestProwJob(repoName, repoOrg, jobType)
-      setProwJobSuite(data)
+      if (jobType == "periodic") {
+        const data = await getLatestProwJob(repoName, repoOrg, jobType)
+        setProwJobSuite(data)
+      }
       // Get statistics and metrics
-      const stats = await getProwJobStatistics(repoName, repoOrg, jobType)
+      const stats = await getProwJobStatistics(repoName, repoOrg, jobType, rangeDateTime)
       // Set UI for showing data and disable spinner
       setprowJobsStats(stats)
-      setloadingState(false)
+      setLoadingState(false)
       setProwVisible(true)
     }
-    catch {
-      // Set UI to empty page and show error alert
-
+    catch (e) {
+      // Set UI to empty page
       setProwVisible(false);
-      setloadingState(false)
-      setAlerts(prevAlerts => {
-        return [...prevAlerts,
-        <Alert
-          variant="danger"
-          timeout={5000}
-          title="Error fetching data from server"
-          key={0}
-          actionClose={
-            <AlertActionCloseButton
-              title="Error fetching data"
-              variantLabel={`danger alert`}
-              onClose={() => setAlerts([])}
-            />
-          }
-        />
-        ]
-      });
+      setLoadingState(false);
+
+
+      // Show error alert
+      if (e != "No jobs detected in OpenShift CI") {
+        setAlerts(prevAlerts => {
+          return [...prevAlerts,
+          <Alert
+            variant="danger"
+            timeout={5000}
+            title="Error fetching data from server"
+            key={0}
+            actionClose={
+              <AlertActionCloseButton
+                title="Error fetching data"
+                variantLabel={`danger alert`}
+                onClose={() => setAlerts([])}
+              />
+            }
+          />
+          ]
+        });
+      } else {
+        // Set UI to no data page
+        setNoData(true)
+      }
     }
   }
 
   // Extract a simple list of jobs from data: this will be used to let users select the job they want to see details for
-  let jobNames: SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function (job, index) { return { "value": job.name, "index": index } }) : []
+  let jobNames: SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function (job, index) { return { "value": job.name + " (Total: " + job.summary.total_jobs + ")", "index": index } }) : []
   let ci_html: string = prowJobsStats?.jobs != null ? "https://prow.ci.openshift.org/?repo=" + prowJobsStats?.git_organization + "%2F" + prowJobsStats?.repository_name + "&type=" + prowJobsStats?.type : ''
-
-
-
-
 
   // Prepare data for the line chart
   let beautifiedData: DashboardLineChartData = {
@@ -337,13 +422,15 @@ let Support = () => {
     setPage(newPage);
   };
 
-  /*
-  const buttonLink = (repositories, link) => {
-    if(repositories.)
+  function handleChange(event, from, to) {
+    setRangeDateTime([from, to])
+    params.set("start", formatDate(from))
+    params.set("end", formatDate(to))
+    history.push(window.location.pathname + '?' + params.toString());
   }
 
-  */
-
+  const start = rangeDateTime[0]
+  const end = rangeDateTime[1]
 
   return (
 
@@ -352,6 +439,9 @@ let Support = () => {
       <PageSection variant={PageSectionVariants.light}>
         <Title headingLevel="h3" size={TitleSizes['2xl']}>
           Tests Reports
+          <Button onClick={() => navigator.clipboard.writeText(window.location.href)} variant="link" icon={<CopyIcon />} iconPosition="right">
+            Copy link
+          </Button>
         </Title>
       </PageSection>
       {/* main content  */}
@@ -383,11 +473,21 @@ let Support = () => {
             </ToolbarItem>
             <ToolbarItem style={{ minWidth: "20%", maxWidth: "40%" }}>
               <Select placeholderText="Filter by status/vendor" isOpen={jobTypeToggle} onToggle={setjobTypeToggle} selections={jobType} onSelect={setjobTypeOnChange} aria-label="Select Input">
-                {jobTypes}
+                {jobTypes.map((value, index) => (
+                  <SelectOption key={index} value={value}>{value}</SelectOption>
+                ))}
               </Select>
             </ToolbarItem>
-            <ToolbarItem >
-              <Button variant="link" onClick={clearProwJob}>Clear</Button>
+            <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent" }}>
+                <DateTimeRangePicker
+                  startDate={start}
+                  endDate={end}
+                  handleChange={(event, from, to) => handleChange(event, from, to)}
+                >
+                </DateTimeRangePicker>
+            </ToolbarItem>
+            <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent" }}>
+              <Button variant="link" onClick={clearParams}>Clear</Button>
             </ToolbarItem>
           </ToolbarContent>
         </Toolbar>
@@ -396,7 +496,7 @@ let Support = () => {
           <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />
         </div>
         }
-        {!prowVisible && !loadingState && <EmptyState variant={EmptyStateVariant.xl}>
+        {validQueryParams(repoName, repoOrg, jobType) && !prowVisible && !loadingState && !noData && <EmptyState variant={EmptyStateVariant.xl}>
           <EmptyStateIcon icon={CubesIcon} />
           <Title headingLevel="h1" size="lg">
             No job selected yet.
@@ -406,17 +506,31 @@ let Support = () => {
           </EmptyStateBody>
         </EmptyState>
         }
+        {validQueryParams(repoName, repoOrg, jobType) && noData && <EmptyState variant={EmptyStateVariant.xl}>
+          <EmptyStateIcon icon={ExclamationCircleIcon} />
+          <Title headingLevel="h1" size="lg">
+            No jobs detected in OpenShift CI.
+          </Title>
+        </EmptyState>
+        }
+        {!validQueryParams(repoName, repoOrg, jobType) && <EmptyState variant={EmptyStateVariant.xl}>
+          <EmptyStateIcon icon={ExclamationCircleIcon} />
+          <Title headingLevel="h1" size="lg">
+            Something went wrong. Please, check the URL.
+          </Title>
+        </EmptyState>
+        }
         {/* this section will show statistics and details about job and suites */}
         <React.Fragment>
-          {prowVisible && <div style={{ marginTop: '20px' }}>
+          {validQueryParams(repoName, repoOrg, jobType) && prowVisible && <div style={{ marginTop: '20px' }}>
             {/* this section will show the job's chart over time and last execution stats */}
 
             {prowJobsStats !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
               <GridItem span={3}><InfoCard data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_organization }]}></InfoCard></GridItem>
-              <GridItem span={2}><DashboardCard cardType={'danger'} title="avg of ci failures" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.ci_failed_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
-              <GridItem span={2}><DashboardCard cardType={'danger'} title="avg of failures" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.failure_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
-              <GridItem span={2}><DashboardCard cardType={'success'} title="avg of passed tests" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.success_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
-              <GridItem span={3}><DashboardCard cardType={'default'} title="Time Range" body={prowJobsStats?.jobs != null ? new Date(prowJobsStats.jobs[selectedJob].summary.date_from.split(" ")[0]).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }) + " - " + new Date(prowJobsStats.jobs[selectedJob].summary.date_to.split(" ")[0]).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }) : "-"}></DashboardCard></GridItem>
+              <GridItem span={2}><DashboardCard cardType={'danger'} title="CI Failures Avg" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.ci_failed_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
+              <GridItem span={2}><DashboardCard cardType={'danger'} title="Failures Avg" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.failure_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
+              <GridItem span={2}><DashboardCard cardType={'success'} title="Passed Tests Avg" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.success_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
+              <GridItem span={3}><DashboardCard cardType={'default'} title="Total CI Jobs Executed" body={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.total_jobs.toString() : "N/A"}></DashboardCard></GridItem>
               <GridItem span={4} rowSpan={4}><DashboardSimpleList title={<div>Jobs  <a href={ci_html} target="blank" rel="noopener noreferrer"><Badge style={{ float: "right" }}>{jobType} &nbsp; <ExternalLinkAltIcon></ExternalLinkAltIcon></Badge></a></div>} data={jobNames} onSelection={(value) => { setSelectedJob(value) }}></DashboardSimpleList></GridItem>
               <GridItem span={8} rowSpan={5}><DashboardLineChart data={beautifiedData}></DashboardLineChart></GridItem>
               <GridItem span={4} rowSpan={1}><DashboardCard cardType={'help'} title="About this dashboard" body="Set of metrics gathered from Openshift CI"></DashboardCard></GridItem>
@@ -464,4 +578,4 @@ let Support = () => {
   )
 }
 
-export { Support };
+export { Reports };
