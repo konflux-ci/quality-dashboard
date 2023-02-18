@@ -35,7 +35,7 @@ import { DateTimeRangePicker } from './DateTimeRangePicker';
 import { Table, TableBody, TableHeader, TableProps, cellWidth, info, sortable } from '@patternfly/react-table';
 
 // eslint-disable-next-line prefer-const
-let Support = () => {
+let Reports = () => {
 
   const [prowVisible, setProwVisible] = useState(false)
   const [loadingState, setLoadingState] = useState(false)
@@ -422,13 +422,6 @@ let Support = () => {
     setPage(newPage);
   };
 
-  /*
-  const buttonLink = (repositories, link) => {
-    if(repositories.)
-  }
-
-  */
-
   function handleChange(event, from, to) {
     setRangeDateTime([from, to])
     params.set("start", formatDate(from))
@@ -585,4 +578,4 @@ let Support = () => {
   )
 }
 
-export { Support };
+export { Reports };

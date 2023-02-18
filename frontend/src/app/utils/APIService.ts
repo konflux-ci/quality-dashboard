@@ -3,7 +3,7 @@ import axios, { AxiosResponse, AxiosError } from 'axios';
 import _ from 'lodash';
 import { JobsStatistics } from '@app/utils/sharedComponents';
 import { teamIsNotEmpty } from '@app/utils/utils';
-import { formatDate } from '@app/Support/utils';
+import { formatDate } from '@app/Reports/utils';
 
 type ApiResponse = {
   code: number;
