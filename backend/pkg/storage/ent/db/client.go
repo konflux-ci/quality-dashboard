@@ -44,7 +44,7 @@ type Client struct {
 
 // NewClient creates a new client configured with the given options.
 func NewClient(opts ...Option) *Client {
-	cfg := config{log: log.Println, hooks: &hooks{}}
+	cfg := config{log: log.Println, hooks: &hooks{}, inters: &inters{}}
 	cfg.options(opts...)
 	client := &Client{config: cfg}
 	client.init()
@@ -159,6 +159,37 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Workflows.Use(hooks...)
 }
 
+// Intercept adds the query interceptors to all the entity clients.
+// In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
+func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.CodeCov.Intercept(interceptors...)
+	c.ProwJobs.Intercept(interceptors...)
+	c.ProwSuites.Intercept(interceptors...)
+	c.Repository.Intercept(interceptors...)
+	c.Teams.Intercept(interceptors...)
+	c.Workflows.Intercept(interceptors...)
+}
+
+// Mutate implements the ent.Mutator interface.
+func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
+	switch m := m.(type) {
+	case *CodeCovMutation:
+		return c.CodeCov.mutate(ctx, m)
+	case *ProwJobsMutation:
+		return c.ProwJobs.mutate(ctx, m)
+	case *ProwSuitesMutation:
+		return c.ProwSuites.mutate(ctx, m)
+	case *RepositoryMutation:
+		return c.Repository.mutate(ctx, m)
+	case *TeamsMutation:
+		return c.Teams.mutate(ctx, m)
+	case *WorkflowsMutation:
+		return c.Workflows.mutate(ctx, m)
+	default:
+		return nil, fmt.Errorf("db: unknown mutation type %T", m)
+	}
+}
+
 // CodeCovClient is a client for the CodeCov schema.
 type CodeCovClient struct {
 	config
@@ -173,6 +204,12 @@ func NewCodeCovClient(c config) *CodeCovClient {
 // A call to `Use(f, g, h)` equals to `codecov.Hooks(f(g(h())))`.
 func (c *CodeCovClient) Use(hooks ...Hook) {
 	c.hooks.CodeCov = append(c.hooks.CodeCov, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `codecov.Intercept(f(g(h())))`.
+func (c *CodeCovClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CodeCov = append(c.inters.CodeCov, interceptors...)
 }
 
 // Create returns a builder for creating a CodeCov entity.
@@ -227,6 +264,8 @@ func (c *CodeCovClient) DeleteOneID(id uuid.UUID) *CodeCovDeleteOne {
 func (c *CodeCovClient) Query() *CodeCovQuery {
 	return &CodeCovQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeCodeCov},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -246,7 +285,7 @@ func (c *CodeCovClient) GetX(ctx context.Context, id uuid.UUID) *CodeCov {
 
 // QueryCodecov queries the codecov edge of a CodeCov.
 func (c *CodeCovClient) QueryCodecov(cc *CodeCov) *RepositoryQuery {
-	query := &RepositoryQuery{config: c.config}
+	query := (&RepositoryClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := cc.ID
 		step := sqlgraph.NewStep(
@@ -265,6 +304,26 @@ func (c *CodeCovClient) Hooks() []Hook {
 	return c.hooks.CodeCov
 }
 
+// Interceptors returns the client interceptors.
+func (c *CodeCovClient) Interceptors() []Interceptor {
+	return c.inters.CodeCov
+}
+
+func (c *CodeCovClient) mutate(ctx context.Context, m *CodeCovMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CodeCovCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CodeCovUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CodeCovUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CodeCovDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown CodeCov mutation op: %q", m.Op())
+	}
+}
+
 // ProwJobsClient is a client for the ProwJobs schema.
 type ProwJobsClient struct {
 	config
@@ -279,6 +338,12 @@ func NewProwJobsClient(c config) *ProwJobsClient {
 // A call to `Use(f, g, h)` equals to `prowjobs.Hooks(f(g(h())))`.
 func (c *ProwJobsClient) Use(hooks ...Hook) {
 	c.hooks.ProwJobs = append(c.hooks.ProwJobs, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `prowjobs.Intercept(f(g(h())))`.
+func (c *ProwJobsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ProwJobs = append(c.inters.ProwJobs, interceptors...)
 }
 
 // Create returns a builder for creating a ProwJobs entity.
@@ -333,6 +398,8 @@ func (c *ProwJobsClient) DeleteOneID(id int) *ProwJobsDeleteOne {
 func (c *ProwJobsClient) Query() *ProwJobsQuery {
 	return &ProwJobsQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeProwJobs},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -352,7 +419,7 @@ func (c *ProwJobsClient) GetX(ctx context.Context, id int) *ProwJobs {
 
 // QueryProwJobs queries the prow_jobs edge of a ProwJobs.
 func (c *ProwJobsClient) QueryProwJobs(pj *ProwJobs) *RepositoryQuery {
-	query := &RepositoryQuery{config: c.config}
+	query := (&RepositoryClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := pj.ID
 		step := sqlgraph.NewStep(
@@ -371,6 +438,26 @@ func (c *ProwJobsClient) Hooks() []Hook {
 	return c.hooks.ProwJobs
 }
 
+// Interceptors returns the client interceptors.
+func (c *ProwJobsClient) Interceptors() []Interceptor {
+	return c.inters.ProwJobs
+}
+
+func (c *ProwJobsClient) mutate(ctx context.Context, m *ProwJobsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProwJobsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProwJobsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProwJobsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProwJobsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown ProwJobs mutation op: %q", m.Op())
+	}
+}
+
 // ProwSuitesClient is a client for the ProwSuites schema.
 type ProwSuitesClient struct {
 	config
@@ -385,6 +472,12 @@ func NewProwSuitesClient(c config) *ProwSuitesClient {
 // A call to `Use(f, g, h)` equals to `prowsuites.Hooks(f(g(h())))`.
 func (c *ProwSuitesClient) Use(hooks ...Hook) {
 	c.hooks.ProwSuites = append(c.hooks.ProwSuites, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `prowsuites.Intercept(f(g(h())))`.
+func (c *ProwSuitesClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ProwSuites = append(c.inters.ProwSuites, interceptors...)
 }
 
 // Create returns a builder for creating a ProwSuites entity.
@@ -439,6 +532,8 @@ func (c *ProwSuitesClient) DeleteOneID(id int) *ProwSuitesDeleteOne {
 func (c *ProwSuitesClient) Query() *ProwSuitesQuery {
 	return &ProwSuitesQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeProwSuites},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -458,7 +553,7 @@ func (c *ProwSuitesClient) GetX(ctx context.Context, id int) *ProwSuites {
 
 // QueryProwSuites queries the prow_suites edge of a ProwSuites.
 func (c *ProwSuitesClient) QueryProwSuites(ps *ProwSuites) *RepositoryQuery {
-	query := &RepositoryQuery{config: c.config}
+	query := (&RepositoryClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ps.ID
 		step := sqlgraph.NewStep(
@@ -477,6 +572,26 @@ func (c *ProwSuitesClient) Hooks() []Hook {
 	return c.hooks.ProwSuites
 }
 
+// Interceptors returns the client interceptors.
+func (c *ProwSuitesClient) Interceptors() []Interceptor {
+	return c.inters.ProwSuites
+}
+
+func (c *ProwSuitesClient) mutate(ctx context.Context, m *ProwSuitesMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProwSuitesCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProwSuitesUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProwSuitesUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProwSuitesDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown ProwSuites mutation op: %q", m.Op())
+	}
+}
+
 // RepositoryClient is a client for the Repository schema.
 type RepositoryClient struct {
 	config
@@ -491,6 +606,12 @@ func NewRepositoryClient(c config) *RepositoryClient {
 // A call to `Use(f, g, h)` equals to `repository.Hooks(f(g(h())))`.
 func (c *RepositoryClient) Use(hooks ...Hook) {
 	c.hooks.Repository = append(c.hooks.Repository, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `repository.Intercept(f(g(h())))`.
+func (c *RepositoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Repository = append(c.inters.Repository, interceptors...)
 }
 
 // Create returns a builder for creating a Repository entity.
@@ -545,6 +666,8 @@ func (c *RepositoryClient) DeleteOneID(id uuid.UUID) *RepositoryDeleteOne {
 func (c *RepositoryClient) Query() *RepositoryQuery {
 	return &RepositoryQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeRepository},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -564,7 +687,7 @@ func (c *RepositoryClient) GetX(ctx context.Context, id uuid.UUID) *Repository {
 
 // QueryRepositories queries the repositories edge of a Repository.
 func (c *RepositoryClient) QueryRepositories(r *Repository) *TeamsQuery {
-	query := &TeamsQuery{config: c.config}
+	query := (&TeamsClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := r.ID
 		step := sqlgraph.NewStep(
@@ -580,7 +703,7 @@ func (c *RepositoryClient) QueryRepositories(r *Repository) *TeamsQuery {
 
 // QueryWorkflows queries the workflows edge of a Repository.
 func (c *RepositoryClient) QueryWorkflows(r *Repository) *WorkflowsQuery {
-	query := &WorkflowsQuery{config: c.config}
+	query := (&WorkflowsClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := r.ID
 		step := sqlgraph.NewStep(
@@ -596,7 +719,7 @@ func (c *RepositoryClient) QueryWorkflows(r *Repository) *WorkflowsQuery {
 
 // QueryCodecov queries the codecov edge of a Repository.
 func (c *RepositoryClient) QueryCodecov(r *Repository) *CodeCovQuery {
-	query := &CodeCovQuery{config: c.config}
+	query := (&CodeCovClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := r.ID
 		step := sqlgraph.NewStep(
@@ -612,7 +735,7 @@ func (c *RepositoryClient) QueryCodecov(r *Repository) *CodeCovQuery {
 
 // QueryProwSuites queries the prow_suites edge of a Repository.
 func (c *RepositoryClient) QueryProwSuites(r *Repository) *ProwSuitesQuery {
-	query := &ProwSuitesQuery{config: c.config}
+	query := (&ProwSuitesClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := r.ID
 		step := sqlgraph.NewStep(
@@ -628,7 +751,7 @@ func (c *RepositoryClient) QueryProwSuites(r *Repository) *ProwSuitesQuery {
 
 // QueryProwJobs queries the prow_jobs edge of a Repository.
 func (c *RepositoryClient) QueryProwJobs(r *Repository) *ProwJobsQuery {
-	query := &ProwJobsQuery{config: c.config}
+	query := (&ProwJobsClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := r.ID
 		step := sqlgraph.NewStep(
@@ -647,6 +770,26 @@ func (c *RepositoryClient) Hooks() []Hook {
 	return c.hooks.Repository
 }
 
+// Interceptors returns the client interceptors.
+func (c *RepositoryClient) Interceptors() []Interceptor {
+	return c.inters.Repository
+}
+
+func (c *RepositoryClient) mutate(ctx context.Context, m *RepositoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RepositoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RepositoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RepositoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RepositoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Repository mutation op: %q", m.Op())
+	}
+}
+
 // TeamsClient is a client for the Teams schema.
 type TeamsClient struct {
 	config
@@ -661,6 +804,12 @@ func NewTeamsClient(c config) *TeamsClient {
 // A call to `Use(f, g, h)` equals to `teams.Hooks(f(g(h())))`.
 func (c *TeamsClient) Use(hooks ...Hook) {
 	c.hooks.Teams = append(c.hooks.Teams, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `teams.Intercept(f(g(h())))`.
+func (c *TeamsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Teams = append(c.inters.Teams, interceptors...)
 }
 
 // Create returns a builder for creating a Teams entity.
@@ -715,6 +864,8 @@ func (c *TeamsClient) DeleteOneID(id uuid.UUID) *TeamsDeleteOne {
 func (c *TeamsClient) Query() *TeamsQuery {
 	return &TeamsQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeTeams},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -734,7 +885,7 @@ func (c *TeamsClient) GetX(ctx context.Context, id uuid.UUID) *Teams {
 
 // QueryRepositories queries the repositories edge of a Teams.
 func (c *TeamsClient) QueryRepositories(t *Teams) *RepositoryQuery {
-	query := &RepositoryQuery{config: c.config}
+	query := (&RepositoryClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := t.ID
 		step := sqlgraph.NewStep(
@@ -753,6 +904,26 @@ func (c *TeamsClient) Hooks() []Hook {
 	return c.hooks.Teams
 }
 
+// Interceptors returns the client interceptors.
+func (c *TeamsClient) Interceptors() []Interceptor {
+	return c.inters.Teams
+}
+
+func (c *TeamsClient) mutate(ctx context.Context, m *TeamsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TeamsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TeamsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TeamsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TeamsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Teams mutation op: %q", m.Op())
+	}
+}
+
 // WorkflowsClient is a client for the Workflows schema.
 type WorkflowsClient struct {
 	config
@@ -767,6 +938,12 @@ func NewWorkflowsClient(c config) *WorkflowsClient {
 // A call to `Use(f, g, h)` equals to `workflows.Hooks(f(g(h())))`.
 func (c *WorkflowsClient) Use(hooks ...Hook) {
 	c.hooks.Workflows = append(c.hooks.Workflows, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `workflows.Intercept(f(g(h())))`.
+func (c *WorkflowsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Workflows = append(c.inters.Workflows, interceptors...)
 }
 
 // Create returns a builder for creating a Workflows entity.
@@ -821,6 +998,8 @@ func (c *WorkflowsClient) DeleteOneID(id int) *WorkflowsDeleteOne {
 func (c *WorkflowsClient) Query() *WorkflowsQuery {
 	return &WorkflowsQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeWorkflows},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -840,7 +1019,7 @@ func (c *WorkflowsClient) GetX(ctx context.Context, id int) *Workflows {
 
 // QueryWorkflows queries the workflows edge of a Workflows.
 func (c *WorkflowsClient) QueryWorkflows(w *Workflows) *RepositoryQuery {
-	query := &RepositoryQuery{config: c.config}
+	query := (&RepositoryClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := w.ID
 		step := sqlgraph.NewStep(
@@ -857,4 +1036,24 @@ func (c *WorkflowsClient) QueryWorkflows(w *Workflows) *RepositoryQuery {
 // Hooks returns the client hooks.
 func (c *WorkflowsClient) Hooks() []Hook {
 	return c.hooks.Workflows
+}
+
+// Interceptors returns the client interceptors.
+func (c *WorkflowsClient) Interceptors() []Interceptor {
+	return c.inters.Workflows
+}
+
+func (c *WorkflowsClient) mutate(ctx context.Context, m *WorkflowsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&WorkflowsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&WorkflowsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&WorkflowsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&WorkflowsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Workflows mutation op: %q", m.Op())
+	}
 }

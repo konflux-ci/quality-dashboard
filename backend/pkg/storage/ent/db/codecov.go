@@ -117,14 +117,14 @@ func (cc *CodeCov) assignValues(columns []string, values []any) error {
 
 // QueryCodecov queries the "codecov" edge of the CodeCov entity.
 func (cc *CodeCov) QueryCodecov() *RepositoryQuery {
-	return (&CodeCovClient{config: cc.config}).QueryCodecov(cc)
+	return NewCodeCovClient(cc.config).QueryCodecov(cc)
 }
 
 // Update returns a builder for updating this CodeCov.
 // Note that you need to call CodeCov.Unwrap() before calling this method if this CodeCov
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (cc *CodeCov) Update() *CodeCovUpdateOne {
-	return (&CodeCovClient{config: cc.config}).UpdateOne(cc)
+	return NewCodeCovClient(cc.config).UpdateOne(cc)
 }
 
 // Unwrap unwraps the CodeCov entity that was returned from a transaction after it was closed,

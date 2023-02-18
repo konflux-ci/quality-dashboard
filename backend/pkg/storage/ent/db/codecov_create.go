@@ -79,50 +79,8 @@ func (ccc *CodeCovCreate) Mutation() *CodeCovMutation {
 
 // Save creates the CodeCov in the database.
 func (ccc *CodeCovCreate) Save(ctx context.Context) (*CodeCov, error) {
-	var (
-		err  error
-		node *CodeCov
-	)
 	ccc.defaults()
-	if len(ccc.hooks) == 0 {
-		if err = ccc.check(); err != nil {
-			return nil, err
-		}
-		node, err = ccc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*CodeCovMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ccc.check(); err != nil {
-				return nil, err
-			}
-			ccc.mutation = mutation
-			if node, err = ccc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ccc.hooks) - 1; i >= 0; i-- {
-			if ccc.hooks[i] == nil {
-				return nil, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = ccc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ccc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*CodeCov)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from CodeCovMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*CodeCov, CodeCovMutation](ctx, ccc.sqlSave, ccc.mutation, ccc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -175,6 +133,9 @@ func (ccc *CodeCovCreate) check() error {
 }
 
 func (ccc *CodeCovCreate) sqlSave(ctx context.Context) (*CodeCov, error) {
+	if err := ccc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := ccc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ccc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -189,6 +150,8 @@ func (ccc *CodeCovCreate) sqlSave(ctx context.Context) (*CodeCov, error) {
 			return nil, err
 		}
 	}
+	ccc.mutation.id = &_node.ID
+	ccc.mutation.done = true
 	return _node, nil
 }
 

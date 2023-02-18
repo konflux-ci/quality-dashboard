@@ -24,11 +24,9 @@ import (
 // RepositoryQuery is the builder for querying Repository entities.
 type RepositoryQuery struct {
 	config
-	limit            *int
-	offset           *int
-	unique           *bool
+	ctx              *QueryContext
 	order            []OrderFunc
-	fields           []string
+	inters           []Interceptor
 	predicates       []predicate.Repository
 	withRepositories *TeamsQuery
 	withWorkflows    *WorkflowsQuery
@@ -47,26 +45,26 @@ func (rq *RepositoryQuery) Where(ps ...predicate.Repository) *RepositoryQuery {
 	return rq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (rq *RepositoryQuery) Limit(limit int) *RepositoryQuery {
-	rq.limit = &limit
+	rq.ctx.Limit = &limit
 	return rq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (rq *RepositoryQuery) Offset(offset int) *RepositoryQuery {
-	rq.offset = &offset
+	rq.ctx.Offset = &offset
 	return rq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (rq *RepositoryQuery) Unique(unique bool) *RepositoryQuery {
-	rq.unique = &unique
+	rq.ctx.Unique = &unique
 	return rq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (rq *RepositoryQuery) Order(o ...OrderFunc) *RepositoryQuery {
 	rq.order = append(rq.order, o...)
 	return rq
@@ -74,7 +72,7 @@ func (rq *RepositoryQuery) Order(o ...OrderFunc) *RepositoryQuery {
 
 // QueryRepositories chains the current query on the "repositories" edge.
 func (rq *RepositoryQuery) QueryRepositories() *TeamsQuery {
-	query := &TeamsQuery{config: rq.config}
+	query := (&TeamsClient{config: rq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := rq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -96,7 +94,7 @@ func (rq *RepositoryQuery) QueryRepositories() *TeamsQuery {
 
 // QueryWorkflows chains the current query on the "workflows" edge.
 func (rq *RepositoryQuery) QueryWorkflows() *WorkflowsQuery {
-	query := &WorkflowsQuery{config: rq.config}
+	query := (&WorkflowsClient{config: rq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := rq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -118,7 +116,7 @@ func (rq *RepositoryQuery) QueryWorkflows() *WorkflowsQuery {
 
 // QueryCodecov chains the current query on the "codecov" edge.
 func (rq *RepositoryQuery) QueryCodecov() *CodeCovQuery {
-	query := &CodeCovQuery{config: rq.config}
+	query := (&CodeCovClient{config: rq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := rq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -140,7 +138,7 @@ func (rq *RepositoryQuery) QueryCodecov() *CodeCovQuery {
 
 // QueryProwSuites chains the current query on the "prow_suites" edge.
 func (rq *RepositoryQuery) QueryProwSuites() *ProwSuitesQuery {
-	query := &ProwSuitesQuery{config: rq.config}
+	query := (&ProwSuitesClient{config: rq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := rq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -162,7 +160,7 @@ func (rq *RepositoryQuery) QueryProwSuites() *ProwSuitesQuery {
 
 // QueryProwJobs chains the current query on the "prow_jobs" edge.
 func (rq *RepositoryQuery) QueryProwJobs() *ProwJobsQuery {
-	query := &ProwJobsQuery{config: rq.config}
+	query := (&ProwJobsClient{config: rq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := rq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -185,7 +183,7 @@ func (rq *RepositoryQuery) QueryProwJobs() *ProwJobsQuery {
 // First returns the first Repository entity from the query.
 // Returns a *NotFoundError when no Repository was found.
 func (rq *RepositoryQuery) First(ctx context.Context) (*Repository, error) {
-	nodes, err := rq.Limit(1).All(ctx)
+	nodes, err := rq.Limit(1).All(setContextOp(ctx, rq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +206,7 @@ func (rq *RepositoryQuery) FirstX(ctx context.Context) *Repository {
 // Returns a *NotFoundError when no Repository ID was found.
 func (rq *RepositoryQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = rq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = rq.Limit(1).IDs(setContextOp(ctx, rq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -231,7 +229,7 @@ func (rq *RepositoryQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one Repository entity is found.
 // Returns a *NotFoundError when no Repository entities are found.
 func (rq *RepositoryQuery) Only(ctx context.Context) (*Repository, error) {
-	nodes, err := rq.Limit(2).All(ctx)
+	nodes, err := rq.Limit(2).All(setContextOp(ctx, rq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +257,7 @@ func (rq *RepositoryQuery) OnlyX(ctx context.Context) *Repository {
 // Returns a *NotFoundError when no entities are found.
 func (rq *RepositoryQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = rq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = rq.Limit(2).IDs(setContextOp(ctx, rq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -284,10 +282,12 @@ func (rq *RepositoryQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Repositories.
 func (rq *RepositoryQuery) All(ctx context.Context) ([]*Repository, error) {
+	ctx = setContextOp(ctx, rq.ctx, "All")
 	if err := rq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return rq.sqlAll(ctx)
+	qr := querierAll[[]*Repository, *RepositoryQuery]()
+	return withInterceptors[[]*Repository](ctx, rq, qr, rq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -302,6 +302,7 @@ func (rq *RepositoryQuery) AllX(ctx context.Context) []*Repository {
 // IDs executes the query and returns a list of Repository IDs.
 func (rq *RepositoryQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	var ids []uuid.UUID
+	ctx = setContextOp(ctx, rq.ctx, "IDs")
 	if err := rq.Select(repository.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -319,10 +320,11 @@ func (rq *RepositoryQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (rq *RepositoryQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, rq.ctx, "Count")
 	if err := rq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return rq.sqlCount(ctx)
+	return withInterceptors[int](ctx, rq, querierCount[*RepositoryQuery](), rq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -336,10 +338,15 @@ func (rq *RepositoryQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (rq *RepositoryQuery) Exist(ctx context.Context) (bool, error) {
-	if err := rq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, rq.ctx, "Exist")
+	switch _, err := rq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("db: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return rq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -359,9 +366,9 @@ func (rq *RepositoryQuery) Clone() *RepositoryQuery {
 	}
 	return &RepositoryQuery{
 		config:           rq.config,
-		limit:            rq.limit,
-		offset:           rq.offset,
+		ctx:              rq.ctx.Clone(),
 		order:            append([]OrderFunc{}, rq.order...),
+		inters:           append([]Interceptor{}, rq.inters...),
 		predicates:       append([]predicate.Repository{}, rq.predicates...),
 		withRepositories: rq.withRepositories.Clone(),
 		withWorkflows:    rq.withWorkflows.Clone(),
@@ -369,16 +376,15 @@ func (rq *RepositoryQuery) Clone() *RepositoryQuery {
 		withProwSuites:   rq.withProwSuites.Clone(),
 		withProwJobs:     rq.withProwJobs.Clone(),
 		// clone intermediate query.
-		sql:    rq.sql.Clone(),
-		path:   rq.path,
-		unique: rq.unique,
+		sql:  rq.sql.Clone(),
+		path: rq.path,
 	}
 }
 
 // WithRepositories tells the query-builder to eager-load the nodes that are connected to
 // the "repositories" edge. The optional arguments are used to configure the query builder of the edge.
 func (rq *RepositoryQuery) WithRepositories(opts ...func(*TeamsQuery)) *RepositoryQuery {
-	query := &TeamsQuery{config: rq.config}
+	query := (&TeamsClient{config: rq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -389,7 +395,7 @@ func (rq *RepositoryQuery) WithRepositories(opts ...func(*TeamsQuery)) *Reposito
 // WithWorkflows tells the query-builder to eager-load the nodes that are connected to
 // the "workflows" edge. The optional arguments are used to configure the query builder of the edge.
 func (rq *RepositoryQuery) WithWorkflows(opts ...func(*WorkflowsQuery)) *RepositoryQuery {
-	query := &WorkflowsQuery{config: rq.config}
+	query := (&WorkflowsClient{config: rq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -400,7 +406,7 @@ func (rq *RepositoryQuery) WithWorkflows(opts ...func(*WorkflowsQuery)) *Reposit
 // WithCodecov tells the query-builder to eager-load the nodes that are connected to
 // the "codecov" edge. The optional arguments are used to configure the query builder of the edge.
 func (rq *RepositoryQuery) WithCodecov(opts ...func(*CodeCovQuery)) *RepositoryQuery {
-	query := &CodeCovQuery{config: rq.config}
+	query := (&CodeCovClient{config: rq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -411,7 +417,7 @@ func (rq *RepositoryQuery) WithCodecov(opts ...func(*CodeCovQuery)) *RepositoryQ
 // WithProwSuites tells the query-builder to eager-load the nodes that are connected to
 // the "prow_suites" edge. The optional arguments are used to configure the query builder of the edge.
 func (rq *RepositoryQuery) WithProwSuites(opts ...func(*ProwSuitesQuery)) *RepositoryQuery {
-	query := &ProwSuitesQuery{config: rq.config}
+	query := (&ProwSuitesClient{config: rq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -422,7 +428,7 @@ func (rq *RepositoryQuery) WithProwSuites(opts ...func(*ProwSuitesQuery)) *Repos
 // WithProwJobs tells the query-builder to eager-load the nodes that are connected to
 // the "prow_jobs" edge. The optional arguments are used to configure the query builder of the edge.
 func (rq *RepositoryQuery) WithProwJobs(opts ...func(*ProwJobsQuery)) *RepositoryQuery {
-	query := &ProwJobsQuery{config: rq.config}
+	query := (&ProwJobsClient{config: rq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -445,16 +451,11 @@ func (rq *RepositoryQuery) WithProwJobs(opts ...func(*ProwJobsQuery)) *Repositor
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (rq *RepositoryQuery) GroupBy(field string, fields ...string) *RepositoryGroupBy {
-	grbuild := &RepositoryGroupBy{config: rq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := rq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return rq.sqlQuery(ctx), nil
-	}
+	rq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &RepositoryGroupBy{build: rq}
+	grbuild.flds = &rq.ctx.Fields
 	grbuild.label = repository.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -471,11 +472,11 @@ func (rq *RepositoryQuery) GroupBy(field string, fields ...string) *RepositoryGr
 //		Select(repository.FieldRepositoryName).
 //		Scan(ctx, &v)
 func (rq *RepositoryQuery) Select(fields ...string) *RepositorySelect {
-	rq.fields = append(rq.fields, fields...)
-	selbuild := &RepositorySelect{RepositoryQuery: rq}
-	selbuild.label = repository.Label
-	selbuild.flds, selbuild.scan = &rq.fields, selbuild.Scan
-	return selbuild
+	rq.ctx.Fields = append(rq.ctx.Fields, fields...)
+	sbuild := &RepositorySelect{RepositoryQuery: rq}
+	sbuild.label = repository.Label
+	sbuild.flds, sbuild.scan = &rq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a RepositorySelect configured with the given aggregations.
@@ -484,7 +485,17 @@ func (rq *RepositoryQuery) Aggregate(fns ...AggregateFunc) *RepositorySelect {
 }
 
 func (rq *RepositoryQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range rq.fields {
+	for _, inter := range rq.inters {
+		if inter == nil {
+			return fmt.Errorf("db: uninitialized interceptor (forgotten import db/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, rq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range rq.ctx.Fields {
 		if !repository.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("db: invalid field %q for query", f)}
 		}
@@ -585,6 +596,9 @@ func (rq *RepositoryQuery) loadRepositories(ctx context.Context, query *TeamsQue
 			ids = append(ids, fk)
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
 	}
 	query.Where(teams.IDIn(ids...))
 	neighbors, err := query.All(ctx)
@@ -729,22 +743,11 @@ func (rq *RepositoryQuery) loadProwJobs(ctx context.Context, query *ProwJobsQuer
 
 func (rq *RepositoryQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := rq.querySpec()
-	_spec.Node.Columns = rq.fields
-	if len(rq.fields) > 0 {
-		_spec.Unique = rq.unique != nil && *rq.unique
+	_spec.Node.Columns = rq.ctx.Fields
+	if len(rq.ctx.Fields) > 0 {
+		_spec.Unique = rq.ctx.Unique != nil && *rq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, rq.driver, _spec)
-}
-
-func (rq *RepositoryQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := rq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("db: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (rq *RepositoryQuery) querySpec() *sqlgraph.QuerySpec {
@@ -760,10 +763,10 @@ func (rq *RepositoryQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   rq.sql,
 		Unique: true,
 	}
-	if unique := rq.unique; unique != nil {
+	if unique := rq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := rq.fields; len(fields) > 0 {
+	if fields := rq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, repository.FieldID)
 		for i := range fields {
@@ -779,10 +782,10 @@ func (rq *RepositoryQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := rq.limit; limit != nil {
+	if limit := rq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := rq.offset; offset != nil {
+	if offset := rq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := rq.order; len(ps) > 0 {
@@ -798,7 +801,7 @@ func (rq *RepositoryQuery) querySpec() *sqlgraph.QuerySpec {
 func (rq *RepositoryQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(rq.driver.Dialect())
 	t1 := builder.Table(repository.Table)
-	columns := rq.fields
+	columns := rq.ctx.Fields
 	if len(columns) == 0 {
 		columns = repository.Columns
 	}
@@ -807,7 +810,7 @@ func (rq *RepositoryQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = rq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if rq.unique != nil && *rq.unique {
+	if rq.ctx.Unique != nil && *rq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range rq.predicates {
@@ -816,12 +819,12 @@ func (rq *RepositoryQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range rq.order {
 		p(selector)
 	}
-	if offset := rq.offset; offset != nil {
+	if offset := rq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := rq.limit; limit != nil {
+	if limit := rq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -829,13 +832,8 @@ func (rq *RepositoryQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // RepositoryGroupBy is the group-by builder for Repository entities.
 type RepositoryGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *RepositoryQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -844,58 +842,46 @@ func (rgb *RepositoryGroupBy) Aggregate(fns ...AggregateFunc) *RepositoryGroupBy
 	return rgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (rgb *RepositoryGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := rgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, rgb.build.ctx, "GroupBy")
+	if err := rgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	rgb.sql = query
-	return rgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*RepositoryQuery, *RepositoryGroupBy](ctx, rgb.build, rgb, rgb.build.inters, v)
 }
 
-func (rgb *RepositoryGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range rgb.fields {
-		if !repository.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (rgb *RepositoryGroupBy) sqlScan(ctx context.Context, root *RepositoryQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(rgb.fns))
+	for _, fn := range rgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := rgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*rgb.flds)+len(rgb.fns))
+		for _, f := range *rgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*rgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := rgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := rgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (rgb *RepositoryGroupBy) sqlQuery() *sql.Selector {
-	selector := rgb.sql.Select()
-	aggregation := make([]string, 0, len(rgb.fns))
-	for _, fn := range rgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(rgb.fields)+len(rgb.fns))
-		for _, f := range rgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(rgb.fields...)...)
-}
-
 // RepositorySelect is the builder for selecting fields of Repository entities.
 type RepositorySelect struct {
 	*RepositoryQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -906,26 +892,27 @@ func (rs *RepositorySelect) Aggregate(fns ...AggregateFunc) *RepositorySelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (rs *RepositorySelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, rs.ctx, "Select")
 	if err := rs.prepareQuery(ctx); err != nil {
 		return err
 	}
-	rs.sql = rs.RepositoryQuery.sqlQuery(ctx)
-	return rs.sqlScan(ctx, v)
+	return scanWithInterceptors[*RepositoryQuery, *RepositorySelect](ctx, rs.RepositoryQuery, rs, rs.inters, v)
 }
 
-func (rs *RepositorySelect) sqlScan(ctx context.Context, v any) error {
+func (rs *RepositorySelect) sqlScan(ctx context.Context, root *RepositoryQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(rs.fns))
 	for _, fn := range rs.fns {
-		aggregation = append(aggregation, fn(rs.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*rs.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		rs.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		rs.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := rs.sql.Query()
+	query, args := selector.Query()
 	if err := rs.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

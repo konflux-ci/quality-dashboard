@@ -92,14 +92,14 @@ func (t *Teams) assignValues(columns []string, values []any) error {
 
 // QueryRepositories queries the "repositories" edge of the Teams entity.
 func (t *Teams) QueryRepositories() *RepositoryQuery {
-	return (&TeamsClient{config: t.config}).QueryRepositories(t)
+	return NewTeamsClient(t.config).QueryRepositories(t)
 }
 
 // Update returns a builder for updating this Teams.
 // Note that you need to call Teams.Unwrap() before calling this method if this Teams
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (t *Teams) Update() *TeamsUpdateOne {
-	return (&TeamsClient{config: t.config}).UpdateOne(t)
+	return NewTeamsClient(t.config).UpdateOne(t)
 }
 
 // Unwrap unwraps the Teams entity that was returned from a transaction after it was closed,

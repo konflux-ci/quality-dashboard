@@ -19,6 +19,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -332,9 +333,24 @@ func (m *CodeCovMutation) Where(ps ...predicate.CodeCov) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the CodeCovMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CodeCovMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.CodeCov, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *CodeCovMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CodeCovMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (CodeCov).
@@ -1234,9 +1250,24 @@ func (m *ProwJobsMutation) Where(ps ...predicate.ProwJobs) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the ProwJobsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ProwJobsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ProwJobs, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *ProwJobsMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ProwJobsMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (ProwJobs).
@@ -1977,9 +2008,24 @@ func (m *ProwSuitesMutation) Where(ps ...predicate.ProwSuites) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the ProwSuitesMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ProwSuitesMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ProwSuites, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *ProwSuitesMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ProwSuitesMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (ProwSuites).
@@ -2766,9 +2812,24 @@ func (m *RepositoryMutation) Where(ps ...predicate.Repository) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the RepositoryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *RepositoryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Repository, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *RepositoryMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *RepositoryMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Repository).
@@ -3360,9 +3421,24 @@ func (m *TeamsMutation) Where(ps ...predicate.Teams) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the TeamsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TeamsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Teams, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *TeamsMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TeamsMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Teams).
@@ -3950,9 +4026,24 @@ func (m *WorkflowsMutation) Where(ps ...predicate.Workflows) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the WorkflowsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *WorkflowsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Workflows, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *WorkflowsMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *WorkflowsMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Workflows).

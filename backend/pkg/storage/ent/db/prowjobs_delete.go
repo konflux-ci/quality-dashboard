@@ -4,7 +4,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -28,34 +27,7 @@ func (pjd *ProwJobsDelete) Where(ps ...predicate.ProwJobs) *ProwJobsDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (pjd *ProwJobsDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(pjd.hooks) == 0 {
-		affected, err = pjd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ProwJobsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			pjd.mutation = mutation
-			affected, err = pjd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(pjd.hooks) - 1; i >= 0; i-- {
-			if pjd.hooks[i] == nil {
-				return 0, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = pjd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, pjd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, ProwJobsMutation](ctx, pjd.sqlExec, pjd.mutation, pjd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -88,12 +60,19 @@ func (pjd *ProwJobsDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	pjd.mutation.done = true
 	return affected, err
 }
 
 // ProwJobsDeleteOne is the builder for deleting a single ProwJobs entity.
 type ProwJobsDeleteOne struct {
 	pjd *ProwJobsDelete
+}
+
+// Where appends a list predicates to the ProwJobsDelete builder.
+func (pjdo *ProwJobsDeleteOne) Where(ps ...predicate.ProwJobs) *ProwJobsDeleteOne {
+	pjdo.pjd.mutation.Where(ps...)
+	return pjdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +90,7 @@ func (pjdo *ProwJobsDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (pjdo *ProwJobsDeleteOne) ExecX(ctx context.Context) {
-	pjdo.pjd.ExecX(ctx)
+	if err := pjdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

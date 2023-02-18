@@ -114,49 +114,7 @@ func (pjc *ProwJobsCreate) Mutation() *ProwJobsMutation {
 
 // Save creates the ProwJobs in the database.
 func (pjc *ProwJobsCreate) Save(ctx context.Context) (*ProwJobs, error) {
-	var (
-		err  error
-		node *ProwJobs
-	)
-	if len(pjc.hooks) == 0 {
-		if err = pjc.check(); err != nil {
-			return nil, err
-		}
-		node, err = pjc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ProwJobsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = pjc.check(); err != nil {
-				return nil, err
-			}
-			pjc.mutation = mutation
-			if node, err = pjc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(pjc.hooks) - 1; i >= 0; i-- {
-			if pjc.hooks[i] == nil {
-				return nil, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = pjc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, pjc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*ProwJobs)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from ProwJobsMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*ProwJobs, ProwJobsMutation](ctx, pjc.sqlSave, pjc.mutation, pjc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -220,6 +178,9 @@ func (pjc *ProwJobsCreate) check() error {
 }
 
 func (pjc *ProwJobsCreate) sqlSave(ctx context.Context) (*ProwJobs, error) {
+	if err := pjc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := pjc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, pjc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -229,6 +190,8 @@ func (pjc *ProwJobsCreate) sqlSave(ctx context.Context) (*ProwJobs, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	pjc.mutation.id = &_node.ID
+	pjc.mutation.done = true
 	return _node, nil
 }
 

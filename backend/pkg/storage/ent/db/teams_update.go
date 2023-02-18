@@ -84,34 +84,7 @@ func (tu *TeamsUpdate) RemoveRepositories(r ...*Repository) *TeamsUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tu *TeamsUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(tu.hooks) == 0 {
-		affected, err = tu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TeamsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			tu.mutation = mutation
-			affected, err = tu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(tu.hooks) - 1; i >= 0; i-- {
-			if tu.hooks[i] == nil {
-				return 0, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = tu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, tu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, TeamsMutation](ctx, tu.sqlSave, tu.mutation, tu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -222,6 +195,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	tu.mutation.done = true
 	return n, nil
 }
 
@@ -295,40 +269,7 @@ func (tuo *TeamsUpdateOne) Select(field string, fields ...string) *TeamsUpdateOn
 
 // Save executes the query and returns the updated Teams entity.
 func (tuo *TeamsUpdateOne) Save(ctx context.Context) (*Teams, error) {
-	var (
-		err  error
-		node *Teams
-	)
-	if len(tuo.hooks) == 0 {
-		node, err = tuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TeamsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			tuo.mutation = mutation
-			node, err = tuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(tuo.hooks) - 1; i >= 0; i-- {
-			if tuo.hooks[i] == nil {
-				return nil, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = tuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, tuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Teams)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from TeamsMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Teams, TeamsMutation](ctx, tuo.sqlSave, tuo.mutation, tuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -459,5 +400,6 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 		}
 		return nil, err
 	}
+	tuo.mutation.done = true
 	return _node, nil
 }

@@ -4,7 +4,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -28,34 +27,7 @@ func (psd *ProwSuitesDelete) Where(ps ...predicate.ProwSuites) *ProwSuitesDelete
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (psd *ProwSuitesDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(psd.hooks) == 0 {
-		affected, err = psd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ProwSuitesMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			psd.mutation = mutation
-			affected, err = psd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(psd.hooks) - 1; i >= 0; i-- {
-			if psd.hooks[i] == nil {
-				return 0, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = psd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, psd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, ProwSuitesMutation](ctx, psd.sqlExec, psd.mutation, psd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -88,12 +60,19 @@ func (psd *ProwSuitesDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	psd.mutation.done = true
 	return affected, err
 }
 
 // ProwSuitesDeleteOne is the builder for deleting a single ProwSuites entity.
 type ProwSuitesDeleteOne struct {
 	psd *ProwSuitesDelete
+}
+
+// Where appends a list predicates to the ProwSuitesDelete builder.
+func (psdo *ProwSuitesDeleteOne) Where(ps ...predicate.ProwSuites) *ProwSuitesDeleteOne {
+	psdo.psd.mutation.Where(ps...)
+	return psdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +90,7 @@ func (psdo *ProwSuitesDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (psdo *ProwSuitesDeleteOne) ExecX(ctx context.Context) {
-	psdo.psd.ExecX(ctx)
+	if err := psdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

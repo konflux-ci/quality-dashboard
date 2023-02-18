@@ -4,7 +4,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -28,34 +27,7 @@ func (wd *WorkflowsDelete) Where(ps ...predicate.Workflows) *WorkflowsDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (wd *WorkflowsDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(wd.hooks) == 0 {
-		affected, err = wd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*WorkflowsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			wd.mutation = mutation
-			affected, err = wd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(wd.hooks) - 1; i >= 0; i-- {
-			if wd.hooks[i] == nil {
-				return 0, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = wd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, wd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, WorkflowsMutation](ctx, wd.sqlExec, wd.mutation, wd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -88,12 +60,19 @@ func (wd *WorkflowsDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	wd.mutation.done = true
 	return affected, err
 }
 
 // WorkflowsDeleteOne is the builder for deleting a single Workflows entity.
 type WorkflowsDeleteOne struct {
 	wd *WorkflowsDelete
+}
+
+// Where appends a list predicates to the WorkflowsDelete builder.
+func (wdo *WorkflowsDeleteOne) Where(ps ...predicate.Workflows) *WorkflowsDeleteOne {
+	wdo.wd.mutation.Where(ps...)
+	return wdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +90,7 @@ func (wdo *WorkflowsDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (wdo *WorkflowsDeleteOne) ExecX(ctx context.Context) {
-	wdo.wd.ExecX(ctx)
+	if err := wdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

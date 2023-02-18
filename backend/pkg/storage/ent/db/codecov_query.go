@@ -19,11 +19,9 @@ import (
 // CodeCovQuery is the builder for querying CodeCov entities.
 type CodeCovQuery struct {
 	config
-	limit       *int
-	offset      *int
-	unique      *bool
+	ctx         *QueryContext
 	order       []OrderFunc
-	fields      []string
+	inters      []Interceptor
 	predicates  []predicate.CodeCov
 	withCodecov *RepositoryQuery
 	withFKs     bool
@@ -38,26 +36,26 @@ func (ccq *CodeCovQuery) Where(ps ...predicate.CodeCov) *CodeCovQuery {
 	return ccq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (ccq *CodeCovQuery) Limit(limit int) *CodeCovQuery {
-	ccq.limit = &limit
+	ccq.ctx.Limit = &limit
 	return ccq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (ccq *CodeCovQuery) Offset(offset int) *CodeCovQuery {
-	ccq.offset = &offset
+	ccq.ctx.Offset = &offset
 	return ccq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (ccq *CodeCovQuery) Unique(unique bool) *CodeCovQuery {
-	ccq.unique = &unique
+	ccq.ctx.Unique = &unique
 	return ccq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (ccq *CodeCovQuery) Order(o ...OrderFunc) *CodeCovQuery {
 	ccq.order = append(ccq.order, o...)
 	return ccq
@@ -65,7 +63,7 @@ func (ccq *CodeCovQuery) Order(o ...OrderFunc) *CodeCovQuery {
 
 // QueryCodecov chains the current query on the "codecov" edge.
 func (ccq *CodeCovQuery) QueryCodecov() *RepositoryQuery {
-	query := &RepositoryQuery{config: ccq.config}
+	query := (&RepositoryClient{config: ccq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := ccq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -88,7 +86,7 @@ func (ccq *CodeCovQuery) QueryCodecov() *RepositoryQuery {
 // First returns the first CodeCov entity from the query.
 // Returns a *NotFoundError when no CodeCov was found.
 func (ccq *CodeCovQuery) First(ctx context.Context) (*CodeCov, error) {
-	nodes, err := ccq.Limit(1).All(ctx)
+	nodes, err := ccq.Limit(1).All(setContextOp(ctx, ccq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +109,7 @@ func (ccq *CodeCovQuery) FirstX(ctx context.Context) *CodeCov {
 // Returns a *NotFoundError when no CodeCov ID was found.
 func (ccq *CodeCovQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = ccq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = ccq.Limit(1).IDs(setContextOp(ctx, ccq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -134,7 +132,7 @@ func (ccq *CodeCovQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one CodeCov entity is found.
 // Returns a *NotFoundError when no CodeCov entities are found.
 func (ccq *CodeCovQuery) Only(ctx context.Context) (*CodeCov, error) {
-	nodes, err := ccq.Limit(2).All(ctx)
+	nodes, err := ccq.Limit(2).All(setContextOp(ctx, ccq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +160,7 @@ func (ccq *CodeCovQuery) OnlyX(ctx context.Context) *CodeCov {
 // Returns a *NotFoundError when no entities are found.
 func (ccq *CodeCovQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = ccq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = ccq.Limit(2).IDs(setContextOp(ctx, ccq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -187,10 +185,12 @@ func (ccq *CodeCovQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of CodeCovs.
 func (ccq *CodeCovQuery) All(ctx context.Context) ([]*CodeCov, error) {
+	ctx = setContextOp(ctx, ccq.ctx, "All")
 	if err := ccq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return ccq.sqlAll(ctx)
+	qr := querierAll[[]*CodeCov, *CodeCovQuery]()
+	return withInterceptors[[]*CodeCov](ctx, ccq, qr, ccq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -205,6 +205,7 @@ func (ccq *CodeCovQuery) AllX(ctx context.Context) []*CodeCov {
 // IDs executes the query and returns a list of CodeCov IDs.
 func (ccq *CodeCovQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	var ids []uuid.UUID
+	ctx = setContextOp(ctx, ccq.ctx, "IDs")
 	if err := ccq.Select(codecov.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -222,10 +223,11 @@ func (ccq *CodeCovQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (ccq *CodeCovQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, ccq.ctx, "Count")
 	if err := ccq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return ccq.sqlCount(ctx)
+	return withInterceptors[int](ctx, ccq, querierCount[*CodeCovQuery](), ccq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -239,10 +241,15 @@ func (ccq *CodeCovQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (ccq *CodeCovQuery) Exist(ctx context.Context) (bool, error) {
-	if err := ccq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, ccq.ctx, "Exist")
+	switch _, err := ccq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("db: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return ccq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -262,22 +269,21 @@ func (ccq *CodeCovQuery) Clone() *CodeCovQuery {
 	}
 	return &CodeCovQuery{
 		config:      ccq.config,
-		limit:       ccq.limit,
-		offset:      ccq.offset,
+		ctx:         ccq.ctx.Clone(),
 		order:       append([]OrderFunc{}, ccq.order...),
+		inters:      append([]Interceptor{}, ccq.inters...),
 		predicates:  append([]predicate.CodeCov{}, ccq.predicates...),
 		withCodecov: ccq.withCodecov.Clone(),
 		// clone intermediate query.
-		sql:    ccq.sql.Clone(),
-		path:   ccq.path,
-		unique: ccq.unique,
+		sql:  ccq.sql.Clone(),
+		path: ccq.path,
 	}
 }
 
 // WithCodecov tells the query-builder to eager-load the nodes that are connected to
 // the "codecov" edge. The optional arguments are used to configure the query builder of the edge.
 func (ccq *CodeCovQuery) WithCodecov(opts ...func(*RepositoryQuery)) *CodeCovQuery {
-	query := &RepositoryQuery{config: ccq.config}
+	query := (&RepositoryClient{config: ccq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -300,16 +306,11 @@ func (ccq *CodeCovQuery) WithCodecov(opts ...func(*RepositoryQuery)) *CodeCovQue
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (ccq *CodeCovQuery) GroupBy(field string, fields ...string) *CodeCovGroupBy {
-	grbuild := &CodeCovGroupBy{config: ccq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := ccq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return ccq.sqlQuery(ctx), nil
-	}
+	ccq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &CodeCovGroupBy{build: ccq}
+	grbuild.flds = &ccq.ctx.Fields
 	grbuild.label = codecov.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -326,11 +327,11 @@ func (ccq *CodeCovQuery) GroupBy(field string, fields ...string) *CodeCovGroupBy
 //		Select(codecov.FieldRepositoryName).
 //		Scan(ctx, &v)
 func (ccq *CodeCovQuery) Select(fields ...string) *CodeCovSelect {
-	ccq.fields = append(ccq.fields, fields...)
-	selbuild := &CodeCovSelect{CodeCovQuery: ccq}
-	selbuild.label = codecov.Label
-	selbuild.flds, selbuild.scan = &ccq.fields, selbuild.Scan
-	return selbuild
+	ccq.ctx.Fields = append(ccq.ctx.Fields, fields...)
+	sbuild := &CodeCovSelect{CodeCovQuery: ccq}
+	sbuild.label = codecov.Label
+	sbuild.flds, sbuild.scan = &ccq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a CodeCovSelect configured with the given aggregations.
@@ -339,7 +340,17 @@ func (ccq *CodeCovQuery) Aggregate(fns ...AggregateFunc) *CodeCovSelect {
 }
 
 func (ccq *CodeCovQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range ccq.fields {
+	for _, inter := range ccq.inters {
+		if inter == nil {
+			return fmt.Errorf("db: uninitialized interceptor (forgotten import db/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, ccq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range ccq.ctx.Fields {
 		if !codecov.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("db: invalid field %q for query", f)}
 		}
@@ -409,6 +420,9 @@ func (ccq *CodeCovQuery) loadCodecov(ctx context.Context, query *RepositoryQuery
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
+	if len(ids) == 0 {
+		return nil
+	}
 	query.Where(repository.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -428,22 +442,11 @@ func (ccq *CodeCovQuery) loadCodecov(ctx context.Context, query *RepositoryQuery
 
 func (ccq *CodeCovQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := ccq.querySpec()
-	_spec.Node.Columns = ccq.fields
-	if len(ccq.fields) > 0 {
-		_spec.Unique = ccq.unique != nil && *ccq.unique
+	_spec.Node.Columns = ccq.ctx.Fields
+	if len(ccq.ctx.Fields) > 0 {
+		_spec.Unique = ccq.ctx.Unique != nil && *ccq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, ccq.driver, _spec)
-}
-
-func (ccq *CodeCovQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := ccq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("db: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (ccq *CodeCovQuery) querySpec() *sqlgraph.QuerySpec {
@@ -459,10 +462,10 @@ func (ccq *CodeCovQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   ccq.sql,
 		Unique: true,
 	}
-	if unique := ccq.unique; unique != nil {
+	if unique := ccq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := ccq.fields; len(fields) > 0 {
+	if fields := ccq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, codecov.FieldID)
 		for i := range fields {
@@ -478,10 +481,10 @@ func (ccq *CodeCovQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := ccq.limit; limit != nil {
+	if limit := ccq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := ccq.offset; offset != nil {
+	if offset := ccq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := ccq.order; len(ps) > 0 {
@@ -497,7 +500,7 @@ func (ccq *CodeCovQuery) querySpec() *sqlgraph.QuerySpec {
 func (ccq *CodeCovQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(ccq.driver.Dialect())
 	t1 := builder.Table(codecov.Table)
-	columns := ccq.fields
+	columns := ccq.ctx.Fields
 	if len(columns) == 0 {
 		columns = codecov.Columns
 	}
@@ -506,7 +509,7 @@ func (ccq *CodeCovQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = ccq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if ccq.unique != nil && *ccq.unique {
+	if ccq.ctx.Unique != nil && *ccq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range ccq.predicates {
@@ -515,12 +518,12 @@ func (ccq *CodeCovQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range ccq.order {
 		p(selector)
 	}
-	if offset := ccq.offset; offset != nil {
+	if offset := ccq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := ccq.limit; limit != nil {
+	if limit := ccq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -528,13 +531,8 @@ func (ccq *CodeCovQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // CodeCovGroupBy is the group-by builder for CodeCov entities.
 type CodeCovGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *CodeCovQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -543,58 +541,46 @@ func (ccgb *CodeCovGroupBy) Aggregate(fns ...AggregateFunc) *CodeCovGroupBy {
 	return ccgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (ccgb *CodeCovGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := ccgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, ccgb.build.ctx, "GroupBy")
+	if err := ccgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	ccgb.sql = query
-	return ccgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*CodeCovQuery, *CodeCovGroupBy](ctx, ccgb.build, ccgb, ccgb.build.inters, v)
 }
 
-func (ccgb *CodeCovGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range ccgb.fields {
-		if !codecov.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (ccgb *CodeCovGroupBy) sqlScan(ctx context.Context, root *CodeCovQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(ccgb.fns))
+	for _, fn := range ccgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := ccgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*ccgb.flds)+len(ccgb.fns))
+		for _, f := range *ccgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*ccgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := ccgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := ccgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (ccgb *CodeCovGroupBy) sqlQuery() *sql.Selector {
-	selector := ccgb.sql.Select()
-	aggregation := make([]string, 0, len(ccgb.fns))
-	for _, fn := range ccgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(ccgb.fields)+len(ccgb.fns))
-		for _, f := range ccgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(ccgb.fields...)...)
-}
-
 // CodeCovSelect is the builder for selecting fields of CodeCov entities.
 type CodeCovSelect struct {
 	*CodeCovQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -605,26 +591,27 @@ func (ccs *CodeCovSelect) Aggregate(fns ...AggregateFunc) *CodeCovSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (ccs *CodeCovSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, ccs.ctx, "Select")
 	if err := ccs.prepareQuery(ctx); err != nil {
 		return err
 	}
-	ccs.sql = ccs.CodeCovQuery.sqlQuery(ctx)
-	return ccs.sqlScan(ctx, v)
+	return scanWithInterceptors[*CodeCovQuery, *CodeCovSelect](ctx, ccs.CodeCovQuery, ccs, ccs.inters, v)
 }
 
-func (ccs *CodeCovSelect) sqlScan(ctx context.Context, v any) error {
+func (ccs *CodeCovSelect) sqlScan(ctx context.Context, root *CodeCovQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(ccs.fns))
 	for _, fn := range ccs.fns {
-		aggregation = append(aggregation, fn(ccs.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*ccs.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		ccs.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		ccs.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := ccs.sql.Query()
+	query, args := selector.Query()
 	if err := ccs.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

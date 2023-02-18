@@ -125,14 +125,14 @@ func (ps *ProwSuites) assignValues(columns []string, values []any) error {
 
 // QueryProwSuites queries the "prow_suites" edge of the ProwSuites entity.
 func (ps *ProwSuites) QueryProwSuites() *RepositoryQuery {
-	return (&ProwSuitesClient{config: ps.config}).QueryProwSuites(ps)
+	return NewProwSuitesClient(ps.config).QueryProwSuites(ps)
 }
 
 // Update returns a builder for updating this ProwSuites.
 // Note that you need to call ProwSuites.Unwrap() before calling this method if this ProwSuites
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ps *ProwSuites) Update() *ProwSuitesUpdateOne {
-	return (&ProwSuitesClient{config: ps.config}).UpdateOne(ps)
+	return NewProwSuitesClient(ps.config).UpdateOne(ps)
 }
 
 // Unwrap unwraps the ProwSuites entity that was returned from a transaction after it was closed,

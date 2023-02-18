@@ -19,11 +19,9 @@ import (
 // ProwJobsQuery is the builder for querying ProwJobs entities.
 type ProwJobsQuery struct {
 	config
-	limit        *int
-	offset       *int
-	unique       *bool
+	ctx          *QueryContext
 	order        []OrderFunc
-	fields       []string
+	inters       []Interceptor
 	predicates   []predicate.ProwJobs
 	withProwJobs *RepositoryQuery
 	withFKs      bool
@@ -38,26 +36,26 @@ func (pjq *ProwJobsQuery) Where(ps ...predicate.ProwJobs) *ProwJobsQuery {
 	return pjq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (pjq *ProwJobsQuery) Limit(limit int) *ProwJobsQuery {
-	pjq.limit = &limit
+	pjq.ctx.Limit = &limit
 	return pjq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (pjq *ProwJobsQuery) Offset(offset int) *ProwJobsQuery {
-	pjq.offset = &offset
+	pjq.ctx.Offset = &offset
 	return pjq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (pjq *ProwJobsQuery) Unique(unique bool) *ProwJobsQuery {
-	pjq.unique = &unique
+	pjq.ctx.Unique = &unique
 	return pjq
 }
 
-// Order adds an order step to the query.
+// Order specifies how the records should be ordered.
 func (pjq *ProwJobsQuery) Order(o ...OrderFunc) *ProwJobsQuery {
 	pjq.order = append(pjq.order, o...)
 	return pjq
@@ -65,7 +63,7 @@ func (pjq *ProwJobsQuery) Order(o ...OrderFunc) *ProwJobsQuery {
 
 // QueryProwJobs chains the current query on the "prow_jobs" edge.
 func (pjq *ProwJobsQuery) QueryProwJobs() *RepositoryQuery {
-	query := &RepositoryQuery{config: pjq.config}
+	query := (&RepositoryClient{config: pjq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pjq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -88,7 +86,7 @@ func (pjq *ProwJobsQuery) QueryProwJobs() *RepositoryQuery {
 // First returns the first ProwJobs entity from the query.
 // Returns a *NotFoundError when no ProwJobs was found.
 func (pjq *ProwJobsQuery) First(ctx context.Context) (*ProwJobs, error) {
-	nodes, err := pjq.Limit(1).All(ctx)
+	nodes, err := pjq.Limit(1).All(setContextOp(ctx, pjq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +109,7 @@ func (pjq *ProwJobsQuery) FirstX(ctx context.Context) *ProwJobs {
 // Returns a *NotFoundError when no ProwJobs ID was found.
 func (pjq *ProwJobsQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = pjq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = pjq.Limit(1).IDs(setContextOp(ctx, pjq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -134,7 +132,7 @@ func (pjq *ProwJobsQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one ProwJobs entity is found.
 // Returns a *NotFoundError when no ProwJobs entities are found.
 func (pjq *ProwJobsQuery) Only(ctx context.Context) (*ProwJobs, error) {
-	nodes, err := pjq.Limit(2).All(ctx)
+	nodes, err := pjq.Limit(2).All(setContextOp(ctx, pjq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +160,7 @@ func (pjq *ProwJobsQuery) OnlyX(ctx context.Context) *ProwJobs {
 // Returns a *NotFoundError when no entities are found.
 func (pjq *ProwJobsQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = pjq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = pjq.Limit(2).IDs(setContextOp(ctx, pjq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -187,10 +185,12 @@ func (pjq *ProwJobsQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of ProwJobsSlice.
 func (pjq *ProwJobsQuery) All(ctx context.Context) ([]*ProwJobs, error) {
+	ctx = setContextOp(ctx, pjq.ctx, "All")
 	if err := pjq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return pjq.sqlAll(ctx)
+	qr := querierAll[[]*ProwJobs, *ProwJobsQuery]()
+	return withInterceptors[[]*ProwJobs](ctx, pjq, qr, pjq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -205,6 +205,7 @@ func (pjq *ProwJobsQuery) AllX(ctx context.Context) []*ProwJobs {
 // IDs executes the query and returns a list of ProwJobs IDs.
 func (pjq *ProwJobsQuery) IDs(ctx context.Context) ([]int, error) {
 	var ids []int
+	ctx = setContextOp(ctx, pjq.ctx, "IDs")
 	if err := pjq.Select(prowjobs.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -222,10 +223,11 @@ func (pjq *ProwJobsQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (pjq *ProwJobsQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, pjq.ctx, "Count")
 	if err := pjq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return pjq.sqlCount(ctx)
+	return withInterceptors[int](ctx, pjq, querierCount[*ProwJobsQuery](), pjq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -239,10 +241,15 @@ func (pjq *ProwJobsQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (pjq *ProwJobsQuery) Exist(ctx context.Context) (bool, error) {
-	if err := pjq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, pjq.ctx, "Exist")
+	switch _, err := pjq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("db: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return pjq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -262,22 +269,21 @@ func (pjq *ProwJobsQuery) Clone() *ProwJobsQuery {
 	}
 	return &ProwJobsQuery{
 		config:       pjq.config,
-		limit:        pjq.limit,
-		offset:       pjq.offset,
+		ctx:          pjq.ctx.Clone(),
 		order:        append([]OrderFunc{}, pjq.order...),
+		inters:       append([]Interceptor{}, pjq.inters...),
 		predicates:   append([]predicate.ProwJobs{}, pjq.predicates...),
 		withProwJobs: pjq.withProwJobs.Clone(),
 		// clone intermediate query.
-		sql:    pjq.sql.Clone(),
-		path:   pjq.path,
-		unique: pjq.unique,
+		sql:  pjq.sql.Clone(),
+		path: pjq.path,
 	}
 }
 
 // WithProwJobs tells the query-builder to eager-load the nodes that are connected to
 // the "prow_jobs" edge. The optional arguments are used to configure the query builder of the edge.
 func (pjq *ProwJobsQuery) WithProwJobs(opts ...func(*RepositoryQuery)) *ProwJobsQuery {
-	query := &RepositoryQuery{config: pjq.config}
+	query := (&RepositoryClient{config: pjq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -300,16 +306,11 @@ func (pjq *ProwJobsQuery) WithProwJobs(opts ...func(*RepositoryQuery)) *ProwJobs
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
 func (pjq *ProwJobsQuery) GroupBy(field string, fields ...string) *ProwJobsGroupBy {
-	grbuild := &ProwJobsGroupBy{config: pjq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := pjq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return pjq.sqlQuery(ctx), nil
-	}
+	pjq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &ProwJobsGroupBy{build: pjq}
+	grbuild.flds = &pjq.ctx.Fields
 	grbuild.label = prowjobs.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -326,11 +327,11 @@ func (pjq *ProwJobsQuery) GroupBy(field string, fields ...string) *ProwJobsGroup
 //		Select(prowjobs.FieldJobID).
 //		Scan(ctx, &v)
 func (pjq *ProwJobsQuery) Select(fields ...string) *ProwJobsSelect {
-	pjq.fields = append(pjq.fields, fields...)
-	selbuild := &ProwJobsSelect{ProwJobsQuery: pjq}
-	selbuild.label = prowjobs.Label
-	selbuild.flds, selbuild.scan = &pjq.fields, selbuild.Scan
-	return selbuild
+	pjq.ctx.Fields = append(pjq.ctx.Fields, fields...)
+	sbuild := &ProwJobsSelect{ProwJobsQuery: pjq}
+	sbuild.label = prowjobs.Label
+	sbuild.flds, sbuild.scan = &pjq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a ProwJobsSelect configured with the given aggregations.
@@ -339,7 +340,17 @@ func (pjq *ProwJobsQuery) Aggregate(fns ...AggregateFunc) *ProwJobsSelect {
 }
 
 func (pjq *ProwJobsQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range pjq.fields {
+	for _, inter := range pjq.inters {
+		if inter == nil {
+			return fmt.Errorf("db: uninitialized interceptor (forgotten import db/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, pjq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range pjq.ctx.Fields {
 		if !prowjobs.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("db: invalid field %q for query", f)}
 		}
@@ -409,6 +420,9 @@ func (pjq *ProwJobsQuery) loadProwJobs(ctx context.Context, query *RepositoryQue
 		}
 		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
+	if len(ids) == 0 {
+		return nil
+	}
 	query.Where(repository.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -428,22 +442,11 @@ func (pjq *ProwJobsQuery) loadProwJobs(ctx context.Context, query *RepositoryQue
 
 func (pjq *ProwJobsQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := pjq.querySpec()
-	_spec.Node.Columns = pjq.fields
-	if len(pjq.fields) > 0 {
-		_spec.Unique = pjq.unique != nil && *pjq.unique
+	_spec.Node.Columns = pjq.ctx.Fields
+	if len(pjq.ctx.Fields) > 0 {
+		_spec.Unique = pjq.ctx.Unique != nil && *pjq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, pjq.driver, _spec)
-}
-
-func (pjq *ProwJobsQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := pjq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("db: check existence: %w", err)
-	default:
-		return true, nil
-	}
 }
 
 func (pjq *ProwJobsQuery) querySpec() *sqlgraph.QuerySpec {
@@ -459,10 +462,10 @@ func (pjq *ProwJobsQuery) querySpec() *sqlgraph.QuerySpec {
 		From:   pjq.sql,
 		Unique: true,
 	}
-	if unique := pjq.unique; unique != nil {
+	if unique := pjq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
 	}
-	if fields := pjq.fields; len(fields) > 0 {
+	if fields := pjq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, prowjobs.FieldID)
 		for i := range fields {
@@ -478,10 +481,10 @@ func (pjq *ProwJobsQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := pjq.limit; limit != nil {
+	if limit := pjq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := pjq.offset; offset != nil {
+	if offset := pjq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := pjq.order; len(ps) > 0 {
@@ -497,7 +500,7 @@ func (pjq *ProwJobsQuery) querySpec() *sqlgraph.QuerySpec {
 func (pjq *ProwJobsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(pjq.driver.Dialect())
 	t1 := builder.Table(prowjobs.Table)
-	columns := pjq.fields
+	columns := pjq.ctx.Fields
 	if len(columns) == 0 {
 		columns = prowjobs.Columns
 	}
@@ -506,7 +509,7 @@ func (pjq *ProwJobsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = pjq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if pjq.unique != nil && *pjq.unique {
+	if pjq.ctx.Unique != nil && *pjq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, p := range pjq.predicates {
@@ -515,12 +518,12 @@ func (pjq *ProwJobsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range pjq.order {
 		p(selector)
 	}
-	if offset := pjq.offset; offset != nil {
+	if offset := pjq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := pjq.limit; limit != nil {
+	if limit := pjq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -528,13 +531,8 @@ func (pjq *ProwJobsQuery) sqlQuery(ctx context.Context) *sql.Selector {
 
 // ProwJobsGroupBy is the group-by builder for ProwJobs entities.
 type ProwJobsGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *ProwJobsQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -543,58 +541,46 @@ func (pjgb *ProwJobsGroupBy) Aggregate(fns ...AggregateFunc) *ProwJobsGroupBy {
 	return pjgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (pjgb *ProwJobsGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := pjgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, pjgb.build.ctx, "GroupBy")
+	if err := pjgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	pjgb.sql = query
-	return pjgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*ProwJobsQuery, *ProwJobsGroupBy](ctx, pjgb.build, pjgb, pjgb.build.inters, v)
 }
 
-func (pjgb *ProwJobsGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range pjgb.fields {
-		if !prowjobs.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (pjgb *ProwJobsGroupBy) sqlScan(ctx context.Context, root *ProwJobsQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(pjgb.fns))
+	for _, fn := range pjgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := pjgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*pjgb.flds)+len(pjgb.fns))
+		for _, f := range *pjgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*pjgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := pjgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := pjgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (pjgb *ProwJobsGroupBy) sqlQuery() *sql.Selector {
-	selector := pjgb.sql.Select()
-	aggregation := make([]string, 0, len(pjgb.fns))
-	for _, fn := range pjgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(pjgb.fields)+len(pjgb.fns))
-		for _, f := range pjgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(pjgb.fields...)...)
-}
-
 // ProwJobsSelect is the builder for selecting fields of ProwJobs entities.
 type ProwJobsSelect struct {
 	*ProwJobsQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -605,26 +591,27 @@ func (pjs *ProwJobsSelect) Aggregate(fns ...AggregateFunc) *ProwJobsSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (pjs *ProwJobsSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, pjs.ctx, "Select")
 	if err := pjs.prepareQuery(ctx); err != nil {
 		return err
 	}
-	pjs.sql = pjs.ProwJobsQuery.sqlQuery(ctx)
-	return pjs.sqlScan(ctx, v)
+	return scanWithInterceptors[*ProwJobsQuery, *ProwJobsSelect](ctx, pjs.ProwJobsQuery, pjs, pjs.inters, v)
 }
 
-func (pjs *ProwJobsSelect) sqlScan(ctx context.Context, v any) error {
+func (pjs *ProwJobsSelect) sqlScan(ctx context.Context, root *ProwJobsQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(pjs.fns))
 	for _, fn := range pjs.fns {
-		aggregation = append(aggregation, fn(pjs.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*pjs.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		pjs.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		pjs.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := pjs.sql.Query()
+	query, args := selector.Query()
 	if err := pjs.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

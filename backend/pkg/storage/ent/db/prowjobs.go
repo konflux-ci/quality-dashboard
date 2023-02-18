@@ -184,14 +184,14 @@ func (pj *ProwJobs) assignValues(columns []string, values []any) error {
 
 // QueryProwJobs queries the "prow_jobs" edge of the ProwJobs entity.
 func (pj *ProwJobs) QueryProwJobs() *RepositoryQuery {
-	return (&ProwJobsClient{config: pj.config}).QueryProwJobs(pj)
+	return NewProwJobsClient(pj.config).QueryProwJobs(pj)
 }
 
 // Update returns a builder for updating this ProwJobs.
 // Note that you need to call ProwJobs.Unwrap() before calling this method if this ProwJobs
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (pj *ProwJobs) Update() *ProwJobsUpdateOne {
-	return (&ProwJobsClient{config: pj.config}).UpdateOne(pj)
+	return NewProwJobsClient(pj.config).UpdateOne(pj)
 }
 
 // Unwrap unwraps the ProwJobs entity that was returned from a transaction after it was closed,

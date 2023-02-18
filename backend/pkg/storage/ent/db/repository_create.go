@@ -149,50 +149,8 @@ func (rc *RepositoryCreate) Mutation() *RepositoryMutation {
 
 // Save creates the Repository in the database.
 func (rc *RepositoryCreate) Save(ctx context.Context) (*Repository, error) {
-	var (
-		err  error
-		node *Repository
-	)
 	rc.defaults()
-	if len(rc.hooks) == 0 {
-		if err = rc.check(); err != nil {
-			return nil, err
-		}
-		node, err = rc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*RepositoryMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = rc.check(); err != nil {
-				return nil, err
-			}
-			rc.mutation = mutation
-			if node, err = rc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(rc.hooks) - 1; i >= 0; i-- {
-			if rc.hooks[i] == nil {
-				return nil, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = rc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, rc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*Repository)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from RepositoryMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*Repository, RepositoryMutation](ctx, rc.sqlSave, rc.mutation, rc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -263,6 +221,9 @@ func (rc *RepositoryCreate) check() error {
 }
 
 func (rc *RepositoryCreate) sqlSave(ctx context.Context) (*Repository, error) {
+	if err := rc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := rc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, rc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -277,6 +238,8 @@ func (rc *RepositoryCreate) sqlSave(ctx context.Context) (*Repository, error) {
 			return nil, err
 		}
 	}
+	rc.mutation.id = &_node.ID
+	rc.mutation.done = true
 	return _node, nil
 }
 

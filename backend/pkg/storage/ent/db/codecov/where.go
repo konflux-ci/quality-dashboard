@@ -11,356 +11,232 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id uuid.UUID) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.CodeCov(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id uuid.UUID) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.CodeCov(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id uuid.UUID) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.CodeCov(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...uuid.UUID) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.CodeCov(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...uuid.UUID) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.CodeCov(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id uuid.UUID) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.CodeCov(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id uuid.UUID) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.CodeCov(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id uuid.UUID) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.CodeCov(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id uuid.UUID) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.CodeCov(sql.FieldLTE(FieldID, id))
 }
 
 // RepositoryName applies equality check predicate on the "repository_name" field. It's identical to RepositoryNameEQ.
 func RepositoryName(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldRepositoryName), v))
-	})
+	return predicate.CodeCov(sql.FieldEQ(FieldRepositoryName, v))
 }
 
 // GitOrganization applies equality check predicate on the "git_organization" field. It's identical to GitOrganizationEQ.
 func GitOrganization(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldGitOrganization), v))
-	})
+	return predicate.CodeCov(sql.FieldEQ(FieldGitOrganization, v))
 }
 
 // CoveragePercentage applies equality check predicate on the "coverage_percentage" field. It's identical to CoveragePercentageEQ.
 func CoveragePercentage(v float64) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCoveragePercentage), v))
-	})
+	return predicate.CodeCov(sql.FieldEQ(FieldCoveragePercentage, v))
 }
 
 // RepositoryNameEQ applies the EQ predicate on the "repository_name" field.
 func RepositoryNameEQ(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldRepositoryName), v))
-	})
+	return predicate.CodeCov(sql.FieldEQ(FieldRepositoryName, v))
 }
 
 // RepositoryNameNEQ applies the NEQ predicate on the "repository_name" field.
 func RepositoryNameNEQ(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldRepositoryName), v))
-	})
+	return predicate.CodeCov(sql.FieldNEQ(FieldRepositoryName, v))
 }
 
 // RepositoryNameIn applies the In predicate on the "repository_name" field.
 func RepositoryNameIn(vs ...string) predicate.CodeCov {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldRepositoryName), v...))
-	})
+	return predicate.CodeCov(sql.FieldIn(FieldRepositoryName, vs...))
 }
 
 // RepositoryNameNotIn applies the NotIn predicate on the "repository_name" field.
 func RepositoryNameNotIn(vs ...string) predicate.CodeCov {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldRepositoryName), v...))
-	})
+	return predicate.CodeCov(sql.FieldNotIn(FieldRepositoryName, vs...))
 }
 
 // RepositoryNameGT applies the GT predicate on the "repository_name" field.
 func RepositoryNameGT(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldRepositoryName), v))
-	})
+	return predicate.CodeCov(sql.FieldGT(FieldRepositoryName, v))
 }
 
 // RepositoryNameGTE applies the GTE predicate on the "repository_name" field.
 func RepositoryNameGTE(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldRepositoryName), v))
-	})
+	return predicate.CodeCov(sql.FieldGTE(FieldRepositoryName, v))
 }
 
 // RepositoryNameLT applies the LT predicate on the "repository_name" field.
 func RepositoryNameLT(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldRepositoryName), v))
-	})
+	return predicate.CodeCov(sql.FieldLT(FieldRepositoryName, v))
 }
 
 // RepositoryNameLTE applies the LTE predicate on the "repository_name" field.
 func RepositoryNameLTE(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldRepositoryName), v))
-	})
+	return predicate.CodeCov(sql.FieldLTE(FieldRepositoryName, v))
 }
 
 // RepositoryNameContains applies the Contains predicate on the "repository_name" field.
 func RepositoryNameContains(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldRepositoryName), v))
-	})
+	return predicate.CodeCov(sql.FieldContains(FieldRepositoryName, v))
 }
 
 // RepositoryNameHasPrefix applies the HasPrefix predicate on the "repository_name" field.
 func RepositoryNameHasPrefix(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldRepositoryName), v))
-	})
+	return predicate.CodeCov(sql.FieldHasPrefix(FieldRepositoryName, v))
 }
 
 // RepositoryNameHasSuffix applies the HasSuffix predicate on the "repository_name" field.
 func RepositoryNameHasSuffix(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldRepositoryName), v))
-	})
+	return predicate.CodeCov(sql.FieldHasSuffix(FieldRepositoryName, v))
 }
 
 // RepositoryNameEqualFold applies the EqualFold predicate on the "repository_name" field.
 func RepositoryNameEqualFold(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldRepositoryName), v))
-	})
+	return predicate.CodeCov(sql.FieldEqualFold(FieldRepositoryName, v))
 }
 
 // RepositoryNameContainsFold applies the ContainsFold predicate on the "repository_name" field.
 func RepositoryNameContainsFold(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldRepositoryName), v))
-	})
+	return predicate.CodeCov(sql.FieldContainsFold(FieldRepositoryName, v))
 }
 
 // GitOrganizationEQ applies the EQ predicate on the "git_organization" field.
 func GitOrganizationEQ(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldGitOrganization), v))
-	})
+	return predicate.CodeCov(sql.FieldEQ(FieldGitOrganization, v))
 }
 
 // GitOrganizationNEQ applies the NEQ predicate on the "git_organization" field.
 func GitOrganizationNEQ(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldGitOrganization), v))
-	})
+	return predicate.CodeCov(sql.FieldNEQ(FieldGitOrganization, v))
 }
 
 // GitOrganizationIn applies the In predicate on the "git_organization" field.
 func GitOrganizationIn(vs ...string) predicate.CodeCov {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldGitOrganization), v...))
-	})
+	return predicate.CodeCov(sql.FieldIn(FieldGitOrganization, vs...))
 }
 
 // GitOrganizationNotIn applies the NotIn predicate on the "git_organization" field.
 func GitOrganizationNotIn(vs ...string) predicate.CodeCov {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldGitOrganization), v...))
-	})
+	return predicate.CodeCov(sql.FieldNotIn(FieldGitOrganization, vs...))
 }
 
 // GitOrganizationGT applies the GT predicate on the "git_organization" field.
 func GitOrganizationGT(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldGitOrganization), v))
-	})
+	return predicate.CodeCov(sql.FieldGT(FieldGitOrganization, v))
 }
 
 // GitOrganizationGTE applies the GTE predicate on the "git_organization" field.
 func GitOrganizationGTE(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldGitOrganization), v))
-	})
+	return predicate.CodeCov(sql.FieldGTE(FieldGitOrganization, v))
 }
 
 // GitOrganizationLT applies the LT predicate on the "git_organization" field.
 func GitOrganizationLT(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldGitOrganization), v))
-	})
+	return predicate.CodeCov(sql.FieldLT(FieldGitOrganization, v))
 }
 
 // GitOrganizationLTE applies the LTE predicate on the "git_organization" field.
 func GitOrganizationLTE(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldGitOrganization), v))
-	})
+	return predicate.CodeCov(sql.FieldLTE(FieldGitOrganization, v))
 }
 
 // GitOrganizationContains applies the Contains predicate on the "git_organization" field.
 func GitOrganizationContains(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldGitOrganization), v))
-	})
+	return predicate.CodeCov(sql.FieldContains(FieldGitOrganization, v))
 }
 
 // GitOrganizationHasPrefix applies the HasPrefix predicate on the "git_organization" field.
 func GitOrganizationHasPrefix(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldGitOrganization), v))
-	})
+	return predicate.CodeCov(sql.FieldHasPrefix(FieldGitOrganization, v))
 }
 
 // GitOrganizationHasSuffix applies the HasSuffix predicate on the "git_organization" field.
 func GitOrganizationHasSuffix(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldGitOrganization), v))
-	})
+	return predicate.CodeCov(sql.FieldHasSuffix(FieldGitOrganization, v))
 }
 
 // GitOrganizationEqualFold applies the EqualFold predicate on the "git_organization" field.
 func GitOrganizationEqualFold(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldGitOrganization), v))
-	})
+	return predicate.CodeCov(sql.FieldEqualFold(FieldGitOrganization, v))
 }
 
 // GitOrganizationContainsFold applies the ContainsFold predicate on the "git_organization" field.
 func GitOrganizationContainsFold(v string) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldGitOrganization), v))
-	})
+	return predicate.CodeCov(sql.FieldContainsFold(FieldGitOrganization, v))
 }
 
 // CoveragePercentageEQ applies the EQ predicate on the "coverage_percentage" field.
 func CoveragePercentageEQ(v float64) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCoveragePercentage), v))
-	})
+	return predicate.CodeCov(sql.FieldEQ(FieldCoveragePercentage, v))
 }
 
 // CoveragePercentageNEQ applies the NEQ predicate on the "coverage_percentage" field.
 func CoveragePercentageNEQ(v float64) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCoveragePercentage), v))
-	})
+	return predicate.CodeCov(sql.FieldNEQ(FieldCoveragePercentage, v))
 }
 
 // CoveragePercentageIn applies the In predicate on the "coverage_percentage" field.
 func CoveragePercentageIn(vs ...float64) predicate.CodeCov {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldCoveragePercentage), v...))
-	})
+	return predicate.CodeCov(sql.FieldIn(FieldCoveragePercentage, vs...))
 }
 
 // CoveragePercentageNotIn applies the NotIn predicate on the "coverage_percentage" field.
 func CoveragePercentageNotIn(vs ...float64) predicate.CodeCov {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldCoveragePercentage), v...))
-	})
+	return predicate.CodeCov(sql.FieldNotIn(FieldCoveragePercentage, vs...))
 }
 
 // CoveragePercentageGT applies the GT predicate on the "coverage_percentage" field.
 func CoveragePercentageGT(v float64) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCoveragePercentage), v))
-	})
+	return predicate.CodeCov(sql.FieldGT(FieldCoveragePercentage, v))
 }
 
 // CoveragePercentageGTE applies the GTE predicate on the "coverage_percentage" field.
 func CoveragePercentageGTE(v float64) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCoveragePercentage), v))
-	})
+	return predicate.CodeCov(sql.FieldGTE(FieldCoveragePercentage, v))
 }
 
 // CoveragePercentageLT applies the LT predicate on the "coverage_percentage" field.
 func CoveragePercentageLT(v float64) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCoveragePercentage), v))
-	})
+	return predicate.CodeCov(sql.FieldLT(FieldCoveragePercentage, v))
 }
 
 // CoveragePercentageLTE applies the LTE predicate on the "coverage_percentage" field.
 func CoveragePercentageLTE(v float64) predicate.CodeCov {
-	return predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCoveragePercentage), v))
-	})
+	return predicate.CodeCov(sql.FieldLTE(FieldCoveragePercentage, v))
 }
 
 // HasCodecov applies the HasEdge predicate on the "codecov" edge.
@@ -368,7 +244,6 @@ func HasCodecov() predicate.CodeCov {
 	return predicate.CodeCov(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CodecovTable, RepositoryFieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, CodecovTable, CodecovColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)

@@ -92,34 +92,7 @@ func (psu *ProwSuitesUpdate) ClearProwSuites() *ProwSuitesUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (psu *ProwSuitesUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(psu.hooks) == 0 {
-		affected, err = psu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ProwSuitesMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			psu.mutation = mutation
-			affected, err = psu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(psu.hooks) - 1; i >= 0; i-- {
-			if psu.hooks[i] == nil {
-				return 0, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = psu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, psu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, ProwSuitesMutation](ctx, psu.sqlSave, psu.mutation, psu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -220,6 +193,7 @@ func (psu *ProwSuitesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	psu.mutation.done = true
 	return n, nil
 }
 
@@ -301,40 +275,7 @@ func (psuo *ProwSuitesUpdateOne) Select(field string, fields ...string) *ProwSui
 
 // Save executes the query and returns the updated ProwSuites entity.
 func (psuo *ProwSuitesUpdateOne) Save(ctx context.Context) (*ProwSuites, error) {
-	var (
-		err  error
-		node *ProwSuites
-	)
-	if len(psuo.hooks) == 0 {
-		node, err = psuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ProwSuitesMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			psuo.mutation = mutation
-			node, err = psuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(psuo.hooks) - 1; i >= 0; i-- {
-			if psuo.hooks[i] == nil {
-				return nil, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = psuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, psuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*ProwSuites)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from ProwSuitesMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*ProwSuites, ProwSuitesMutation](ctx, psuo.sqlSave, psuo.mutation, psuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -455,5 +396,6 @@ func (psuo *ProwSuitesUpdateOne) sqlSave(ctx context.Context) (_node *ProwSuites
 		}
 		return nil, err
 	}
+	psuo.mutation.done = true
 	return _node, nil
 }

@@ -167,34 +167,34 @@ func (r *Repository) assignValues(columns []string, values []any) error {
 
 // QueryRepositories queries the "repositories" edge of the Repository entity.
 func (r *Repository) QueryRepositories() *TeamsQuery {
-	return (&RepositoryClient{config: r.config}).QueryRepositories(r)
+	return NewRepositoryClient(r.config).QueryRepositories(r)
 }
 
 // QueryWorkflows queries the "workflows" edge of the Repository entity.
 func (r *Repository) QueryWorkflows() *WorkflowsQuery {
-	return (&RepositoryClient{config: r.config}).QueryWorkflows(r)
+	return NewRepositoryClient(r.config).QueryWorkflows(r)
 }
 
 // QueryCodecov queries the "codecov" edge of the Repository entity.
 func (r *Repository) QueryCodecov() *CodeCovQuery {
-	return (&RepositoryClient{config: r.config}).QueryCodecov(r)
+	return NewRepositoryClient(r.config).QueryCodecov(r)
 }
 
 // QueryProwSuites queries the "prow_suites" edge of the Repository entity.
 func (r *Repository) QueryProwSuites() *ProwSuitesQuery {
-	return (&RepositoryClient{config: r.config}).QueryProwSuites(r)
+	return NewRepositoryClient(r.config).QueryProwSuites(r)
 }
 
 // QueryProwJobs queries the "prow_jobs" edge of the Repository entity.
 func (r *Repository) QueryProwJobs() *ProwJobsQuery {
-	return (&RepositoryClient{config: r.config}).QueryProwJobs(r)
+	return NewRepositoryClient(r.config).QueryProwJobs(r)
 }
 
 // Update returns a builder for updating this Repository.
 // Note that you need to call Repository.Unwrap() before calling this method if this Repository
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (r *Repository) Update() *RepositoryUpdateOne {
-	return (&RepositoryClient{config: r.config}).UpdateOne(r)
+	return NewRepositoryClient(r.config).UpdateOne(r)
 }
 
 // Unwrap unwraps the Repository entity that was returned from a transaction after it was closed,

@@ -163,34 +163,7 @@ func (pju *ProwJobsUpdate) ClearProwJobs() *ProwJobsUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (pju *ProwJobsUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(pju.hooks) == 0 {
-		affected, err = pju.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ProwJobsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			pju.mutation = mutation
-			affected, err = pju.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(pju.hooks) - 1; i >= 0; i-- {
-			if pju.hooks[i] == nil {
-				return 0, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = pju.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, pju.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, ProwJobsMutation](ctx, pju.sqlSave, pju.mutation, pju.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -324,6 +297,7 @@ func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	pju.mutation.done = true
 	return n, nil
 }
 
@@ -475,40 +449,7 @@ func (pjuo *ProwJobsUpdateOne) Select(field string, fields ...string) *ProwJobsU
 
 // Save executes the query and returns the updated ProwJobs entity.
 func (pjuo *ProwJobsUpdateOne) Save(ctx context.Context) (*ProwJobs, error) {
-	var (
-		err  error
-		node *ProwJobs
-	)
-	if len(pjuo.hooks) == 0 {
-		node, err = pjuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*ProwJobsMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			pjuo.mutation = mutation
-			node, err = pjuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(pjuo.hooks) - 1; i >= 0; i-- {
-			if pjuo.hooks[i] == nil {
-				return nil, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = pjuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, pjuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*ProwJobs)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from ProwJobsMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*ProwJobs, ProwJobsMutation](ctx, pjuo.sqlSave, pjuo.mutation, pjuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -662,5 +603,6 @@ func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, er
 		}
 		return nil, err
 	}
+	pjuo.mutation.done = true
 	return _node, nil
 }

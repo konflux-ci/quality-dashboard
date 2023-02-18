@@ -4,7 +4,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -28,34 +27,7 @@ func (ccd *CodeCovDelete) Where(ps ...predicate.CodeCov) *CodeCovDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ccd *CodeCovDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(ccd.hooks) == 0 {
-		affected, err = ccd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*CodeCovMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ccd.mutation = mutation
-			affected, err = ccd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(ccd.hooks) - 1; i >= 0; i-- {
-			if ccd.hooks[i] == nil {
-				return 0, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = ccd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, ccd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, CodeCovMutation](ctx, ccd.sqlExec, ccd.mutation, ccd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -88,12 +60,19 @@ func (ccd *CodeCovDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	ccd.mutation.done = true
 	return affected, err
 }
 
 // CodeCovDeleteOne is the builder for deleting a single CodeCov entity.
 type CodeCovDeleteOne struct {
 	ccd *CodeCovDelete
+}
+
+// Where appends a list predicates to the CodeCovDelete builder.
+func (ccdo *CodeCovDeleteOne) Where(ps ...predicate.CodeCov) *CodeCovDeleteOne {
+	ccdo.ccd.mutation.Where(ps...)
+	return ccdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +90,7 @@ func (ccdo *CodeCovDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (ccdo *CodeCovDeleteOne) ExecX(ctx context.Context) {
-	ccdo.ccd.ExecX(ctx)
+	if err := ccdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

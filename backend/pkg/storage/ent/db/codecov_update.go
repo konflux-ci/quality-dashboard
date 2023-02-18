@@ -86,40 +86,7 @@ func (ccu *CodeCovUpdate) ClearCodecov() *CodeCovUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ccu *CodeCovUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(ccu.hooks) == 0 {
-		if err = ccu.check(); err != nil {
-			return 0, err
-		}
-		affected, err = ccu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*CodeCovMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ccu.check(); err != nil {
-				return 0, err
-			}
-			ccu.mutation = mutation
-			affected, err = ccu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(ccu.hooks) - 1; i >= 0; i-- {
-			if ccu.hooks[i] == nil {
-				return 0, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = ccu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, ccu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, CodeCovMutation](ctx, ccu.sqlSave, ccu.mutation, ccu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -155,6 +122,9 @@ func (ccu *CodeCovUpdate) check() error {
 }
 
 func (ccu *CodeCovUpdate) sqlSave(ctx context.Context) (n int, err error) {
+	if err := ccu.check(); err != nil {
+		return n, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   codecov.Table,
@@ -227,6 +197,7 @@ func (ccu *CodeCovUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	ccu.mutation.done = true
 	return n, nil
 }
 
@@ -302,46 +273,7 @@ func (ccuo *CodeCovUpdateOne) Select(field string, fields ...string) *CodeCovUpd
 
 // Save executes the query and returns the updated CodeCov entity.
 func (ccuo *CodeCovUpdateOne) Save(ctx context.Context) (*CodeCov, error) {
-	var (
-		err  error
-		node *CodeCov
-	)
-	if len(ccuo.hooks) == 0 {
-		if err = ccuo.check(); err != nil {
-			return nil, err
-		}
-		node, err = ccuo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*CodeCovMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ccuo.check(); err != nil {
-				return nil, err
-			}
-			ccuo.mutation = mutation
-			node, err = ccuo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ccuo.hooks) - 1; i >= 0; i-- {
-			if ccuo.hooks[i] == nil {
-				return nil, fmt.Errorf("db: uninitialized hook (forgotten import db/runtime?)")
-			}
-			mut = ccuo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ccuo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*CodeCov)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from CodeCovMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*CodeCov, CodeCovMutation](ctx, ccuo.sqlSave, ccuo.mutation, ccuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -377,6 +309,9 @@ func (ccuo *CodeCovUpdateOne) check() error {
 }
 
 func (ccuo *CodeCovUpdateOne) sqlSave(ctx context.Context) (_node *CodeCov, err error) {
+	if err := ccuo.check(); err != nil {
+		return _node, err
+	}
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   codecov.Table,
@@ -469,5 +404,6 @@ func (ccuo *CodeCovUpdateOne) sqlSave(ctx context.Context) (_node *CodeCov, err 
 		}
 		return nil, err
 	}
+	ccuo.mutation.done = true
 	return _node, nil
 }

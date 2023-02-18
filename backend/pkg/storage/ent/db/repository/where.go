@@ -11,497 +11,327 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id uuid.UUID) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.Repository(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id uuid.UUID) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.Repository(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id uuid.UUID) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.Repository(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...uuid.UUID) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.Repository(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...uuid.UUID) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.Repository(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id uuid.UUID) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.Repository(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id uuid.UUID) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.Repository(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id uuid.UUID) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.Repository(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id uuid.UUID) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.Repository(sql.FieldLTE(FieldID, id))
 }
 
 // RepositoryName applies equality check predicate on the "repository_name" field. It's identical to RepositoryNameEQ.
 func RepositoryName(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldRepositoryName), v))
-	})
+	return predicate.Repository(sql.FieldEQ(FieldRepositoryName, v))
 }
 
 // GitOrganization applies equality check predicate on the "git_organization" field. It's identical to GitOrganizationEQ.
 func GitOrganization(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldGitOrganization), v))
-	})
+	return predicate.Repository(sql.FieldEQ(FieldGitOrganization, v))
 }
 
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
 func Description(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldDescription), v))
-	})
+	return predicate.Repository(sql.FieldEQ(FieldDescription, v))
 }
 
 // GitURL applies equality check predicate on the "git_url" field. It's identical to GitURLEQ.
 func GitURL(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldGitURL), v))
-	})
+	return predicate.Repository(sql.FieldEQ(FieldGitURL, v))
 }
 
 // RepositoryNameEQ applies the EQ predicate on the "repository_name" field.
 func RepositoryNameEQ(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldRepositoryName), v))
-	})
+	return predicate.Repository(sql.FieldEQ(FieldRepositoryName, v))
 }
 
 // RepositoryNameNEQ applies the NEQ predicate on the "repository_name" field.
 func RepositoryNameNEQ(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldRepositoryName), v))
-	})
+	return predicate.Repository(sql.FieldNEQ(FieldRepositoryName, v))
 }
 
 // RepositoryNameIn applies the In predicate on the "repository_name" field.
 func RepositoryNameIn(vs ...string) predicate.Repository {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldRepositoryName), v...))
-	})
+	return predicate.Repository(sql.FieldIn(FieldRepositoryName, vs...))
 }
 
 // RepositoryNameNotIn applies the NotIn predicate on the "repository_name" field.
 func RepositoryNameNotIn(vs ...string) predicate.Repository {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldRepositoryName), v...))
-	})
+	return predicate.Repository(sql.FieldNotIn(FieldRepositoryName, vs...))
 }
 
 // RepositoryNameGT applies the GT predicate on the "repository_name" field.
 func RepositoryNameGT(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldRepositoryName), v))
-	})
+	return predicate.Repository(sql.FieldGT(FieldRepositoryName, v))
 }
 
 // RepositoryNameGTE applies the GTE predicate on the "repository_name" field.
 func RepositoryNameGTE(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldRepositoryName), v))
-	})
+	return predicate.Repository(sql.FieldGTE(FieldRepositoryName, v))
 }
 
 // RepositoryNameLT applies the LT predicate on the "repository_name" field.
 func RepositoryNameLT(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldRepositoryName), v))
-	})
+	return predicate.Repository(sql.FieldLT(FieldRepositoryName, v))
 }
 
 // RepositoryNameLTE applies the LTE predicate on the "repository_name" field.
 func RepositoryNameLTE(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldRepositoryName), v))
-	})
+	return predicate.Repository(sql.FieldLTE(FieldRepositoryName, v))
 }
 
 // RepositoryNameContains applies the Contains predicate on the "repository_name" field.
 func RepositoryNameContains(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldRepositoryName), v))
-	})
+	return predicate.Repository(sql.FieldContains(FieldRepositoryName, v))
 }
 
 // RepositoryNameHasPrefix applies the HasPrefix predicate on the "repository_name" field.
 func RepositoryNameHasPrefix(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldRepositoryName), v))
-	})
+	return predicate.Repository(sql.FieldHasPrefix(FieldRepositoryName, v))
 }
 
 // RepositoryNameHasSuffix applies the HasSuffix predicate on the "repository_name" field.
 func RepositoryNameHasSuffix(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldRepositoryName), v))
-	})
+	return predicate.Repository(sql.FieldHasSuffix(FieldRepositoryName, v))
 }
 
 // RepositoryNameEqualFold applies the EqualFold predicate on the "repository_name" field.
 func RepositoryNameEqualFold(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldRepositoryName), v))
-	})
+	return predicate.Repository(sql.FieldEqualFold(FieldRepositoryName, v))
 }
 
 // RepositoryNameContainsFold applies the ContainsFold predicate on the "repository_name" field.
 func RepositoryNameContainsFold(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldRepositoryName), v))
-	})
+	return predicate.Repository(sql.FieldContainsFold(FieldRepositoryName, v))
 }
 
 // GitOrganizationEQ applies the EQ predicate on the "git_organization" field.
 func GitOrganizationEQ(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldGitOrganization), v))
-	})
+	return predicate.Repository(sql.FieldEQ(FieldGitOrganization, v))
 }
 
 // GitOrganizationNEQ applies the NEQ predicate on the "git_organization" field.
 func GitOrganizationNEQ(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldGitOrganization), v))
-	})
+	return predicate.Repository(sql.FieldNEQ(FieldGitOrganization, v))
 }
 
 // GitOrganizationIn applies the In predicate on the "git_organization" field.
 func GitOrganizationIn(vs ...string) predicate.Repository {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldGitOrganization), v...))
-	})
+	return predicate.Repository(sql.FieldIn(FieldGitOrganization, vs...))
 }
 
 // GitOrganizationNotIn applies the NotIn predicate on the "git_organization" field.
 func GitOrganizationNotIn(vs ...string) predicate.Repository {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldGitOrganization), v...))
-	})
+	return predicate.Repository(sql.FieldNotIn(FieldGitOrganization, vs...))
 }
 
 // GitOrganizationGT applies the GT predicate on the "git_organization" field.
 func GitOrganizationGT(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldGitOrganization), v))
-	})
+	return predicate.Repository(sql.FieldGT(FieldGitOrganization, v))
 }
 
 // GitOrganizationGTE applies the GTE predicate on the "git_organization" field.
 func GitOrganizationGTE(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldGitOrganization), v))
-	})
+	return predicate.Repository(sql.FieldGTE(FieldGitOrganization, v))
 }
 
 // GitOrganizationLT applies the LT predicate on the "git_organization" field.
 func GitOrganizationLT(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldGitOrganization), v))
-	})
+	return predicate.Repository(sql.FieldLT(FieldGitOrganization, v))
 }
 
 // GitOrganizationLTE applies the LTE predicate on the "git_organization" field.
 func GitOrganizationLTE(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldGitOrganization), v))
-	})
+	return predicate.Repository(sql.FieldLTE(FieldGitOrganization, v))
 }
 
 // GitOrganizationContains applies the Contains predicate on the "git_organization" field.
 func GitOrganizationContains(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldGitOrganization), v))
-	})
+	return predicate.Repository(sql.FieldContains(FieldGitOrganization, v))
 }
 
 // GitOrganizationHasPrefix applies the HasPrefix predicate on the "git_organization" field.
 func GitOrganizationHasPrefix(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldGitOrganization), v))
-	})
+	return predicate.Repository(sql.FieldHasPrefix(FieldGitOrganization, v))
 }
 
 // GitOrganizationHasSuffix applies the HasSuffix predicate on the "git_organization" field.
 func GitOrganizationHasSuffix(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldGitOrganization), v))
-	})
+	return predicate.Repository(sql.FieldHasSuffix(FieldGitOrganization, v))
 }
 
 // GitOrganizationEqualFold applies the EqualFold predicate on the "git_organization" field.
 func GitOrganizationEqualFold(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldGitOrganization), v))
-	})
+	return predicate.Repository(sql.FieldEqualFold(FieldGitOrganization, v))
 }
 
 // GitOrganizationContainsFold applies the ContainsFold predicate on the "git_organization" field.
 func GitOrganizationContainsFold(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldGitOrganization), v))
-	})
+	return predicate.Repository(sql.FieldContainsFold(FieldGitOrganization, v))
 }
 
 // DescriptionEQ applies the EQ predicate on the "description" field.
 func DescriptionEQ(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldDescription), v))
-	})
+	return predicate.Repository(sql.FieldEQ(FieldDescription, v))
 }
 
 // DescriptionNEQ applies the NEQ predicate on the "description" field.
 func DescriptionNEQ(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldDescription), v))
-	})
+	return predicate.Repository(sql.FieldNEQ(FieldDescription, v))
 }
 
 // DescriptionIn applies the In predicate on the "description" field.
 func DescriptionIn(vs ...string) predicate.Repository {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldDescription), v...))
-	})
+	return predicate.Repository(sql.FieldIn(FieldDescription, vs...))
 }
 
 // DescriptionNotIn applies the NotIn predicate on the "description" field.
 func DescriptionNotIn(vs ...string) predicate.Repository {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldDescription), v...))
-	})
+	return predicate.Repository(sql.FieldNotIn(FieldDescription, vs...))
 }
 
 // DescriptionGT applies the GT predicate on the "description" field.
 func DescriptionGT(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldDescription), v))
-	})
+	return predicate.Repository(sql.FieldGT(FieldDescription, v))
 }
 
 // DescriptionGTE applies the GTE predicate on the "description" field.
 func DescriptionGTE(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldDescription), v))
-	})
+	return predicate.Repository(sql.FieldGTE(FieldDescription, v))
 }
 
 // DescriptionLT applies the LT predicate on the "description" field.
 func DescriptionLT(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldDescription), v))
-	})
+	return predicate.Repository(sql.FieldLT(FieldDescription, v))
 }
 
 // DescriptionLTE applies the LTE predicate on the "description" field.
 func DescriptionLTE(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldDescription), v))
-	})
+	return predicate.Repository(sql.FieldLTE(FieldDescription, v))
 }
 
 // DescriptionContains applies the Contains predicate on the "description" field.
 func DescriptionContains(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldDescription), v))
-	})
+	return predicate.Repository(sql.FieldContains(FieldDescription, v))
 }
 
 // DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
 func DescriptionHasPrefix(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldDescription), v))
-	})
+	return predicate.Repository(sql.FieldHasPrefix(FieldDescription, v))
 }
 
 // DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
 func DescriptionHasSuffix(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldDescription), v))
-	})
+	return predicate.Repository(sql.FieldHasSuffix(FieldDescription, v))
 }
 
 // DescriptionEqualFold applies the EqualFold predicate on the "description" field.
 func DescriptionEqualFold(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldDescription), v))
-	})
+	return predicate.Repository(sql.FieldEqualFold(FieldDescription, v))
 }
 
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldDescription), v))
-	})
+	return predicate.Repository(sql.FieldContainsFold(FieldDescription, v))
 }
 
 // GitURLEQ applies the EQ predicate on the "git_url" field.
 func GitURLEQ(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldGitURL), v))
-	})
+	return predicate.Repository(sql.FieldEQ(FieldGitURL, v))
 }
 
 // GitURLNEQ applies the NEQ predicate on the "git_url" field.
 func GitURLNEQ(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldGitURL), v))
-	})
+	return predicate.Repository(sql.FieldNEQ(FieldGitURL, v))
 }
 
 // GitURLIn applies the In predicate on the "git_url" field.
 func GitURLIn(vs ...string) predicate.Repository {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldGitURL), v...))
-	})
+	return predicate.Repository(sql.FieldIn(FieldGitURL, vs...))
 }
 
 // GitURLNotIn applies the NotIn predicate on the "git_url" field.
 func GitURLNotIn(vs ...string) predicate.Repository {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldGitURL), v...))
-	})
+	return predicate.Repository(sql.FieldNotIn(FieldGitURL, vs...))
 }
 
 // GitURLGT applies the GT predicate on the "git_url" field.
 func GitURLGT(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldGitURL), v))
-	})
+	return predicate.Repository(sql.FieldGT(FieldGitURL, v))
 }
 
 // GitURLGTE applies the GTE predicate on the "git_url" field.
 func GitURLGTE(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldGitURL), v))
-	})
+	return predicate.Repository(sql.FieldGTE(FieldGitURL, v))
 }
 
 // GitURLLT applies the LT predicate on the "git_url" field.
 func GitURLLT(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldGitURL), v))
-	})
+	return predicate.Repository(sql.FieldLT(FieldGitURL, v))
 }
 
 // GitURLLTE applies the LTE predicate on the "git_url" field.
 func GitURLLTE(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldGitURL), v))
-	})
+	return predicate.Repository(sql.FieldLTE(FieldGitURL, v))
 }
 
 // GitURLContains applies the Contains predicate on the "git_url" field.
 func GitURLContains(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldGitURL), v))
-	})
+	return predicate.Repository(sql.FieldContains(FieldGitURL, v))
 }
 
 // GitURLHasPrefix applies the HasPrefix predicate on the "git_url" field.
 func GitURLHasPrefix(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldGitURL), v))
-	})
+	return predicate.Repository(sql.FieldHasPrefix(FieldGitURL, v))
 }
 
 // GitURLHasSuffix applies the HasSuffix predicate on the "git_url" field.
 func GitURLHasSuffix(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldGitURL), v))
-	})
+	return predicate.Repository(sql.FieldHasSuffix(FieldGitURL, v))
 }
 
 // GitURLEqualFold applies the EqualFold predicate on the "git_url" field.
 func GitURLEqualFold(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldGitURL), v))
-	})
+	return predicate.Repository(sql.FieldEqualFold(FieldGitURL, v))
 }
 
 // GitURLContainsFold applies the ContainsFold predicate on the "git_url" field.
 func GitURLContainsFold(v string) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldGitURL), v))
-	})
+	return predicate.Repository(sql.FieldContainsFold(FieldGitURL, v))
 }
 
 // HasRepositories applies the HasEdge predicate on the "repositories" edge.
@@ -509,7 +339,6 @@ func HasRepositories() predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(RepositoriesTable, TeamsFieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, RepositoriesTable, RepositoriesColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -537,7 +366,6 @@ func HasWorkflows() predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(WorkflowsTable, WorkflowsFieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, WorkflowsTable, WorkflowsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -565,7 +393,6 @@ func HasCodecov() predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CodecovTable, CodeCovFieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, CodecovTable, CodecovColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -593,7 +420,6 @@ func HasProwSuites() predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ProwSuitesTable, ProwSuitesFieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, ProwSuitesTable, ProwSuitesColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -621,7 +447,6 @@ func HasProwJobs() predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ProwJobsTable, ProwJobsFieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, ProwJobsTable, ProwJobsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)

@@ -141,14 +141,14 @@ func (w *Workflows) assignValues(columns []string, values []any) error {
 
 // QueryWorkflows queries the "workflows" edge of the Workflows entity.
 func (w *Workflows) QueryWorkflows() *RepositoryQuery {
-	return (&WorkflowsClient{config: w.config}).QueryWorkflows(w)
+	return NewWorkflowsClient(w.config).QueryWorkflows(w)
 }
 
 // Update returns a builder for updating this Workflows.
 // Note that you need to call Workflows.Unwrap() before calling this method if this Workflows
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (w *Workflows) Update() *WorkflowsUpdateOne {
-	return (&WorkflowsClient{config: w.config}).UpdateOne(w)
+	return NewWorkflowsClient(w.config).UpdateOne(w)
 }
 
 // Unwrap unwraps the Workflows entity that was returned from a transaction after it was closed,
