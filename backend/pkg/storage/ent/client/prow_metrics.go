@@ -87,15 +87,15 @@ func getProwMetricsByDay(jobs []*db.ProwJobs, date string) storage.Metrics {
 
 	for _, j := range jobs {
 		if j.State == string(prow.SuccessState) {
-			success_rate_total = success_rate_total + 1
+			success_rate_total++
 		}
 
 		if j.State == string(prow.ErrorState) {
-			ci_failed_total = ci_failed_total + 1
+			ci_failed_total++
 		}
 
 		if j.State == string(prow.FailureState) {
-			failed_rate_total = failed_rate_total + 1
+			failed_rate_total++
 		}
 	}
 
@@ -125,22 +125,18 @@ func getProwMetricsByDay(jobs []*db.ProwJobs, date string) storage.Metrics {
 
 func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, jobName, jobType, startDate, endDate string) storage.Jobs {
 	var success_rate_total, failed_rate_total, ci_failed_total float64
-	finishedJobsNumber := 0
 
 	for _, j := range jobs {
 		if j.State == string(prow.SuccessState) {
 			success_rate_total++
-			finishedJobsNumber++
 		}
 
 		if j.State == string(prow.ErrorState) {
 			ci_failed_total++
-			finishedJobsNumber++
 		}
 
 		if j.State == string(prow.FailureState) {
 			failed_rate_total++
-			finishedJobsNumber++
 		}
 	}
 	job_nums := float64(len(jobs))
@@ -155,7 +151,7 @@ func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, j
 			SuccessRateAvg: success_rate_total / job_nums * 100,
 			JobFailedAvg:   failed_rate_total / job_nums * 100,
 			CIFailedAvg:    ci_failed_total / job_nums * 100,
-			TotalJobs:      finishedJobsNumber,
+			TotalJobs:      int(success_rate_total + failed_rate_total + ci_failed_total),
 		},
 	}
 }
