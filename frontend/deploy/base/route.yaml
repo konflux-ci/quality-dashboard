@@ -2,6 +2,8 @@ kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
   name: quality-frontend-route
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   to:
     kind: Service

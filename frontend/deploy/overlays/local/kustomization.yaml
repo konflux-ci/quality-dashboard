@@ -10,8 +10,3 @@ configMapGenerator:
 - name: quality-dashboard-configmap
   envs:
   - configmap.txt
-
-secretGenerator:
-  - name: quality-dashboard-auth
-    files:
-      - users.htpasswd
