@@ -10,3 +10,4 @@ configMapGenerator:
 - name: quality-dashboard-configmap
   envs:
   - configmap.txt
+  
