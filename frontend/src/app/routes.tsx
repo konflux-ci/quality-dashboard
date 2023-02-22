@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { accessibleRouteChangeHandler } from '@app/utils/utils';
-import { Dashboard } from '@app/Dashboard/Dashboard';
+import { Overview } from '@app/Overview/Overview';
 import { Reports } from '@app/Reports/Reports';
 import { useDocumentTitle } from '@app/utils/useDocumentTitle';
 import { LastLocationProvider, useLastLocation } from 'react-router-last-location';
@@ -34,7 +34,7 @@ const routes: AppRouteConfig[] = [
     label: 'Home',
     routes: [
       {
-        component: Dashboard,
+        component: Overview,
         exact: true,
         label: 'Overview',
         path: '/home/overview',

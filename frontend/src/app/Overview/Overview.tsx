@@ -4,11 +4,11 @@ import {
   Card,
   CardTitle,
   CardBody,
-  Gallery,
   PageSection,
   Title,
-  DescriptionList, DescriptionListGroup, DescriptionListTerm,
-  DescriptionListDescription, TextContent, Text, PageSectionVariants,
+  TextContent,
+  Text,
+  PageSectionVariants,
   Grid,
   GridItem,
   TitleSizes,
@@ -33,11 +33,13 @@ import {
 import { ChartDonut, ChartThemeColor } from '@patternfly/react-charts';
 import { getVersion, getJiras } from '@app/utils/APIService';
 import { RepositoriesTable } from '@app/Repositories/RepositoriesTable';
-import { CheckCircleIcon, CopyIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
+import { CopyIcon } from '@patternfly/react-icons';
 import { ReactReduxContext } from 'react-redux';
 import { isValidTeam } from '@app/utils/utils';
+import { InfoBanner } from './InfoBanner';
+import { About } from './About';
 
-export const Dashboard = () => {
+export const Overview = () => {
 
   /*
     ALL JIRA RELATED STUFF
@@ -223,31 +225,10 @@ export const Dashboard = () => {
     </DrawerPanelContent>
   );
 
-  /*
-    SERVER INFO AND REPOSITORY TABLE METHODS
-  */
-  const [dashboardVersion, setVersion] = useState('unknown')
-  const [serverAvailable, setServerAvailable] = useState<boolean>(false)
-
-  useEffect(() => {
-    getVersion().then((res) => { // making the api call here
-      if (res.code === 200) {
-        const result = res.data;
-        dispatch({ type: "SET_Version", data: result['serverAPIVersion'] });
-        // not really required to store it in the global state , just added it to make it better understandable
-        setVersion(result['serverAPIVersion'])
-        setServerAvailable(true)
-      } else {
-        setServerAvailable(false)
-        dispatch({ type: "SET_ERROR", data: res });
-      }
-    });
-  }, [dashboardVersion, setVersion, dispatch])
-
   return (
     <React.Fragment>
       <PageSection style={{
-        minHeight: "12%",
+        minHeight: "15%",
         background: "url(https://console.redhat.com/apps/frontend-assets/background-images/new-landing-page/estate_section_banner.svg)",
         backgroundSize: "cover",
         backgroundColor: "black",
@@ -255,50 +236,25 @@ export const Dashboard = () => {
       }} variant={PageSectionVariants.light}>
         <TextContent style={{ color: "white" }}>
           <Text component="h2">
-            Red Hat App Studio Quality Dashboard
+            Red Hat Quality Studio
             <Button onClick={() => navigator.clipboard.writeText(window.location.href)} variant="link" icon={<CopyIcon />} iconPosition="right">
               Copy link
             </Button>
           </Text>
-          <Text component="p">Global status about teams components.</Text>
+          <Text component="p">
+            Observe, track and analyze StoneSoup quality metrics.
+            By creating a team or joining an existing one, you can be more informed about the code coverage, OpenShift CI prow jobs, and GitHub actions of the StoneSoup components.
+          </Text>
         </TextContent>
       </PageSection>
       <Drawer isExpanded={isExpanded}>
         <DrawerContent panelContent={panelContent} className={'pf-m-no-background'}>
+          <InfoBanner></InfoBanner>
+          <PageSection isFilled>
+            <About />
+          </PageSection>
           {isValidTeam() && <PageSection>
-            <Gallery hasGutter style={{ display: "flex" }}>
-              <Card isRounded style={{ width: "35%" }}>
-                <CardTitle>
-                  <Title headingLevel="h1" size="xl">
-                    Red Hat App Studio Details
-                  </Title>
-                </CardTitle>
-                <CardBody>
-                  <DescriptionList>
-                    <DescriptionListGroup>
-                      <DescriptionListTerm>Quality Studio version</DescriptionListTerm>
-                      <DescriptionListDescription>
-                        <span>{dashboardVersion}</span>
-                      </DescriptionListDescription>
-                    </DescriptionListGroup>
-                    <DescriptionListGroup>
-                      <DescriptionListTerm>Server API Status</DescriptionListTerm>
-                      <DescriptionListDescription>
-                        {serverAvailable && <span style={{ color: "darkgreen", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500 }}> <CheckCircleIcon size={'sm'} ></CheckCircleIcon> OK </span>}
-                        {!serverAvailable && <span style={{ color: "darkred", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500 }}> <ExclamationCircleIcon size={'sm'} ></ExclamationCircleIcon> DOWN </span>}
-                      </DescriptionListDescription>
-                    </DescriptionListGroup>
-                    <DescriptionListGroup>
-                      <DescriptionListTerm>Database Status</DescriptionListTerm>
-                      <DescriptionListDescription>
-                        {serverAvailable && <span style={{ color: "darkgreen", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500 }}> <CheckCircleIcon size={'sm'} ></CheckCircleIcon> OK </span>}
-                        {!serverAvailable && <span style={{ color: "darkred", verticalAlign: "middle", lineHeight: "2em", fontWeight: 500 }}> <ExclamationCircleIcon size={'sm'} ></ExclamationCircleIcon> DOWN </span>}
-                      </DescriptionListDescription>
-                    </DescriptionListGroup>
-                  </DescriptionList>
-                </CardBody>
-              </Card>
-              <Card isRounded isCompact style={{ width: "65%", padding: "5px" }}>
+              <Card>
                 <CardTitle>
                   <Title headingLevel="h2" size="xl" > Issues affecting CI pass rate </Title>
                 </CardTitle>
@@ -337,7 +293,6 @@ export const Dashboard = () => {
                   </GridItem>
                 </Grid>
               </Card>
-            </Gallery>
           </PageSection>
           }
           <PageSection style={{
