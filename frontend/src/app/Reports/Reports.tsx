@@ -282,9 +282,10 @@ let Reports = () => {
     }
   }
 
-  // Extract a simple list of jobs from data: this will be used to let users select the job they want to see details for
-  let jobNames: SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function (job, index) { return { "value": job.name + " (Total: " + job.summary.total_jobs + ")", "index": index } }) : []
   let ci_html: string = prowJobsStats?.jobs != null ? "https://prow.ci.openshift.org/?repo=" + prowJobsStats?.git_organization + "%2F" + prowJobsStats?.repository_name + "&type=" + prowJobsStats?.type : ''
+
+  // Extract a simple list of jobs from data: this will be used to let users select the job they want to see details for
+  let jobNames: SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function (job, index) { return { "value": job.name + " (Total: " + job.summary.total_jobs + ")", "index": index, "href": ci_html + "&job=" + job.name } }) : []
 
   // Prepare data for the line chart
   let beautifiedData: DashboardLineChartData = {
@@ -479,12 +480,12 @@ let Reports = () => {
               </Select>
             </ToolbarItem>
             <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent" }}>
-                <DateTimeRangePicker
-                  startDate={start}
-                  endDate={end}
-                  handleChange={(event, from, to) => handleChange(event, from, to)}
-                >
-                </DateTimeRangePicker>
+              <DateTimeRangePicker
+                startDate={start}
+                endDate={end}
+                handleChange={(event, from, to) => handleChange(event, from, to)}
+              >
+              </DateTimeRangePicker>
             </ToolbarItem>
             <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent" }}>
               <Button variant="link" onClick={clearParams}>Clear</Button>
