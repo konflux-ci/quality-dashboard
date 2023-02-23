@@ -8,6 +8,7 @@ import { LastLocationProvider, useLastLocation } from 'react-router-last-locatio
 import { JobsComponent } from '@app/Jobs/Jobs';
 import { Teams } from '@app/Teams/Teams';
 import { ReactReduxContext } from 'react-redux';
+import { Jira } from './Jira/Jira';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -47,6 +48,14 @@ const routes: AppRouteConfig[] = [
         label: 'Teams',
         path: '/home/teams',
         title: 'Quality Studio | Teams',
+      },
+      {
+        component: Jira,
+        exact: true,
+        isAsync: true,
+        label: 'Jira Issues',
+        path: '/home/jira',
+        title: 'Quality Studio | Jira Issues',
       },
     ],
   },
