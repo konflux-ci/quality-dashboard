@@ -54,7 +54,7 @@ export const About = () => {
                     <Card isPlain isCompact >
                         <CardTitle>What Is Quality Studio?</CardTitle>
                         <CardBody>
-                            Quality Studio try to unify in a single Dashboard all quality information about your product; from your commits to the costumers feedback.
+                            Quality Studio tries to unify in a single Dashboard all quality information about your product; from your commits to the costumers feedback.
                         </CardBody>
                     </Card>
                     <Card isPlain isCompact >
