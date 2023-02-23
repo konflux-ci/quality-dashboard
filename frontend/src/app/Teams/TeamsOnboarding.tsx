@@ -137,6 +137,7 @@ export const TeamsWizard = () => {
     setNewOrgName("")
     setNewRepoName("")
     history.push("/home/teams")
+    window.location.reload();
   };
 
   const TeamData = (

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { NavLink, useLocation, useHistory } from 'react-router-dom';
 import {
   Nav,
@@ -13,6 +13,9 @@ import {
 import { routes, IAppRoute, IAppRouteGroup } from '@app/routes';
 import logo from '@app/bgimages/Logo-RedHat-A-Reverse-RGB.svg';
 import { BasicMasthead } from '@app/Teams/TeamsSelect';
+import { teamIsNotEmpty } from '@app/utils/utils';
+import { ReactReduxContext } from 'react-redux';
+import { getTeams, getVersion } from '@app/utils/APIService';
 
 interface IAppLayout {
   children: React.ReactNode;
@@ -92,11 +95,25 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
     </NavExpandable>
   );
 
+  const [areTeamsEmpty, setAreTeamsEmpty] = React.useState(false);
+
+  const toRender = (label) => {
+    getTeams().then(data => {
+      if (data.data.length == 0) {
+          setAreTeamsEmpty(true)
+      }
+    })
+    if (label == "Plugins" && areTeamsEmpty) {
+      return false
+    }
+    return true
+  }
+
   const Navigation = (
     <Nav id="nav-primary-simple" theme="dark">
       <NavList id="nav-list-simple">
         {routes.map(
-          (route, idx) => route.label && (!route.routes ? renderNavItem(route, idx) : renderNavGroup(route, idx))
+          (route, idx) => route.label && toRender(route.label) && (!route.routes ? renderNavItem(route, idx) : renderNavGroup(route, idx))
         )}
       </NavList>
     </Nav>
