@@ -5,12 +5,9 @@ import {
   TextContent,
   Text,
   PageSectionVariants,
-  DrawerContentBody,
   Button
 } from '@patternfly/react-core';
-import { RepositoriesTable } from '@app/Repositories/RepositoriesTable';
 import { CopyIcon } from '@patternfly/react-icons';
-import { isValidTeam } from '@app/utils/utils';
 import { InfoBanner } from './InfoBanner';
 import { About } from './About';
 
@@ -43,17 +40,6 @@ export const Overview = () => {
       </PageSection>
       <PageSection isFilled>
         <About />
-      </PageSection>
-      {isValidTeam() && <PageSection style={{
-        minHeight: "12%"
-      }}>
-        <RepositoriesTable showTableToolbar={true} showCoverage={true} showDescription={false} enableFiltersOnTheseColumns={['git_organization']}></RepositoriesTable>
-        <React.Fragment>
-        </React.Fragment>
-      </PageSection>
-      }
-      <PageSection padding={{ default: 'noPadding' }}>
-        <DrawerContentBody hasPadding></DrawerContentBody>
       </PageSection>
     </React.Fragment>
   );

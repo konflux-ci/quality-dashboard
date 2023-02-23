@@ -9,6 +9,7 @@ import { JobsComponent } from '@app/Jobs/Jobs';
 import { Teams } from '@app/Teams/Teams';
 import { ReactReduxContext } from 'react-redux';
 import { Jira } from './Jira/Jira';
+import { Repositories } from './Repositories/Repositories';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -48,6 +49,14 @@ const routes: AppRouteConfig[] = [
         label: 'Teams',
         path: '/home/teams',
         title: 'Quality Studio | Teams',
+      },
+      {
+        component: Repositories,
+        exact: true,
+        isAsync: true,
+        label: 'Repositories',
+        path: '/home/repositories',
+        title: 'Quality Studio | Repositories',
       },
       {
         component: Jira,

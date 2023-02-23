@@ -52,8 +52,8 @@ export const BasicMasthead = () => {
       history.push('/ci/jobs?team=' + event.target.dataset.value)
     }
 
-    if (history.location.pathname == "/home/overview" && team != null && team != event.target.dataset.value) {
-      history.push('/home/overview?team=' + event.target.dataset.value)
+    if (history.location.pathname == "/home/repositories" && team != null && team != event.target.dataset.value) {
+      history.push('/home/repositories?team=' + event.target.dataset.value)
     }
   }
 

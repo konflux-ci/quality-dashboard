@@ -375,7 +375,7 @@ export const TableComponent = ({ showCoverage, showDescription, showTableToolbar
         const params = new URLSearchParams(window.location.search)
         const team = params.get("team")
         if (team == state.teams.Team || team == null) {
-          history.push('/home/overview?team=' + currentTeam)
+          history.push('/home/repositories?team=' + currentTeam)
         }
       } else {
         dispatch({ type: "SET_ERROR", data: res });
