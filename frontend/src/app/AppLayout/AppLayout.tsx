@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { NavLink, useLocation, useHistory } from 'react-router-dom';
 import {
   Nav,
@@ -13,9 +13,7 @@ import {
 import { routes, IAppRoute, IAppRouteGroup } from '@app/routes';
 import logo from '@app/bgimages/Logo-RedHat-A-Reverse-RGB.svg';
 import { BasicMasthead } from '@app/Teams/TeamsSelect';
-import { teamIsNotEmpty } from '@app/utils/utils';
-import { ReactReduxContext } from 'react-redux';
-import { getTeams, getVersion } from '@app/utils/APIService';
+import { getTeams } from '@app/utils/APIService';
 
 interface IAppLayout {
   children: React.ReactNode;
