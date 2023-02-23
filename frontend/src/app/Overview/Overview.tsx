@@ -228,7 +228,7 @@ export const Overview = () => {
   return (
     <React.Fragment>
       <PageSection style={{
-        minHeight: "15%",
+        minHeight: "12%",
         background: "url(https://console.redhat.com/apps/frontend-assets/background-images/new-landing-page/estate_section_banner.svg)",
         backgroundSize: "cover",
         backgroundColor: "black",
@@ -249,7 +249,9 @@ export const Overview = () => {
       </PageSection>
       <Drawer isExpanded={isExpanded}>
         <DrawerContent panelContent={panelContent} className={'pf-m-no-background'}>
-          <InfoBanner></InfoBanner>
+          <PageSection>
+            <InfoBanner />
+          </PageSection>
           <PageSection isFilled>
             <About />
           </PageSection>
