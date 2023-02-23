@@ -77,7 +77,7 @@ export const About = () => {
                     <Card isPlain isCompact>
                         <CardHeader><b>GitHub Connector</b></CardHeader>
                         <CardBody>
-                            Observe detailed information from GitHub like GitHub Workflows, Pull Requests, Contribuitors.
+                            Observe detailed information from GitHub like GitHub Workflows, Pull Requests, Contributors.
                         </CardBody>
                     </Card>
                     <Card isPlain isCompact>

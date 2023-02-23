@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-key */
-import React from 'react';
+import React, { useState } from 'react';
 import {
   PageSection,
   TextContent,
@@ -7,11 +7,21 @@ import {
   PageSectionVariants,
   Button
 } from '@patternfly/react-core';
-import { CopyIcon } from '@patternfly/react-icons';
+import { CopyIcon, PlusIcon } from '@patternfly/react-icons';
 import { InfoBanner } from './InfoBanner';
 import { About } from './About';
+import { TeamForm } from '@app/Teams/TeamForm';
 
 export const Overview = () => {
+  const [isOpen, setOpen] = useState<boolean>(false);
+
+  const handleModalToggle = () => {
+    setOpen(true)
+  };
+
+  function handleChange(event, open) {
+    setOpen(open)
+  }
 
   return (
     <React.Fragment>
@@ -33,6 +43,11 @@ export const Overview = () => {
             Observe, track and analyze StoneSoup quality metrics.
             By creating a team or joining an existing one, you can be more informed about the code coverage, OpenShift CI prow jobs, and GitHub actions of the StoneSoup components.
           </Text>
+          <Button onClick={handleModalToggle} type="button" variant="primary"> <PlusIcon></PlusIcon> Add Team </Button>
+          <TeamForm
+            isOpen={isOpen}
+            handleChange={(event, open) => handleChange(event, open)}
+          ></TeamForm>
         </TextContent>
       </PageSection>
       <PageSection>

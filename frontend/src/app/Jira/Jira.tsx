@@ -31,6 +31,7 @@ import { ChartDonut, ChartThemeColor } from '@patternfly/react-charts';
 import { getJiras } from '@app/utils/APIService';
 import { ReactReduxContext } from 'react-redux';
 import { isValidTeam } from '@app/utils/utils';
+
 export const Jira = () => {
 
     /*
