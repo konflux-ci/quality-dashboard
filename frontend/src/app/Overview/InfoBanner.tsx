@@ -25,7 +25,7 @@ export const InfoBanner = () => (
                     <Card isPlain isCompact>
                         <CardTitle style={{ textAlign: "center" }}>
                             <Icon size="xl" iconSize="lg">
-                                <BugIcon />
+                                <BugIcon color='#bd2c00'/>
                             </Icon>
                         </CardTitle>
                         <CardBody>
@@ -46,7 +46,7 @@ export const InfoBanner = () => (
                     <Card isPlain isCompact>
                         <CardTitle style={{ textAlign: "center" }}>
                             <Icon size="xl" iconSize="lg">
-                                <MonitoringIcon />
+                                <MonitoringIcon color='green'/>
                             </Icon>
                         </CardTitle>
                         <CardBody>
@@ -65,7 +65,7 @@ export const InfoBanner = () => (
                     <Card isPlain isCompact>
                         <CardTitle style={{ textAlign: "center" }}>
                             <Icon size="xl" iconSize="lg">
-                                <GithubIcon />
+                                <GithubIcon color='#4078c0'/>
                             </Icon>
                         </CardTitle>
                         <CardBody>
