@@ -1,6 +1,6 @@
 import React, { useState, useLayoutEffect, useRef } from 'react';
-import { ExclamationCircleIcon, OkIcon, HelpIcon } from '@patternfly/react-icons';
-import { Card, CardTitle, CardBody } from '@patternfly/react-core';
+import { ExclamationCircleIcon, OkIcon, HelpIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
+import { Card, CardTitle, CardBody, Badge } from '@patternfly/react-core';
 import { Chart, ChartAxis, ChartLine, ChartGroup, ChartVoronoiContainer, ChartLegend } from '@patternfly/react-charts';
 import { SimpleList, SimpleListItem } from '@patternfly/react-core';
 
@@ -51,15 +51,27 @@ export type SimpleListProps = {
 
 export type SimpleListData = {
   index: number;
-  value: string;
+  value: any;
+  href: string;
 };
+
+const getSimpleListItem = (job) => {
+  return <div>{job.value}
+    <a href={job.href} target="blank" rel="noopener noreferrer">
+      <Badge style={{ marginLeft: 5 }}><ExternalLinkAltIcon></ExternalLinkAltIcon>
+      </Badge>
+    </a>
+  </div>
+}
 
 export const DashboardSimpleList = ({ data, onSelection, title }: SimpleListProps) => {
   const onSelect = (selectedItem, selectedItemProps) => {
     onSelection(selectedItemProps["data-index"])
   }
 
-  const items = data.map((job) => <SimpleListItem className="" key={job.index} data-index={job.index} isActive={job.index == 0}> {job.value} </SimpleListItem>);
+  const items = data.map((job) => <SimpleListItem className="" key={job.index} data-index={job.index} isActive={job.index == 0}> {
+    getSimpleListItem(job)
+  } </SimpleListItem>);
 
   return (
     <Card style={{ width: "100%", height: "100%", fontSize: "1rem" }}>
