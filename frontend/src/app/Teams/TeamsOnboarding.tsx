@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { createTeam, createRepository } from "@app/utils/APIService";
 import {
   Wizard, PageSection, PageSectionVariants,
@@ -22,8 +22,6 @@ import { Table, TableHeader, TableBody, TableProps } from '@patternfly/react-tab
 
 
 export const TeamsWizard = () => {
-  const history = useHistory();
-
   const { store } = useContext(ReactReduxContext);
   const state = store.getState();
   const dispatch = store.dispatch;
@@ -38,6 +36,9 @@ export const TeamsWizard = () => {
   const [creationError, setCreationError] = useState<boolean>(false);
   const [isFinishedWizard, setIsFinishedWizard] = useState<boolean>(false);
   const [isOpen, setOpen] = useState<boolean>(false);
+  const history = useHistory();
+  const params = new URLSearchParams(window.location.search);
+  const open = params.get('isOpen');
 
   const onSubmit = async () => {
     // Create a team
@@ -135,6 +136,7 @@ export const TeamsWizard = () => {
     setNewTeamDesc("")
     setNewOrgName("")
     setNewRepoName("")
+    history.push("/home/teams")
   };
 
   const TeamData = (
@@ -229,6 +231,12 @@ export const TeamsWizard = () => {
   const handleModalToggle = () => {
     setOpen(!isOpen)
   };
+
+  useEffect(() => {
+    if (open == "true") {
+      setOpen(true)
+    }
+  }, []);
 
   return (
     <React.Fragment>
