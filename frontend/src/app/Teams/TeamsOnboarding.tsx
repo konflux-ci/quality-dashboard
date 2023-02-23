@@ -136,9 +136,6 @@ export const TeamsWizard = () => {
     setNewTeamDesc("")
     setNewOrgName("")
     setNewRepoName("")
-    handleModalToggle
-    handleModalToggle
-    handleModalToggle
     history.push("/home/teams")
   };
 
