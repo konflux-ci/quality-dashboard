@@ -43,10 +43,14 @@ type Storage interface {
 	CreateProwJobSuites(prowJobStatus ProwJobSuites, repo_id uuid.UUID) error
 	CreateProwJobResults(prowJobStatus ProwJobStatus, repo_id uuid.UUID) error
 	ReCreateWorkflow(workflow GithubWorkflows, repoName string) error
+
+	// UPDATE
 	UpdateCoverage(codecov Coverage, repoName string) error
+	UpdateTeam(t *db.Teams) error
 
 	// Delete
 	DeleteRepository(repositoryName string, gitOrganizationName string) error
+	DeleteTeam(teamName string) (bool, error)
 }
 
 // Repository is an github repository info managed by the storage.

@@ -25,6 +25,8 @@ func NewRouter(s storage.Storage) router.Router {
 	r.Route = []router.Route{
 		router.NewGetRoute("/teams/list/all", r.listAllQualityStudioTeams),
 		router.NewPostRoute("/teams/create", r.createQualityStudioTeam),
+		router.NewDeleteRoute("/teams/delete", r.deleteTeamHandler),
+		router.NewPutRoute("/teams/put", r.updateTeamHandler),
 	}
 
 	return r

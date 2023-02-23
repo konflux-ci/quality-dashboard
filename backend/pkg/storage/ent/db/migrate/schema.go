@@ -26,7 +26,7 @@ var (
 				Symbol:     "code_covs_repositories_codecov",
 				Columns:    []*schema.Column{CodeCovsColumns[4]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -56,7 +56,7 @@ var (
 				Symbol:     "prow_jobs_repositories_prow_jobs",
 				Columns:    []*schema.Column{ProwJobsColumns[12]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -79,7 +79,7 @@ var (
 				Symbol:     "prow_suites_repositories_prow_suites",
 				Columns:    []*schema.Column{ProwSuitesColumns[5]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -139,7 +139,7 @@ var (
 				Symbol:     "workflows_repositories_workflows",
 				Columns:    []*schema.Column{WorkflowsColumns[7]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
