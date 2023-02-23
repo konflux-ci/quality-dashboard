@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import React, { useContext, useEffect, useState } from 'react';
 import {
     Card,
@@ -17,7 +18,6 @@ import {
 import { getVersion } from '@app/utils/APIService';
 import { ReactReduxContext } from 'react-redux';
 import { CheckCircleIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
-
 
 export const About = () => {
     const { store } = useContext(ReactReduxContext);
@@ -43,7 +43,6 @@ export const About = () => {
             }
         });
     }, [dashboardVersion, setVersion, dispatch])
-
 
     return (
         <Grid hasGutter>
@@ -87,7 +86,7 @@ export const About = () => {
                         <Card isPlain isCompact>
                             <CardHeader><b>Coverage Connector</b></CardHeader>
                             <CardBody>
-                                Connect to <a href=""><b>CodeCov</b></a> and get the total coverage of your repository.
+                                Connect to <a href="https://about.codecov.io/"><b>CodeCov</b></a> and get the total coverage of your repository.
                             </CardBody>
                         </Card>
                     </CardBody>

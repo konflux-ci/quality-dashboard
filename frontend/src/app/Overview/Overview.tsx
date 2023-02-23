@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable react/jsx-key */
 import React from 'react';
 import {
@@ -7,7 +8,7 @@ import {
   PageSectionVariants,
   Button
 } from '@patternfly/react-core';
-import { CopyIcon, PlusIcon } from '@patternfly/react-icons';
+import { PlusIcon } from '@patternfly/react-icons';
 import { InfoBanner } from './InfoBanner';
 import { About } from './About';
 import { useHistory } from 'react-router-dom';
@@ -31,15 +32,12 @@ export const Overview = () => {
         <TextContent style={{ color: "white" }}>
           <Text component="h2">
             Red Hat Quality Studio
-            <Button onClick={() => navigator.clipboard.writeText(window.location.href)} variant="link" icon={<CopyIcon />} iconPosition="right">
-              Copy link
-            </Button>
           </Text>
           <Text component="p">
             Observe, track and analyze StoneSoup quality metrics.
             By creating a team or joining an existing one, you can be more informed about the code coverage, OpenShift CI prow jobs, and GitHub actions of the StoneSoup components.
           </Text>
-          <Button onClick={handleModalToggle} type="button" variant="primary"> <PlusIcon></PlusIcon> Add Team </Button>
+          <Button onClick={handleModalToggle} type="button" variant="primary"> <PlusIcon></PlusIcon> Create Team </Button>
         </TextContent>
       </PageSection>
       <PageSection>
