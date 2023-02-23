@@ -31,7 +31,7 @@ export const InfoBanner = () => (
                         <CardBody>
                             <Bullseye>
                                 <Text component={TextVariants.p}>
-                                    Observe which Jira Issues are affecting CI pass rate
+                                    Jira Bugs Observability
                                 </Text>
                             </Bullseye>
                         </CardBody>
@@ -51,7 +51,7 @@ export const InfoBanner = () => (
                         </CardTitle>
                         <CardBody>
                             <Bullseye>
-                                Track OpenShift CI prow jobs over time
+                                Openshift CI metrics
                             </Bullseye>
                         </CardBody>
                     </Card>
@@ -69,7 +69,7 @@ export const InfoBanner = () => (
                             </Icon>
                         </CardTitle>
                         <CardBody>
-                            <Bullseye>Observe which GitHub Actions are running</Bullseye>
+                            <Bullseye>GitHub metrics</Bullseye>
                         </CardBody>
                     </Card>
                 </FlexItem>

@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import {
     Card,
     CardBody,
+    CardHeader,
     CardTitle,
     DescriptionList,
     DescriptionListDescription,
@@ -51,22 +52,38 @@ export const About = () => {
                 </CardTitle>
                 <CardBody style={{ paddingLeft: '16px' }}>
                     <Card isPlain isCompact >
-                        <CardTitle>Jira Issues</CardTitle>
+                        <CardTitle>What Is Quality Studio?</CardTitle>
                         <CardBody>
-                            Check the Jira issues metrics based on projects STONE, DEVHAS, SRVKP, GITOPSRVCE, and HACBS with label ci-fail.
+                            Quality Studio try to unify in a single Dashboard all quality information about your product; from your commits to the costumers feedback.
+                        </CardBody>
+                    </Card>
+                    <Card isPlain isCompact >
+                        <CardTitle>Connectors for everything</CardTitle>
+                        <CardBody>Onboard team for your product and start to explore Quality Studio <b>Connectors</b>.</CardBody>
+                    </Card>
+                    <Card isPlain isCompact>
+                    <CardHeader><b>Jira Connector</b></CardHeader>
+                        <CardBody>
+                            Measure your bugs resolution times or retrieve information about what bugs are blocking your tests.
                         </CardBody>
                     </Card>
                     <Card isPlain isCompact>
-                        <CardTitle>OpenShift CI prow jobs</CardTitle>
+                        <CardHeader><b>Openshift CI Connector</b></CardHeader>
                         <CardBody>
-                            Track OpenShift CI by job type (presubmit, periodic, or postsubmit).
-                            Note that are only present the repositories with OpenShift CI prow jobs, as well as the job types available for each repository.
+                            Connect with openshift CI and track information about presubmit, periodic or postsubmit jobs. Quality Studio offer a complete set of metrics about the impact of the tests execution
+                            in your repositories. Note that are only present the repositories with OpenShift CI prow jobs, as well as the job types available for each repository.
                         </CardBody>
                     </Card>
                     <Card isPlain isCompact>
-                        <CardTitle>GitHub Actions</CardTitle>
+                        <CardHeader><b>GitHub Connector</b></CardHeader>
                         <CardBody>
-                            Observe the last execution of the each GitHub Action.
+                            Observe detailed information from GitHub like GitHub Workflows, Pull Requests, Contribuitors.
+                        </CardBody>
+                    </Card>
+                    <Card isPlain isCompact>
+                        <CardHeader><b>Coverage Connector</b></CardHeader>
+                        <CardBody>
+                            Connect to <a href=""><b>CodeCov</b></a> and get the total coverage of your repository.
                         </CardBody>
                     </Card>
                 </CardBody>
