@@ -1,4 +1,4 @@
-FROM node:16-alpine AS builder
+FROM node:18-alpine AS builder
 
 # Add a work directory
 WORKDIR /app
@@ -7,7 +7,7 @@ COPY package.json .
 COPY yarn.lock .
 COPY build/entrypoint.sh .
 
-RUN yarn install
+RUN yarn install --network-timeout 100000
 
 COPY . .
 
