@@ -9,17 +9,14 @@ import {
 import { useHistory } from 'react-router-dom';
 import { getTeams } from '@app/utils/APIService';
 import { PlusIcon } from '@patternfly/react-icons/dist/esm/icons';
-import { ReactReduxContext, useSelector } from 'react-redux';
+import { ReactReduxContext } from 'react-redux';
+import { TeamsTable } from './TeamsTable';
 
 interface AlertInfo {
   title: string;
   variant: AlertVariant;
   key: string;
 }
-
-import { Table, TableHeader, TableBody, TableProps } from '@patternfly/react-table';
-
-
 
 export const TeamsWizard = () => {
   const { store } = useContext(ReactReduxContext);
@@ -271,33 +268,4 @@ export const TeamsWizard = () => {
       </PageSection>
     </React.Fragment>
   );
-};
-
-export const TeamsTable: React.FunctionComponent = () => {
-  // In real usage, this data would come from some external source like an API via props.
-
-  const { store } = useContext(ReactReduxContext);
-  const state = store.getState();
-  const columns: TableProps['cells'] = ['Name', 'Description'];
-
-  let currentTeamsAvailable = useSelector((state: any) => state.teams.TeamsAvailable);
-  //store.subscribe(currentTeamsAvailable = useSelector((state:any) => state.teams.TeamsAvailable));
-
-  const rows: TableProps['rows'] = currentTeamsAvailable.map(team => [
-    team.team_name,
-    team.description
-  ]);
-
-  return (
-    <React.Fragment>
-      <Table
-        aria-label="Teams Table"
-        cells={columns}
-        rows={rows}
-      >
-        <TableHeader />
-        <TableBody />
-      </Table>
-    </React.Fragment>
-  );
-};
+}

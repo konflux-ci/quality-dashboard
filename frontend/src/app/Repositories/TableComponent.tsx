@@ -28,7 +28,7 @@ import {
   EmptyState,
   EmptyStateIcon
 } from '@patternfly/react-core';
-import { deleteRepositoryAPI, getRepositories } from '@app/utils/APIService';
+import { deleteInApi, getRepositories } from '@app/utils/APIService';
 import { ExternalLinkAltIcon, FilterIcon, PlusIcon, ExclamationCircleIcon } from '@patternfly/react-icons';
 import _ from 'lodash';
 import { useModalContext } from '@app/Repositories/CreateRepository';
@@ -85,7 +85,7 @@ export const TableComponent = ({ showCoverage, showDescription, showTableToolbar
       repository_name: repoName,
     }
     try {
-      await deleteRepositoryAPI(data)
+      await deleteInApi(data, '/api/quality/repositories/delete')
       window.location.reload();
     } catch (error) {
       console.log(error)

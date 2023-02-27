@@ -127,28 +127,6 @@ async function getWorkflowByRepositoryName(repositoryName: string) {
   return result;
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-async function deleteRepositoryAPI(data = {}) {
-  const result: ApiResponse = { code: 0, data: {} };
-  const subPath = '/api/quality/repositories/delete';
-  const uri = API_URL + subPath;
-  await axios
-    .delete(uri, {
-      headers: {},
-      data: data,
-    })
-    .then((res: AxiosResponse) => {
-      console.log(res);
-      result.code = res.status;
-      result.data = res.data;
-    })
-    .catch((err) => {
-      result.code = err.response.status;
-      result.data = err.response.data;
-    });
-  return result;
-}
-
 async function createRepository(data = {}) {
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/repositories/create';
@@ -276,11 +254,46 @@ async function getJobTypes(repoName: string, repoOrg: string) {
   return data.sort((a, b) => (a < b ? -1 : 1));
 }
 
+// deleteInApi ...
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+async function deleteInApi(data = {}, subPath: string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const uri = API_URL + subPath;
+  await axios
+    .delete(uri, {
+      headers: {},
+      data: data,
+    })
+    .then((res: AxiosResponse) => {
+      console.log(res);
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
+// deleteTeam deletes ...
+async function deleteTeam(name: string, description: string) {
+  const data = {
+    team_name: name,
+    team_description: description,
+  };
+  try {
+    await deleteInApi(data, '/api/quality/teams/delete');
+    window.location.reload();
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 export {
   getVersion,
   getRepositories,
   createRepository,
-  deleteRepositoryAPI,
   getWorkflowByRepositoryName,
   getAllRepositoriesWithOrgs,
   getLatestProwJob,
@@ -289,4 +302,6 @@ export {
   createTeam,
   getJiras,
   getJobTypes,
+  deleteInApi,
+  deleteTeam,
 };
