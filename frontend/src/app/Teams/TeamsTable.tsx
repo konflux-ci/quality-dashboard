@@ -86,7 +86,7 @@ export const TeamsTable: React.FunctionComponent = () => {
                             <Tr key={team.team_name}>
                                 <Td>{team.team_name}</Td>
                                 <Td>{team.description}</Td>
-                                <Td>
+                                <Td isActionCell>
                                     {rowActions ? (
                                         <ActionsColumn
                                             items={rowActions}
