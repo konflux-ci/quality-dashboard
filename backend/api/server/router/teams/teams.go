@@ -15,6 +15,12 @@ type TeamsRequest struct {
 	Description string `json:"description"`
 }
 
+type UpdateTeamsRequest struct {
+	TargetTeam  string `json:"target"`
+	TeamName    string `json:"team_name"`
+	Description string `json:"description"`
+}
+
 // Teams godoc
 // @Summary Teams API Info
 // @Description returns a list of teams created in quality studio
@@ -105,7 +111,7 @@ func (rp *teamsRouter) deleteTeamHandler(ctx context.Context, w http.ResponseWri
 // @Success 200 {object} types.SuccessResponse
 // @Failure 400 {object} types.ErrorResponse
 func (rp *teamsRouter) updateTeamHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
-	var team TeamsRequest
+	var team UpdateTeamsRequest
 	json.NewDecoder(r.Body).Decode(&team)
 
 	if team.TeamName == "" {
@@ -115,10 +121,14 @@ func (rp *teamsRouter) updateTeamHandler(ctx context.Context, w http.ResponseWri
 		})
 	}
 
-	err := rp.Storage.UpdateTeam(&db.Teams{
-		TeamName:    team.TeamName,
-		Description: team.Description,
-	})
+	err := rp.Storage.UpdateTeam(
+		&db.Teams{
+			TeamName:    team.TeamName,
+			Description: team.Description,
+		},
+		team.TargetTeam,
+	)
+
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "Message: " + err.Error(),

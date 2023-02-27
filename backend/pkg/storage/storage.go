@@ -46,7 +46,7 @@ type Storage interface {
 
 	// UPDATE
 	UpdateCoverage(codecov Coverage, repoName string) error
-	UpdateTeam(t *db.Teams) error
+	UpdateTeam(t *db.Teams, target string) error
 
 	// Delete
 	DeleteRepository(repositoryName string, gitOrganizationName string) error

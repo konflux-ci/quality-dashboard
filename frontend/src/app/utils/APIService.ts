@@ -254,7 +254,7 @@ async function getJobTypes(repoName: string, repoOrg: string) {
   return data.sort((a, b) => (a < b ? -1 : 1));
 }
 
-// deleteInApi ...
+// deleteInApi deletes data in the given subPath
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 async function deleteInApi(data = {}, subPath: string) {
   const result: ApiResponse = { code: 0, data: {} };
@@ -276,7 +276,7 @@ async function deleteInApi(data = {}, subPath: string) {
   return result;
 }
 
-// deleteTeam deletes ...
+// deleteTeam deletes a team in the database
 async function deleteTeam(name: string, description: string) {
   const data = {
     team_name: name,
@@ -288,6 +288,29 @@ async function deleteTeam(name: string, description: string) {
   } catch (error) {
     console.log(error);
   }
+}
+
+// updateTeam updates a team in the database
+async function updateTeam(data = {}) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/teams/put';
+  const uri = API_URL + subPath;
+  await axios
+    .request({
+      method: 'PUT',
+      url: uri,
+      data: { ...data },
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+      return result;
+    });
+  return result;
 }
 
 export {
@@ -304,4 +327,5 @@ export {
   getJobTypes,
   deleteInApi,
   deleteTeam,
+  updateTeam,
 };

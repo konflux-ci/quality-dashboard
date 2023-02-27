@@ -66,13 +66,13 @@ func (d *Database) DeleteTeam(teamName string) (bool, error) {
 	return true, nil
 }
 
-func (d *Database) UpdateTeam(t *db.Teams) error {
-	teamFromDb, err := d.GetTeamByName(t.TeamName)
+func (d *Database) UpdateTeam(t *db.Teams, target string) error {
+	teamFromDb, err := d.GetTeamByName(target)
 	if err != nil {
 		return fmt.Errorf("failing to get team from database, team: %s, error %v", t.TeamName, err)
 	}
 	if _, err := d.client.Teams.UpdateOneID(teamFromDb.ID).SetDescription(t.Description).SetTeamName(t.TeamName).Save(context.TODO()); err != nil {
-		return fmt.Errorf("failing to delete repository from database: %v", err)
+		return fmt.Errorf("failing to update team: %v", err)
 	}
 
 	return nil

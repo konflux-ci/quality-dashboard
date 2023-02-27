@@ -118,7 +118,7 @@ func (s *Server) serveAPI() error {
 	c := cors.New(cors.Options{
 		AllowedOrigins:   make([]string, 0),
 		AllowCredentials: true,
-		AllowedMethods:   []string{"POST", "GET", "DELETE"},
+		AllowedMethods:   []string{"POST", "GET", "DELETE", "PUT"},
 		// Enable Debugging for testing, consider disabling in production
 		Debug: false,
 	})
