@@ -125,7 +125,7 @@ export const TeamsTable: React.FunctionComponent = () => {
             </TableComposable>
             {isUpdateModalOpen && <Modal
                 variant={ModalVariant.medium}
-                title={"Edit team " + toUpdateTeam?.team_name}
+                title={"Update team " + toUpdateTeam?.team_name}
                 isOpen={isUpdateModalOpen}
                 onClose={clear}
                 actions={[
@@ -155,7 +155,7 @@ export const TeamsTable: React.FunctionComponent = () => {
                 onClose={clear}
                 actions={[
                     <Button key="delete" variant="primary" form="modal-with-form-form" onClick={onDeleteSubmit}>
-                        Delete
+                        Confirm
                     </Button>,
                     <Button key="cancel" variant="link" onClick={clear}>
                         Cancel
