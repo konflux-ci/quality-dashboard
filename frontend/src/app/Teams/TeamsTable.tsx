@@ -148,7 +148,7 @@ export const TeamsTable: React.FunctionComponent = () => {
             </Modal>
             }
             {isDeleteModalOpen && <Modal
-                variant={ModalVariant.medium}
+                variant={ModalVariant.small}
                 title={"Delete team " + toDeleteTeam?.team_name}
                 description={"All resources related to team " + toDeleteTeam?.team_name + " will be deleted. The resources cannot be recovered. Please, be sure you want to delete it."}
                 isOpen={isDeleteModalOpen}
