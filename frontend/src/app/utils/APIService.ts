@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import axios, { AxiosResponse, AxiosError } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import _ from 'lodash';
 import { JobsStatistics } from '@app/utils/sharedComponents';
 import { teamIsNotEmpty } from '@app/utils/utils';
@@ -276,20 +276,6 @@ async function deleteInApi(data = {}, subPath: string) {
   return result;
 }
 
-// deleteTeam deletes a team in the database
-async function deleteTeam(name: string, description: string) {
-  const data = {
-    team_name: name,
-    team_description: description,
-  };
-  try {
-    await deleteInApi(data, '/api/quality/teams/delete');
-    window.location.reload();
-  } catch (error) {
-    console.log(error);
-  }
-}
-
 // updateTeam updates a team in the database
 async function updateTeam(data = {}) {
   const result: ApiResponse = { code: 0, data: {} };
@@ -326,6 +312,5 @@ export {
   getJiras,
   getJobTypes,
   deleteInApi,
-  deleteTeam,
   updateTeam,
 };

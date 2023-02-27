@@ -10,7 +10,7 @@ import {
     IAction,
 } from '@patternfly/react-table';
 import { ITeam } from './TeamsSelect';
-import { deleteTeam, updateTeam } from "@app/utils/APIService";
+import { deleteInApi, updateTeam } from "@app/utils/APIService";
 import { useSelector } from 'react-redux';
 import { Button, Form, FormGroup, Modal, ModalVariant, TextArea, TextInput } from "@patternfly/react-core";
 
@@ -21,22 +21,29 @@ export const TeamsTable: React.FunctionComponent = () => {
         description: 'Description',
     }
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [toUpdateTeam, setToUpdateTeam] = useState<ITeam>();
+    const [toDeleteTeam, setToDeleteTeam] = useState<ITeam>();
     const [newTeamName, setNewTeamName] = useState<string>("");
     const [newTeamDesc, setNewTeamDesc] = useState<string>("");
 
     let currentTeamsAvailable = useSelector((state: any) => state.teams.TeamsAvailable);
 
     const editTeam = (team: ITeam) => {
-        setIsModalOpen(true)
+        setIsUpdateModalOpen(true)
         setToUpdateTeam(team)
+    }
+
+    const deleteTeam = (team: ITeam) => {
+        setIsDeleteModalOpen(true)
+        setToDeleteTeam(team)
     }
 
     const defaultActions = (team: ITeam): IAction[] => [
         {
             title: 'Delete Team',
-            onClick: () => deleteTeam(team.team_name, team.description)
+            onClick: () => deleteTeam(team)
         },
         {
             title: 'Edit Team',
@@ -44,7 +51,7 @@ export const TeamsTable: React.FunctionComponent = () => {
         },
     ];
 
-    const onSubmit = async () => {
+    const onUpdateSubmit = async () => {
         if (toUpdateTeam != undefined) {
             try {
                 const data = {
@@ -62,9 +69,27 @@ export const TeamsTable: React.FunctionComponent = () => {
         }
     }
 
+    const onDeleteSubmit = async () => {
+        if (toDeleteTeam != undefined) {
+            const data = {
+                team_name: toDeleteTeam.team_name,
+                team_description: toDeleteTeam.description,
+            };
+            try {
+                await deleteInApi(data, '/api/quality/teams/delete');
+                clear()
+                window.location.reload();
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    }
+
     const clear = () => {
-        setIsModalOpen(false)
+        setIsUpdateModalOpen(false)
+        setIsDeleteModalOpen(false)
         setToUpdateTeam(undefined)
+        setToDeleteTeam(undefined)
         setNewTeamName("")
         setNewTeamDesc("")
     }
@@ -98,13 +123,13 @@ export const TeamsTable: React.FunctionComponent = () => {
                     })}
                 </Tbody>
             </TableComposable>
-            <Modal
+            {isUpdateModalOpen && <Modal
                 variant={ModalVariant.medium}
-                title={"Update team"}
-                isOpen={isModalOpen}
+                title={"Update team " + toUpdateTeam?.team_name}
+                isOpen={isUpdateModalOpen}
                 onClose={clear}
                 actions={[
-                    <Button key="update" variant="primary" form="modal-with-form-form" onClick={onSubmit}>
+                    <Button key="update" variant="primary" form="modal-with-form-form" onClick={onUpdateSubmit}>
                         Update
                     </Button>,
                     <Button key="cancel" variant="link" onClick={clear}>
@@ -121,6 +146,24 @@ export const TeamsTable: React.FunctionComponent = () => {
                     </FormGroup>
                 </Form>
             </Modal>
+            }
+            {isDeleteModalOpen && <Modal
+                variant={ModalVariant.medium}
+                title={"Delete team " + toDeleteTeam?.team_name}
+                description={"All resources related to team " + toDeleteTeam?.team_name + " will be deleted. The resources cannot be recovered. Please, be sure you want to delete it."}
+                isOpen={isDeleteModalOpen}
+                onClose={clear}
+                actions={[
+                    <Button key="delete" variant="primary" form="modal-with-form-form" onClick={onDeleteSubmit}>
+                        Delete
+                    </Button>,
+                    <Button key="cancel" variant="link" onClick={clear}>
+                        Cancel
+                    </Button>
+                ]}
+            >
+            </Modal>
+            }
         </React.Fragment>
     );
 };
