@@ -125,7 +125,7 @@ export const TeamsTable: React.FunctionComponent = () => {
             </TableComposable>
             {isUpdateModalOpen && <Modal
                 variant={ModalVariant.medium}
-                title={"Update team " + toUpdateTeam?.team_name}
+                title={"Edit team " + toUpdateTeam?.team_name}
                 isOpen={isUpdateModalOpen}
                 onClose={clear}
                 actions={[
