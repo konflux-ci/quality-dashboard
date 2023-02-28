@@ -12,13 +12,29 @@ import { PlusIcon } from '@patternfly/react-icons';
 import { InfoBanner } from './InfoBanner';
 import { About } from './About';
 import { useHistory } from 'react-router-dom';
+import { getTeams } from '@app/utils/APIService';
 
 export const Overview = () => {
   const history = useHistory();
+  const [noTeams, setNoTeams] = React.useState(false);
 
   const handleModalToggle = () => {
+    setNoTeams(false)
     history.push("/home/teams?isOpen=true")
   };
+
+  const teamsEmpty = () => {
+    getTeams().then(res => {
+      if (res.data.length == 0) {
+        setNoTeams(true)
+      }
+    })
+    if (noTeams) {
+      return true
+    }
+
+    return false
+  }
 
   return (
     <React.Fragment>
@@ -37,7 +53,7 @@ export const Overview = () => {
             Observe, track and analyze StoneSoup quality metrics.
             By creating a team or joining an existing one, you can be more informed about the code coverage, OpenShift CI prow jobs, and GitHub actions of the StoneSoup components.
           </Text>
-          <Button onClick={handleModalToggle} type="button" variant="primary"> <PlusIcon></PlusIcon> Create Team </Button>
+          <Button onClick={handleModalToggle} type="button" variant="primary"> <PlusIcon></PlusIcon>  {teamsEmpty() ? "Create your first team" : "Create team"} </Button>
         </TextContent>
       </PageSection>
       <PageSection>

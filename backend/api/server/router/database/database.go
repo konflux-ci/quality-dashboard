@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/redhat-appstudio/quality-studio/api/types"
@@ -12,6 +13,8 @@ import (
 func (d *databaseRouter) getDbConnection(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	cfg := client.GetPostgresConnectionDetails()
 	_, err := cfg.Open()
+	fmt.Println(err)
+
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "database connection is down",

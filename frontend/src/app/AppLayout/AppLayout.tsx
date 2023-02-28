@@ -74,19 +74,13 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
               {serverUnavailable && <Alert
                 variant="danger"
                 timeout={5000}
-                title="Server unavailable"
+                title="Quality Studio unable to connect to backend server"
                 key={0}
               />}
               {dbUnavailable && <Alert
                 variant="danger"
                 timeout={5000}
-                title="DB unavailable"
-                key={0}
-              />}
-              {areTeamsEmpty && <Alert
-                variant="danger"
-                timeout={5000}
-                title="There are no teams"
+                title="Quality Studio unable to connect to database"
                 key={0}
               />}
             </AlertGroup>
