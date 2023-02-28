@@ -9,11 +9,15 @@ import {
   PageHeader,
   PageSidebar,
   SkipToContent,
+  Alert,
+  AlertActionCloseButton,
+  AlertGroup,
+  MastheadContent,
 } from '@patternfly/react-core';
 import { routes, IAppRoute, IAppRouteGroup } from '@app/routes';
 import logo from '@app/bgimages/Logo-RedHat-A-Reverse-RGB.svg';
 import { BasicMasthead } from '@app/Teams/TeamsSelect';
-import { getTeams } from '@app/utils/APIService';
+import { checkDbConnection, getTeams, getVersion } from '@app/utils/APIService';
 
 interface IAppLayout {
   children: React.ReactNode;
@@ -54,10 +58,41 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
     return <img onClick={handleClick} style={{ height: '32px' }} src={logo} alt="Red Hat logo" />;
   }
 
+  const [areTeamsEmpty, setAreTeamsEmpty] = React.useState(false);
+  const [serverUnavailable, setServerUnavailable] = React.useState(false);
+  const [dbUnavailable, setDbUnavailable] = React.useState(false);
+  const [alerts, setAlerts] = React.useState<React.ReactNode[]>([]);
+
   const Header = (
     <PageHeader
       logo={<LogoImg />}
-      headerTools={<BasicMasthead></BasicMasthead>}
+      headerTools={
+        <React.Fragment>
+          <BasicMasthead></BasicMasthead>
+          <MastheadContent>
+            <AlertGroup isToast>
+              {serverUnavailable && <Alert
+                variant="danger"
+                timeout={5000}
+                title="Server unavailable"
+                key={0}
+              />}
+              {dbUnavailable && <Alert
+                variant="danger"
+                timeout={5000}
+                title="DB unavailable"
+                key={0}
+              />}
+              {areTeamsEmpty && <Alert
+                variant="danger"
+                timeout={5000}
+                title="There are no teams"
+                key={0}
+              />}
+            </AlertGroup>
+          </MastheadContent>
+        </React.Fragment>
+      }
       showNavToggle
       isNavOpen={isNavOpen}
       onNavToggle={isMobileView ? onNavToggleMobile : onNavToggle}
@@ -93,16 +128,34 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
     </NavExpandable>
   );
 
-  const [areTeamsEmpty, setAreTeamsEmpty] = React.useState(false);
-
   const toRender = (label) => {
-    getTeams().then(data => {
-      if (data.data.length == 0) {
-          setAreTeamsEmpty(true)
+    if (label == "Plugins") {
+      getVersion().then(res => {
+        if (!(res.code == 200)) {
+          setServerUnavailable(true)
+        }
+      })
+      if (serverUnavailable) {
+        return false
       }
-    })
-    if (label == "Plugins" && areTeamsEmpty) {
-      return false
+
+      checkDbConnection().then(res => {
+        if (!(res.code == 200)) {
+          setDbUnavailable(true)
+        }
+      })
+      if (dbUnavailable) {
+        return false
+      }
+
+      getTeams().then(res => {
+        if (res.data.length == 0) {
+          setAreTeamsEmpty(true)
+        }
+      })
+      if (areTeamsEmpty) {
+        return false
+      }
     }
     return true
   }

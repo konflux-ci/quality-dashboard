@@ -16,6 +16,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/api/apis/github"
 	"github.com/redhat-appstudio/quality-studio/api/server/middleware"
 	"github.com/redhat-appstudio/quality-studio/api/server/router"
+	"github.com/redhat-appstudio/quality-studio/api/server/router/database"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/jira"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/repositories"
@@ -179,10 +180,12 @@ func (s *Server) makeHTTPHandler(handler httputils.APIFunc) http.HandlerFunc {
 // This method also enables the Go profiler.
 func (s *Server) InitRouter() {
 	s.routers = append(s.routers,
-		version.NewRouter(), repositories.NewRouter(s.cfg.Storage),
+		version.NewRouter(),
+		repositories.NewRouter(s.cfg.Storage),
 		prow.NewRouter(s.cfg.Storage),
 		teams.NewRouter(s.cfg.Storage),
-		jira.NewRouter(s.cfg.Storage))
+		jira.NewRouter(s.cfg.Storage),
+		database.NewRouter())
 }
 
 type pageNotFoundError struct{}

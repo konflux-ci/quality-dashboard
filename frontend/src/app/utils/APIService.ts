@@ -22,16 +22,22 @@ async function getVersion() {
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/server/info';
   const uri = API_URL + subPath;
-  await axios
-    .get(uri)
-    .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
-    })
-    .catch((err) => {
-      result.code = err.response.status;
-      result.data = err.response.data;
-    });
+
+  try {
+    await axios
+      .get(uri)
+      .then((res: AxiosResponse) => {
+        result.code = res.status;
+        result.data = res.data;
+      })
+      .catch((err) => {
+        result.code = err.response.status;
+        result.data = err.response.data;
+      });
+  } catch (error) {
+    result.code = 400;
+  }
+
   return result;
 }
 
@@ -265,7 +271,6 @@ async function deleteInApi(data = {}, subPath: string) {
       data: data,
     })
     .then((res: AxiosResponse) => {
-      console.log(res);
       result.code = res.status;
       result.data = res.data;
     })
@@ -299,6 +304,25 @@ async function updateTeam(data = {}) {
   return result;
 }
 
+async function checkDbConnection() {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/database/ok';
+  const uri = API_URL + subPath;
+
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  return result;
+}
+
 export {
   getVersion,
   getRepositories,
@@ -313,4 +337,5 @@ export {
   getJobTypes,
   deleteInApi,
   updateTeam,
+  checkDbConnection,
 };
