@@ -20,7 +20,7 @@ var toCreate = s.Repository{
 func TestCreateRepository(t *testing.T) {
 	// get database client
 	cfg := GetPostgresConnectionDetails()
-	storage, err := cfg.Open()
+	storage, _, err := cfg.Open()
 	assert.NoError(t, err)
 
 	// be sure that there is no test repo in the db
@@ -80,7 +80,7 @@ func TestCreateRepository(t *testing.T) {
 func TestListRepositories(t *testing.T) {
 	// get database client
 	cfg := GetPostgresConnectionDetails()
-	storage, err := cfg.Open()
+	storage, _, err := cfg.Open()
 	assert.NoError(t, err)
 
 	// be sure that there is no test repo in the db
@@ -132,7 +132,7 @@ func TestListRepositories(t *testing.T) {
 func TestGetRepository(t *testing.T) {
 	// get database client
 	cfg := GetPostgresConnectionDetails()
-	storage, err := cfg.Open()
+	storage, _, err := cfg.Open()
 	assert.NoError(t, err)
 
 	// be sure that there is no test repo in the db

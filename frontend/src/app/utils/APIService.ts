@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import axios, { AxiosResponse, AxiosError } from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import _ from 'lodash';
 import { JobsStatistics } from '@app/utils/sharedComponents';
 import { teamIsNotEmpty } from '@app/utils/utils';
@@ -22,16 +22,22 @@ async function getVersion() {
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/server/info';
   const uri = API_URL + subPath;
-  await axios
-    .get(uri)
-    .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
-    })
-    .catch((err) => {
-      result.code = err.response.status;
-      result.data = err.response.data;
-    });
+
+  try {
+    await axios
+      .get(uri)
+      .then((res: AxiosResponse) => {
+        result.code = res.status;
+        result.data = res.data;
+      })
+      .catch((err) => {
+        result.code = err.response.status;
+        result.data = err.response.data;
+      });
+  } catch (error) {
+    result.code = 400;
+  }
+
   return result;
 }
 
@@ -124,28 +130,6 @@ async function getWorkflowByRepositoryName(repositoryName: string) {
       result.data = err.response.data;
     });
 
-  return result;
-}
-
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-async function deleteRepositoryAPI(data = {}) {
-  const result: ApiResponse = { code: 0, data: {} };
-  const subPath = '/api/quality/repositories/delete';
-  const uri = API_URL + subPath;
-  await axios
-    .delete(uri, {
-      headers: {},
-      data: data,
-    })
-    .then((res: AxiosResponse) => {
-      console.log(res);
-      result.code = res.status;
-      result.data = res.data;
-    })
-    .catch((err) => {
-      result.code = err.response.status;
-      result.data = err.response.data;
-    });
   return result;
 }
 
@@ -276,11 +260,74 @@ async function getJobTypes(repoName: string, repoOrg: string) {
   return data.sort((a, b) => (a < b ? -1 : 1));
 }
 
+// deleteInApi deletes data in the given subPath
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+async function deleteInApi(data = {}, subPath: string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const uri = API_URL + subPath;
+  await axios
+    .delete(uri, {
+      headers: {},
+      data: data,
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
+// updateTeam updates a team in the database
+async function updateTeam(data = {}) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/teams/put';
+  const uri = API_URL + subPath;
+  await axios
+    .request({
+      method: 'PUT',
+      url: uri,
+      data: { ...data },
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+      return result;
+    });
+  return result;
+}
+
+// checkDbConnection checks if the database is available
+async function checkDbConnection() {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/database/ok';
+  const uri = API_URL + subPath;
+
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  return result;
+}
+
 export {
   getVersion,
   getRepositories,
   createRepository,
-  deleteRepositoryAPI,
   getWorkflowByRepositoryName,
   getAllRepositoriesWithOrgs,
   getLatestProwJob,
@@ -289,4 +336,7 @@ export {
   createTeam,
   getJiras,
   getJobTypes,
+  deleteInApi,
+  updateTeam,
+  checkDbConnection,
 };

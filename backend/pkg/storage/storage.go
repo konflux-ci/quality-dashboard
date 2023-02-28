@@ -49,6 +49,9 @@ type Storage interface {
 	ReCreateWorkflow(workflow repoV1Alpha1.Workflow, repoName string) error
 	UpdateCoverage(codecov coverageV1Alpha1.Coverage, repoName string) error
 	CreateJiraBug(bug jiraV1Alpha1.JiraBug) error
+	UpdateTeam(t *db.Teams, target string) error
+	DeleteTeam(teamName string) (bool, error)
+
 	// Delete
 	DeleteRepository(repositoryName string, gitOrganizationName string) error
 }

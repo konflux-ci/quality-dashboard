@@ -12,7 +12,7 @@ import (
 func TestCreateQualityStudioTeam(t *testing.T) {
 	// get database client
 	cfg := GetPostgresConnectionDetails()
-	storage, err := cfg.Open()
+	storage, _, err := cfg.Open()
 	require.NoError(t, err, "GetPostgresConnectionDetails() should not return an error")
 
 	teamName := "team-" + util.GenerateRandomString(6)
@@ -69,7 +69,7 @@ func TestCreateQualityStudioTeam(t *testing.T) {
 func TestGetAllTeamsFromDB(t *testing.T) {
 	// get database client
 	cfg := GetPostgresConnectionDetails()
-	storage, err := cfg.Open()
+	storage, _, err := cfg.Open()
 	require.NoError(t, err, "GetPostgresConnectionDetails() should not return an error")
 
 	teamName := "team-" + util.GenerateRandomString(6)
@@ -91,7 +91,7 @@ func TestGetAllTeamsFromDB(t *testing.T) {
 func TestGetTeamByName(t *testing.T) {
 	// get database client
 	cfg := GetPostgresConnectionDetails()
-	storage, err := cfg.Open()
+	storage, _, err := cfg.Open()
 	require.NoError(t, err, "GetPostgresConnectionDetails() should not return an error")
 
 	teamName := "team-" + util.GenerateRandomString(6)
