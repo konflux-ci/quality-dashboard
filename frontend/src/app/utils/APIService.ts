@@ -304,6 +304,7 @@ async function updateTeam(data = {}) {
   return result;
 }
 
+// checkDbConnection checks if the database is available
 async function checkDbConnection() {
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/database/ok';

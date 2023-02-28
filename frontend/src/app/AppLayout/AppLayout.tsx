@@ -10,7 +10,6 @@ import {
   PageSidebar,
   SkipToContent,
   Alert,
-  AlertActionCloseButton,
   AlertGroup,
   MastheadContent,
 } from '@patternfly/react-core';
