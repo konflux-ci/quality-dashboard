@@ -4,6 +4,7 @@ package db
 
 import (
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
@@ -15,6 +16,16 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	bugsFields := schema.Bugs{}.Fields()
+	_ = bugsFields
+	// bugsDescJiraKey is the schema descriptor for jira_key field.
+	bugsDescJiraKey := bugsFields[1].Descriptor()
+	// bugs.JiraKeyValidator is a validator for the "jira_key" field. It is called by the builders before save.
+	bugs.JiraKeyValidator = bugsDescJiraKey.Validators[0].(func(string) error)
+	// bugsDescID is the schema descriptor for id field.
+	bugsDescID := bugsFields[0].Descriptor()
+	// bugs.DefaultID holds the default value on creation for the id field.
+	bugs.DefaultID = bugsDescID.Default.(func() uuid.UUID)
 	codecovFields := schema.CodeCov{}.Fields()
 	_ = codecovFields
 	// codecovDescRepositoryName is the schema descriptor for repository_name field.

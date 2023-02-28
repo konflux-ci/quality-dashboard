@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
+	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/api/types"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
@@ -108,11 +110,11 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 	if description == "" {
 		description = "Repository don't contain a description"
 	}
-	createdRepo, err := rp.Storage.CreateRepository(storage.Repository{
-		RepositoryName:  githubRepo.GetName(),
-		GitOrganization: githubRepo.Owner.GetLogin(),
-		Description:     description,
-		GitURL:          githubRepo.GetHTMLURL(),
+	createdRepo, err := rp.Storage.CreateRepository(repoV1Alpha1.Repository{
+		Name:         githubRepo.GetName(),
+		Organization: githubRepo.Owner.GetLogin(),
+		Description:  description,
+		HTMLURL:      githubRepo.GetHTMLURL(),
 	}, team.ID)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
@@ -132,7 +134,7 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 	}
 
 	totalCoverageConverted, _ := coverage.Totals.Coverage.Float64()
-	err = rp.Storage.CreateCoverage(storage.Coverage{
+	err = rp.Storage.CreateCoverage(coverageV1Alpha1.Coverage{
 		GitOrganization:    githubRepo.Owner.GetLogin(),
 		RepositoryName:     githubRepo.GetName(),
 		CoveragePercentage: totalCoverageConverted,
@@ -147,12 +149,12 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 
 	workflows, err := rp.Github.GetRepositoryWorkflows(githubRepo.Owner.GetLogin(), githubRepo.GetName())
 	for _, w := range workflows.Workflows {
-		rp.Storage.CreateWorkflows(storage.GithubWorkflows{
-			WorkflowName: w.GetName(),
-			BadgeURL:     w.GetBadgeURL(),
-			HTMLURL:      w.GetHTMLURL(),
-			JobURL:       w.GetURL(),
-			State:        w.GetState(),
+		rp.Storage.CreateWorkflows(repoV1Alpha1.Workflow{
+			Name:     w.GetName(),
+			BadgeURL: w.GetBadgeURL(),
+			HTMLURL:  w.GetHTMLURL(),
+			JobURL:   w.GetURL(),
+			State:    w.GetState(),
 		}, createdRepo.ID)
 	}
 

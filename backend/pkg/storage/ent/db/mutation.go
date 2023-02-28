@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
@@ -31,6 +32,7 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
+	TypeBugs       = "Bugs"
 	TypeCodeCov    = "CodeCov"
 	TypeProwJobs   = "ProwJobs"
 	TypeProwSuites = "ProwSuites"
@@ -38,6 +40,729 @@ const (
 	TypeTeams      = "Teams"
 	TypeWorkflows  = "Workflows"
 )
+
+// BugsMutation represents an operation that mutates the Bugs nodes in the graph.
+type BugsMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	jira_key      *string
+	created_at    *time.Time
+	updated_at    *time.Time
+	priority      *string
+	status        *string
+	summary       *string
+	url           *string
+	clearedFields map[string]struct{}
+	bugs          *uuid.UUID
+	clearedbugs   bool
+	done          bool
+	oldValue      func(context.Context) (*Bugs, error)
+	predicates    []predicate.Bugs
+}
+
+var _ ent.Mutation = (*BugsMutation)(nil)
+
+// bugsOption allows management of the mutation configuration using functional options.
+type bugsOption func(*BugsMutation)
+
+// newBugsMutation creates new mutation for the Bugs entity.
+func newBugsMutation(c config, op Op, opts ...bugsOption) *BugsMutation {
+	m := &BugsMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeBugs,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withBugsID sets the ID field of the mutation.
+func withBugsID(id uuid.UUID) bugsOption {
+	return func(m *BugsMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Bugs
+		)
+		m.oldValue = func(ctx context.Context) (*Bugs, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Bugs.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withBugs sets the old Bugs of the mutation.
+func withBugs(node *Bugs) bugsOption {
+	return func(m *BugsMutation) {
+		m.oldValue = func(context.Context) (*Bugs, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m BugsMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m BugsMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Bugs entities.
+func (m *BugsMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *BugsMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *BugsMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Bugs.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetJiraKey sets the "jira_key" field.
+func (m *BugsMutation) SetJiraKey(s string) {
+	m.jira_key = &s
+}
+
+// JiraKey returns the value of the "jira_key" field in the mutation.
+func (m *BugsMutation) JiraKey() (r string, exists bool) {
+	v := m.jira_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJiraKey returns the old "jira_key" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldJiraKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldJiraKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldJiraKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJiraKey: %w", err)
+	}
+	return oldValue.JiraKey, nil
+}
+
+// ResetJiraKey resets all changes to the "jira_key" field.
+func (m *BugsMutation) ResetJiraKey() {
+	m.jira_key = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *BugsMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *BugsMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *BugsMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *BugsMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *BugsMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *BugsMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetPriority sets the "priority" field.
+func (m *BugsMutation) SetPriority(s string) {
+	m.priority = &s
+}
+
+// Priority returns the value of the "priority" field in the mutation.
+func (m *BugsMutation) Priority() (r string, exists bool) {
+	v := m.priority
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPriority returns the old "priority" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldPriority(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPriority is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPriority requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPriority: %w", err)
+	}
+	return oldValue.Priority, nil
+}
+
+// ResetPriority resets all changes to the "priority" field.
+func (m *BugsMutation) ResetPriority() {
+	m.priority = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *BugsMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *BugsMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *BugsMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetSummary sets the "summary" field.
+func (m *BugsMutation) SetSummary(s string) {
+	m.summary = &s
+}
+
+// Summary returns the value of the "summary" field in the mutation.
+func (m *BugsMutation) Summary() (r string, exists bool) {
+	v := m.summary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSummary returns the old "summary" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldSummary(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSummary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSummary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSummary: %w", err)
+	}
+	return oldValue.Summary, nil
+}
+
+// ResetSummary resets all changes to the "summary" field.
+func (m *BugsMutation) ResetSummary() {
+	m.summary = nil
+}
+
+// SetURL sets the "url" field.
+func (m *BugsMutation) SetURL(s string) {
+	m.url = &s
+}
+
+// URL returns the value of the "url" field in the mutation.
+func (m *BugsMutation) URL() (r string, exists bool) {
+	v := m.url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldURL returns the old "url" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldURL: %w", err)
+	}
+	return oldValue.URL, nil
+}
+
+// ResetURL resets all changes to the "url" field.
+func (m *BugsMutation) ResetURL() {
+	m.url = nil
+}
+
+// SetBugsID sets the "bugs" edge to the Teams entity by id.
+func (m *BugsMutation) SetBugsID(id uuid.UUID) {
+	m.bugs = &id
+}
+
+// ClearBugs clears the "bugs" edge to the Teams entity.
+func (m *BugsMutation) ClearBugs() {
+	m.clearedbugs = true
+}
+
+// BugsCleared reports if the "bugs" edge to the Teams entity was cleared.
+func (m *BugsMutation) BugsCleared() bool {
+	return m.clearedbugs
+}
+
+// BugsID returns the "bugs" edge ID in the mutation.
+func (m *BugsMutation) BugsID() (id uuid.UUID, exists bool) {
+	if m.bugs != nil {
+		return *m.bugs, true
+	}
+	return
+}
+
+// BugsIDs returns the "bugs" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// BugsID instead. It exists only for internal usage by the builders.
+func (m *BugsMutation) BugsIDs() (ids []uuid.UUID) {
+	if id := m.bugs; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetBugs resets all changes to the "bugs" edge.
+func (m *BugsMutation) ResetBugs() {
+	m.bugs = nil
+	m.clearedbugs = false
+}
+
+// Where appends a list predicates to the BugsMutation builder.
+func (m *BugsMutation) Where(ps ...predicate.Bugs) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the BugsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *BugsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Bugs, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *BugsMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *BugsMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Bugs).
+func (m *BugsMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *BugsMutation) Fields() []string {
+	fields := make([]string, 0, 7)
+	if m.jira_key != nil {
+		fields = append(fields, bugs.FieldJiraKey)
+	}
+	if m.created_at != nil {
+		fields = append(fields, bugs.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, bugs.FieldUpdatedAt)
+	}
+	if m.priority != nil {
+		fields = append(fields, bugs.FieldPriority)
+	}
+	if m.status != nil {
+		fields = append(fields, bugs.FieldStatus)
+	}
+	if m.summary != nil {
+		fields = append(fields, bugs.FieldSummary)
+	}
+	if m.url != nil {
+		fields = append(fields, bugs.FieldURL)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *BugsMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case bugs.FieldJiraKey:
+		return m.JiraKey()
+	case bugs.FieldCreatedAt:
+		return m.CreatedAt()
+	case bugs.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case bugs.FieldPriority:
+		return m.Priority()
+	case bugs.FieldStatus:
+		return m.Status()
+	case bugs.FieldSummary:
+		return m.Summary()
+	case bugs.FieldURL:
+		return m.URL()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *BugsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case bugs.FieldJiraKey:
+		return m.OldJiraKey(ctx)
+	case bugs.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case bugs.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case bugs.FieldPriority:
+		return m.OldPriority(ctx)
+	case bugs.FieldStatus:
+		return m.OldStatus(ctx)
+	case bugs.FieldSummary:
+		return m.OldSummary(ctx)
+	case bugs.FieldURL:
+		return m.OldURL(ctx)
+	}
+	return nil, fmt.Errorf("unknown Bugs field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BugsMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case bugs.FieldJiraKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJiraKey(v)
+		return nil
+	case bugs.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case bugs.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case bugs.FieldPriority:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPriority(v)
+		return nil
+	case bugs.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case bugs.FieldSummary:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSummary(v)
+		return nil
+	case bugs.FieldURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetURL(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Bugs field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *BugsMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *BugsMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BugsMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Bugs numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *BugsMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *BugsMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *BugsMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Bugs nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *BugsMutation) ResetField(name string) error {
+	switch name {
+	case bugs.FieldJiraKey:
+		m.ResetJiraKey()
+		return nil
+	case bugs.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case bugs.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case bugs.FieldPriority:
+		m.ResetPriority()
+		return nil
+	case bugs.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case bugs.FieldSummary:
+		m.ResetSummary()
+		return nil
+	case bugs.FieldURL:
+		m.ResetURL()
+		return nil
+	}
+	return fmt.Errorf("unknown Bugs field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *BugsMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.bugs != nil {
+		edges = append(edges, bugs.EdgeBugs)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *BugsMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case bugs.EdgeBugs:
+		if id := m.bugs; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *BugsMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *BugsMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *BugsMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedbugs {
+		edges = append(edges, bugs.EdgeBugs)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *BugsMutation) EdgeCleared(name string) bool {
+	switch name {
+	case bugs.EdgeBugs:
+		return m.clearedbugs
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *BugsMutation) ClearEdge(name string) error {
+	switch name {
+	case bugs.EdgeBugs:
+		m.ClearBugs()
+		return nil
+	}
+	return fmt.Errorf("unknown Bugs unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *BugsMutation) ResetEdge(name string) error {
+	switch name {
+	case bugs.EdgeBugs:
+		m.ResetBugs()
+		return nil
+	}
+	return fmt.Errorf("unknown Bugs edge %s", name)
+}
 
 // CodeCovMutation represents an operation that mutates the CodeCov nodes in the graph.
 type CodeCovMutation struct {
@@ -3181,6 +3906,9 @@ type TeamsMutation struct {
 	repositories        map[uuid.UUID]struct{}
 	removedrepositories map[uuid.UUID]struct{}
 	clearedrepositories bool
+	bugs                map[uuid.UUID]struct{}
+	removedbugs         map[uuid.UUID]struct{}
+	clearedbugs         bool
 	done                bool
 	oldValue            func(context.Context) (*Teams, error)
 	predicates          []predicate.Teams
@@ -3416,6 +4144,60 @@ func (m *TeamsMutation) ResetRepositories() {
 	m.removedrepositories = nil
 }
 
+// AddBugIDs adds the "bugs" edge to the Bugs entity by ids.
+func (m *TeamsMutation) AddBugIDs(ids ...uuid.UUID) {
+	if m.bugs == nil {
+		m.bugs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.bugs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearBugs clears the "bugs" edge to the Bugs entity.
+func (m *TeamsMutation) ClearBugs() {
+	m.clearedbugs = true
+}
+
+// BugsCleared reports if the "bugs" edge to the Bugs entity was cleared.
+func (m *TeamsMutation) BugsCleared() bool {
+	return m.clearedbugs
+}
+
+// RemoveBugIDs removes the "bugs" edge to the Bugs entity by IDs.
+func (m *TeamsMutation) RemoveBugIDs(ids ...uuid.UUID) {
+	if m.removedbugs == nil {
+		m.removedbugs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.bugs, ids[i])
+		m.removedbugs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedBugs returns the removed IDs of the "bugs" edge to the Bugs entity.
+func (m *TeamsMutation) RemovedBugsIDs() (ids []uuid.UUID) {
+	for id := range m.removedbugs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// BugsIDs returns the "bugs" edge IDs in the mutation.
+func (m *TeamsMutation) BugsIDs() (ids []uuid.UUID) {
+	for id := range m.bugs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetBugs resets all changes to the "bugs" edge.
+func (m *TeamsMutation) ResetBugs() {
+	m.bugs = nil
+	m.clearedbugs = false
+	m.removedbugs = nil
+}
+
 // Where appends a list predicates to the TeamsMutation builder.
 func (m *TeamsMutation) Where(ps ...predicate.Teams) {
 	m.predicates = append(m.predicates, ps...)
@@ -3566,9 +4348,12 @@ func (m *TeamsMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TeamsMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.repositories != nil {
 		edges = append(edges, teams.EdgeRepositories)
+	}
+	if m.bugs != nil {
+		edges = append(edges, teams.EdgeBugs)
 	}
 	return edges
 }
@@ -3583,15 +4368,24 @@ func (m *TeamsMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case teams.EdgeBugs:
+		ids := make([]ent.Value, 0, len(m.bugs))
+		for id := range m.bugs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TeamsMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedrepositories != nil {
 		edges = append(edges, teams.EdgeRepositories)
+	}
+	if m.removedbugs != nil {
+		edges = append(edges, teams.EdgeBugs)
 	}
 	return edges
 }
@@ -3606,15 +4400,24 @@ func (m *TeamsMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case teams.EdgeBugs:
+		ids := make([]ent.Value, 0, len(m.removedbugs))
+		for id := range m.removedbugs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TeamsMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedrepositories {
 		edges = append(edges, teams.EdgeRepositories)
+	}
+	if m.clearedbugs {
+		edges = append(edges, teams.EdgeBugs)
 	}
 	return edges
 }
@@ -3625,6 +4428,8 @@ func (m *TeamsMutation) EdgeCleared(name string) bool {
 	switch name {
 	case teams.EdgeRepositories:
 		return m.clearedrepositories
+	case teams.EdgeBugs:
+		return m.clearedbugs
 	}
 	return false
 }
@@ -3643,6 +4448,9 @@ func (m *TeamsMutation) ResetEdge(name string) error {
 	switch name {
 	case teams.EdgeRepositories:
 		m.ResetRepositories()
+		return nil
+	case teams.EdgeBugs:
+		m.ResetBugs()
 		return nil
 	}
 	return fmt.Errorf("unknown Teams edge %s", name)
