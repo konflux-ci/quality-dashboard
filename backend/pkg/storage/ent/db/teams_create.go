@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 )
@@ -60,6 +61,21 @@ func (tc *TeamsCreate) AddRepositories(r ...*Repository) *TeamsCreate {
 		ids[i] = r[i].ID
 	}
 	return tc.AddRepositoryIDs(ids...)
+}
+
+// AddBugIDs adds the "bugs" edge to the Bugs entity by IDs.
+func (tc *TeamsCreate) AddBugIDs(ids ...uuid.UUID) *TeamsCreate {
+	tc.mutation.AddBugIDs(ids...)
+	return tc
+}
+
+// AddBugs adds the "bugs" edges to the Bugs entity.
+func (tc *TeamsCreate) AddBugs(b ...*Bugs) *TeamsCreate {
+	ids := make([]uuid.UUID, len(b))
+	for i := range b {
+		ids[i] = b[i].ID
+	}
+	return tc.AddBugIDs(ids...)
 }
 
 // Mutation returns the TeamsMutation object of the builder.
@@ -171,6 +187,25 @@ func (tc *TeamsCreate) createSpec() (*Teams, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: repository.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := tc.mutation.BugsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.BugsTable,
+			Columns: []string{teams.BugsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: bugs.FieldID,
 				},
 			},
 		}

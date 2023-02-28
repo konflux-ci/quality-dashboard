@@ -4,16 +4,16 @@ import (
 	"testing"
 
 	"github.com/devfile/library/pkg/util"
-	s "github.com/redhat-appstudio/quality-studio/pkg/storage"
+	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/client"
 	"github.com/stretchr/testify/assert"
 )
 
-var repository = s.Repository{
-	RepositoryName:  "managed-gitops",
-	GitOrganization: "redhat-appstudio",
-	Description:     "GitOps Service: Backend/cluster-agent/utility components aiming to provided GitOps services via Kubernetes-controller-managed Argo CD",
-	GitURL:          "https://github.com/redhat-appstudio/managed-gitops",
+var repository = repoV1Alpha1.Repository{
+	Name:         "managed-gitops",
+	Organization: "redhat-appstudio",
+	Description:  "GitOps Service: Backend/cluster-agent/utility components aiming to provided GitOps services via Kubernetes-controller-managed Argo CD",
+	HTMLURL:      "https://github.com/redhat-appstudio/managed-gitops",
 }
 
 func TestGetCodeCovInfo(t *testing.T) {
@@ -22,7 +22,7 @@ func TestGetCodeCovInfo(t *testing.T) {
 	assert.NoError(t, err)
 
 	// be sure that there is no test repo in the db
-	err = storage.DeleteRepository(repository.RepositoryName, repository.GitOrganization)
+	err = storage.DeleteRepository(repository.Name, repository.Organization)
 	assert.NoError(t, err)
 
 	teamName := "team-" + util.GenerateRandomString(6)

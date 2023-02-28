@@ -11,6 +11,7 @@ import (
 
 type Jira interface {
 	GetIssueByJQLQuery(JQLQuery string) []jira.Issue
+	GetBugsByJQLQuery(JQLQuery string) []jira.Issue
 }
 
 func NewJiraConfig() Jira {

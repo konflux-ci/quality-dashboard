@@ -8,6 +8,32 @@ import (
 )
 
 var (
+	// BugsColumns holds the columns for the "bugs" table.
+	BugsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "jira_key", Type: field.TypeString, Unique: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "priority", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "status", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "summary", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "url", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "teams_bugs", Type: field.TypeUUID, Nullable: true},
+	}
+	// BugsTable holds the schema information for the "bugs" table.
+	BugsTable = &schema.Table{
+		Name:       "bugs",
+		Columns:    BugsColumns,
+		PrimaryKey: []*schema.Column{BugsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "bugs_teams_bugs",
+				Columns:    []*schema.Column{BugsColumns[8]},
+				RefColumns: []*schema.Column{TeamsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// CodeCovsColumns holds the columns for the "code_covs" table.
 	CodeCovsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -145,6 +171,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		BugsTable,
 		CodeCovsTable,
 		ProwJobsTable,
 		ProwSuitesTable,
@@ -155,6 +182,7 @@ var (
 )
 
 func init() {
+	BugsTable.ForeignKeys[0].RefTable = TeamsTable
 	CodeCovsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	ProwJobsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	ProwSuitesTable.ForeignKeys[0].RefTable = RepositoriesTable

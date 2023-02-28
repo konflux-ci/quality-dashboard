@@ -7,10 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/redhat-appstudio/quality-studio/api/apis/codecov"
-	"github.com/redhat-appstudio/quality-studio/api/apis/github"
 	"github.com/redhat-appstudio/quality-studio/api/server"
 	version "github.com/redhat-appstudio/quality-studio/api/server/router/version"
+	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/connectors/github"
+	jiraAPI "github.com/redhat-appstudio/quality-studio/pkg/connectors/jira"
 	"github.com/redhat-appstudio/quality-studio/pkg/logger"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/client"
@@ -89,14 +90,18 @@ func main() {
 		logger.Fatal("Server fail to initialize database connection", zap.Error(err))
 	}
 
+	jiraAPI := jiraAPI.NewJiraConfig()
+
 	server := server.New(&server.Config{
 		Logger:  logger,
 		Version: version.ServerVersion,
 		Storage: newKeyCacher(storage, time.Now),
 		Github:  github.NewGithubClient(util.GetEnv(DefaultGithubTokenEnv, "")),
 		CodeCov: codecov.NewCodeCoverageClient(),
+		Jira:    jiraAPI,
 		Db:      db,
 	})
+
 	server.Accept("", listener)
 
 	wait := make(chan error)
