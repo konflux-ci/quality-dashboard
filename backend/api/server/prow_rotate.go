@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
+	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 )
@@ -35,13 +37,13 @@ func (s *Server) UpdateProwStatusByTeam() {
 	}
 }
 
-func (s *Server) ProwStaticUpdate(storageRepos []storage.Repository, prowjobs []prow.ProwJob) {
+func (s *Server) ProwStaticUpdate(storageRepos []repoV1Alpha1.Repository, prowjobs []prow.ProwJob) {
 	for _, repo := range storageRepos {
 		for _, pj := range prowjobs {
 			suitesXml := prow.TestSuites{}
 			prowOrg, prowRepo := ExtractOrgAndRepoFromProwJobLabels(pj.Labels)
 
-			if prowOrg == repo.GitOrganization && prowRepo == repo.RepositoryName && pj.Status.State != prow.AbortedState && pj.Status.State != prow.PendingState && !strings.Contains(pj.Status.URL, "-images") && !strings.Contains(pj.Status.URL, "-index") {
+			if prowOrg == repo.Organization && prowRepo == repo.Name && pj.Status.State != prow.AbortedState && pj.Status.State != prow.PendingState && !strings.Contains(pj.Status.URL, "-images") && !strings.Contains(pj.Status.URL, "-index") {
 				// check if job already in database
 				prowJobsInDatabase, _ := s.cfg.Storage.GetProwJobsResultsByJobID(pj.Status.BuildID)
 				if len(prowJobsInDatabase) > 0 {
@@ -71,7 +73,7 @@ func (s *Server) ProwStaticUpdate(storageRepos []storage.Repository, prowjobs []
 }
 
 func SaveProwJobsinDatabase(s storage.Storage, pj prow.ProwJob, ts prow.TestSuites, repositoryId uuid.UUID) error {
-	prowJob := storage.ProwJobStatus{}
+	prowJob := prowV1Alpha1.Job{}
 	duration, numTests, testFailed, testSkipped := getSuitesData(pj, ts)
 
 	prowJob.JobID = pj.Status.BuildID
@@ -93,7 +95,7 @@ func SaveProwJobsinDatabase(s storage.Storage, pj prow.ProwJob, ts prow.TestSuit
 	if pj.Spec.Type == "periodic" {
 		for _, suite := range ts.Suites {
 			for _, testCase := range suite.TestCases {
-				s.CreateProwJobSuites(storage.ProwJobSuites{
+				s.CreateProwJobSuites(prowV1Alpha1.JobSuites{
 					JobID:          pj.Status.BuildID,
 					TestCaseName:   testCase.Name,
 					TestCaseStatus: testCase.Status,

@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
@@ -56,6 +57,21 @@ func (tu *TeamsUpdate) AddRepositories(r ...*Repository) *TeamsUpdate {
 	return tu.AddRepositoryIDs(ids...)
 }
 
+// AddBugIDs adds the "bugs" edge to the Bugs entity by IDs.
+func (tu *TeamsUpdate) AddBugIDs(ids ...uuid.UUID) *TeamsUpdate {
+	tu.mutation.AddBugIDs(ids...)
+	return tu
+}
+
+// AddBugs adds the "bugs" edges to the Bugs entity.
+func (tu *TeamsUpdate) AddBugs(b ...*Bugs) *TeamsUpdate {
+	ids := make([]uuid.UUID, len(b))
+	for i := range b {
+		ids[i] = b[i].ID
+	}
+	return tu.AddBugIDs(ids...)
+}
+
 // Mutation returns the TeamsMutation object of the builder.
 func (tu *TeamsUpdate) Mutation() *TeamsMutation {
 	return tu.mutation
@@ -80,6 +96,27 @@ func (tu *TeamsUpdate) RemoveRepositories(r ...*Repository) *TeamsUpdate {
 		ids[i] = r[i].ID
 	}
 	return tu.RemoveRepositoryIDs(ids...)
+}
+
+// ClearBugs clears all "bugs" edges to the Bugs entity.
+func (tu *TeamsUpdate) ClearBugs() *TeamsUpdate {
+	tu.mutation.ClearBugs()
+	return tu
+}
+
+// RemoveBugIDs removes the "bugs" edge to Bugs entities by IDs.
+func (tu *TeamsUpdate) RemoveBugIDs(ids ...uuid.UUID) *TeamsUpdate {
+	tu.mutation.RemoveBugIDs(ids...)
+	return tu
+}
+
+// RemoveBugs removes "bugs" edges to Bugs entities.
+func (tu *TeamsUpdate) RemoveBugs(b ...*Bugs) *TeamsUpdate {
+	ids := make([]uuid.UUID, len(b))
+	for i := range b {
+		ids[i] = b[i].ID
+	}
+	return tu.RemoveBugIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -187,6 +224,60 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if tu.mutation.BugsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.BugsTable,
+			Columns: []string{teams.BugsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: bugs.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.RemovedBugsIDs(); len(nodes) > 0 && !tu.mutation.BugsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.BugsTable,
+			Columns: []string{teams.BugsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: bugs.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.BugsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.BugsTable,
+			Columns: []string{teams.BugsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: bugs.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{teams.Label}
@@ -234,6 +325,21 @@ func (tuo *TeamsUpdateOne) AddRepositories(r ...*Repository) *TeamsUpdateOne {
 	return tuo.AddRepositoryIDs(ids...)
 }
 
+// AddBugIDs adds the "bugs" edge to the Bugs entity by IDs.
+func (tuo *TeamsUpdateOne) AddBugIDs(ids ...uuid.UUID) *TeamsUpdateOne {
+	tuo.mutation.AddBugIDs(ids...)
+	return tuo
+}
+
+// AddBugs adds the "bugs" edges to the Bugs entity.
+func (tuo *TeamsUpdateOne) AddBugs(b ...*Bugs) *TeamsUpdateOne {
+	ids := make([]uuid.UUID, len(b))
+	for i := range b {
+		ids[i] = b[i].ID
+	}
+	return tuo.AddBugIDs(ids...)
+}
+
 // Mutation returns the TeamsMutation object of the builder.
 func (tuo *TeamsUpdateOne) Mutation() *TeamsMutation {
 	return tuo.mutation
@@ -258,6 +364,27 @@ func (tuo *TeamsUpdateOne) RemoveRepositories(r ...*Repository) *TeamsUpdateOne 
 		ids[i] = r[i].ID
 	}
 	return tuo.RemoveRepositoryIDs(ids...)
+}
+
+// ClearBugs clears all "bugs" edges to the Bugs entity.
+func (tuo *TeamsUpdateOne) ClearBugs() *TeamsUpdateOne {
+	tuo.mutation.ClearBugs()
+	return tuo
+}
+
+// RemoveBugIDs removes the "bugs" edge to Bugs entities by IDs.
+func (tuo *TeamsUpdateOne) RemoveBugIDs(ids ...uuid.UUID) *TeamsUpdateOne {
+	tuo.mutation.RemoveBugIDs(ids...)
+	return tuo
+}
+
+// RemoveBugs removes "bugs" edges to Bugs entities.
+func (tuo *TeamsUpdateOne) RemoveBugs(b ...*Bugs) *TeamsUpdateOne {
+	ids := make([]uuid.UUID, len(b))
+	for i := range b {
+		ids[i] = b[i].ID
+	}
+	return tuo.RemoveBugIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -381,6 +508,60 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: repository.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if tuo.mutation.BugsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.BugsTable,
+			Columns: []string{teams.BugsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: bugs.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.RemovedBugsIDs(); len(nodes) > 0 && !tuo.mutation.BugsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.BugsTable,
+			Columns: []string{teams.BugsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: bugs.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.BugsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.BugsTable,
+			Columns: []string{teams.BugsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: bugs.FieldID,
 				},
 			},
 		}

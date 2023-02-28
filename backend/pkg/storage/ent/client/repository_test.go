@@ -5,16 +5,16 @@ import (
 
 	"github.com/devfile/library/pkg/util"
 	"github.com/google/uuid"
-	s "github.com/redhat-appstudio/quality-studio/pkg/storage"
+	s "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/stretchr/testify/assert"
 )
 
 var toCreate = s.Repository{
-	RepositoryName:  "managed-gitops",
-	GitOrganization: "redhat-appstudio",
-	Description:     "GitOps Service: Backend/cluster-agent/utility components aiming to provided GitOps services via Kubernetes-controller-managed Argo CD",
-	GitURL:          "https://github.com/redhat-appstudio/managed-gitops",
+	Name:         "managed-gitops",
+	Organization: "redhat-appstudio",
+	Description:  "GitOps Service: Backend/cluster-agent/utility components aiming to provided GitOps services via Kubernetes-controller-managed Argo CD",
+	HTMLURL:      "https://github.com/redhat-appstudio/managed-gitops",
 }
 
 func TestCreateRepository(t *testing.T) {
@@ -24,10 +24,10 @@ func TestCreateRepository(t *testing.T) {
 	assert.NoError(t, err)
 
 	// be sure that there is no test repo in the db
-	err = storage.DeleteRepository(toCreate.RepositoryName, toCreate.GitOrganization)
+	err = storage.DeleteRepository(toCreate.Name, toCreate.Organization)
 	assert.NoError(t, err)
 
-	teamName := "team-" + util.GenerateRandomString(6)
+	teamName := "team" + util.GenerateRandomString(6)
 	teamDescription := teamName
 
 	// create a team
@@ -46,10 +46,10 @@ func TestCreateRepository(t *testing.T) {
 			Name:  "create a repository successfully",
 			Input: &toCreate,
 			Expected: &db.Repository{
-				RepositoryName:  toCreate.RepositoryName,
-				GitOrganization: toCreate.GitOrganization,
+				RepositoryName:  toCreate.Name,
+				GitOrganization: toCreate.Organization,
 				Description:     toCreate.Description,
-				GitURL:          toCreate.GitURL,
+				GitURL:          toCreate.HTMLURL,
 			},
 			ExpectedError: "",
 			Team:          &team.ID,
@@ -58,7 +58,7 @@ func TestCreateRepository(t *testing.T) {
 			Name:          "create a repository unsuccessfully (with the same repo and team)",
 			Input:         &toCreate,
 			Expected:      &db.Repository{},
-			ExpectedError: "Already exists",
+			ExpectedError: "already exists",
 			Team:          &team.ID,
 		},
 	}
@@ -72,7 +72,7 @@ func TestCreateRepository(t *testing.T) {
 				return
 			}
 
-			assert.Equal(t, c.Input.RepositoryName, got.RepositoryName)
+			assert.Equal(t, c.Input.Name, got.RepositoryName)
 		})
 	}
 }
@@ -84,7 +84,7 @@ func TestListRepositories(t *testing.T) {
 	assert.NoError(t, err)
 
 	// be sure that there is no test repo in the db
-	err = storage.DeleteRepository(toCreate.RepositoryName, toCreate.GitOrganization)
+	err = storage.DeleteRepository(toCreate.Name, toCreate.Organization)
 	assert.NoError(t, err)
 
 	teamName := "team-" + util.GenerateRandomString(6)
@@ -136,7 +136,7 @@ func TestGetRepository(t *testing.T) {
 	assert.NoError(t, err)
 
 	// be sure that there is no test repo in the db
-	err = storage.DeleteRepository(toCreate.RepositoryName, toCreate.GitOrganization)
+	err = storage.DeleteRepository(toCreate.Name, toCreate.Organization)
 	assert.NoError(t, err)
 
 	teamName := "team-" + util.GenerateRandomString(6)

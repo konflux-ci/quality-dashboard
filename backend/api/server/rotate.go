@@ -2,11 +2,16 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"regexp"
+	"sync"
 	"time"
 
-	"github.com/redhat-appstudio/quality-studio/api/apis/codecov"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage"
+	"github.com/andygrunwald/go-jira"
+	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
+	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
+	"github.com/redhat-appstudio/quality-studio/api/apis/jira/v1alpha1"
+	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
 	"go.uber.org/zap"
 )
 
@@ -39,6 +44,8 @@ func (s *Server) startUpdateStorage(ctx context.Context, strategy rotationStrate
 }
 
 func (s *Server) rotate() error {
+	s.rotateJiraBugs()
+
 	s.UpdateProwStatusByTeam()
 	err := s.UpdateDataBaseRepoByTeam()
 	if err != nil {
@@ -50,35 +57,71 @@ func (s *Server) rotate() error {
 }
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
-		rotationFrequency: time.Minute * 30,
+		rotationFrequency: time.Second * 30,
 	}
 }
 
+func (s *Server) rotateJiraBugs() {
+	bugs := s.cfg.Jira.GetBugsByJQLQuery(`project in ("Hybrid Application Service", "Stonesoup", "CodeReady Toolchain", "GitOps Service", "Pipeline Service", "SVPI", "Stonesoup Build") AND type = Bug`)
+	wg := new(sync.WaitGroup)
+	for keyString, bugValue := range bugs {
+		wg.Add(1)
+		go func(keyString int, bug jira.Issue, wg *sync.WaitGroup) {
+			defer wg.Done()
+			if bug.Fields.Priority.Name == "" {
+				bug.Fields.Priority.Name = "No Data"
+			}
+			if err := s.cfg.Storage.CreateJiraBug(v1alpha1.JiraBug{
+				JiraKey:   bug.Key,
+				CreatedAt: time.Time(bug.Fields.Created),
+				UpdatedAt: time.Time(bug.Fields.Updated),
+				Priority:  bug.Fields.Priority.Name,
+				Status:    bug.Fields.Status.Name,
+				Summary:   bug.Fields.Summary,
+				Url:       fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key),
+			}); err != nil {
+				s.cfg.Logger.Sugar().Errorf("failed to update jiras %s, %v", bug.Key, err)
+			}
+		}(keyString, bugValue, wg)
+	}
+
+	wg.Wait()
+
+	s.cfg.Logger.Sugar().Info("successfully update jira bugs in database")
+}
+
 func (s *Server) UpdateDataBaseRepoByTeam() error {
-	teamArr, _ := s.cfg.Storage.GetAllTeamsFromDB()
+	teamArr, err := s.cfg.Storage.GetAllTeamsFromDB()
+	if err != nil {
+		return err
+	}
 
 	for _, team := range teamArr {
-		repo, _ := s.cfg.Storage.ListRepositories(team)
+		repo, err := s.cfg.Storage.ListRepositories(team)
+		if err != nil {
+			return err
+		}
+
 		if err := s.CacheRepositoriesInformation(repo); err != nil {
-			s.cfg.Logger.Sugar().Errorf("failed to update repository %s", repo)
+			s.cfg.Logger.Sugar().Errorf("failed to update repository %s, %v", repo, err)
 		}
 	}
 	return nil
 }
 
-func (s *Server) CacheRepositoriesInformation(storageRepos []storage.Repository) error {
+func (s *Server) CacheRepositoriesInformation(storageRepos []repoV1Alpha1.Repository) error {
 	for _, repo := range storageRepos {
-		coverage, err := s.getCodeCoverage(repo.GitOrganization, repo.RepositoryName)
+		coverage, err := s.getCodeCoverage(repo.Organization, repo.Name)
 
 		if err != nil {
 			return err
 		}
 		totalCoverageConverted, _ := coverage.Totals.Coverage.Float64()
-		err = s.cfg.Storage.UpdateCoverage(storage.Coverage{
-			GitOrganization:    repo.GitOrganization,
-			RepositoryName:     repo.RepositoryName,
+		err = s.cfg.Storage.UpdateCoverage(coverageV1Alpha1.Coverage{
+			GitOrganization:    repo.Organization,
+			RepositoryName:     repo.Name,
 			CoveragePercentage: totalCoverageConverted,
-		}, repo.RepositoryName)
+		}, repo.Name)
 		if err != nil {
 			return err
 		}

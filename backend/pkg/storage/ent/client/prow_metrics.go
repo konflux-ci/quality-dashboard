@@ -7,15 +7,15 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
-func (d *Database) GetMetrics(gitOrganization, repoName, jobType, startDate, endDate string) storage.ProwJobsMetrics {
-	var metrics storage.ProwJobsMetrics
+func (d *Database) GetMetrics(gitOrganization, repoName, jobType, startDate, endDate string) prowV1Alpha1.JobsMetrics {
+	var metrics prowV1Alpha1.JobsMetrics
 	metrics.GitOrganization = gitOrganization
 	metrics.JobType = jobType
 	metrics.RepositoryName = repoName
@@ -38,7 +38,7 @@ func (d *Database) GetMetrics(gitOrganization, repoName, jobType, startDate, end
 	return metrics
 }
 
-func (d *Database) getMetric(repo *db.Repository, job, jobType, startDate, endDate string) storage.Metrics {
+func (d *Database) getMetric(repo *db.Repository, job, jobType, startDate, endDate string) prowV1Alpha1.Metrics {
 	jMetric, _ := d.client.Repository.QueryProwJobs(repo).Select().
 		Where(prowjobs.JobName(job)).
 		Where(prowjobs.JobType(jobType)).
@@ -49,8 +49,8 @@ func (d *Database) getMetric(repo *db.Repository, job, jobType, startDate, endDa
 	return getProwMetricsByDay(jMetric, startDate)
 }
 
-func (d *Database) getMetricsSummaryByDay(repo *db.Repository, job, jobType, startDate, endDate string) []storage.Metrics {
-	var metrics []storage.Metrics
+func (d *Database) getMetricsSummaryByDay(repo *db.Repository, job, jobType, startDate, endDate string) []prowV1Alpha1.Metrics {
+	var metrics []prowV1Alpha1.Metrics
 	dayArr := getDatesBetweenRange(startDate, endDate)
 
 	// range between one day (same day)
@@ -81,7 +81,7 @@ func (d *Database) getMetricsSummaryByDay(repo *db.Repository, job, jobType, sta
 	return metrics
 }
 
-func getProwMetricsByDay(jobs []*db.ProwJobs, date string) storage.Metrics {
+func getProwMetricsByDay(jobs []*db.ProwJobs, date string) prowV1Alpha1.Metrics {
 	job_nums := float64(len(jobs))
 	var success_rate_total, failed_rate_total, ci_failed_total float64
 
@@ -114,7 +114,7 @@ func getProwMetricsByDay(jobs []*db.ProwJobs, date string) storage.Metrics {
 		ci_failed_rate = 0
 	}
 
-	return storage.Metrics{
+	return prowV1Alpha1.Metrics{
 		Date:         date,
 		SuccessRate:  success_rate,
 		FailureRate:  failed_rate,
@@ -123,7 +123,7 @@ func getProwMetricsByDay(jobs []*db.ProwJobs, date string) storage.Metrics {
 
 }
 
-func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, jobName, jobType, startDate, endDate string) storage.Jobs {
+func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, jobName, jobType, startDate, endDate string) prowV1Alpha1.Jobs {
 	var success_rate_total, failed_rate_total, ci_failed_total float64
 
 	for _, j := range jobs {
@@ -142,10 +142,10 @@ func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, j
 	job_nums := float64(len(jobs))
 	metricsByDat := d.getMetricsSummaryByDay(repo, jobName, jobType, startDate, endDate)
 
-	return storage.Jobs{
+	return prowV1Alpha1.Jobs{
 		Name:    jobName,
 		Metrics: metricsByDat,
-		Summary: storage.Summary{
+		Summary: prowV1Alpha1.Summary{
 			DateFrom:       startDate,
 			DateTo:         endDate,
 			SuccessRateAvg: success_rate_total / job_nums * 100,

@@ -7,17 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-/* Original SQL table:
-create table password
-(
-    email    text not null  primary key,
-    hash     blob not null,
-    username text not null,
-    user_id  text not null
-);
-*/
-
-// Password holds the schema definition for the Password entity.
+// CodeCov holds the schema definition for the CodeCov entity.
 type CodeCov struct {
 	ent.Schema
 }

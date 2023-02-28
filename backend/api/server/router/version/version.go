@@ -9,9 +9,9 @@ import (
 )
 
 var (
-	ServerVersion = "1.0.1"
+	ServerVersion = "1.1.0"
 	// apiMaturity is the level of maturity the Server has achieved at this version, eg. planning, pre-alpha, alpha, beta, stable, mature, inactive, or deprecated.
-	APIMaturity = "planning"
+	APIMaturity = "v1alpha1"
 	// gitCommit is a constant representing the source version that
 	// generated this build. It should be set during build via -ldflags.
 	GitCommit string
