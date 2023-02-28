@@ -27,7 +27,7 @@ func TestCreateRepository(t *testing.T) {
 	err = storage.DeleteRepository(toCreate.Name, toCreate.Organization)
 	assert.NoError(t, err)
 
-	teamName := "team-" + util.GenerateRandomString(6)
+	teamName := "team" + util.GenerateRandomString(6)
 	teamDescription := teamName
 
 	// create a team
@@ -58,7 +58,7 @@ func TestCreateRepository(t *testing.T) {
 			Name:          "create a repository unsuccessfully (with the same repo and team)",
 			Input:         &toCreate,
 			Expected:      &db.Repository{},
-			ExpectedError: "Already exists",
+			ExpectedError: "already exists",
 			Team:          &team.ID,
 		},
 	}
