@@ -44,10 +44,10 @@ type Postgres struct {
 }
 
 // Open always returns a new in sqlite3 storage.
-func (p *Postgres) Open() (storage.Storage, error) {
+func (p *Postgres) Open() (storage.Storage, *sql.DB, error) {
 	drv, err := p.driver()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	databaseClient := NewDatabase(
@@ -61,10 +61,10 @@ func (p *Postgres) Open() (storage.Storage, error) {
 	)
 
 	if err := databaseClient.Schema().Create(context.TODO()); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return databaseClient, nil
+	return databaseClient, drv.DB(), nil
 }
 
 func (p *Postgres) driver() (*entSQL.Driver, error) {

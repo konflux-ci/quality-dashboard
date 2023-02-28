@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"crypto/tls"
+	"database/sql"
 	"fmt"
 	"net"
 	"net/http"
@@ -58,6 +59,7 @@ type Config struct {
 	TLSConfig   *tls.Config
 	Github      *github.Github
 	CodeCov     *codecov.API
+	Db          *sql.DB
 }
 
 // HTTPServer contains an instance of http server and the listener.
@@ -185,7 +187,7 @@ func (s *Server) InitRouter() {
 		prow.NewRouter(s.cfg.Storage),
 		teams.NewRouter(s.cfg.Storage),
 		jira.NewRouter(s.cfg.Storage),
-		database.NewRouter())
+		database.NewRouter(s.cfg.Db))
 }
 
 type pageNotFoundError struct{}

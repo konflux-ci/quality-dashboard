@@ -83,12 +83,20 @@ func main() {
 	defer listener.Close()
 	cfg := client.GetPostgresConnectionDetails()
 
-	storage, err := cfg.Open()
+	storage, db, err := cfg.Open()
+
 	if err != nil {
 		logger.Fatal("Server fail to initialize database connection", zap.Error(err))
 	}
 
-	server := server.New(&server.Config{Logger: logger, Version: version.ServerVersion, Storage: newKeyCacher(storage, time.Now), Github: github.NewGithubClient(util.GetEnv(DefaultGithubTokenEnv, "")), CodeCov: codecov.NewCodeCoverageClient()})
+	server := server.New(&server.Config{
+		Logger:  logger,
+		Version: version.ServerVersion,
+		Storage: newKeyCacher(storage, time.Now),
+		Github:  github.NewGithubClient(util.GetEnv(DefaultGithubTokenEnv, "")),
+		CodeCov: codecov.NewCodeCoverageClient(),
+		Db:      db,
+	})
 	server.Accept("", listener)
 
 	wait := make(chan error)
