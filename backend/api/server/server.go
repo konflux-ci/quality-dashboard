@@ -12,8 +12,6 @@ import (
 	"github.com/etherlabsio/healthcheck/v2"
 	"github.com/etherlabsio/healthcheck/v2/checkers"
 	"github.com/gorilla/mux"
-	"github.com/redhat-appstudio/quality-studio/api/apis/codecov"
-	"github.com/redhat-appstudio/quality-studio/api/apis/github"
 	"github.com/redhat-appstudio/quality-studio/api/server/middleware"
 	"github.com/redhat-appstudio/quality-studio/api/server/router"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/jira"
@@ -22,6 +20,9 @@ import (
 	"github.com/redhat-appstudio/quality-studio/api/server/router/teams"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/version"
 	_ "github.com/redhat-appstudio/quality-studio/docs/swagger"
+	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/connectors/github"
+	jiraAPI "github.com/redhat-appstudio/quality-studio/pkg/connectors/jira"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils/errdefs"
@@ -51,6 +52,7 @@ import (
 type Config struct {
 	Logger      *zap.Logger
 	Storage     storage.Storage
+	Jira        jiraAPI.Jira
 	CorsHeaders string
 	Version     string
 	SocketGroup string

@@ -4,13 +4,13 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage"
+	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
 // CreateRepository save provided repository information in database.
-func (d *Database) CreateCoverage(repository storage.Coverage, repo_id uuid.UUID) error {
+func (d *Database) CreateCoverage(repository coverageV1Alpha1.Coverage, repo_id uuid.UUID) error {
 	c, err := d.client.CodeCov.Create().
 		SetRepositoryName(repository.RepositoryName).
 		SetGitOrganization(repository.GitOrganization).
@@ -26,7 +26,7 @@ func (d *Database) CreateCoverage(repository storage.Coverage, repo_id uuid.UUID
 	return nil
 }
 
-func (d *Database) UpdateCoverage(codecoverage storage.Coverage, repoName string) error {
+func (d *Database) UpdateCoverage(codecoverage coverageV1Alpha1.Coverage, repoName string) error {
 	_, err := d.client.CodeCov.Delete().Where(codecov.RepositoryName(repoName)).Exec(context.TODO())
 	if err != nil {
 		return convertDBError("delete workflow from database: %w", err)

@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Bugs is the predicate function for bugs builders.
+type Bugs func(*sql.Selector)
+
 // CodeCov is the predicate function for codecov builders.
 type CodeCov func(*sql.Selector)
 

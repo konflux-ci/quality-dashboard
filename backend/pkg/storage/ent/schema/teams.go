@@ -33,5 +33,6 @@ func (Teams) Edges() []ent.Edge {
 		// and reference it to the "cars" edge (in User schema)
 		// explicitly using the `Ref` method.
 		edge.To("repositories", Repository.Type),
+		edge.To("bugs", Bugs.Type),
 	}
 }

@@ -48,7 +48,7 @@ func TestCreateQualityStudioTeam(t *testing.T) {
 				TeamDescription: teamDescription,
 			},
 			Expected:      &db.Teams{},
-			ExpectedError: "Already exists",
+			ExpectedError: "already exists",
 		},
 	}
 
