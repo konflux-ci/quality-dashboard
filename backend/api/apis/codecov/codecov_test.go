@@ -18,7 +18,7 @@ var repository = s.Repository{
 
 func TestGetCodeCovInfo(t *testing.T) {
 	cfg := client.GetPostgresConnectionDetails()
-	storage, err := cfg.Open()
+	storage, _, err := cfg.Open()
 	assert.NoError(t, err)
 
 	// be sure that there is no test repo in the db
