@@ -12,6 +12,7 @@ import {
     TitleSizes,
     TextContent,
     PageSectionVariants,
+    Pagination
 } from '@patternfly/react-core';
 import {
     TableComposable,
@@ -189,13 +190,7 @@ const BugsChart: React.FC<{chartType:string}> = ({chartType}) => {
                 { name: "Open bugs", x: 'Mar', y: 5 },
                 { name: "Open bugs", x: 'Apr', y: 3 },
                 { name: "Open bugs", x: 'May', y: 3 },
-                { name: "Open bugs", x: 'Jun', y: 3 },
-                { name: "Open bugs", x: 'Jul', y: 3 },
-                { name: "Open bugs", x: 'Aug', y: 3 },
-                { name: "Open bugs", x: 'Sep', y: 3 },
-                { name: "Open bugs", x: 'Oct', y: 3 },
-                { name: "Open bugs", x: 'Nov', y: 3 },
-                { name: "Open bugs", x: 'Dec', y: 3 }
+                { name: "Open bugs", x: 'Jun', y: 3 }
               ]}
             />
             <ChartBar
@@ -208,14 +203,7 @@ const BugsChart: React.FC<{chartType:string}> = ({chartType}) => {
                 { name: "Total bugs", x: 'Feb', y: 6 },
                 { name: "Total bugs", x: 'Mar', y: 89 },
                 { name: "Total bugs", x: 'Apr', y: 5 },
-                { name: "Total bugs", x: 'May', y: 45 },
-                { name: "Total bugs", x: 'Jun', y: 40 },
-                { name: "Total bugs", x: 'Jul', y: 30 },
-                { name: "Total bugs", x: 'Aug', y: 34 },
-                { name: "Total bugs", x: 'Sep', y: 29 },
-                { name: "Total bugs", x: 'Oct', y: 6 },
-                { name: "Total bugs", x: 'Nov', y: 9 },
-                { name: "Total bugs", x: 'Dec', y: 0 }
+                { name: "Total bugs", x: 'May', y: 45 }
               ]}
             />
           </ChartGroup>
@@ -286,24 +274,22 @@ interface Bugs {
 }
 
 export const ComposableTableStripedTr: React.FunctionComponent = () => {
-  // In real usage, this data would come from some external source like an API via props.
-  const bugs: Bugs[] = [
-    {
-        jira_key: "RDHP-453321",
-        created_at: "2023-02-28 14:58:16 UTC",
-        deleted_at: "2023-02-28 14:58:16 UTC",
-        updated_at: "2023-02-28 14:58:16 UTC",
-        last_change_time: "2023-02-28 14:58:16 UTC",
-        status: "Open",
-        summary: "Alessandro is the frontend master",
-        affects_versions: "",
-        fix_versions: "",
-        components: "",
-        labels: "Major, ci-fail",
-        url: "http://example.com",
-        teams_bugs: "QE"
-      }
-  ];
+    const { store } = useContext(ReactReduxContext);
+    const state = store.getState();
+    const dispatch = store.dispatch;
+    const [bugs, setBugs] = useState<Array<Bugs>>([]);
+    
+    useEffect(() => {
+        getJiras().then((res) => {
+            if (res.code === 200) {
+                const result = res.data;
+                dispatch({ type: "SET_JIRAS", data: result });
+                setBugs(result.slice(0, perPage))
+            } else {
+                dispatch({ type: "SET_ERROR", data: res });
+            }
+        })
+    }, []);
 
   const columnNames = {
     jira_key: "ID",
@@ -321,7 +307,42 @@ export const ComposableTableStripedTr: React.FunctionComponent = () => {
     teams_bugs: "Team"
   };
 
+  const [page, setPage] = React.useState(1);
+  const [perPage, setPerPage] = React.useState(5);
+
+  useEffect(() => {
+    let from = (page-1)*perPage
+    let to = (page-1)*perPage + perPage > state.jiras["E2E_KNOWN_ISSUES"].length ? state.jiras["E2E_KNOWN_ISSUES"].length - 1 : (page-1)*perPage + perPage;
+    console.log(from, to, state.jiras["E2E_KNOWN_ISSUES"].length - 1)
+    setBugs(state.jiras["E2E_KNOWN_ISSUES"].slice(from, to))
+  }, [page, perPage]);
+
+
+  const onSetPage = (_event: React.MouseEvent | React.KeyboardEvent | MouseEvent, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const onPerPageSelect = (
+    _event: React.MouseEvent | React.KeyboardEvent | MouseEvent,
+    newPerPage: number,
+    newPage: number
+  ) => {
+    setPerPage(newPerPage);
+    setPage(newPage);
+  };
+
   return (
+    <div>
+    <Pagination
+        perPageComponent="button"
+        itemCount={state.jiras["E2E_KNOWN_ISSUES"].length}
+        perPage={perPage}
+        page={page}
+        onSetPage={onSetPage}
+        widgetId="top-example"
+        onPerPageSelect={onPerPageSelect}
+        />
+
     <TableComposable aria-label="Simple table" >
       <Caption>Jira bugs</Caption>
       <Thead>
@@ -345,5 +366,16 @@ export const ComposableTableStripedTr: React.FunctionComponent = () => {
         ))}
       </Tbody>
     </TableComposable>
+
+    <Pagination
+        perPageComponent="button"
+        itemCount={state.jiras["E2E_KNOWN_ISSUES"].length}
+        perPage={perPage}
+        page={page}
+        onSetPage={onSetPage}
+        widgetId="top-example"
+        onPerPageSelect={onPerPageSelect}
+        />
+    </div>
   );
 };

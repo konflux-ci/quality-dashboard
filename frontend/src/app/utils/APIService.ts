@@ -37,7 +37,7 @@ async function getVersion() {
 
 async function getJiras() {
   const result: ApiResponse = { code: 0, data: {} };
-  const subPath = '/api/quality/jira/bugs/e2e';
+  const subPath = '/api/quality/jira/bugs/all';
   const uri = API_URL + subPath;
   await axios
     .get(uri)
