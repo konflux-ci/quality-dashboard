@@ -33,3 +33,27 @@ func (g *Github) GetRepositoryWorkflows(organization string, repository string) 
 	}
 	return wk, nil
 }
+
+func (g *Github) GetRepositoryPullRequests(organization string, repository string) ([]*github.PullRequest, error) {
+	prs, resp, err := g.client.PullRequests.List(
+		context.Background(),
+		organization,
+		repository,
+		&github.PullRequestListOptions{
+			State: "all",
+			ListOptions: github.ListOptions{
+				Page:    0,
+				PerPage: 100,
+			},
+		})
+
+	if resp.StatusCode != 200 {
+		return nil, GENERIC_ERROR_GIT_RESPONSE
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return prs, nil
+}

@@ -104,7 +104,7 @@ async function getAllRepositoriesWithOrgs(team: string, openshift: boolean) {
     const data = await response.json();
     data.sort((a, b) => (a.repository_name < b.repository_name ? -1 : 1));
     repoAndOrgs = data.map((row, index) => {
-      return { repoName: row.repository_name, organization: row.git_organization };
+      return { repoName: row.repository_name, organization: row.git_organization, description: row.description, coverage: row.code_coverage };
     });
   }
   return repoAndOrgs;

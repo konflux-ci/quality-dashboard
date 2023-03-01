@@ -5,11 +5,11 @@ import { Overview } from '@app/Overview/Overview';
 import { Reports } from '@app/Reports/Reports';
 import { useDocumentTitle } from '@app/utils/useDocumentTitle';
 import { LastLocationProvider, useLastLocation } from 'react-router-last-location';
-import { JobsComponent } from '@app/Jobs/Jobs';
 import { Teams } from '@app/Teams/Teams';
 import { ReactReduxContext } from 'react-redux';
 import { Jira } from './Jira/Jira';
 import { Repositories } from './Repositories/Repositories';
+import { GitHub } from './Github/Github';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -62,6 +62,14 @@ const routes: AppRouteConfig[] = [
         label: 'Github',
         path: '/home/repositories',
         title: 'Github | Quality Studio',
+      },
+      {
+        component: GitHub,
+        exact: true,
+        isAsync: true,
+        label: 'New Github',
+        path: '/home/github',
+        title: 'New Github | Quality Studio',
       },
       {
         component: Jira,
