@@ -26,6 +26,7 @@ type Storage interface {
 	Close() error
 
 	// GET
+	TotalBugsResolutionTime(priority string) (bugsMetrics jiraV1Alpha1.BugsMetrics, err error)
 	GetRepository(repositoryName string, gitOrganizationName string) (*db.Repository, error)
 	GetLatestProwTestExecution(r *db.Repository, jobType string) (*db.ProwJobs, error)
 	GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error)
@@ -49,6 +50,9 @@ type Storage interface {
 	ReCreateWorkflow(workflow repoV1Alpha1.Workflow, repoName string) error
 	UpdateCoverage(codecov coverageV1Alpha1.Coverage, repoName string) error
 	CreateJiraBug(bug jiraV1Alpha1.JiraBug) error
+	UpdateTeam(t *db.Teams, target string) error
+	DeleteTeam(teamName string) (bool, error)
+
 	// Delete
 	DeleteRepository(repositoryName string, gitOrganizationName string) error
 }

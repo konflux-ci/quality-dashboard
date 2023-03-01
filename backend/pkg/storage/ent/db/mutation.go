@@ -44,22 +44,26 @@ const (
 // BugsMutation represents an operation that mutates the Bugs nodes in the graph.
 type BugsMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	jira_key      *string
-	created_at    *time.Time
-	updated_at    *time.Time
-	priority      *string
-	status        *string
-	summary       *string
-	url           *string
-	clearedFields map[string]struct{}
-	bugs          *uuid.UUID
-	clearedbugs   bool
-	done          bool
-	oldValue      func(context.Context) (*Bugs, error)
-	predicates    []predicate.Bugs
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	jira_key           *string
+	created_at         *time.Time
+	updated_at         *time.Time
+	resolved_at        *time.Time
+	resolved           *bool
+	priority           *string
+	resolution_time    *float64
+	addresolution_time *float64
+	status             *string
+	summary            *string
+	url                *string
+	clearedFields      map[string]struct{}
+	bugs               *uuid.UUID
+	clearedbugs        bool
+	done               bool
+	oldValue           func(context.Context) (*Bugs, error)
+	predicates         []predicate.Bugs
 }
 
 var _ ent.Mutation = (*BugsMutation)(nil)
@@ -274,6 +278,78 @@ func (m *BugsMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
+// SetResolvedAt sets the "resolved_at" field.
+func (m *BugsMutation) SetResolvedAt(t time.Time) {
+	m.resolved_at = &t
+}
+
+// ResolvedAt returns the value of the "resolved_at" field in the mutation.
+func (m *BugsMutation) ResolvedAt() (r time.Time, exists bool) {
+	v := m.resolved_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResolvedAt returns the old "resolved_at" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldResolvedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResolvedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResolvedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResolvedAt: %w", err)
+	}
+	return oldValue.ResolvedAt, nil
+}
+
+// ResetResolvedAt resets all changes to the "resolved_at" field.
+func (m *BugsMutation) ResetResolvedAt() {
+	m.resolved_at = nil
+}
+
+// SetResolved sets the "resolved" field.
+func (m *BugsMutation) SetResolved(b bool) {
+	m.resolved = &b
+}
+
+// Resolved returns the value of the "resolved" field in the mutation.
+func (m *BugsMutation) Resolved() (r bool, exists bool) {
+	v := m.resolved
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResolved returns the old "resolved" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldResolved(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResolved is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResolved requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResolved: %w", err)
+	}
+	return oldValue.Resolved, nil
+}
+
+// ResetResolved resets all changes to the "resolved" field.
+func (m *BugsMutation) ResetResolved() {
+	m.resolved = nil
+}
+
 // SetPriority sets the "priority" field.
 func (m *BugsMutation) SetPriority(s string) {
 	m.priority = &s
@@ -308,6 +384,62 @@ func (m *BugsMutation) OldPriority(ctx context.Context) (v string, err error) {
 // ResetPriority resets all changes to the "priority" field.
 func (m *BugsMutation) ResetPriority() {
 	m.priority = nil
+}
+
+// SetResolutionTime sets the "resolution_time" field.
+func (m *BugsMutation) SetResolutionTime(f float64) {
+	m.resolution_time = &f
+	m.addresolution_time = nil
+}
+
+// ResolutionTime returns the value of the "resolution_time" field in the mutation.
+func (m *BugsMutation) ResolutionTime() (r float64, exists bool) {
+	v := m.resolution_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResolutionTime returns the old "resolution_time" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldResolutionTime(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResolutionTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResolutionTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResolutionTime: %w", err)
+	}
+	return oldValue.ResolutionTime, nil
+}
+
+// AddResolutionTime adds f to the "resolution_time" field.
+func (m *BugsMutation) AddResolutionTime(f float64) {
+	if m.addresolution_time != nil {
+		*m.addresolution_time += f
+	} else {
+		m.addresolution_time = &f
+	}
+}
+
+// AddedResolutionTime returns the value that was added to the "resolution_time" field in this mutation.
+func (m *BugsMutation) AddedResolutionTime() (r float64, exists bool) {
+	v := m.addresolution_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetResolutionTime resets all changes to the "resolution_time" field.
+func (m *BugsMutation) ResetResolutionTime() {
+	m.resolution_time = nil
+	m.addresolution_time = nil
 }
 
 // SetStatus sets the "status" field.
@@ -491,7 +623,7 @@ func (m *BugsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BugsMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 10)
 	if m.jira_key != nil {
 		fields = append(fields, bugs.FieldJiraKey)
 	}
@@ -501,8 +633,17 @@ func (m *BugsMutation) Fields() []string {
 	if m.updated_at != nil {
 		fields = append(fields, bugs.FieldUpdatedAt)
 	}
+	if m.resolved_at != nil {
+		fields = append(fields, bugs.FieldResolvedAt)
+	}
+	if m.resolved != nil {
+		fields = append(fields, bugs.FieldResolved)
+	}
 	if m.priority != nil {
 		fields = append(fields, bugs.FieldPriority)
+	}
+	if m.resolution_time != nil {
+		fields = append(fields, bugs.FieldResolutionTime)
 	}
 	if m.status != nil {
 		fields = append(fields, bugs.FieldStatus)
@@ -527,8 +668,14 @@ func (m *BugsMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case bugs.FieldUpdatedAt:
 		return m.UpdatedAt()
+	case bugs.FieldResolvedAt:
+		return m.ResolvedAt()
+	case bugs.FieldResolved:
+		return m.Resolved()
 	case bugs.FieldPriority:
 		return m.Priority()
+	case bugs.FieldResolutionTime:
+		return m.ResolutionTime()
 	case bugs.FieldStatus:
 		return m.Status()
 	case bugs.FieldSummary:
@@ -550,8 +697,14 @@ func (m *BugsMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldCreatedAt(ctx)
 	case bugs.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
+	case bugs.FieldResolvedAt:
+		return m.OldResolvedAt(ctx)
+	case bugs.FieldResolved:
+		return m.OldResolved(ctx)
 	case bugs.FieldPriority:
 		return m.OldPriority(ctx)
+	case bugs.FieldResolutionTime:
+		return m.OldResolutionTime(ctx)
 	case bugs.FieldStatus:
 		return m.OldStatus(ctx)
 	case bugs.FieldSummary:
@@ -588,12 +741,33 @@ func (m *BugsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetUpdatedAt(v)
 		return nil
+	case bugs.FieldResolvedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResolvedAt(v)
+		return nil
+	case bugs.FieldResolved:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResolved(v)
+		return nil
 	case bugs.FieldPriority:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPriority(v)
+		return nil
+	case bugs.FieldResolutionTime:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResolutionTime(v)
 		return nil
 	case bugs.FieldStatus:
 		v, ok := value.(string)
@@ -623,13 +797,21 @@ func (m *BugsMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *BugsMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addresolution_time != nil {
+		fields = append(fields, bugs.FieldResolutionTime)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *BugsMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case bugs.FieldResolutionTime:
+		return m.AddedResolutionTime()
+	}
 	return nil, false
 }
 
@@ -638,6 +820,13 @@ func (m *BugsMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *BugsMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case bugs.FieldResolutionTime:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddResolutionTime(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Bugs numeric field %s", name)
 }
@@ -674,8 +863,17 @@ func (m *BugsMutation) ResetField(name string) error {
 	case bugs.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
+	case bugs.FieldResolvedAt:
+		m.ResetResolvedAt()
+		return nil
+	case bugs.FieldResolved:
+		m.ResetResolved()
+		return nil
 	case bugs.FieldPriority:
 		m.ResetPriority()
+		return nil
+	case bugs.FieldResolutionTime:
+		m.ResetResolutionTime()
 		return nil
 	case bugs.FieldStatus:
 		m.ResetStatus()

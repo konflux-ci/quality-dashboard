@@ -14,7 +14,10 @@ var (
 		{Name: "jira_key", Type: field.TypeString, Unique: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
 		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "resolved_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "resolved", Type: field.TypeBool, Default: false},
 		{Name: "priority", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "resolution_time", Type: field.TypeFloat64, Default: 0},
 		{Name: "status", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "summary", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "url", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
@@ -28,7 +31,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "bugs_teams_bugs",
-				Columns:    []*schema.Column{BugsColumns[8]},
+				Columns:    []*schema.Column{BugsColumns[11]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -52,7 +55,7 @@ var (
 				Symbol:     "code_covs_repositories_codecov",
 				Columns:    []*schema.Column{CodeCovsColumns[4]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -82,7 +85,7 @@ var (
 				Symbol:     "prow_jobs_repositories_prow_jobs",
 				Columns:    []*schema.Column{ProwJobsColumns[12]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -105,7 +108,7 @@ var (
 				Symbol:     "prow_suites_repositories_prow_suites",
 				Columns:    []*schema.Column{ProwSuitesColumns[5]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -165,7 +168,7 @@ var (
 				Symbol:     "workflows_repositories_workflows",
 				Columns:    []*schema.Column{WorkflowsColumns[7]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
