@@ -48,9 +48,50 @@ func (bu *BugsUpdate) SetUpdatedAt(t time.Time) *BugsUpdate {
 	return bu
 }
 
+// SetResolvedAt sets the "resolved_at" field.
+func (bu *BugsUpdate) SetResolvedAt(t time.Time) *BugsUpdate {
+	bu.mutation.SetResolvedAt(t)
+	return bu
+}
+
+// SetResolved sets the "resolved" field.
+func (bu *BugsUpdate) SetResolved(b bool) *BugsUpdate {
+	bu.mutation.SetResolved(b)
+	return bu
+}
+
+// SetNillableResolved sets the "resolved" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableResolved(b *bool) *BugsUpdate {
+	if b != nil {
+		bu.SetResolved(*b)
+	}
+	return bu
+}
+
 // SetPriority sets the "priority" field.
 func (bu *BugsUpdate) SetPriority(s string) *BugsUpdate {
 	bu.mutation.SetPriority(s)
+	return bu
+}
+
+// SetResolutionTime sets the "resolution_time" field.
+func (bu *BugsUpdate) SetResolutionTime(f float64) *BugsUpdate {
+	bu.mutation.ResetResolutionTime()
+	bu.mutation.SetResolutionTime(f)
+	return bu
+}
+
+// SetNillableResolutionTime sets the "resolution_time" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableResolutionTime(f *float64) *BugsUpdate {
+	if f != nil {
+		bu.SetResolutionTime(*f)
+	}
+	return bu
+}
+
+// AddResolutionTime adds f to the "resolution_time" field.
+func (bu *BugsUpdate) AddResolutionTime(f float64) *BugsUpdate {
+	bu.mutation.AddResolutionTime(f)
 	return bu
 }
 
@@ -169,8 +210,20 @@ func (bu *BugsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := bu.mutation.UpdatedAt(); ok {
 		_spec.SetField(bugs.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := bu.mutation.ResolvedAt(); ok {
+		_spec.SetField(bugs.FieldResolvedAt, field.TypeTime, value)
+	}
+	if value, ok := bu.mutation.Resolved(); ok {
+		_spec.SetField(bugs.FieldResolved, field.TypeBool, value)
+	}
 	if value, ok := bu.mutation.Priority(); ok {
 		_spec.SetField(bugs.FieldPriority, field.TypeString, value)
+	}
+	if value, ok := bu.mutation.ResolutionTime(); ok {
+		_spec.SetField(bugs.FieldResolutionTime, field.TypeFloat64, value)
+	}
+	if value, ok := bu.mutation.AddedResolutionTime(); ok {
+		_spec.AddField(bugs.FieldResolutionTime, field.TypeFloat64, value)
 	}
 	if value, ok := bu.mutation.Status(); ok {
 		_spec.SetField(bugs.FieldStatus, field.TypeString, value)
@@ -254,9 +307,50 @@ func (buo *BugsUpdateOne) SetUpdatedAt(t time.Time) *BugsUpdateOne {
 	return buo
 }
 
+// SetResolvedAt sets the "resolved_at" field.
+func (buo *BugsUpdateOne) SetResolvedAt(t time.Time) *BugsUpdateOne {
+	buo.mutation.SetResolvedAt(t)
+	return buo
+}
+
+// SetResolved sets the "resolved" field.
+func (buo *BugsUpdateOne) SetResolved(b bool) *BugsUpdateOne {
+	buo.mutation.SetResolved(b)
+	return buo
+}
+
+// SetNillableResolved sets the "resolved" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableResolved(b *bool) *BugsUpdateOne {
+	if b != nil {
+		buo.SetResolved(*b)
+	}
+	return buo
+}
+
 // SetPriority sets the "priority" field.
 func (buo *BugsUpdateOne) SetPriority(s string) *BugsUpdateOne {
 	buo.mutation.SetPriority(s)
+	return buo
+}
+
+// SetResolutionTime sets the "resolution_time" field.
+func (buo *BugsUpdateOne) SetResolutionTime(f float64) *BugsUpdateOne {
+	buo.mutation.ResetResolutionTime()
+	buo.mutation.SetResolutionTime(f)
+	return buo
+}
+
+// SetNillableResolutionTime sets the "resolution_time" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableResolutionTime(f *float64) *BugsUpdateOne {
+	if f != nil {
+		buo.SetResolutionTime(*f)
+	}
+	return buo
+}
+
+// AddResolutionTime adds f to the "resolution_time" field.
+func (buo *BugsUpdateOne) AddResolutionTime(f float64) *BugsUpdateOne {
+	buo.mutation.AddResolutionTime(f)
 	return buo
 }
 
@@ -399,8 +493,20 @@ func (buo *BugsUpdateOne) sqlSave(ctx context.Context) (_node *Bugs, err error) 
 	if value, ok := buo.mutation.UpdatedAt(); ok {
 		_spec.SetField(bugs.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := buo.mutation.ResolvedAt(); ok {
+		_spec.SetField(bugs.FieldResolvedAt, field.TypeTime, value)
+	}
+	if value, ok := buo.mutation.Resolved(); ok {
+		_spec.SetField(bugs.FieldResolved, field.TypeBool, value)
+	}
 	if value, ok := buo.mutation.Priority(); ok {
 		_spec.SetField(bugs.FieldPriority, field.TypeString, value)
+	}
+	if value, ok := buo.mutation.ResolutionTime(); ok {
+		_spec.SetField(bugs.FieldResolutionTime, field.TypeFloat64, value)
+	}
+	if value, ok := buo.mutation.AddedResolutionTime(); ok {
+		_spec.AddField(bugs.FieldResolutionTime, field.TypeFloat64, value)
 	}
 	if value, ok := buo.mutation.Status(); ok {
 		_spec.SetField(bugs.FieldStatus, field.TypeString, value)

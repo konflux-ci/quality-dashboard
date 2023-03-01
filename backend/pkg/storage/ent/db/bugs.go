@@ -24,8 +24,14 @@ type Bugs struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// ResolvedAt holds the value of the "resolved_at" field.
+	ResolvedAt *time.Time `json:"resolved_at,omitempty"`
+	// Resolved holds the value of the "resolved" field.
+	Resolved bool `json:"resolved,omitempty"`
 	// Priority holds the value of the "priority" field.
 	Priority string `json:"priority,omitempty"`
+	// ResolutionTime holds the value of the "resolution_time" field.
+	ResolutionTime float64 `json:"resolution_time,omitempty"`
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
 	// Summary holds the value of the "summary" field.
@@ -65,9 +71,13 @@ func (*Bugs) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case bugs.FieldResolved:
+			values[i] = new(sql.NullBool)
+		case bugs.FieldResolutionTime:
+			values[i] = new(sql.NullFloat64)
 		case bugs.FieldJiraKey, bugs.FieldPriority, bugs.FieldStatus, bugs.FieldSummary, bugs.FieldURL:
 			values[i] = new(sql.NullString)
-		case bugs.FieldCreatedAt, bugs.FieldUpdatedAt:
+		case bugs.FieldCreatedAt, bugs.FieldUpdatedAt, bugs.FieldResolvedAt:
 			values[i] = new(sql.NullTime)
 		case bugs.FieldID:
 			values[i] = new(uuid.UUID)
@@ -112,11 +122,30 @@ func (b *Bugs) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				b.UpdatedAt = value.Time
 			}
+		case bugs.FieldResolvedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field resolved_at", values[i])
+			} else if value.Valid {
+				b.ResolvedAt = new(time.Time)
+				*b.ResolvedAt = value.Time
+			}
+		case bugs.FieldResolved:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field resolved", values[i])
+			} else if value.Valid {
+				b.Resolved = value.Bool
+			}
 		case bugs.FieldPriority:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field priority", values[i])
 			} else if value.Valid {
 				b.Priority = value.String
+			}
+		case bugs.FieldResolutionTime:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field resolution_time", values[i])
+			} else if value.Valid {
+				b.ResolutionTime = value.Float64
 			}
 		case bugs.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -185,8 +214,19 @@ func (b *Bugs) String() string {
 	builder.WriteString("updated_at=")
 	builder.WriteString(b.UpdatedAt.Format(time.ANSIC))
 	builder.WriteString(", ")
+	if v := b.ResolvedAt; v != nil {
+		builder.WriteString("resolved_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	builder.WriteString("resolved=")
+	builder.WriteString(fmt.Sprintf("%v", b.Resolved))
+	builder.WriteString(", ")
 	builder.WriteString("priority=")
 	builder.WriteString(b.Priority)
+	builder.WriteString(", ")
+	builder.WriteString("resolution_time=")
+	builder.WriteString(fmt.Sprintf("%v", b.ResolutionTime))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(b.Status)
