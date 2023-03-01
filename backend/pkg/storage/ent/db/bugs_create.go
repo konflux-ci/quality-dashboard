@@ -40,9 +40,43 @@ func (bc *BugsCreate) SetUpdatedAt(t time.Time) *BugsCreate {
 	return bc
 }
 
+// SetResolvedAt sets the "resolved_at" field.
+func (bc *BugsCreate) SetResolvedAt(t time.Time) *BugsCreate {
+	bc.mutation.SetResolvedAt(t)
+	return bc
+}
+
+// SetResolved sets the "resolved" field.
+func (bc *BugsCreate) SetResolved(b bool) *BugsCreate {
+	bc.mutation.SetResolved(b)
+	return bc
+}
+
+// SetNillableResolved sets the "resolved" field if the given value is not nil.
+func (bc *BugsCreate) SetNillableResolved(b *bool) *BugsCreate {
+	if b != nil {
+		bc.SetResolved(*b)
+	}
+	return bc
+}
+
 // SetPriority sets the "priority" field.
 func (bc *BugsCreate) SetPriority(s string) *BugsCreate {
 	bc.mutation.SetPriority(s)
+	return bc
+}
+
+// SetResolutionTime sets the "resolution_time" field.
+func (bc *BugsCreate) SetResolutionTime(f float64) *BugsCreate {
+	bc.mutation.SetResolutionTime(f)
+	return bc
+}
+
+// SetNillableResolutionTime sets the "resolution_time" field if the given value is not nil.
+func (bc *BugsCreate) SetNillableResolutionTime(f *float64) *BugsCreate {
+	if f != nil {
+		bc.SetResolutionTime(*f)
+	}
 	return bc
 }
 
@@ -132,6 +166,14 @@ func (bc *BugsCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (bc *BugsCreate) defaults() {
+	if _, ok := bc.mutation.Resolved(); !ok {
+		v := bugs.DefaultResolved
+		bc.mutation.SetResolved(v)
+	}
+	if _, ok := bc.mutation.ResolutionTime(); !ok {
+		v := bugs.DefaultResolutionTime
+		bc.mutation.SetResolutionTime(v)
+	}
 	if _, ok := bc.mutation.ID(); !ok {
 		v := bugs.DefaultID()
 		bc.mutation.SetID(v)
@@ -154,8 +196,17 @@ func (bc *BugsCreate) check() error {
 	if _, ok := bc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`db: missing required field "Bugs.updated_at"`)}
 	}
+	if _, ok := bc.mutation.ResolvedAt(); !ok {
+		return &ValidationError{Name: "resolved_at", err: errors.New(`db: missing required field "Bugs.resolved_at"`)}
+	}
+	if _, ok := bc.mutation.Resolved(); !ok {
+		return &ValidationError{Name: "resolved", err: errors.New(`db: missing required field "Bugs.resolved"`)}
+	}
 	if _, ok := bc.mutation.Priority(); !ok {
 		return &ValidationError{Name: "priority", err: errors.New(`db: missing required field "Bugs.priority"`)}
+	}
+	if _, ok := bc.mutation.ResolutionTime(); !ok {
+		return &ValidationError{Name: "resolution_time", err: errors.New(`db: missing required field "Bugs.resolution_time"`)}
 	}
 	if _, ok := bc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`db: missing required field "Bugs.status"`)}
@@ -219,9 +270,21 @@ func (bc *BugsCreate) createSpec() (*Bugs, *sqlgraph.CreateSpec) {
 		_spec.SetField(bugs.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
+	if value, ok := bc.mutation.ResolvedAt(); ok {
+		_spec.SetField(bugs.FieldResolvedAt, field.TypeTime, value)
+		_node.ResolvedAt = &value
+	}
+	if value, ok := bc.mutation.Resolved(); ok {
+		_spec.SetField(bugs.FieldResolved, field.TypeBool, value)
+		_node.Resolved = value
+	}
 	if value, ok := bc.mutation.Priority(); ok {
 		_spec.SetField(bugs.FieldPriority, field.TypeString, value)
 		_node.Priority = value
+	}
+	if value, ok := bc.mutation.ResolutionTime(); ok {
+		_spec.SetField(bugs.FieldResolutionTime, field.TypeFloat64, value)
+		_node.ResolutionTime = value
 	}
 	if value, ok := bc.mutation.Status(); ok {
 		_spec.SetField(bugs.FieldStatus, field.TypeString, value)

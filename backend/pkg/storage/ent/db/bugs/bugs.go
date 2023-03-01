@@ -17,8 +17,14 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// FieldResolvedAt holds the string denoting the resolved_at field in the database.
+	FieldResolvedAt = "resolved_at"
+	// FieldResolved holds the string denoting the resolved field in the database.
+	FieldResolved = "resolved"
 	// FieldPriority holds the string denoting the priority field in the database.
 	FieldPriority = "priority"
+	// FieldResolutionTime holds the string denoting the resolution_time field in the database.
+	FieldResolutionTime = "resolution_time"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldSummary holds the string denoting the summary field in the database.
@@ -46,7 +52,10 @@ var Columns = []string{
 	FieldJiraKey,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+	FieldResolvedAt,
+	FieldResolved,
 	FieldPriority,
+	FieldResolutionTime,
 	FieldStatus,
 	FieldSummary,
 	FieldURL,
@@ -76,6 +85,10 @@ func ValidColumn(column string) bool {
 var (
 	// JiraKeyValidator is a validator for the "jira_key" field. It is called by the builders before save.
 	JiraKeyValidator func(string) error
+	// DefaultResolved holds the default value on creation for the "resolved" field.
+	DefaultResolved bool
+	// DefaultResolutionTime holds the default value on creation for the "resolution_time" field.
+	DefaultResolutionTime float64
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
