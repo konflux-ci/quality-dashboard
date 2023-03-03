@@ -102,7 +102,7 @@ export const FormModal = () => {
       modalContext.handleModalToggle()
       await createRepository(data)
 
-      const rangeDateTime = getRangeDates(365)
+      const rangeDateTime = getRangeDates(30)
       const start_date = formatDate(rangeDateTime[0])
       const end_date = formatDate(rangeDateTime[1])
 
