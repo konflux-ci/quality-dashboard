@@ -5,6 +5,7 @@ import React, { useContext, SetStateAction, useEffect } from "react";
 import { teamIsNotEmpty } from '@app/utils/utils';
 import { useHistory } from 'react-router-dom';
 import { ReactReduxContext } from 'react-redux';
+import { formatDate, getRangeDates } from "@app/Reports/utils";
 
 interface IModalContext {
   isModalOpen: IModalContextMember;
@@ -100,7 +101,17 @@ export const FormModal = () => {
       }
       modalContext.handleModalToggle()
       await createRepository(data)
-      history.push('/home/github?team=' + params.get("team") + '&organization=' + gitOrganizationValue + '&repository=' + gitRepositoryValue)
+
+      const rangeDateTime = getRangeDates(365)
+      const start_date = formatDate(rangeDateTime[0])
+      const end_date = formatDate(rangeDateTime[1])
+
+      history.push('/home/github?team=' + params.get("team") +
+        '&organization=' + gitOrganizationValue +
+        '&repository=' + gitRepositoryValue +
+        '&start=' + start_date +
+        '&end=' + end_date
+      )
       window.location.reload();
     }
     catch (error) {

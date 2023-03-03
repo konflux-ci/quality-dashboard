@@ -41,7 +41,7 @@ let GitHub = () => {
     const [repoNameToggle, setRepoNameToggle] = useState(false);
     const [workflows, setWorkflows] = useState([]);
     const [prs, setPrs] = useState<PrsStatistics | null>(null);
-    const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(30));
+    const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(365));
     const [noData, setNoData] = useState(false)
     const defaultModalContext = useDefaultModalContextState();
     const modalContext = useModalContext()
@@ -100,7 +100,7 @@ let GitHub = () => {
 
     // Reset rangeDateTime
     const clearRangeDateTime = () => {
-        setRangeDateTime(getRangeDates(10))
+        setRangeDateTime(getRangeDates(365))
     }
 
     // Reset all dropwdowns and state variables
@@ -119,10 +119,15 @@ let GitHub = () => {
     const validatePullRequests = () => {
         setNoData(false)
         if (repositories.find(r => r.organization == repoOrg && r.repoName == repoName)) {
-            getPullRequests(repoName, repoOrg, rangeDateTime)
-                .then((data: any) => {
-                    setPrs(data)
-                });
+            try {
+                getPullRequests(repoName, repoOrg, rangeDateTime)
+                    .then((data: any) => {
+                        setPrs(data)
+                    });
+            } catch(error) {
+                console.log(error)
+                setNoData(true)
+            }
         } else {
             setNoData(true)
         }
@@ -158,7 +163,7 @@ let GitHub = () => {
                         data.unshift({ repoName: dropDescr, organization: "", isPlaceholder: true }) // Adds placeholder at the beginning of the array, so it will be shown first
                         setRepositories(data)
 
-                        if (repository == null || organization == null) { // first click on page or team
+                        if (repository == null || organization == null || start == null || end == null) { // first click on page or team
                             setRepoName(data[1].repoName)
                             setRepoOrg(data[1].organization)
                             getWorkflows(data[1].repoName)
@@ -167,12 +172,13 @@ let GitHub = () => {
                             const end_date = formatDate(rangeDateTime[1])
 
                             history.push('/home/github?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName
-                                + '&start=' + start_date + ' & end=' + end_date)
+                                + '&start=' + start_date + '&end=' + end_date)
 
                         } else {
                             setRepoName(repository)
                             setRepoOrg(organization)
                             getWorkflows(repository)
+                            setRangeDateTime([new Date(start), new Date(end)])
 
                             history.push('/home/github?team=' + currentTeam + '&organization=' + organization + '&repository=' + repository
                                 + '&start=' + start + '&end=' + end)
@@ -299,7 +305,7 @@ let GitHub = () => {
                     </Toolbar>
 
                     {/* this section will show statistics and details about GitHub metric */}
-                    {validQueryParams(repoName, repoOrg) && prs != null && !noData && <div style={{ marginTop: '20px' }}>
+                    {validQueryParams(repoName, repoOrg) && prs != null && prs.metrics != undefined && !noData && <div style={{ marginTop: '20px' }}>
                         <Grid hasGutter>
                             <GridItem span={3} rowSpan={2}>
                                 <InfoCard data={[{ title: "Repository", value: repoName }, { title: "Organization", value: repoOrg }, { title: "Description", value: getDescription(repoName, repoOrg) }]}></InfoCard>
@@ -310,11 +316,11 @@ let GitHub = () => {
                             </GridItem>
 
                             <GridItem span={2} rowSpan={1}>
-                                <PullRequestCard title="Open PRs" total={prs?.summary.open_prs}></PullRequestCard>
+                                <PullRequestCard title="Open PRs" total={prs?.summary?.open_prs}></PullRequestCard>
                             </GridItem>
 
                             <GridItem span={2} rowSpan={1}>
-                                <PullRequestCard title="Merged PRs" total={prs?.summary.merged_prs}></PullRequestCard>
+                                <PullRequestCard title="Merged PRs" total={prs?.summary?.merged_prs}></PullRequestCard>
                             </GridItem>
 
                             <GridItem span={3} rowSpan={2}>
@@ -322,7 +328,7 @@ let GitHub = () => {
                             </GridItem>
 
                             <GridItem span={2} rowSpan={2}>
-                                <PullRequestCard title="Merge PR Avg Days" total={prs?.summary.merge_avg}></PullRequestCard>
+                                <PullRequestCard title="Merge PR Avg Days" total={prs?.summary?.merge_avg}></PullRequestCard>
                             </GridItem>
 {/*                             
                             <GridItem span={2} rowSpan={1}>

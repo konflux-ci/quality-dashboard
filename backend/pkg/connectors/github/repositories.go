@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/google/go-github/v44/github"
 )
@@ -54,6 +55,40 @@ func (g *Github) GetRepositoryPullRequests(organization string, repository strin
 	if err != nil {
 		return nil, err
 	}
+
+	var wg sync.WaitGroup
+	var m sync.Mutex
+
+	for page := resp.NextPage; page <= resp.LastPage; page++ {
+		wg.Add(1)
+		page := page
+
+		go func(page int) {
+			defer wg.Done()
+
+			prsNextPage, _, errNextPage := g.client.PullRequests.List(
+				context.Background(),
+				organization,
+				repository,
+				&github.PullRequestListOptions{
+					State: "all",
+					ListOptions: github.ListOptions{
+						PerPage: 100,
+						Page:    page,
+					},
+				})
+
+			if errNextPage != nil {
+				return
+			}
+
+			m.Lock()
+			prs = append(prs, prsNextPage...)
+			m.Unlock()
+		}(page)
+	}
+
+	wg.Wait()
 
 	return prs, nil
 }
