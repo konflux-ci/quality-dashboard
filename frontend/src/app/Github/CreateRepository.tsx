@@ -43,7 +43,6 @@ export const useDefaultModalContextState = () => {
     if (edit == true) {
       defaultModalContext.isEditRepo.set(true)
       defaultModalContext.data.set(data)
-      console.log(data)
     }
     else {
       defaultModalContext.isEditRepo.set(false)
