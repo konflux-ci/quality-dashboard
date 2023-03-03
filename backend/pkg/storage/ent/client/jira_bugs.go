@@ -75,7 +75,7 @@ func (d *Database) TotalBugsResolutionTime(priority string) (bugsMetrics jiraV1A
 		}
 
 		bugsMetrics.ResolutionTimeTotal.Months = append(bugsMetrics.ResolutionTimeTotal.Months, jiraV1Alpha1.MonthsResolution{
-			Name:                 firstDayOfMonth.Month().String(),
+			Name:                 fmt.Sprintf("%s_%v", firstDayOfMonth.Month().String(), firstDayOfMonth.Year()),
 			Total:                totalMonthResolution,
 			NumberOfResolvedBugs: len(bugsAll),
 			Bugs:                 bugsAll,
@@ -181,7 +181,7 @@ func (d *Database) GetOpenBugsMetricsByStatusAndPriority(priority string) (bugsM
 		}
 
 		bugsMetrics.TotalOpenBugs.Months = append(bugsMetrics.TotalOpenBugs.Months, jiraV1Alpha1.MonthsOpen{
-			Name:     firstDayOfMonth.Month().String(),
+			Name:     fmt.Sprintf("%s_%v", firstDayOfMonth.Month().String(), firstDayOfMonth.Year()),
 			OpenBugs: len(bugsAll),
 			Bugs:     bugsAll,
 		})
