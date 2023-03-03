@@ -395,7 +395,7 @@ const BugsChart: React.FC<{chartType:string, data:any}> = ({chartType, data}) =>
                     labels: { fill: "grey", fontSize: '7px'}
                 }}
                 data={dataset}
-                labels={({ datum }) => `${datum.y}`}
+                labels={({ datum }) => datum.y != 0 ? `${datum.y}` : ``}
                 />
             ))}
           </ChartGroup>
