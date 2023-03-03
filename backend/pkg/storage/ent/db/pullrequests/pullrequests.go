@@ -13,6 +13,12 @@ const (
 	FieldID = "id"
 	// FieldPrID holds the string denoting the pr_id field in the database.
 	FieldPrID = "pr_id"
+	// FieldRepositoryName holds the string denoting the repository_name field in the database.
+	FieldRepositoryName = "repository_name"
+	// FieldRepositoryOrganization holds the string denoting the repository_organization field in the database.
+	FieldRepositoryOrganization = "repository_organization"
+	// FieldNumber holds the string denoting the number field in the database.
+	FieldNumber = "number"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldClosedAt holds the string denoting the closed_at field in the database.
@@ -44,6 +50,9 @@ const (
 var Columns = []string{
 	FieldID,
 	FieldPrID,
+	FieldRepositoryName,
+	FieldRepositoryOrganization,
+	FieldNumber,
 	FieldCreatedAt,
 	FieldClosedAt,
 	FieldMergedAt,

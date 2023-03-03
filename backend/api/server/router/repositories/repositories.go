@@ -170,12 +170,15 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 	prs, err := rp.Github.GetRepositoryPullRequests(githubRepo.Owner.GetLogin(), githubRepo.GetName())
 	for _, pr := range prs {
 		rp.Storage.CreatePullRequest(repoV1Alpha1.PullRequest{
-			Title:     pr.GetTitle(),
-			CreatedAt: pr.GetCreatedAt(),
-			MergedAt:  pr.GetMergedAt(),
-			ClosedAt:  pr.GetClosedAt(),
-			State:     pr.GetState(),
-			Author:    *pr.GetUser().Login,
+			RepositoryName:         githubRepo.GetName(),
+			RepositoryOrganization: githubRepo.Owner.GetLogin(),
+			Number:                 pr.GetNumber(),
+			Title:                  pr.GetTitle(),
+			CreatedAt:              pr.GetCreatedAt(),
+			MergedAt:               pr.GetMergedAt(),
+			ClosedAt:               pr.GetClosedAt(),
+			State:                  pr.GetState(),
+			Author:                 *pr.GetUser().Login,
 		}, createdRepo.ID)
 	}
 

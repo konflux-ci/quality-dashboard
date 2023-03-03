@@ -3004,22 +3004,26 @@ func (m *ProwSuitesMutation) ResetEdge(name string) error {
 // PullRequestsMutation represents an operation that mutates the PullRequests nodes in the graph.
 type PullRequestsMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	pr_id         *uuid.UUID
-	created_at    *time.Time
-	closed_at     *time.Time
-	merged_at     *time.Time
-	state         *string
-	author        *string
-	title         *string
-	clearedFields map[string]struct{}
-	prs           *uuid.UUID
-	clearedprs    bool
-	done          bool
-	oldValue      func(context.Context) (*PullRequests, error)
-	predicates    []predicate.PullRequests
+	op                      Op
+	typ                     string
+	id                      *int
+	pr_id                   *uuid.UUID
+	repository_name         *string
+	repository_organization *string
+	number                  *int
+	addnumber               *int
+	created_at              *time.Time
+	closed_at               *time.Time
+	merged_at               *time.Time
+	state                   *string
+	author                  *string
+	title                   *string
+	clearedFields           map[string]struct{}
+	prs                     *uuid.UUID
+	clearedprs              bool
+	done                    bool
+	oldValue                func(context.Context) (*PullRequests, error)
+	predicates              []predicate.PullRequests
 }
 
 var _ ent.Mutation = (*PullRequestsMutation)(nil)
@@ -3154,6 +3158,134 @@ func (m *PullRequestsMutation) OldPrID(ctx context.Context) (v uuid.UUID, err er
 // ResetPrID resets all changes to the "pr_id" field.
 func (m *PullRequestsMutation) ResetPrID() {
 	m.pr_id = nil
+}
+
+// SetRepositoryName sets the "repository_name" field.
+func (m *PullRequestsMutation) SetRepositoryName(s string) {
+	m.repository_name = &s
+}
+
+// RepositoryName returns the value of the "repository_name" field in the mutation.
+func (m *PullRequestsMutation) RepositoryName() (r string, exists bool) {
+	v := m.repository_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRepositoryName returns the old "repository_name" field's value of the PullRequests entity.
+// If the PullRequests object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PullRequestsMutation) OldRepositoryName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRepositoryName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRepositoryName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRepositoryName: %w", err)
+	}
+	return oldValue.RepositoryName, nil
+}
+
+// ResetRepositoryName resets all changes to the "repository_name" field.
+func (m *PullRequestsMutation) ResetRepositoryName() {
+	m.repository_name = nil
+}
+
+// SetRepositoryOrganization sets the "repository_organization" field.
+func (m *PullRequestsMutation) SetRepositoryOrganization(s string) {
+	m.repository_organization = &s
+}
+
+// RepositoryOrganization returns the value of the "repository_organization" field in the mutation.
+func (m *PullRequestsMutation) RepositoryOrganization() (r string, exists bool) {
+	v := m.repository_organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRepositoryOrganization returns the old "repository_organization" field's value of the PullRequests entity.
+// If the PullRequests object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PullRequestsMutation) OldRepositoryOrganization(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRepositoryOrganization is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRepositoryOrganization requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRepositoryOrganization: %w", err)
+	}
+	return oldValue.RepositoryOrganization, nil
+}
+
+// ResetRepositoryOrganization resets all changes to the "repository_organization" field.
+func (m *PullRequestsMutation) ResetRepositoryOrganization() {
+	m.repository_organization = nil
+}
+
+// SetNumber sets the "number" field.
+func (m *PullRequestsMutation) SetNumber(i int) {
+	m.number = &i
+	m.addnumber = nil
+}
+
+// Number returns the value of the "number" field in the mutation.
+func (m *PullRequestsMutation) Number() (r int, exists bool) {
+	v := m.number
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNumber returns the old "number" field's value of the PullRequests entity.
+// If the PullRequests object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PullRequestsMutation) OldNumber(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNumber is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNumber requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNumber: %w", err)
+	}
+	return oldValue.Number, nil
+}
+
+// AddNumber adds i to the "number" field.
+func (m *PullRequestsMutation) AddNumber(i int) {
+	if m.addnumber != nil {
+		*m.addnumber += i
+	} else {
+		m.addnumber = &i
+	}
+}
+
+// AddedNumber returns the value that was added to the "number" field in this mutation.
+func (m *PullRequestsMutation) AddedNumber() (r int, exists bool) {
+	v := m.addnumber
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetNumber resets all changes to the "number" field.
+func (m *PullRequestsMutation) ResetNumber() {
+	m.number = nil
+	m.addnumber = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -3445,9 +3577,18 @@ func (m *PullRequestsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PullRequestsMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 10)
 	if m.pr_id != nil {
 		fields = append(fields, pullrequests.FieldPrID)
+	}
+	if m.repository_name != nil {
+		fields = append(fields, pullrequests.FieldRepositoryName)
+	}
+	if m.repository_organization != nil {
+		fields = append(fields, pullrequests.FieldRepositoryOrganization)
+	}
+	if m.number != nil {
+		fields = append(fields, pullrequests.FieldNumber)
 	}
 	if m.created_at != nil {
 		fields = append(fields, pullrequests.FieldCreatedAt)
@@ -3477,6 +3618,12 @@ func (m *PullRequestsMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case pullrequests.FieldPrID:
 		return m.PrID()
+	case pullrequests.FieldRepositoryName:
+		return m.RepositoryName()
+	case pullrequests.FieldRepositoryOrganization:
+		return m.RepositoryOrganization()
+	case pullrequests.FieldNumber:
+		return m.Number()
 	case pullrequests.FieldCreatedAt:
 		return m.CreatedAt()
 	case pullrequests.FieldClosedAt:
@@ -3500,6 +3647,12 @@ func (m *PullRequestsMutation) OldField(ctx context.Context, name string) (ent.V
 	switch name {
 	case pullrequests.FieldPrID:
 		return m.OldPrID(ctx)
+	case pullrequests.FieldRepositoryName:
+		return m.OldRepositoryName(ctx)
+	case pullrequests.FieldRepositoryOrganization:
+		return m.OldRepositoryOrganization(ctx)
+	case pullrequests.FieldNumber:
+		return m.OldNumber(ctx)
 	case pullrequests.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case pullrequests.FieldClosedAt:
@@ -3527,6 +3680,27 @@ func (m *PullRequestsMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPrID(v)
+		return nil
+	case pullrequests.FieldRepositoryName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRepositoryName(v)
+		return nil
+	case pullrequests.FieldRepositoryOrganization:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRepositoryOrganization(v)
+		return nil
+	case pullrequests.FieldNumber:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNumber(v)
 		return nil
 	case pullrequests.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -3577,13 +3751,21 @@ func (m *PullRequestsMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *PullRequestsMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addnumber != nil {
+		fields = append(fields, pullrequests.FieldNumber)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *PullRequestsMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case pullrequests.FieldNumber:
+		return m.AddedNumber()
+	}
 	return nil, false
 }
 
@@ -3592,6 +3774,13 @@ func (m *PullRequestsMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *PullRequestsMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case pullrequests.FieldNumber:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddNumber(v)
+		return nil
 	}
 	return fmt.Errorf("unknown PullRequests numeric field %s", name)
 }
@@ -3621,6 +3810,15 @@ func (m *PullRequestsMutation) ResetField(name string) error {
 	switch name {
 	case pullrequests.FieldPrID:
 		m.ResetPrID()
+		return nil
+	case pullrequests.FieldRepositoryName:
+		m.ResetRepositoryName()
+		return nil
+	case pullrequests.FieldRepositoryOrganization:
+		m.ResetRepositoryOrganization()
+		return nil
+	case pullrequests.FieldNumber:
+		m.ResetNumber()
 		return nil
 	case pullrequests.FieldCreatedAt:
 		m.ResetCreatedAt()

@@ -6,6 +6,15 @@ import (
 
 // PullRequest represents pull request of a repository.
 type PullRequest struct {
+	// Repository name of the pull request.
+	RepositoryName string `json:"repository_name"`
+
+	// Repository organization of the pull request.
+	RepositoryOrganization string `json:"repository_organization"`
+
+	// Number of the PR.
+	Number int `json:"number"`
+
 	// Title of the pull request.
 	Title string `json:"title"`
 

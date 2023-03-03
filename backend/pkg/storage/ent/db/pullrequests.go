@@ -20,6 +20,12 @@ type PullRequests struct {
 	ID int `json:"id,omitempty"`
 	// PrID holds the value of the "pr_id" field.
 	PrID uuid.UUID `json:"pr_id,omitempty"`
+	// RepositoryName holds the value of the "repository_name" field.
+	RepositoryName string `json:"repository_name,omitempty"`
+	// RepositoryOrganization holds the value of the "repository_organization" field.
+	RepositoryOrganization string `json:"repository_organization,omitempty"`
+	// Number holds the value of the "number" field.
+	Number int `json:"number,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// ClosedAt holds the value of the "closed_at" field.
@@ -65,9 +71,9 @@ func (*PullRequests) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case pullrequests.FieldID:
+		case pullrequests.FieldID, pullrequests.FieldNumber:
 			values[i] = new(sql.NullInt64)
-		case pullrequests.FieldState, pullrequests.FieldAuthor, pullrequests.FieldTitle:
+		case pullrequests.FieldRepositoryName, pullrequests.FieldRepositoryOrganization, pullrequests.FieldState, pullrequests.FieldAuthor, pullrequests.FieldTitle:
 			values[i] = new(sql.NullString)
 		case pullrequests.FieldCreatedAt, pullrequests.FieldClosedAt, pullrequests.FieldMergedAt:
 			values[i] = new(sql.NullTime)
@@ -101,6 +107,24 @@ func (pr *PullRequests) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field pr_id", values[i])
 			} else if value != nil {
 				pr.PrID = *value
+			}
+		case pullrequests.FieldRepositoryName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field repository_name", values[i])
+			} else if value.Valid {
+				pr.RepositoryName = value.String
+			}
+		case pullrequests.FieldRepositoryOrganization:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field repository_organization", values[i])
+			} else if value.Valid {
+				pr.RepositoryOrganization = value.String
+			}
+		case pullrequests.FieldNumber:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field number", values[i])
+			} else if value.Valid {
+				pr.Number = int(value.Int64)
 			}
 		case pullrequests.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -180,6 +204,15 @@ func (pr *PullRequests) String() string {
 	builder.WriteString(fmt.Sprintf("id=%v, ", pr.ID))
 	builder.WriteString("pr_id=")
 	builder.WriteString(fmt.Sprintf("%v", pr.PrID))
+	builder.WriteString(", ")
+	builder.WriteString("repository_name=")
+	builder.WriteString(pr.RepositoryName)
+	builder.WriteString(", ")
+	builder.WriteString("repository_organization=")
+	builder.WriteString(pr.RepositoryOrganization)
+	builder.WriteString(", ")
+	builder.WriteString("number=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Number))
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(pr.CreatedAt.Format(time.ANSIC))

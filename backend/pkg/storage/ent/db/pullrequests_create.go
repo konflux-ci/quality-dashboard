@@ -36,6 +36,24 @@ func (prc *PullRequestsCreate) SetNillablePrID(u *uuid.UUID) *PullRequestsCreate
 	return prc
 }
 
+// SetRepositoryName sets the "repository_name" field.
+func (prc *PullRequestsCreate) SetRepositoryName(s string) *PullRequestsCreate {
+	prc.mutation.SetRepositoryName(s)
+	return prc
+}
+
+// SetRepositoryOrganization sets the "repository_organization" field.
+func (prc *PullRequestsCreate) SetRepositoryOrganization(s string) *PullRequestsCreate {
+	prc.mutation.SetRepositoryOrganization(s)
+	return prc
+}
+
+// SetNumber sets the "number" field.
+func (prc *PullRequestsCreate) SetNumber(i int) *PullRequestsCreate {
+	prc.mutation.SetNumber(i)
+	return prc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (prc *PullRequestsCreate) SetCreatedAt(t time.Time) *PullRequestsCreate {
 	prc.mutation.SetCreatedAt(t)
@@ -137,6 +155,15 @@ func (prc *PullRequestsCreate) check() error {
 	if _, ok := prc.mutation.PrID(); !ok {
 		return &ValidationError{Name: "pr_id", err: errors.New(`db: missing required field "PullRequests.pr_id"`)}
 	}
+	if _, ok := prc.mutation.RepositoryName(); !ok {
+		return &ValidationError{Name: "repository_name", err: errors.New(`db: missing required field "PullRequests.repository_name"`)}
+	}
+	if _, ok := prc.mutation.RepositoryOrganization(); !ok {
+		return &ValidationError{Name: "repository_organization", err: errors.New(`db: missing required field "PullRequests.repository_organization"`)}
+	}
+	if _, ok := prc.mutation.Number(); !ok {
+		return &ValidationError{Name: "number", err: errors.New(`db: missing required field "PullRequests.number"`)}
+	}
 	if _, ok := prc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`db: missing required field "PullRequests.created_at"`)}
 	}
@@ -190,6 +217,18 @@ func (prc *PullRequestsCreate) createSpec() (*PullRequests, *sqlgraph.CreateSpec
 	if value, ok := prc.mutation.PrID(); ok {
 		_spec.SetField(pullrequests.FieldPrID, field.TypeUUID, value)
 		_node.PrID = value
+	}
+	if value, ok := prc.mutation.RepositoryName(); ok {
+		_spec.SetField(pullrequests.FieldRepositoryName, field.TypeString, value)
+		_node.RepositoryName = value
+	}
+	if value, ok := prc.mutation.RepositoryOrganization(); ok {
+		_spec.SetField(pullrequests.FieldRepositoryOrganization, field.TypeString, value)
+		_node.RepositoryOrganization = value
+	}
+	if value, ok := prc.mutation.Number(); ok {
+		_spec.SetField(pullrequests.FieldNumber, field.TypeInt, value)
+		_node.Number = value
 	}
 	if value, ok := prc.mutation.CreatedAt(); ok {
 		_spec.SetField(pullrequests.FieldCreatedAt, field.TypeTime, value)

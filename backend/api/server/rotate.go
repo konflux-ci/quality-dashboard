@@ -111,6 +111,28 @@ func (s *Server) UpdateDataBaseRepoByTeam() error {
 
 func (s *Server) CacheRepositoriesInformation(storageRepos []repoV1Alpha1.Repository) error {
 	for _, repo := range storageRepos {
+
+		// update prs info
+		prs, err := s.cfg.Github.GetRepositoryPullRequests(repo.Organization, repo.Name)
+		if err != nil {
+			return err
+		}
+
+		for _, pr := range prs {
+			s.cfg.Storage.CreatePullRequest(repoV1Alpha1.PullRequest{
+				RepositoryName:         repo.Name,
+				RepositoryOrganization: repo.Organization,
+				Number:                 pr.GetNumber(),
+				Title:                  pr.GetTitle(),
+				CreatedAt:              pr.GetCreatedAt(),
+				MergedAt:               pr.GetMergedAt(),
+				ClosedAt:               pr.GetClosedAt(),
+				State:                  pr.GetState(),
+				Author:                 *pr.GetUser().Login,
+			}, repo.ID)
+		}
+
+		//update coverage info
 		coverage, err := s.getCodeCoverage(repo.Organization, repo.Name)
 
 		if err != nil {

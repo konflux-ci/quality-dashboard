@@ -61,6 +61,21 @@ func PrID(v uuid.UUID) predicate.PullRequests {
 	return predicate.PullRequests(sql.FieldEQ(FieldPrID, v))
 }
 
+// RepositoryName applies equality check predicate on the "repository_name" field. It's identical to RepositoryNameEQ.
+func RepositoryName(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEQ(FieldRepositoryName, v))
+}
+
+// RepositoryOrganization applies equality check predicate on the "repository_organization" field. It's identical to RepositoryOrganizationEQ.
+func RepositoryOrganization(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEQ(FieldRepositoryOrganization, v))
+}
+
+// Number applies equality check predicate on the "number" field. It's identical to NumberEQ.
+func Number(v int) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEQ(FieldNumber, v))
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.PullRequests {
 	return predicate.PullRequests(sql.FieldEQ(FieldCreatedAt, v))
@@ -129,6 +144,176 @@ func PrIDLT(v uuid.UUID) predicate.PullRequests {
 // PrIDLTE applies the LTE predicate on the "pr_id" field.
 func PrIDLTE(v uuid.UUID) predicate.PullRequests {
 	return predicate.PullRequests(sql.FieldLTE(FieldPrID, v))
+}
+
+// RepositoryNameEQ applies the EQ predicate on the "repository_name" field.
+func RepositoryNameEQ(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEQ(FieldRepositoryName, v))
+}
+
+// RepositoryNameNEQ applies the NEQ predicate on the "repository_name" field.
+func RepositoryNameNEQ(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNEQ(FieldRepositoryName, v))
+}
+
+// RepositoryNameIn applies the In predicate on the "repository_name" field.
+func RepositoryNameIn(vs ...string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldIn(FieldRepositoryName, vs...))
+}
+
+// RepositoryNameNotIn applies the NotIn predicate on the "repository_name" field.
+func RepositoryNameNotIn(vs ...string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNotIn(FieldRepositoryName, vs...))
+}
+
+// RepositoryNameGT applies the GT predicate on the "repository_name" field.
+func RepositoryNameGT(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldGT(FieldRepositoryName, v))
+}
+
+// RepositoryNameGTE applies the GTE predicate on the "repository_name" field.
+func RepositoryNameGTE(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldGTE(FieldRepositoryName, v))
+}
+
+// RepositoryNameLT applies the LT predicate on the "repository_name" field.
+func RepositoryNameLT(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldLT(FieldRepositoryName, v))
+}
+
+// RepositoryNameLTE applies the LTE predicate on the "repository_name" field.
+func RepositoryNameLTE(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldLTE(FieldRepositoryName, v))
+}
+
+// RepositoryNameContains applies the Contains predicate on the "repository_name" field.
+func RepositoryNameContains(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldContains(FieldRepositoryName, v))
+}
+
+// RepositoryNameHasPrefix applies the HasPrefix predicate on the "repository_name" field.
+func RepositoryNameHasPrefix(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldHasPrefix(FieldRepositoryName, v))
+}
+
+// RepositoryNameHasSuffix applies the HasSuffix predicate on the "repository_name" field.
+func RepositoryNameHasSuffix(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldHasSuffix(FieldRepositoryName, v))
+}
+
+// RepositoryNameEqualFold applies the EqualFold predicate on the "repository_name" field.
+func RepositoryNameEqualFold(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEqualFold(FieldRepositoryName, v))
+}
+
+// RepositoryNameContainsFold applies the ContainsFold predicate on the "repository_name" field.
+func RepositoryNameContainsFold(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldContainsFold(FieldRepositoryName, v))
+}
+
+// RepositoryOrganizationEQ applies the EQ predicate on the "repository_organization" field.
+func RepositoryOrganizationEQ(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEQ(FieldRepositoryOrganization, v))
+}
+
+// RepositoryOrganizationNEQ applies the NEQ predicate on the "repository_organization" field.
+func RepositoryOrganizationNEQ(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNEQ(FieldRepositoryOrganization, v))
+}
+
+// RepositoryOrganizationIn applies the In predicate on the "repository_organization" field.
+func RepositoryOrganizationIn(vs ...string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldIn(FieldRepositoryOrganization, vs...))
+}
+
+// RepositoryOrganizationNotIn applies the NotIn predicate on the "repository_organization" field.
+func RepositoryOrganizationNotIn(vs ...string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNotIn(FieldRepositoryOrganization, vs...))
+}
+
+// RepositoryOrganizationGT applies the GT predicate on the "repository_organization" field.
+func RepositoryOrganizationGT(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldGT(FieldRepositoryOrganization, v))
+}
+
+// RepositoryOrganizationGTE applies the GTE predicate on the "repository_organization" field.
+func RepositoryOrganizationGTE(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldGTE(FieldRepositoryOrganization, v))
+}
+
+// RepositoryOrganizationLT applies the LT predicate on the "repository_organization" field.
+func RepositoryOrganizationLT(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldLT(FieldRepositoryOrganization, v))
+}
+
+// RepositoryOrganizationLTE applies the LTE predicate on the "repository_organization" field.
+func RepositoryOrganizationLTE(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldLTE(FieldRepositoryOrganization, v))
+}
+
+// RepositoryOrganizationContains applies the Contains predicate on the "repository_organization" field.
+func RepositoryOrganizationContains(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldContains(FieldRepositoryOrganization, v))
+}
+
+// RepositoryOrganizationHasPrefix applies the HasPrefix predicate on the "repository_organization" field.
+func RepositoryOrganizationHasPrefix(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldHasPrefix(FieldRepositoryOrganization, v))
+}
+
+// RepositoryOrganizationHasSuffix applies the HasSuffix predicate on the "repository_organization" field.
+func RepositoryOrganizationHasSuffix(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldHasSuffix(FieldRepositoryOrganization, v))
+}
+
+// RepositoryOrganizationEqualFold applies the EqualFold predicate on the "repository_organization" field.
+func RepositoryOrganizationEqualFold(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEqualFold(FieldRepositoryOrganization, v))
+}
+
+// RepositoryOrganizationContainsFold applies the ContainsFold predicate on the "repository_organization" field.
+func RepositoryOrganizationContainsFold(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldContainsFold(FieldRepositoryOrganization, v))
+}
+
+// NumberEQ applies the EQ predicate on the "number" field.
+func NumberEQ(v int) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEQ(FieldNumber, v))
+}
+
+// NumberNEQ applies the NEQ predicate on the "number" field.
+func NumberNEQ(v int) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNEQ(FieldNumber, v))
+}
+
+// NumberIn applies the In predicate on the "number" field.
+func NumberIn(vs ...int) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldIn(FieldNumber, vs...))
+}
+
+// NumberNotIn applies the NotIn predicate on the "number" field.
+func NumberNotIn(vs ...int) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNotIn(FieldNumber, vs...))
+}
+
+// NumberGT applies the GT predicate on the "number" field.
+func NumberGT(v int) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldGT(FieldNumber, v))
+}
+
+// NumberGTE applies the GTE predicate on the "number" field.
+func NumberGTE(v int) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldGTE(FieldNumber, v))
+}
+
+// NumberLT applies the LT predicate on the "number" field.
+func NumberLT(v int) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldLT(FieldNumber, v))
+}
+
+// NumberLTE applies the LTE predicate on the "number" field.
+func NumberLTE(v int) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldLTE(FieldNumber, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.

@@ -67,8 +67,8 @@ export const PullRequestsGraphic = (props) => {
     };
 
     props.metrics.forEach(metric => {
-        beautifiedData["CREATED_PRS"].data.push({ name: 'created_prs', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: metric.created_prs_count })
-        beautifiedData["MERGED_PRS"].data.push({ name: 'merged_prs', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: metric.merged_prs_count })
+        beautifiedData["CREATED_PRS"].data.push({ name: 'created_prs', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short', year: '2-digit'}), y: metric.created_prs_count })
+        beautifiedData["MERGED_PRS"].data.push({ name: 'merged_prs', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short', year: '2-digit' }), y: metric.merged_prs_count })
     });
 
     const maxY = getMaxY(beautifiedData)

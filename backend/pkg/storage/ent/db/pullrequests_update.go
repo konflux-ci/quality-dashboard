@@ -44,6 +44,31 @@ func (pru *PullRequestsUpdate) SetNillablePrID(u *uuid.UUID) *PullRequestsUpdate
 	return pru
 }
 
+// SetRepositoryName sets the "repository_name" field.
+func (pru *PullRequestsUpdate) SetRepositoryName(s string) *PullRequestsUpdate {
+	pru.mutation.SetRepositoryName(s)
+	return pru
+}
+
+// SetRepositoryOrganization sets the "repository_organization" field.
+func (pru *PullRequestsUpdate) SetRepositoryOrganization(s string) *PullRequestsUpdate {
+	pru.mutation.SetRepositoryOrganization(s)
+	return pru
+}
+
+// SetNumber sets the "number" field.
+func (pru *PullRequestsUpdate) SetNumber(i int) *PullRequestsUpdate {
+	pru.mutation.ResetNumber()
+	pru.mutation.SetNumber(i)
+	return pru
+}
+
+// AddNumber adds i to the "number" field.
+func (pru *PullRequestsUpdate) AddNumber(i int) *PullRequestsUpdate {
+	pru.mutation.AddNumber(i)
+	return pru
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (pru *PullRequestsUpdate) SetCreatedAt(t time.Time) *PullRequestsUpdate {
 	pru.mutation.SetCreatedAt(t)
@@ -158,6 +183,18 @@ func (pru *PullRequestsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pru.mutation.PrID(); ok {
 		_spec.SetField(pullrequests.FieldPrID, field.TypeUUID, value)
 	}
+	if value, ok := pru.mutation.RepositoryName(); ok {
+		_spec.SetField(pullrequests.FieldRepositoryName, field.TypeString, value)
+	}
+	if value, ok := pru.mutation.RepositoryOrganization(); ok {
+		_spec.SetField(pullrequests.FieldRepositoryOrganization, field.TypeString, value)
+	}
+	if value, ok := pru.mutation.Number(); ok {
+		_spec.SetField(pullrequests.FieldNumber, field.TypeInt, value)
+	}
+	if value, ok := pru.mutation.AddedNumber(); ok {
+		_spec.AddField(pullrequests.FieldNumber, field.TypeInt, value)
+	}
 	if value, ok := pru.mutation.CreatedAt(); ok {
 		_spec.SetField(pullrequests.FieldCreatedAt, field.TypeTime, value)
 	}
@@ -242,6 +279,31 @@ func (pruo *PullRequestsUpdateOne) SetNillablePrID(u *uuid.UUID) *PullRequestsUp
 	if u != nil {
 		pruo.SetPrID(*u)
 	}
+	return pruo
+}
+
+// SetRepositoryName sets the "repository_name" field.
+func (pruo *PullRequestsUpdateOne) SetRepositoryName(s string) *PullRequestsUpdateOne {
+	pruo.mutation.SetRepositoryName(s)
+	return pruo
+}
+
+// SetRepositoryOrganization sets the "repository_organization" field.
+func (pruo *PullRequestsUpdateOne) SetRepositoryOrganization(s string) *PullRequestsUpdateOne {
+	pruo.mutation.SetRepositoryOrganization(s)
+	return pruo
+}
+
+// SetNumber sets the "number" field.
+func (pruo *PullRequestsUpdateOne) SetNumber(i int) *PullRequestsUpdateOne {
+	pruo.mutation.ResetNumber()
+	pruo.mutation.SetNumber(i)
+	return pruo
+}
+
+// AddNumber adds i to the "number" field.
+func (pruo *PullRequestsUpdateOne) AddNumber(i int) *PullRequestsUpdateOne {
+	pruo.mutation.AddNumber(i)
 	return pruo
 }
 
@@ -382,6 +444,18 @@ func (pruo *PullRequestsUpdateOne) sqlSave(ctx context.Context) (_node *PullRequ
 	}
 	if value, ok := pruo.mutation.PrID(); ok {
 		_spec.SetField(pullrequests.FieldPrID, field.TypeUUID, value)
+	}
+	if value, ok := pruo.mutation.RepositoryName(); ok {
+		_spec.SetField(pullrequests.FieldRepositoryName, field.TypeString, value)
+	}
+	if value, ok := pruo.mutation.RepositoryOrganization(); ok {
+		_spec.SetField(pullrequests.FieldRepositoryOrganization, field.TypeString, value)
+	}
+	if value, ok := pruo.mutation.Number(); ok {
+		_spec.SetField(pullrequests.FieldNumber, field.TypeInt, value)
+	}
+	if value, ok := pruo.mutation.AddedNumber(); ok {
+		_spec.AddField(pullrequests.FieldNumber, field.TypeInt, value)
 	}
 	if value, ok := pruo.mutation.CreatedAt(); ok {
 		_spec.SetField(pullrequests.FieldCreatedAt, field.TypeTime, value)

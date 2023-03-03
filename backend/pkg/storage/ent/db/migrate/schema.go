@@ -113,6 +113,9 @@ var (
 	PullRequestsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "pr_id", Type: field.TypeUUID, Unique: true},
+		{Name: "repository_name", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "repository_organization", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "number", Type: field.TypeInt, SchemaType: map[string]string{"postgres": "numeric"}},
 		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
 		{Name: "closed_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
 		{Name: "merged_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
@@ -129,7 +132,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "pull_requests_repositories_prs",
-				Columns:    []*schema.Column{PullRequestsColumns[8]},
+				Columns:    []*schema.Column{PullRequestsColumns[11]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
