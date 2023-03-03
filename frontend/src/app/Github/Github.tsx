@@ -41,7 +41,7 @@ let GitHub = () => {
     const [repoNameToggle, setRepoNameToggle] = useState(false);
     const [workflows, setWorkflows] = useState([]);
     const [prs, setPrs] = useState<PrsStatistics | null>(null);
-    const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(30));
+    const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(365));
     const [noData, setNoData] = useState(false)
     const defaultModalContext = useDefaultModalContextState();
     const modalContext = useModalContext()
@@ -100,7 +100,7 @@ let GitHub = () => {
 
     // Reset rangeDateTime
     const clearRangeDateTime = () => {
-        setRangeDateTime(getRangeDates(30))
+        setRangeDateTime(getRangeDates(365))
     }
 
     // Reset all dropwdowns and state variables

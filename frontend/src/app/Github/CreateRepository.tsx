@@ -86,7 +86,22 @@ export const FormModal = () => {
     window.location.reload();
   }
 
+  interface LoadingPropsType {
+    spinnerAriaValueText: string;
+    spinnerAriaLabelledBy?: string;
+    spinnerAriaLabel?: string;
+    isLoading: boolean;
+  }
+
+  const [isPrimaryLoading, setIsPrimaryLoading] = React.useState<boolean>(false);
+  const primaryLoadingProps = {} as LoadingPropsType;
+  primaryLoadingProps.spinnerAriaValueText = 'Loading';
+  primaryLoadingProps.spinnerAriaLabelledBy = 'primary-loading-button';
+  primaryLoadingProps.isLoading = isPrimaryLoading;
+
+
   const onCreateSubmit = async () => {
+    setIsPrimaryLoading(!isPrimaryLoading)
     try {
       const data = {
         git_organization: gitOrganizationValue,
@@ -99,10 +114,11 @@ export const FormModal = () => {
         artifacts: [],
         team_name: state.teams.Team
       }
-      modalContext.handleModalToggle()
       await createRepository(data)
+      setIsPrimaryLoading(!isPrimaryLoading)
+      modalContext.handleModalToggle()
 
-      const rangeDateTime = getRangeDates(30)
+      const rangeDateTime = getRangeDates(365)
       const start_date = formatDate(rangeDateTime[0])
       const end_date = formatDate(rangeDateTime[1])
 
@@ -139,7 +155,7 @@ export const FormModal = () => {
         isOpen={modalContext.isModalOpen.value}
         onClose={modalContext.handleModalToggle}
         actions={[
-          <Button key="create" variant="primary" form="modal-with-form-form" onClick={onSubmit} isDisabled={!teamIsNotEmpty(state.teams.Team)}>
+          <Button key="create" variant="primary" form="modal-with-form-form" onClick={onSubmit} isDisabled={!teamIsNotEmpty(state.teams.Team)} {...primaryLoadingProps}>
             {!modalContext.isEditRepo.value ? "Add" : "Update"}
           </Button>,
           <Button key="cancel" variant="link" onClick={modalContext.handleModalToggle}>

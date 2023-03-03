@@ -81,8 +81,6 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 					s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 				}).All(context.TODO())
 
-			fmt.Println(prs)
-
 			for _, pr := range prs {
 				if pr.State == "closed" {
 					mergeTime := pr.MergedAt.Sub(pr.CreatedAt).Hours() / 24
