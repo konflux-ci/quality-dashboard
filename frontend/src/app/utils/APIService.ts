@@ -60,7 +60,26 @@ async function getJiras() {
 
 async function getJirasResolutionTime(priority:string) {
   const result: ApiResponse = { code: 0, data: {} };
-  const subPath = '/api/quality/jira/bugs/resolution';
+  const subPath = '/api/quality/jira/bugs/metrics/resolution';
+  const uri = API_URL + subPath;
+  await axios
+    .post(uri, {
+      priority: priority,
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
+async function getJirasOpen(priority:string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/jira/bugs/metrics/open';
   const uri = API_URL + subPath;
   await axios
     .post(uri, {
@@ -358,5 +377,6 @@ export {
   deleteInApi,
   updateTeam,
   checkDbConnection,
-  getJirasResolutionTime
+  getJirasResolutionTime,
+  getJirasOpen
 };

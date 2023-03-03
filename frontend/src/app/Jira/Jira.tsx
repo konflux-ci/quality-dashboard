@@ -27,7 +27,7 @@ import {
     Caption
 } from '@patternfly/react-table';
 import { Chart, ChartAxis, ChartGroup, ChartLine,ChartBar, createContainer } from '@patternfly/react-charts';
-import { getJirasResolutionTime } from '@app/utils/APIService';
+import { getJirasResolutionTime, getJirasOpen } from '@app/utils/APIService';
 
 interface Bugs {
     jira_key: string;
@@ -53,21 +53,20 @@ export const Jira = () => {
 
     useEffect(() => {
         const ID = "Global"
-        getJirasResolutionTime("").then((res) => {
-            if (res.code === 200) {
-                const result = res.data;
+        const promise0 = getJirasOpen(ID)
+        const promise1 = getJirasResolutionTime(ID)
 
-                // Cache results from API
-                let newData = {}
-                newData[ID] = result
-                setApiDataCache({
-                    ...apiDataCache,
-                    ...newData
-                })
-                setSelected(ID)
-            }
-            
-        })
+        Promise.all([promise0, promise1]).then(function(values) {
+            let newData = {}
+            newData[ID] = {}
+            newData[ID].resolved = values[1].data.resolution_time
+            newData[ID].open = values[0].data.open
+            setApiDataCache({
+                ...apiDataCache,
+                ...newData
+            })
+            setSelected(ID)
+        });
     }, []);
 
     const [selected, setSelected] = useState<string>('');
@@ -87,21 +86,20 @@ export const Jira = () => {
         let ID = event.currentTarget.id
         if(selected != ID){
             if(!apiDataCache.hasOwnProperty(ID)){
-                getJirasResolutionTime(ID).then((res) => {
-                    if (res.code === 200) {
-                        const result = res.data;
-
-                        // Cache results from API
-                        let newData = {}
-                        newData[ID] = result
-                        setApiDataCache({
-                            ...apiDataCache,
-                            ...newData
-                        })
-                        setSelected(ID)
-                    }
-                    
-                })
+                const promise0 = getJirasOpen(ID)
+                const promise1 = getJirasResolutionTime(ID)
+        
+                Promise.all([promise0, promise1]).then(function(values) {
+                    let newData = {}
+                    newData[ID] = {}
+                    newData[ID].resolved = values[1].data.resolution_time
+                    newData[ID].open = values[0].data.open
+                    setApiDataCache({
+                        ...apiDataCache,
+                        ...newData
+                    })
+                    setSelected(ID)
+                });
             }
             setSelected(ID)
         } else {
@@ -111,34 +109,40 @@ export const Jira = () => {
     
     useEffect(() => {
         if(apiDataCache[selected]){
-            let rtc = new Array(12)
-            let bc = new Array(12)
-            let bt = new Array()
-            let obc = new Array(12)
+            let rtc = new Array(12).fill(0)
+            let bc = new Array(12).fill(0)
+            let rbt = new Array()
+            let obt = new Array()
+            let obc = new Array(12).fill(0)
 
-            apiDataCache[selected].resolution_time.months.map(item => {
-                rtc[getMonth(item.name)-1] = { 
-                    name: "Resolution Time", 
+            apiDataCache[selected].resolved.months.map((item, index) => {
+                rtc[11-index] = { 
+                    name: "Resolution Time ("+selected+")", 
                     x: item.name.slice(0, 3), 
                     y: item.total
                 }
-                bc[getMonth(item.name)-1] = { 
-                    name: "Resolved Bugs", 
+                bc[11-index] = { 
+                    name: "Resolved Bugs ("+selected+")",  
                     x: item.name.slice(0, 3), 
                     y: item.resolved_bugs
                 }
-                obc[getMonth(item.name)-1] = { 
-                    name: "Opened Bugs", 
-                    x: item.name.slice(0, 3), 
-                    y: item.resolved_bugs + Math.floor(Math.random() * 25)
-                }
-                bt = [...bt, ...item.bugs]
+                rbt = [...rbt, ...item.bugs]
             })
+            apiDataCache[selected].open.months.map((item, index) => {
+                obc[11-index] = { 
+                    name: "Opened Bugs ("+selected+")", 
+                    x: item.name.slice(0, 3), 
+                    y: item.open_bugs
+                }
+                obt = [...obt, ...item.bugs]
+            })
+
             setBugsChart([bc, obc])
             setResolutionTimeChart([rtc])
-            setBugsTable(bt)
+            if(isSelected == 'resolved') setBugsTable(rbt)
+            if(isSelected == 'opened') setBugsTable(obt)
         }
-    }, [selected, apiDataCache]);
+    }, [selected, apiDataCache, isSelected]);
 
     return (
         <React.Fragment>
@@ -166,10 +170,10 @@ export const Jira = () => {
                                 <Card id="tooltip-boundary">
                                     <CardTitle>Average Resolution Time</CardTitle>
                                     <CardBody>
-                                        <Title headingLevel='h1' size="4xl">
+                                        <Title headingLevel='h1' size="2xl">
                                             { apiDataCache[selected] &&
                                             <span>
-                                                <span>{ parseFloat(apiDataCache[selected].resolution_time.total).toFixed(2) || "-"}</span>
+                                                <span>{ parseFloat(apiDataCache[selected].resolved.total).toFixed(2) || "-"}</span>
                                                 <span style={{paddingLeft: '5px', fontSize: '15px', fontWeight: 'normal'}}>hours</span>
                                             </span>
                                             }
@@ -183,10 +187,10 @@ export const Jira = () => {
                                 <Card>
                                     <CardTitle>Bugs</CardTitle>
                                     <CardBody>
-                                        <Title headingLevel='h1' size="4xl">
+                                        <Title headingLevel='h1' size="2xl">
                                             { apiDataCache[selected] &&
                                             <span>
-                                                <span>{ apiDataCache[selected].resolution_time.resolved_bugs || "-"}</span>
+                                                <span>{ apiDataCache[selected].resolved.resolved_bugs || "-"}</span>
                                             </span>
                                             }
                                             { !apiDataCache[selected] && "-" }
@@ -200,85 +204,85 @@ export const Jira = () => {
                     <GridItem order={{default: "1"}}>
                         <Grid hasGutter span={3}>
                             <GridItem order={{default: "1"}}>
-                                <Card isSelectable onClick={onClick} isSelected={selected.includes('Global')} id="Global">
+                                <Card isSelectable onClick={onClick} style={{textAlign: 'center'}} isSelected={selected.includes('Global')} id="Global">
                                     <CardTitle>Global</CardTitle>
                                     <CardBody>
-                                        <Title headingLevel='h1' size="4xl">
-                                        { apiDataCache["Global"] ? <span>{ apiDataCache["Global"].resolution_time.resolved_bugs + Math.floor(Math.random() * 205) } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
-                                        <br/>
-                                        { apiDataCache["Global"] ? <span>{ apiDataCache["Global"].resolution_time.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        <Title headingLevel='h1' size="2xl">
+                                        { apiDataCache["Global"] ? <span>{ apiDataCache["Global"].open.open_bugs } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <span style={{marginLeft: '20px'}}>&nbsp;</span>
+                                        { apiDataCache["Global"] ? <span>{ apiDataCache["Global"].resolved.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
                                         </Title>
                                     </CardBody>
                                 </Card>
                             </GridItem>
                             <GridItem order={{default: "2"}}>
-                                <Card isSelectable onClick={onClick} isSelected={selected.includes('Blocker')} id="Blocker">
+                                <Card isSelectable onClick={onClick} style={{textAlign: 'center'}} isSelected={selected.includes('Blocker')} id="Blocker">
                                     <CardTitle>Blockers</CardTitle>
                                     <CardBody>
-                                        <Title headingLevel='h1' size="4xl">
-                                        { apiDataCache["Blocker"] ? <span>{ apiDataCache["Blocker"].resolution_time.resolved_bugs + Math.floor(Math.random() * 205) } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
-                                        <br/>
-                                        { apiDataCache["Blocker"] ? <span>{ apiDataCache["Blocker"].resolution_time.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        <Title headingLevel='h1' size="2xl">
+                                        { apiDataCache["Blocker"] ? <span>{ apiDataCache["Blocker"].open.open_bugs } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <span style={{marginLeft: '20px'}}>&nbsp;</span>
+                                        { apiDataCache["Blocker"] ? <span>{ apiDataCache["Blocker"].resolved.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
                                         </Title>
                                     </CardBody>
                                 </Card>
                             </GridItem>
                             <GridItem order={{default: "3"}}>
-                                <Card isSelectable onClick={onClick} isSelected={selected.includes('Major')} id="Major">
+                                <Card isSelectable style={{textAlign: 'center'}} onClick={onClick} isSelected={selected.includes('Major')} id="Major">
                                     <CardTitle>Major Bugs</CardTitle>
                                     <CardBody>
-                                        <Title headingLevel='h1' size="4xl">
-                                        { apiDataCache["Major"] ? <span>{ apiDataCache["Major"].resolution_time.resolved_bugs + Math.floor(Math.random() * 205) } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
-                                        <br/>
-                                        { apiDataCache["Major"] ? <span>{ apiDataCache["Major"].resolution_time.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        <Title headingLevel='h1' size="2xl">
+                                        { apiDataCache["Major"] ? <span>{ apiDataCache["Major"].open.open_bugs } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <span style={{marginLeft: '20px'}}>&nbsp;</span>
+                                        { apiDataCache["Major"] ? <span>{ apiDataCache["Major"].resolved.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
                                         </Title>
                                     </CardBody>
                                 </Card>
                             </GridItem>
                             <GridItem order={{default: "4"}}>
-                                <Card isSelectable onClick={onClick} isSelected={selected.includes('Critical')} id="Critical">
+                                <Card isSelectable onClick={onClick} style={{textAlign: 'center'}} isSelected={selected.includes('Critical')} id="Critical">
                                     <CardTitle>Critical Bugs</CardTitle>
                                     <CardBody>
-                                        <Title headingLevel='h1' size="4xl">
-                                        { apiDataCache["Critical"] ? <span>{ apiDataCache["Critical"].resolution_time.resolved_bugs + Math.floor(Math.random() * 205) } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
-                                        <br/>
-                                        { apiDataCache["Critical"] ? <span>{ apiDataCache["Critical"].resolution_time.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        <Title headingLevel='h1' size="2xl">
+                                        { apiDataCache["Critical"] ? <span>{ apiDataCache["Critical"].open.open_bugs } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <span style={{marginLeft: '20px'}}>&nbsp;</span>
+                                        { apiDataCache["Critical"] ? <span>{ apiDataCache["Critical"].resolved.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
                                         </Title>
                                     </CardBody>
                                 </Card>
                             </GridItem>
                             <GridItem order={{default: "5"}}>
-                                <Card isSelectable onClick={onClick} isSelected={selected.includes('Normal')} id="Normal">
+                                <Card isSelectable onClick={onClick} style={{textAlign: 'center'}} isSelected={selected.includes('Normal')} id="Normal">
                                     <CardTitle>Normal Bugs</CardTitle>
                                     <CardBody>
-                                        <Title headingLevel='h1' size="4xl">
-                                        { apiDataCache["Normal"] ? <span>{ apiDataCache["Normal"].resolution_time.resolved_bugs + Math.floor(Math.random() * 205) } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
-                                        <br/>
-                                        { apiDataCache["Normal"] ? <span>{ apiDataCache["Normal"].resolution_time.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        <Title headingLevel='h1' size="2xl">
+                                        { apiDataCache["Normal"] ? <span>{ apiDataCache["Normal"].open.open_bugs } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <span style={{marginLeft: '20px'}}>&nbsp;</span>
+                                        { apiDataCache["Normal"] ? <span>{ apiDataCache["Normal"].resolved.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
                                         </Title>
                                     </CardBody>
                                 </Card>
                             </GridItem>
                             <GridItem order={{default: "6"}}>
-                                <Card isSelectable onClick={onClick} isSelected={selected.includes('Minor')} id="Minor">
+                                <Card isSelectable style={{textAlign: 'center'}} onClick={onClick} isSelected={selected.includes('Minor')} id="Minor">
                                     <CardTitle>Minor Bugs</CardTitle>
                                     <CardBody>
-                                        <Title headingLevel='h1' size="4xl">
-                                        { apiDataCache["Minor"] ? <span>{ apiDataCache["Minor"].resolution_time.resolved_bugs + Math.floor(Math.random() * 205) } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
-                                        <br/>
-                                        { apiDataCache["Minor"] ? <span>{ apiDataCache["Minor"].resolution_time.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        <Title headingLevel='h1' size="2xl">
+                                        { apiDataCache["Minor"] ? <span>{ apiDataCache["Minor"].open.open_bugs } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <span style={{marginLeft: '20px'}}>&nbsp;</span>
+                                        { apiDataCache["Minor"] ? <span>{ apiDataCache["Minor"].resolved.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
                                         </Title>
                                     </CardBody>
                                 </Card>
                             </GridItem>
                             <GridItem order={{default: "6"}}>
-                                <Card isSelectable onClick={onClick} isSelected={selected.includes('Undefined')} id="Undefined">
+                                <Card isSelectable style={{textAlign: 'center'}} onClick={onClick} isSelected={selected.includes('Undefined')} id="Undefined">
                                     <CardTitle>Undefined Bugs</CardTitle>
                                     <CardBody>
-                                        <Title headingLevel='h1' size="4xl">
-                                        { apiDataCache["Undefined"] ? <span>{ apiDataCache["Undefined"].resolution_time.resolved_bugs + Math.floor(Math.random() * 205) } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
-                                        <br/>
-                                        { apiDataCache["Undefined"] ? <span>{ apiDataCache["Undefined"].resolution_time.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        <Title headingLevel='h1' size="2xl">
+                                        { apiDataCache["Undefined"] ? <span>{ apiDataCache["Undefined"].open.open_bugs } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <span style={{marginLeft: '20px'}}>&nbsp;</span>
+                                        { apiDataCache["Undefined"] ? <span>{ apiDataCache["Undefined"].resolved.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
                                         </Title>
                                     </CardBody>
                                 </Card>
@@ -400,7 +404,6 @@ const ComposableTableStripedTr: React.FC<{bugs:any}> = ({bugs}) => {
     const [perPage, setPerPage] = React.useState(10);
 
     useEffect(() => {
-
         if(bugs.length > 0){
             setBugsPage(bugs.slice(0, perPage))
             setPage(1)
@@ -429,7 +432,6 @@ const ComposableTableStripedTr: React.FC<{bugs:any}> = ({bugs}) => {
             let to = (page-1)*perPage + perPage > bugs.length ? bugs.length - 1 : (page-1)*perPage + perPage;
             setBugsPage(bugs.slice(from, to))
         }
-
     }, [page, perPage]);
 
 
