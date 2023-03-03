@@ -58,6 +58,25 @@ async function getJiras() {
   return result;
 }
 
+async function getJirasResolutionTime(priority:string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/jira/bugs/resolution';
+  const uri = API_URL + subPath;
+  await axios
+    .post(uri, {
+      priority: priority,
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
 async function getRepositories(perPage = 5, team: string) {
   const REPOS_IN_PAGE = perPage;
   const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
@@ -339,4 +358,5 @@ export {
   deleteInApi,
   updateTeam,
   checkDbConnection,
+  getJirasResolutionTime
 };

@@ -2,17 +2,20 @@ import React, { useContext, useEffect, useRef, useLayoutEffect, useState } from 
 import {
     Card,
     CardTitle,
-    CardFooter,
     CardBody,
     Text,
     PageSection,
     Title,
     Grid,
     GridItem,
-    TitleSizes,
     TextContent,
     PageSectionVariants,
-    Pagination
+    Pagination,
+    Chip,
+    ChipGroup,
+    ToggleGroup, 
+    ToggleGroupItem,
+    Tooltip
 } from '@patternfly/react-core';
 import {
     TableComposable,
@@ -20,48 +23,123 @@ import {
     Tr,
     Th,
     Tbody,
-    Td
+    Td,
+    Caption
 } from '@patternfly/react-table';
+import { Chart, ChartAxis, ChartGroup, ChartLine,ChartBar, createContainer } from '@patternfly/react-charts';
+import { getJirasResolutionTime } from '@app/utils/APIService';
 
-import { Chart, ChartAxis, ChartGroup, ChartLine,ChartBar, ChartLegendTooltip, createContainer } from '@patternfly/react-charts';
+interface Bugs {
+    jira_key: string;
+    created_at: string;
+    deleted_at: string;
+    updated_at: string;
+    last_change_time: string;
+    status: string;
+    summary: string;
+    affects_versions: string;
+    fix_versions: string;
+    components: string;
+    labels: string;
+    url: string;
+    teams_bugs: string;
+}
 
-import { Caption} from '@patternfly/react-table';
-import { Chip, ChipGroup } from '@patternfly/react-core';
-
-import { ChartDonut, ChartThemeColor } from '@patternfly/react-charts';
-import { getJiras } from '@app/utils/APIService';
-import { ReactReduxContext } from 'react-redux';
-import { isValidTeam } from '@app/utils/utils';
+function getMonth(monthStr){
+    return new Date(monthStr+'-1-01').getMonth()+1
+}
 
 export const Jira = () => {
 
-    const [selected, setSelected] = useState<Array<string>>([]);
+    useEffect(() => {
+        const ID = "Global"
+        getJirasResolutionTime("").then((res) => {
+            if (res.code === 200) {
+                const result = res.data;
 
-    const onClick = (event: React.MouseEvent) => {
-        if(selected.includes(event.currentTarget.id)){
-            var array = [...selected];
-            const index = selected.indexOf(event.currentTarget.id);
-            if (index !== -1) {
-                array.splice(index, 1);
-                setSelected(array)
+                // Cache results from API
+                let newData = {}
+                newData[ID] = result
+                setApiDataCache({
+                    ...apiDataCache,
+                    ...newData
+                })
+                setSelected(ID)
             }
-        } else {
-            setSelected([...selected, event.currentTarget.id])
-        }
+            
+        })
+    }, []);
 
+    const [selected, setSelected] = useState<string>('');
+    const [apiDataCache, setApiDataCache] = useState<any>({});
+    const [resolutionTimeChart, setResolutionTimeChart] = useState<any>({});
+    const [bugsChart, setBugsChart] = useState<any>({});
+    const [bugsTable, setBugsTable] = useState<any>({});
+    const [stats, setStats] = useState<any>({});
+
+    const [isSelected, setIsSelected] = React.useState('resolved');
+    const handleItemClick = (isSelected: boolean, event: React.MouseEvent<any> | React.KeyboardEvent | MouseEvent) => {
+        const id = event.currentTarget.id;
+        setIsSelected(id);
     };
 
-    const deleteItem = (id: string) => {
-        if(selected.includes(id)){
-            var array = [...selected];
-            const index = selected.indexOf(id);
-            if (index !== -1) {
-                array.splice(index, 1);
-                setSelected(array)
+    const onClick = (event: React.MouseEvent) => {
+        let ID = event.currentTarget.id
+        if(selected != ID){
+            if(!apiDataCache.hasOwnProperty(ID)){
+                getJirasResolutionTime(ID).then((res) => {
+                    if (res.code === 200) {
+                        const result = res.data;
+
+                        // Cache results from API
+                        let newData = {}
+                        newData[ID] = result
+                        setApiDataCache({
+                            ...apiDataCache,
+                            ...newData
+                        })
+                        setSelected(ID)
+                    }
+                    
+                })
             }
+            setSelected(ID)
+        } else {
+            setSelected(ID)
         }
     };
     
+    useEffect(() => {
+        if(apiDataCache[selected]){
+            let rtc = new Array(12)
+            let bc = new Array(12)
+            let bt = new Array()
+            let obc = new Array(12)
+
+            apiDataCache[selected].resolution_time.months.map(item => {
+                rtc[getMonth(item.name)-1] = { 
+                    name: "Resolution Time", 
+                    x: item.name.slice(0, 3), 
+                    y: item.total
+                }
+                bc[getMonth(item.name)-1] = { 
+                    name: "Resolved Bugs", 
+                    x: item.name.slice(0, 3), 
+                    y: item.resolved_bugs
+                }
+                obc[getMonth(item.name)-1] = { 
+                    name: "Opened Bugs", 
+                    x: item.name.slice(0, 3), 
+                    y: item.resolved_bugs + Math.floor(Math.random() * 25)
+                }
+                bt = [...bt, ...item.bugs]
+            })
+            setBugsChart([bc, obc])
+            setResolutionTimeChart([rtc])
+            setBugsTable(bt)
+        }
+    }, [selected, apiDataCache]);
+
     return (
         <React.Fragment>
             <PageSection style={{
@@ -83,22 +161,37 @@ export const Jira = () => {
                 <React.Fragment>
                 <Grid hasGutter>
                     <GridItem order={{default: "2"}}>
-                        <Grid hasGutter sm={6} md={6} lg={6} xl={6} xl2={6}>
+                        <Grid hasGutter sm={6} md={6} lg={6} xl={6}>
                             <GridItem order={{default: "1"}}>
-                                <Card>
+                                <Card id="tooltip-boundary">
                                     <CardTitle>Average Resolution Time</CardTitle>
                                     <CardBody>
-                                        <Title headingLevel='h1' size="4xl">3.64 years</Title>
-                                        <BugsChart chartType="line"></BugsChart>
+                                        <Title headingLevel='h1' size="4xl">
+                                            { apiDataCache[selected] &&
+                                            <span>
+                                                <span>{ parseFloat(apiDataCache[selected].resolution_time.total).toFixed(2) || "-"}</span>
+                                                <span style={{paddingLeft: '5px', fontSize: '15px', fontWeight: 'normal'}}>hours</span>
+                                            </span>
+                                            }
+                                            { !apiDataCache[selected] && "-" }
+                                        </Title>
+                                        <BugsChart chartType="line" data={resolutionTimeChart}></BugsChart>
                                     </CardBody>
                                 </Card>
                             </GridItem>
                             <GridItem order={{default: "2"}}>
                                 <Card>
-                                    <CardTitle>Open Bugs</CardTitle>
+                                    <CardTitle>Bugs</CardTitle>
                                     <CardBody>
-                                        <Title headingLevel='h1' size="4xl">100k</Title>
-                                        <BugsChart chartType="bar"></BugsChart>
+                                        <Title headingLevel='h1' size="4xl">
+                                            { apiDataCache[selected] &&
+                                            <span>
+                                                <span>{ apiDataCache[selected].resolution_time.resolved_bugs || "-"}</span>
+                                            </span>
+                                            }
+                                            { !apiDataCache[selected] && "-" }
+                                        </Title>
+                                        <BugsChart chartType="bar" data={bugsChart}></BugsChart>
                                     </CardBody>
                                 </Card>
                             </GridItem>
@@ -106,28 +199,88 @@ export const Jira = () => {
                     </GridItem>
                     <GridItem order={{default: "1"}}>
                         <Grid hasGutter span={3}>
+                            <GridItem order={{default: "1"}}>
+                                <Card isSelectable onClick={onClick} isSelected={selected.includes('Global')} id="Global">
+                                    <CardTitle>Global</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="4xl">
+                                        { apiDataCache["Global"] ? <span>{ apiDataCache["Global"].resolution_time.resolved_bugs + Math.floor(Math.random() * 205) } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <br/>
+                                        { apiDataCache["Global"] ? <span>{ apiDataCache["Global"].resolution_time.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        </Title>
+                                    </CardBody>
+                                </Card>
+                            </GridItem>
+                            <GridItem order={{default: "2"}}>
+                                <Card isSelectable onClick={onClick} isSelected={selected.includes('Blocker')} id="Blocker">
+                                    <CardTitle>Blockers</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="4xl">
+                                        { apiDataCache["Blocker"] ? <span>{ apiDataCache["Blocker"].resolution_time.resolved_bugs + Math.floor(Math.random() * 205) } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <br/>
+                                        { apiDataCache["Blocker"] ? <span>{ apiDataCache["Blocker"].resolution_time.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        </Title>
+                                    </CardBody>
+                                </Card>
+                            </GridItem>
                             <GridItem order={{default: "3"}}>
-                                <Card isSelectable onClick={onClick} isSelected={selected.includes('jiras')} id="jiras">
-                                    <CardTitle>Jiras</CardTitle>
-                                    <CardBody><Title headingLevel='h1' size="4xl">0</Title></CardBody>
+                                <Card isSelectable onClick={onClick} isSelected={selected.includes('Major')} id="Major">
+                                    <CardTitle>Major Bugs</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="4xl">
+                                        { apiDataCache["Major"] ? <span>{ apiDataCache["Major"].resolution_time.resolved_bugs + Math.floor(Math.random() * 205) } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <br/>
+                                        { apiDataCache["Major"] ? <span>{ apiDataCache["Major"].resolution_time.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        </Title>
+                                    </CardBody>
                                 </Card>
                             </GridItem>
                             <GridItem order={{default: "4"}}>
-                                <Card isSelectable onClick={onClick} isSelected={selected.includes('blockers')} id="blockers">
-                                    <CardTitle>Blockers</CardTitle>
-                                    <CardBody><Title headingLevel='h1' size="4xl">23</Title></CardBody>
+                                <Card isSelectable onClick={onClick} isSelected={selected.includes('Critical')} id="Critical">
+                                    <CardTitle>Critical Bugs</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="4xl">
+                                        { apiDataCache["Critical"] ? <span>{ apiDataCache["Critical"].resolution_time.resolved_bugs + Math.floor(Math.random() * 205) } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <br/>
+                                        { apiDataCache["Critical"] ? <span>{ apiDataCache["Critical"].resolution_time.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        </Title>
+                                    </CardBody>
                                 </Card>
                             </GridItem>
                             <GridItem order={{default: "5"}}>
-                                <Card isSelectable onClick={onClick} isSelected={selected.includes('major')} id="major">
-                                    <CardTitle>Major Bugs</CardTitle>
-                                    <CardBody><Title headingLevel='h1' size="4xl">1</Title></CardBody>
+                                <Card isSelectable onClick={onClick} isSelected={selected.includes('Normal')} id="Normal">
+                                    <CardTitle>Normal Bugs</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="4xl">
+                                        { apiDataCache["Normal"] ? <span>{ apiDataCache["Normal"].resolution_time.resolved_bugs + Math.floor(Math.random() * 205) } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <br/>
+                                        { apiDataCache["Normal"] ? <span>{ apiDataCache["Normal"].resolution_time.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        </Title>
+                                    </CardBody>
                                 </Card>
                             </GridItem>
                             <GridItem order={{default: "6"}}>
-                                <Card isSelectable onClick={onClick} isSelected={selected.includes('critical')} id="critical">
-                                    <CardTitle>Critical Bugs</CardTitle>
-                                    <CardBody><Title headingLevel='h1' size="4xl">89</Title></CardBody>
+                                <Card isSelectable onClick={onClick} isSelected={selected.includes('Minor')} id="Minor">
+                                    <CardTitle>Minor Bugs</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="4xl">
+                                        { apiDataCache["Minor"] ? <span>{ apiDataCache["Minor"].resolution_time.resolved_bugs + Math.floor(Math.random() * 205) } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <br/>
+                                        { apiDataCache["Minor"] ? <span>{ apiDataCache["Minor"].resolution_time.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        </Title>
+                                    </CardBody>
+                                </Card>
+                            </GridItem>
+                            <GridItem order={{default: "6"}}>
+                                <Card isSelectable onClick={onClick} isSelected={selected.includes('Undefined')} id="Undefined">
+                                    <CardTitle>Undefined Bugs</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="4xl">
+                                        { apiDataCache["Undefined"] ? <span>{ apiDataCache["Undefined"].resolution_time.resolved_bugs + Math.floor(Math.random() * 205) } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <br/>
+                                        { apiDataCache["Undefined"] ? <span>{ apiDataCache["Undefined"].resolution_time.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        </Title>
+                                    </CardBody>
                                 </Card>
                             </GridItem>
                         </Grid>
@@ -136,212 +289,174 @@ export const Jira = () => {
                         <Card style={{fontSize: "12px"}}>
                             <CardTitle>Bugs</CardTitle>
                             <CardBody>
-                            <ChipGroup categoryName="Bugs filters: " numChips={5}>
-                                {selected.map(currentChip => (
-                                    <Chip key={currentChip} onClick={() => deleteItem(currentChip)} style={{fontSize: '15px'}}>
-                                    {currentChip}
-                                    </Chip>
-                                ))}
-                            </ChipGroup>
-                            <ComposableTableStripedTr ></ComposableTableStripedTr>
+                                <Grid hasGutter span={2}>
+                                    <GridItem order={{default: "1"}}>
+                                        <ToggleGroup aria-label="Default with single selectable">
+                                            <ToggleGroupItem
+                                                text="Resolved bugs"
+                                                buttonId="resolved"
+                                                isSelected={isSelected === 'resolved'}
+                                                onChange={handleItemClick}
+                                            />
+                                            <ToggleGroupItem
+                                                text="Opened bugs"
+                                                buttonId="opened"
+                                                isSelected={isSelected === 'opened'}
+                                                onChange={handleItemClick}
+                                            />
+                                        </ToggleGroup>                                        
+                                    </GridItem>
+                                    <GridItem order={{default: "2"}}>
+                                        <ChipGroup categoryName="Active filters: " numChips={5}>
+                                            <Chip key={selected} isReadOnly style={{fontSize: '15px'}}>
+                                                {selected} bugs
+                                            </Chip>
+                                        </ChipGroup>                                        
+                                    </GridItem>
+                                </Grid>
+                                <ComposableTableStripedTr bugs={bugsTable}></ComposableTableStripedTr>
                             </CardBody>
                         </Card>
                     </GridItem>
                 </Grid>
                 </React.Fragment>
             </PageSection>
+            
         </React.Fragment>
     )
 }
 
 
-const BugsChart: React.FC<{chartType:string}> = ({chartType}) => {
+const BugsChart: React.FC<{chartType:string, data:any}> = ({chartType, data}) => {
 
-    // Note: Container order is important
     const CursorVoronoiContainer = createContainer("voronoi", "cursor");
 
+    let legendData: { name: string }[] = []
+    if(data.length>0) {
+        legendData = data.map((dataset, index) => { 
+            return {name: dataset[0]["name"]}
+        })
+    } 
+    
     return (
       <div style={{ margin: '0 auto', height: '60%', width: '90%', marginTop: '15px' }}>
+        { data.length > 0 &&
         <Chart
           ariaDesc="Average number of pets"
           ariaTitle="Line chart example"
-          maxDomain={{y: 100}}
-          minDomain={{y: 0}}
           height={210}
-          name="chart2"
+          legendData={legendData}
+          legendPosition='bottom'          
           padding={{
-            bottom: 40, // Adjusted to accommodate legend
-            left:  14,
+            bottom: 70, // Adjusted to accommodate legend
+            left:  40,
             right: 14,
-            top: 10
+            top: 20
           }}
         >
           <ChartAxis style={{ axisLabel: {fontSize: 8, padding: 30},tickLabels: {fontSize: 8}}}/>
-          <ChartAxis showGrid style={{ axisLabel: {fontSize: 8, padding: 30}, tickLabels: {fontSize: 8}}}/>
-          { chartType == 'bar' && <ChartGroup offset={11}>
-            <ChartBar
-              style={{
-                data: { strokeWidth: 1},
-                parent: { border: "1px solid #ccc"}
-              }}
-              data={[
-                { name: "Open bugs", x: 'Jan', y: 1 },
-                { name: "Open bugs", x: 'Feb', y: 2 },
-                { name: "Open bugs", x: 'Mar', y: 5 },
-                { name: "Open bugs", x: 'Apr', y: 3 },
-                { name: "Open bugs", x: 'May', y: 3 },
-                { name: "Open bugs", x: 'Jun', y: 3 }
-              ]}
-            />
-            <ChartBar
-              style={{
-                data: { strokeWidth: 1},
-                parent: { border: "1px solid #ccc"}
-              }}
-              data={[
-                { name: "Total bugs", x: 'Jan', y: 0 },
-                { name: "Total bugs", x: 'Feb', y: 6 },
-                { name: "Total bugs", x: 'Mar', y: 89 },
-                { name: "Total bugs", x: 'Apr', y: 5 },
-                { name: "Total bugs", x: 'May', y: 45 }
-              ]}
-            />
+          <ChartAxis dependentAxis={ true } showGrid style={{ axisLabel: {fontSize: 8, padding: 30}, tickLabels: {fontSize: 8}}}/>
+          { chartType == 'bar' && data.length > 0 && 
+          <ChartGroup offset={11}>
+            {data.map((dataset, index) => (
+                <ChartBar
+                key={index}
+                style={{
+                    data: { strokeWidth: 1},
+                    parent: { border: "1px solid #ccc"},
+                    labels: { fill: "grey", fontSize: '7px' } 
+                }}
+                data={dataset}
+                labels={({ datum }) => `${datum.y}`}
+                />
+            ))}
           </ChartGroup>
           }
-          { chartType == 'line' && <ChartGroup offset={11}>
-            <ChartLine
-              style={{
-                data: { strokeWidth: 1},
-                parent: { border: "1px solid #ccc"}
-              }}
-              data={[
-                { name: "Open bugs", x: 'Jan', y: 1 },
-                { name: "Open bugs", x: 'Feb', y: 2 },
-                { name: "Open bugs", x: 'Mar', y: 5 },
-                { name: "Open bugs", x: 'Apr', y: 3 },
-                { name: "Open bugs", x: 'May', y: 3 },
-                { name: "Open bugs", x: 'Jun', y: 3 },
-                { name: "Open bugs", x: 'Jul', y: 3 },
-                { name: "Open bugs", x: 'Aug', y: 3 },
-                { name: "Open bugs", x: 'Sep', y: 3 },
-                { name: "Open bugs", x: 'Oct', y: 3 },
-                { name: "Open bugs", x: 'Nov', y: 3 },
-                { name: "Open bugs", x: 'Dec', y: 3 }
-              ]}
-            />
-            <ChartLine
-              style={{
-                data: { strokeWidth: 1},
-                parent: { border: "1px solid #ccc"}
-              }}
-              data={[
-                { name: "Total bugs", x: 'Jan', y: 0 },
-                { name: "Total bugs", x: 'Feb', y: 6 },
-                { name: "Total bugs", x: 'Mar', y: 89 },
-                { name: "Total bugs", x: 'Apr', y: 5 },
-                { name: "Total bugs", x: 'May', y: 45 },
-                { name: "Total bugs", x: 'Jun', y: 40 },
-                { name: "Total bugs", x: 'Jul', y: 30 },
-                { name: "Total bugs", x: 'Aug', y: 34 },
-                { name: "Total bugs", x: 'Sep', y: 29 },
-                { name: "Total bugs", x: 'Oct', y: 6 },
-                { name: "Total bugs", x: 'Nov', y: 9 },
-                { name: "Total bugs", x: 'Dec', y: 0 }
-              ]}
-            />
+          { chartType == 'line' && data.length > 0 && 
+          <ChartGroup offset={11}>
+            {data.map((dataset, index) => (
+                <ChartLine
+                key={index}
+                style={{
+                    data: { strokeWidth: 2},
+                    parent: { border: "1px solid #ccc"},
+                    labels: { fill: "grey", fontSize: '7px' } 
+                }}
+                data={dataset}
+                labels={({ datum }) => `${parseInt(datum.y)}`}
+                />
+            ))}
           </ChartGroup>
           }
         </Chart>
+        }
       </div>
     );
 }
 
+const ComposableTableStripedTr: React.FC<{bugs:any}> = ({bugs}) => {
+    const [bugsPage, setBugsPage] = useState<Array<Bugs>>([]);
+    const [page, setPage] = React.useState(1);
+    const [perPage, setPerPage] = React.useState(10);
 
-interface Bugs {
-  jira_key: string;
-  created_at: string;
-  deleted_at: string;
-  updated_at: string;
-  last_change_time: string;
-  status: string;
-  summary: string;
-  affects_versions: string;
-  fix_versions: string;
-  components: string;
-  labels: string;
-  url: string;
-  teams_bugs: string;
-}
-
-export const ComposableTableStripedTr: React.FunctionComponent = () => {
-    const { store } = useContext(ReactReduxContext);
-    const state = store.getState();
-    const dispatch = store.dispatch;
-    const [bugs, setBugs] = useState<Array<Bugs>>([]);
-    
     useEffect(() => {
-        getJiras().then((res) => {
-            if (res.code === 200) {
-                const result = res.data;
-                dispatch({ type: "SET_JIRAS", data: result });
-                setBugs(result.slice(0, perPage))
-            } else {
-                dispatch({ type: "SET_ERROR", data: res });
-            }
-        })
-    }, []);
 
-  const columnNames = {
-    jira_key: "ID",
-    created_at: "Created at",
-    deleted_at: "Deleted at",
-    updated_at: "Updated at",
-    last_change_time: "Last changed at",
-    status: "Status",
-    summary: "Summary",
-    affects_versions: "Affected versions",
-    fix_versions: "Fix versions",
-    components: "Components",
-    labels: "Labels",
-    url: "URL",
-    teams_bugs: "Team"
-  };
+        if(bugs.length > 0){
+            setBugsPage(bugs.slice(0, perPage))
+            setPage(1)
+        }
+    }, [bugs]);
 
-  const [page, setPage] = React.useState(1);
-  const [perPage, setPerPage] = React.useState(5);
+    const columnNames = {
+        jira_key: "ID",
+        created_at: "Created at",
+        deleted_at: "Deleted at",
+        updated_at: "Updated at",
+        last_change_time: "Last changed at",
+        status: "Status",
+        summary: "Summary",
+        affects_versions: "Affected versions",
+        fix_versions: "Fix versions",
+        components: "Components",
+        labels: "Labels",
+        url: "URL",
+        teams_bugs: "Team"
+    };
 
-  useEffect(() => {
-    let from = (page-1)*perPage
-    let to = (page-1)*perPage + perPage > state.jiras["E2E_KNOWN_ISSUES"].length ? state.jiras["E2E_KNOWN_ISSUES"].length - 1 : (page-1)*perPage + perPage;
-    console.log(from, to, state.jiras["E2E_KNOWN_ISSUES"].length - 1)
-    setBugs(state.jiras["E2E_KNOWN_ISSUES"].slice(from, to))
-  }, [page, perPage]);
+    useEffect(() => {
+        if(bugs.length > 0){
+            let from = (page-1)*perPage
+            let to = (page-1)*perPage + perPage > bugs.length ? bugs.length - 1 : (page-1)*perPage + perPage;
+            setBugsPage(bugs.slice(from, to))
+        }
+
+    }, [page, perPage]);
 
 
-  const onSetPage = (_event: React.MouseEvent | React.KeyboardEvent | MouseEvent, newPage: number) => {
-    setPage(newPage);
-  };
+    const onSetPage = (_event: React.MouseEvent | React.KeyboardEvent | MouseEvent, newPage: number) => {
+        setPage(newPage);
+    };
 
-  const onPerPageSelect = (
-    _event: React.MouseEvent | React.KeyboardEvent | MouseEvent,
-    newPerPage: number,
-    newPage: number
-  ) => {
-    setPerPage(newPerPage);
-    setPage(newPage);
-  };
+    const onPerPageSelect = (
+        _event: React.MouseEvent | React.KeyboardEvent | MouseEvent,
+        newPerPage: number,
+        newPage: number
+    ) => {
+        setPerPage(newPerPage);
+        setPage(newPage);
+    };
 
   return (
     <div>
     <Pagination
         perPageComponent="button"
-        itemCount={state.jiras["E2E_KNOWN_ISSUES"].length}
+        itemCount={bugs.length}
         perPage={perPage}
         page={page}
         onSetPage={onSetPage}
         widgetId="top-example"
         onPerPageSelect={onPerPageSelect}
-        />
+    />
 
     <TableComposable aria-label="Simple table" >
       <Caption>Jira bugs</Caption>
@@ -355,7 +470,7 @@ export const ComposableTableStripedTr: React.FunctionComponent = () => {
         </Tr>
       </Thead>
       <Tbody>
-        {bugs.map((bug, index) => (
+        {bugsPage.map((bug, index) => (
           <Tr key={bug.jira_key} {...(index % 2 === 0 && { isStriped: true })}>
             <Td dataLabel={columnNames.jira_key}>{bug.jira_key}</Td>
             <Td dataLabel={columnNames.summary}>{bug.summary}</Td>
@@ -369,7 +484,7 @@ export const ComposableTableStripedTr: React.FunctionComponent = () => {
 
     <Pagination
         perPageComponent="button"
-        itemCount={state.jiras["E2E_KNOWN_ISSUES"].length}
+        itemCount={bugs.length}
         perPage={perPage}
         page={page}
         onSetPage={onSetPage}
