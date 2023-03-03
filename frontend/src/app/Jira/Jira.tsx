@@ -34,6 +34,8 @@ interface Bugs {
     created_at: string;
     deleted_at: string;
     updated_at: string;
+    resolved_at: string;
+    resolution_time: string;
     last_change_time: string;
     status: string;
     summary: string;
@@ -437,6 +439,8 @@ const ComposableTableStripedTr: React.FC<{bugs:any}> = ({bugs}) => {
         created_at: "Created at",
         deleted_at: "Deleted at",
         updated_at: "Updated at",
+        resolved_at: "Resolved at",
+        resolution_time: "Resolution time",
         last_change_time: "Last changed at",
         status: "Status",
         summary: "Summary",
@@ -491,6 +495,8 @@ const ComposableTableStripedTr: React.FC<{bugs:any}> = ({bugs}) => {
           <Th>{columnNames.status}</Th>
           <Th>{columnNames.created_at}</Th>
           <Th>{columnNames.updated_at}</Th>
+          <Th>{columnNames.resolved_at}</Th>
+          <Th>{columnNames.resolution_time}</Th>
         </Tr>
       </Thead>
       <Tbody>
@@ -501,6 +507,8 @@ const ComposableTableStripedTr: React.FC<{bugs:any}> = ({bugs}) => {
             <Td dataLabel={columnNames.status}>{bug.status}</Td>
             <Td dataLabel={columnNames.created_at}>{bug.created_at}</Td>
             <Td dataLabel={columnNames.updated_at}>{bug.updated_at}</Td>
+            <Td dataLabel={columnNames.resolved_at}>{bug.resolved_at}</Td>
+            <Td dataLabel={columnNames.resolution_time}>{!Number.isNaN(parseFloat(bug.resolution_time)) ? parseFloat(bug.resolution_time).toFixed(2)+"h" : "-"}</Td>
           </Tr>
         ))}
       </Tbody>
