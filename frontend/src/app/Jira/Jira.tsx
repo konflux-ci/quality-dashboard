@@ -76,7 +76,7 @@ export const Jira = () => {
     const [bugsTable, setBugsTable] = useState<any>({});
     const [stats, setStats] = useState<any>({});
 
-    const [isSelected, setIsSelected] = React.useState('resolved');
+    const [isSelected, setIsSelected] = React.useState('open');
     const handleItemClick = (isSelected: boolean, event: React.MouseEvent<any> | React.KeyboardEvent | MouseEvent) => {
         const id = event.currentTarget.id;
         setIsSelected(id);
@@ -116,22 +116,24 @@ export const Jira = () => {
             let obc = new Array(12).fill(0)
 
             apiDataCache[selected].resolved.months.map((item, index) => {
+                let date = item.name.match(/([^_]+)/g)
                 rtc[11-index] = { 
                     name: "Resolution Time ("+selected+")", 
-                    x: item.name.slice(0, 3), 
+                    x: date[0].slice(0, 3)+ "\n" + date[1], 
                     y: item.total
                 }
                 bc[11-index] = { 
                     name: "Resolved Bugs ("+selected+")",  
-                    x: item.name.slice(0, 3), 
+                    x: date[0].slice(0, 3)+ "\n" + date[1], 
                     y: item.resolved_bugs
                 }
                 rbt = [...rbt, ...item.bugs]
             })
             apiDataCache[selected].open.months.map((item, index) => {
+                let date = item.name.match(/([^_]+)/g)
                 obc[11-index] = { 
-                    name: "Opened Bugs ("+selected+")", 
-                    x: item.name.slice(0, 3), 
+                    name: "Open Bugs ("+selected+")", 
+                    x: date[0].slice(0, 3)+ "\n" + date[1], 
                     y: item.open_bugs
                 }
                 obt = [...obt, ...item.bugs]
@@ -140,7 +142,7 @@ export const Jira = () => {
             setBugsChart([bc, obc])
             setResolutionTimeChart([rtc])
             if(isSelected == 'resolved') setBugsTable(rbt)
-            if(isSelected == 'opened') setBugsTable(obt)
+            if(isSelected == 'open') setBugsTable(obt)
         }
     }, [selected, apiDataCache, isSelected]);
 
@@ -168,7 +170,7 @@ export const Jira = () => {
                         <Grid hasGutter sm={6} md={6} lg={6} xl={6}>
                             <GridItem order={{default: "1"}}>
                                 <Card id="tooltip-boundary">
-                                    <CardTitle>Average Resolution Time</CardTitle>
+                                    <CardTitle>Average Resolution Time (for past 12 months)</CardTitle>
                                     <CardBody>
                                         <Title headingLevel='h1' size="2xl">
                                             { apiDataCache[selected] &&
@@ -185,12 +187,15 @@ export const Jira = () => {
                             </GridItem>
                             <GridItem order={{default: "2"}}>
                                 <Card>
-                                    <CardTitle>Bugs</CardTitle>
+                                    <CardTitle>Bugs (past 12 months)</CardTitle>
                                     <CardBody>
                                         <Title headingLevel='h1' size="2xl">
                                             { apiDataCache[selected] &&
                                             <span>
+                                                <span>{ apiDataCache[selected].open.open_bugs || "-"}</span> 
+                                                <span style={{fontSize: '15px', paddingRight: '10px'}}> open </span>
                                                 <span>{ apiDataCache[selected].resolved.resolved_bugs || "-"}</span>
+                                                <span style={{fontSize: '15px', paddingRight: '10px'}}> resolved </span>
                                             </span>
                                             }
                                             { !apiDataCache[selected] && "-" }
@@ -297,15 +302,15 @@ export const Jira = () => {
                                     <GridItem order={{default: "1"}}>
                                         <ToggleGroup aria-label="Default with single selectable">
                                             <ToggleGroupItem
-                                                text="Resolved bugs"
-                                                buttonId="resolved"
-                                                isSelected={isSelected === 'resolved'}
+                                                text="Open bugs"
+                                                buttonId="open"
+                                                isSelected={isSelected === 'open'}
                                                 onChange={handleItemClick}
                                             />
                                             <ToggleGroupItem
-                                                text="Opened bugs"
-                                                buttonId="opened"
-                                                isSelected={isSelected === 'opened'}
+                                                text="Resolved bugs"
+                                                buttonId="resolved"
+                                                isSelected={isSelected === 'resolved'}
                                                 onChange={handleItemClick}
                                             />
                                         </ToggleGroup>                                        
@@ -358,7 +363,7 @@ const BugsChart: React.FC<{chartType:string, data:any}> = ({chartType, data}) =>
             top: 20
           }}
         >
-          <ChartAxis style={{ axisLabel: {fontSize: 8, padding: 30},tickLabels: {fontSize: 8}}}/>
+          <ChartAxis style={{ axisLabel: {fontSize: 8, padding: 30},tickLabels: {fontSize: 7}}}/>
           <ChartAxis dependentAxis={ true } showGrid style={{ axisLabel: {fontSize: 8, padding: 30}, tickLabels: {fontSize: 8}}}/>
           { chartType == 'bar' && data.length > 0 && 
           <ChartGroup offset={11}>
@@ -368,7 +373,7 @@ const BugsChart: React.FC<{chartType:string, data:any}> = ({chartType, data}) =>
                 style={{
                     data: { strokeWidth: 1},
                     parent: { border: "1px solid #ccc"},
-                    labels: { fill: "grey", fontSize: '7px' } 
+                    labels: { fill: "grey", fontSize: '7px'} 
                 }}
                 data={dataset}
                 labels={({ datum }) => `${datum.y}`}
