@@ -39,7 +39,7 @@ type JiraBug struct {
 	Url string `json:"url"`
 }
 
-type BugsMetrics struct {
+type ResolvedBugsMetrics struct {
 	ResolutionTimeTotal ResolutionTime `json:"resolution_time"`
 }
 
@@ -59,6 +59,27 @@ type MonthsResolution struct {
 	Total float64 `json:"total"`
 
 	NumberOfResolvedBugs int `json:"resolved_bugs"`
+
+	Bugs []*db.Bugs `json:"bugs"`
+}
+
+// Retrive metrics for open Bugs only
+type OpenBugsMetrics struct {
+	TotalOpenBugs OpenBugs `json:"open"`
+}
+
+type OpenBugs struct {
+	Priority string `json:"priority"`
+
+	NumberOfOpenBugs int `json:"open_bugs"`
+
+	Months []MonthsOpen `json:"months"`
+}
+
+type MonthsOpen struct {
+	Name string `json:"name"`
+
+	OpenBugs int `json:"open_bugs"`
 
 	Bugs []*db.Bugs `json:"bugs"`
 }

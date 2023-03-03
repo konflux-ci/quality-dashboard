@@ -80,3 +80,37 @@ func (s *jiraRouter) calculateRates(ctx context.Context, w http.ResponseWriter, 
 
 	return httputils.WriteJSON(w, http.StatusOK, totalAvg)
 }
+
+// Jira godoc
+// @Summary Jira API Info
+// @Description returns all bugs stored in database
+// @Tags Jira API Info
+// @Produce json
+// @Router /jira/bugs/resolution [post]
+// @Success 200 {object} v1alpha1.BugsMetrics
+func (s *jiraRouter) openBugsMetrics(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	var resolution ResolutionRequest
+	if err := json.NewDecoder(r.Body).Decode(&resolution); err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    "Error reading priority value from body",
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	if resolution.Priority == "" {
+		resolution.Priority = "Global"
+	}
+
+	openBugMetrics, err := s.Storage.GetOpenBugsMetricsByStatusAndPriority(resolution.Priority)
+
+	if err != nil {
+		s.Logger.Error("Failed to fetch bugs")
+
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, openBugMetrics)
+}
