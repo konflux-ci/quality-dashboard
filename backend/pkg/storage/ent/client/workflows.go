@@ -9,7 +9,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 )
 
-// CreateRepository save provided repository information in database.
+// CreateWorkflows saves provided workflow information in database.
 func (d *Database) CreateWorkflows(workflow repoV1Alpha1.Workflow, repo_id uuid.UUID) error {
 	w, err := d.client.Workflows.Create().
 		SetWorkflowName(workflow.Name).

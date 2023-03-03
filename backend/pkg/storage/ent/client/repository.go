@@ -11,7 +11,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
-// CreateRepository save provided repository information in database.
+// CreateRepository saves provided repository information in database.
 func (d *Database) CreateRepository(repository repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error) {
 	repo, err := d.client.Repository.Create().
 		SetRepositoryName(repository.Name).
@@ -25,7 +25,7 @@ func (d *Database) CreateRepository(repository repoV1Alpha1.Repository, team_id 
 
 	_, err = d.client.Teams.UpdateOneID(team_id).AddRepositories(repo).Save(context.TODO())
 	if err != nil {
-		return nil, convertDBError("create workflows: %w", err)
+		return nil, convertDBError("create repository: %w", err)
 	}
 	return repo, nil
 }

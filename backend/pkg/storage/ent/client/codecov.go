@@ -9,7 +9,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
-// CreateRepository save provided repository information in database.
+// CreateCoverage saves provided coverage information in database.
 func (d *Database) CreateCoverage(repository coverageV1Alpha1.Coverage, repo_id uuid.UUID) error {
 	c, err := d.client.CodeCov.Create().
 		SetRepositoryName(repository.RepositoryName).
