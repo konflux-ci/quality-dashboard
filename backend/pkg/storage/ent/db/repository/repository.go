@@ -29,6 +29,8 @@ const (
 	EdgeProwSuites = "prow_suites"
 	// EdgeProwJobs holds the string denoting the prow_jobs edge name in mutations.
 	EdgeProwJobs = "prow_jobs"
+	// EdgePrs holds the string denoting the prs edge name in mutations.
+	EdgePrs = "prs"
 	// TeamsFieldID holds the string denoting the ID field of the Teams.
 	TeamsFieldID = "team_id"
 	// WorkflowsFieldID holds the string denoting the ID field of the Workflows.
@@ -39,6 +41,8 @@ const (
 	ProwSuitesFieldID = "id"
 	// ProwJobsFieldID holds the string denoting the ID field of the ProwJobs.
 	ProwJobsFieldID = "id"
+	// PullRequestsFieldID holds the string denoting the ID field of the PullRequests.
+	PullRequestsFieldID = "id"
 	// Table holds the table name of the repository in the database.
 	Table = "repositories"
 	// RepositoriesTable is the table that holds the repositories relation/edge.
@@ -76,6 +80,13 @@ const (
 	ProwJobsInverseTable = "prow_jobs"
 	// ProwJobsColumn is the table column denoting the prow_jobs relation/edge.
 	ProwJobsColumn = "repository_prow_jobs"
+	// PrsTable is the table that holds the prs relation/edge.
+	PrsTable = "pull_requests"
+	// PrsInverseTable is the table name for the PullRequests entity.
+	// It exists in this package in order to avoid circular dependency with the "pullrequests" package.
+	PrsInverseTable = "pull_requests"
+	// PrsColumn is the table column denoting the prs relation/edge.
+	PrsColumn = "repository_prs"
 )
 
 // Columns holds all SQL columns for repository fields.

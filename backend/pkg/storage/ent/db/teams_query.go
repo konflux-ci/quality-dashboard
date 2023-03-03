@@ -341,6 +341,7 @@ func (tq *TeamsQuery) WithBugs(opts ...func(*BugsQuery)) *TeamsQuery {
 //		GroupBy(teams.FieldTeamName).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
+//
 func (tq *TeamsQuery) GroupBy(field string, fields ...string) *TeamsGroupBy {
 	tq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &TeamsGroupBy{build: tq}
@@ -362,6 +363,7 @@ func (tq *TeamsQuery) GroupBy(field string, fields ...string) *TeamsGroupBy {
 //	client.Teams.Query().
 //		Select(teams.FieldTeamName).
 //		Scan(ctx, &v)
+//
 func (tq *TeamsQuery) Select(fields ...string) *TeamsSelect {
 	tq.ctx.Fields = append(tq.ctx.Fields, fields...)
 	sbuild := &TeamsSelect{TeamsQuery: tq}

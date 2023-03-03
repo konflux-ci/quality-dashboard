@@ -8,7 +8,6 @@ import { LastLocationProvider, useLastLocation } from 'react-router-last-locatio
 import { Teams } from '@app/Teams/Teams';
 import { ReactReduxContext } from 'react-redux';
 import { Jira } from './Jira/Jira';
-import { Repositories } from './Repositories/Repositories';
 import { GitHub } from './Github/Github';
 
 let routeFocusTimer: number;
@@ -56,20 +55,12 @@ const routes: AppRouteConfig[] = [
     label: 'Plugins',
     routes: [
       {
-        component: Repositories,
-        exact: true,
-        isAsync: true,
-        label: 'Github',
-        path: '/home/repositories',
-        title: 'Github | Quality Studio',
-      },
-      {
         component: GitHub,
         exact: true,
         isAsync: true,
-        label: 'New Github',
+        label: 'Github',
         path: '/home/github',
-        title: 'New Github | Quality Studio',
+        title: 'Github | Quality Studio',
       },
       {
         component: Jira,

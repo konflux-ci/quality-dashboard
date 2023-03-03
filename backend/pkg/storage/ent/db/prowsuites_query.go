@@ -305,6 +305,7 @@ func (psq *ProwSuitesQuery) WithProwSuites(opts ...func(*RepositoryQuery)) *Prow
 //		GroupBy(prowsuites.FieldJobID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
+//
 func (psq *ProwSuitesQuery) GroupBy(field string, fields ...string) *ProwSuitesGroupBy {
 	psq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &ProwSuitesGroupBy{build: psq}
@@ -326,6 +327,7 @@ func (psq *ProwSuitesQuery) GroupBy(field string, fields ...string) *ProwSuitesG
 //	client.ProwSuites.Query().
 //		Select(prowsuites.FieldJobID).
 //		Scan(ctx, &v)
+//
 func (psq *ProwSuitesQuery) Select(fields ...string) *ProwSuitesSelect {
 	psq.ctx.Fields = append(psq.ctx.Fields, fields...)
 	sbuild := &ProwSuitesSelect{ProwSuitesQuery: psq}

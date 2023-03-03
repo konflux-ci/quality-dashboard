@@ -26,22 +26,23 @@ type Storage interface {
 	Close() error
 
 	// GET
-	GetRepository(repositoryName string, gitOrganizationName string) (*db.Repository, error)
+	GetRepository(repositoryName, gitOrganizationName string) (*db.Repository, error)
 	GetLatestProwTestExecution(r *db.Repository, jobType string) (*db.ProwJobs, error)
 	GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error)
 	GetProwJobsResults(*db.Repository) ([]*db.ProwSuites, error)
 	GetProwJobsResultsByJobID(jobID string) ([]*db.ProwJobs, error)
-	GetMetrics(gitOrganization string, repoName string, jobType string, startDate string, endDate string) prowV1Alpha1.JobsMetrics
+	GetMetrics(gitOrganization, repoName, jobType, startDate, endDate string) prowV1Alpha1.JobsMetrics
 	GetAllTeamsFromDB() ([]*db.Teams, error)
 	GetTeamByName(teamName string) (*db.Teams, error)
 	ListWorkflowsByRepository(repositoryName string) (w []repoV1Alpha1.Workflow, err error)
 	ListRepositories(team *db.Teams) ([]repoV1Alpha1.Repository, error)
 	ListRepositoriesQualityInfo(team *db.Teams) ([]RepositoryQualityInfo, error)
 	GetAllJiraBugs() ([]*db.Bugs, error)
+	GetPullRequestsByRepository(repositoryName, organization, startDate, endDate string) (repoV1Alpha1.PullRequestsInfo, error)
 
 	// POST
 	CreateRepository(p repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error)
-	CreateQualityStudioTeam(teamName string, description string) (*db.Teams, error)
+	CreateQualityStudioTeam(teamName, description string) (*db.Teams, error)
 	CreateWorkflows(p repoV1Alpha1.Workflow, repo_id uuid.UUID) error
 	CreateCoverage(p coverageV1Alpha1.Coverage, repo_id uuid.UUID) error
 	CreateProwJobSuites(prowJobStatus prowV1Alpha1.JobSuites, repo_id uuid.UUID) error
@@ -50,10 +51,11 @@ type Storage interface {
 	UpdateCoverage(codecov coverageV1Alpha1.Coverage, repoName string) error
 	CreateJiraBug(bug jiraV1Alpha1.JiraBug) error
 	UpdateTeam(t *db.Teams, target string) error
-	DeleteTeam(teamName string) (bool, error)
+	CreatePullRequest(p repoV1Alpha1.PullRequest, repo_id uuid.UUID) error
 
 	// Delete
-	DeleteRepository(repositoryName string, gitOrganizationName string) error
+	DeleteRepository(repositoryName, gitOrganizationName string) error
+	DeleteTeam(teamName string) (bool, error)
 }
 
 type RepositoryQualityInfo struct {

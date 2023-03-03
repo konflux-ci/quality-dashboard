@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
@@ -36,6 +37,12 @@ func init() {
 	codecovDescID := codecovFields[0].Descriptor()
 	// codecov.DefaultID holds the default value on creation for the id field.
 	codecov.DefaultID = codecovDescID.Default.(func() uuid.UUID)
+	pullrequestsFields := schema.PullRequests{}.Fields()
+	_ = pullrequestsFields
+	// pullrequestsDescPrID is the schema descriptor for pr_id field.
+	pullrequestsDescPrID := pullrequestsFields[0].Descriptor()
+	// pullrequests.DefaultPrID holds the default value on creation for the pr_id field.
+	pullrequests.DefaultPrID = pullrequestsDescPrID.Default.(func() uuid.UUID)
 	repositoryFields := schema.Repository{}.Fields()
 	_ = repositoryFields
 	// repositoryDescRepositoryName is the schema descriptor for repository_name field.

@@ -21,7 +21,7 @@ func (d *Database) CreateCoverage(repository coverageV1Alpha1.Coverage, repo_id 
 	}
 	_, err = d.client.Repository.UpdateOneID(repo_id).AddCodecov(c).Save(context.TODO())
 	if err != nil {
-		return convertDBError("create workflows: %w", err)
+		return convertDBError("create coverage: %w", err)
 	}
 	return nil
 }
@@ -29,7 +29,7 @@ func (d *Database) CreateCoverage(repository coverageV1Alpha1.Coverage, repo_id 
 func (d *Database) UpdateCoverage(codecoverage coverageV1Alpha1.Coverage, repoName string) error {
 	_, err := d.client.CodeCov.Delete().Where(codecov.RepositoryName(repoName)).Exec(context.TODO())
 	if err != nil {
-		return convertDBError("delete workflow from database: %w", err)
+		return convertDBError("delete coverage from database: %w", err)
 	}
 
 	c, err := d.client.CodeCov.Create().
@@ -38,11 +38,11 @@ func (d *Database) UpdateCoverage(codecoverage coverageV1Alpha1.Coverage, repoNa
 		SetCoveragePercentage(codecoverage.CoveragePercentage).
 		Save(context.TODO())
 	if err != nil {
-		return convertDBError("create workflows: %w", err)
+		return convertDBError("create coverage: %w", err)
 	}
 	_, err = d.client.Repository.Update().Where(repository.RepositoryName(repoName)).AddCodecov(c).Save(context.TODO())
 	if err != nil {
-		return convertDBError("create workflows: %w", err)
+		return convertDBError("create coverage: %w", err)
 	}
 	return nil
 }

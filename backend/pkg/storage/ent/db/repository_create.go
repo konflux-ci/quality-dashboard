@@ -13,6 +13,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
@@ -140,6 +141,21 @@ func (rc *RepositoryCreate) AddProwJobs(p ...*ProwJobs) *RepositoryCreate {
 		ids[i] = p[i].ID
 	}
 	return rc.AddProwJobIDs(ids...)
+}
+
+// AddPrIDs adds the "prs" edge to the PullRequests entity by IDs.
+func (rc *RepositoryCreate) AddPrIDs(ids ...int) *RepositoryCreate {
+	rc.mutation.AddPrIDs(ids...)
+	return rc
+}
+
+// AddPrs adds the "prs" edges to the PullRequests entity.
+func (rc *RepositoryCreate) AddPrs(p ...*PullRequests) *RepositoryCreate {
+	ids := make([]int, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return rc.AddPrIDs(ids...)
 }
 
 // Mutation returns the RepositoryMutation object of the builder.
@@ -362,6 +378,25 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: prowjobs.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.PrsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.PrsTable,
+			Columns: []string{repository.PrsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: pullrequests.FieldID,
 				},
 			},
 		}

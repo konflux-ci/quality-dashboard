@@ -4,6 +4,7 @@ import _ from 'lodash';
 import { JobsStatistics } from '@app/utils/sharedComponents';
 import { teamIsNotEmpty } from '@app/utils/utils';
 import { formatDate } from '@app/Reports/utils';
+import { PrsStatistics } from '@app/Github/PullRequests';
 
 type ApiResponse = {
   code: number;
@@ -104,7 +105,12 @@ async function getAllRepositoriesWithOrgs(team: string, openshift: boolean) {
     const data = await response.json();
     data.sort((a, b) => (a.repository_name < b.repository_name ? -1 : 1));
     repoAndOrgs = data.map((row, index) => {
-      return { repoName: row.repository_name, organization: row.git_organization, description: row.description, coverage: row.code_coverage };
+      return {
+        repoName: row.repository_name,
+        organization: row.git_organization,
+        description: row.description,
+        coverage: row.code_coverage,
+      };
     });
   }
   return repoAndOrgs;
@@ -324,6 +330,30 @@ async function checkDbConnection() {
   return result;
 }
 
+async function getPullRequests(repoName: string, repoOrg: string, rangeDateTime: Date[]) {
+  const start_date = formatDate(rangeDateTime[0]);
+  const end_date = formatDate(rangeDateTime[1]);
+
+  const response = await fetch(
+    API_URL +
+      '/api/quality/prs/get?repository_name=' +
+      repoName +
+      '&git_organization=' +
+      repoOrg +
+      '&start_date=' +
+      start_date +
+      '&end_date=' +
+      end_date
+  );
+  if (!response.ok) {
+    throw 'Error fetching data from server. ';
+  }
+
+  const data: PrsStatistics = await response.json();
+
+  return data;
+}
+
 export {
   getVersion,
   getRepositories,
@@ -339,4 +369,5 @@ export {
   deleteInApi,
   updateTeam,
   checkDbConnection,
+  getPullRequests,
 };

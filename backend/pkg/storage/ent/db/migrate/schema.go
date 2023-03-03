@@ -109,6 +109,32 @@ var (
 			},
 		},
 	}
+	// PullRequestsColumns holds the columns for the "pull_requests" table.
+	PullRequestsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "pr_id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "closed_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "merged_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "state", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "author", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "title", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "repository_prs", Type: field.TypeUUID, Nullable: true},
+	}
+	// PullRequestsTable holds the schema information for the "pull_requests" table.
+	PullRequestsTable = &schema.Table{
+		Name:       "pull_requests",
+		Columns:    PullRequestsColumns,
+		PrimaryKey: []*schema.Column{PullRequestsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "pull_requests_repositories_prs",
+				Columns:    []*schema.Column{PullRequestsColumns[8]},
+				RefColumns: []*schema.Column{RepositoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// RepositoriesColumns holds the columns for the "repositories" table.
 	RepositoriesColumns = []*schema.Column{
 		{Name: "repo_id", Type: field.TypeUUID, Unique: true},
@@ -175,6 +201,7 @@ var (
 		CodeCovsTable,
 		ProwJobsTable,
 		ProwSuitesTable,
+		PullRequestsTable,
 		RepositoriesTable,
 		TeamsTable,
 		WorkflowsTable,
@@ -186,6 +213,7 @@ func init() {
 	CodeCovsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	ProwJobsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	ProwSuitesTable.ForeignKeys[0].RefTable = RepositoriesTable
+	PullRequestsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	RepositoriesTable.ForeignKeys[0].RefTable = TeamsTable
 	WorkflowsTable.ForeignKeys[0].RefTable = RepositoriesTable
 }

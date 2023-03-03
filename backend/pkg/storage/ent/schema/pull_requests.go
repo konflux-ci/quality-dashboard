@@ -1,0 +1,44 @@
+package schema
+
+import (
+	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
+	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
+)
+
+// PullRequests holds the schema definition for the PullRequests entity.
+type PullRequests struct {
+	ent.Schema
+}
+
+// Fields of the PullRequests.
+func (PullRequests) Fields() []ent.Field {
+	return []ent.Field{
+		field.UUID("pr_id", uuid.UUID{}).
+			Default(uuid.New).
+			StorageKey("pr_id").
+			Unique(),
+		field.Time("created_at").
+			SchemaType(timeSchema),
+		field.Time("closed_at").
+			SchemaType(timeSchema),
+		field.Time("merged_at").
+			SchemaType(timeSchema),
+		field.Text("state").
+			SchemaType(textSchema),
+		field.Text("author").
+			SchemaType(textSchema),
+		field.Text("title").
+			SchemaType(textSchema),
+	}
+}
+
+// Edges of the PullRequests.
+func (PullRequests) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("prs", Repository.Type).
+			Ref("prs").
+			Unique(),
+	}
+}

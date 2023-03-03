@@ -305,6 +305,7 @@ func (bq *BugsQuery) WithBugs(opts ...func(*TeamsQuery)) *BugsQuery {
 //		GroupBy(bugs.FieldJiraKey).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
+//
 func (bq *BugsQuery) GroupBy(field string, fields ...string) *BugsGroupBy {
 	bq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &BugsGroupBy{build: bq}
@@ -326,6 +327,7 @@ func (bq *BugsQuery) GroupBy(field string, fields ...string) *BugsGroupBy {
 //	client.Bugs.Query().
 //		Select(bugs.FieldJiraKey).
 //		Scan(ctx, &v)
+//
 func (bq *BugsQuery) Select(fields ...string) *BugsSelect {
 	bq.ctx.Fields = append(bq.ctx.Fields, fields...)
 	sbuild := &BugsSelect{BugsQuery: bq}

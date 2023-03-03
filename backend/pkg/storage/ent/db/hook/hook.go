@@ -57,6 +57,18 @@ func (f ProwSuitesFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ProwSuitesMutation", m)
 }
 
+// The PullRequestsFunc type is an adapter to allow the use of ordinary
+// function as PullRequests mutator.
+type PullRequestsFunc func(context.Context, *db.PullRequestsMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PullRequestsFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.PullRequestsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.PullRequestsMutation", m)
+}
+
 // The RepositoryFunc type is an adapter to allow the use of ordinary
 // function as Repository mutator.
 type RepositoryFunc func(context.Context, *db.RepositoryMutation) (db.Value, error)
@@ -188,6 +200,7 @@ func HasFields(field string, fields ...string) Condition {
 // If executes the given hook under condition.
 //
 //	hook.If(ComputeAverage, And(HasFields(...), HasAddedFields(...)))
+//
 func If(hk db.Hook, cond Condition) db.Hook {
 	return func(next db.Mutator) db.Mutator {
 		return db.MutateFunc(func(ctx context.Context, m db.Mutation) (db.Value, error) {
@@ -202,6 +215,7 @@ func If(hk db.Hook, cond Condition) db.Hook {
 // On executes the given hook only for the given operation.
 //
 //	hook.On(Log, db.Delete|db.Create)
+//
 func On(hk db.Hook, op db.Op) db.Hook {
 	return If(hk, HasOp(op))
 }
@@ -209,6 +223,7 @@ func On(hk db.Hook, op db.Op) db.Hook {
 // Unless skips the given hook only for the given operation.
 //
 //	hook.Unless(Log, db.Update|db.UpdateOne)
+//
 func Unless(hk db.Hook, op db.Op) db.Hook {
 	return If(hk, Not(HasOp(op)))
 }
@@ -229,6 +244,7 @@ func FixedError(err error) db.Hook {
 //			Reject(db.Delete|db.Update),
 //		}
 //	}
+//
 func Reject(op db.Op) db.Hook {
 	hk := FixedError(fmt.Errorf("%s operation is not allowed", op))
 	return On(hk, op)

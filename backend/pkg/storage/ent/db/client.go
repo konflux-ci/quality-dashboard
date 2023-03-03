@@ -15,6 +15,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
@@ -37,6 +38,8 @@ type Client struct {
 	ProwJobs *ProwJobsClient
 	// ProwSuites is the client for interacting with the ProwSuites builders.
 	ProwSuites *ProwSuitesClient
+	// PullRequests is the client for interacting with the PullRequests builders.
+	PullRequests *PullRequestsClient
 	// Repository is the client for interacting with the Repository builders.
 	Repository *RepositoryClient
 	// Teams is the client for interacting with the Teams builders.
@@ -60,6 +63,7 @@ func (c *Client) init() {
 	c.CodeCov = NewCodeCovClient(c.config)
 	c.ProwJobs = NewProwJobsClient(c.config)
 	c.ProwSuites = NewProwSuitesClient(c.config)
+	c.PullRequests = NewPullRequestsClient(c.config)
 	c.Repository = NewRepositoryClient(c.config)
 	c.Teams = NewTeamsClient(c.config)
 	c.Workflows = NewWorkflowsClient(c.config)
@@ -94,15 +98,16 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		Bugs:       NewBugsClient(cfg),
-		CodeCov:    NewCodeCovClient(cfg),
-		ProwJobs:   NewProwJobsClient(cfg),
-		ProwSuites: NewProwSuitesClient(cfg),
-		Repository: NewRepositoryClient(cfg),
-		Teams:      NewTeamsClient(cfg),
-		Workflows:  NewWorkflowsClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		Bugs:         NewBugsClient(cfg),
+		CodeCov:      NewCodeCovClient(cfg),
+		ProwJobs:     NewProwJobsClient(cfg),
+		ProwSuites:   NewProwSuitesClient(cfg),
+		PullRequests: NewPullRequestsClient(cfg),
+		Repository:   NewRepositoryClient(cfg),
+		Teams:        NewTeamsClient(cfg),
+		Workflows:    NewWorkflowsClient(cfg),
 	}, nil
 }
 
@@ -120,15 +125,16 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:        ctx,
-		config:     cfg,
-		Bugs:       NewBugsClient(cfg),
-		CodeCov:    NewCodeCovClient(cfg),
-		ProwJobs:   NewProwJobsClient(cfg),
-		ProwSuites: NewProwSuitesClient(cfg),
-		Repository: NewRepositoryClient(cfg),
-		Teams:      NewTeamsClient(cfg),
-		Workflows:  NewWorkflowsClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		Bugs:         NewBugsClient(cfg),
+		CodeCov:      NewCodeCovClient(cfg),
+		ProwJobs:     NewProwJobsClient(cfg),
+		ProwSuites:   NewProwSuitesClient(cfg),
+		PullRequests: NewPullRequestsClient(cfg),
+		Repository:   NewRepositoryClient(cfg),
+		Teams:        NewTeamsClient(cfg),
+		Workflows:    NewWorkflowsClient(cfg),
 	}, nil
 }
 
@@ -138,6 +144,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 //		Bugs.
 //		Query().
 //		Count(ctx)
+//
 func (c *Client) Debug() *Client {
 	if c.debug {
 		return c
@@ -161,6 +168,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.CodeCov.Use(hooks...)
 	c.ProwJobs.Use(hooks...)
 	c.ProwSuites.Use(hooks...)
+	c.PullRequests.Use(hooks...)
 	c.Repository.Use(hooks...)
 	c.Teams.Use(hooks...)
 	c.Workflows.Use(hooks...)
@@ -173,6 +181,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.CodeCov.Intercept(interceptors...)
 	c.ProwJobs.Intercept(interceptors...)
 	c.ProwSuites.Intercept(interceptors...)
+	c.PullRequests.Intercept(interceptors...)
 	c.Repository.Intercept(interceptors...)
 	c.Teams.Intercept(interceptors...)
 	c.Workflows.Intercept(interceptors...)
@@ -189,6 +198,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.ProwJobs.mutate(ctx, m)
 	case *ProwSuitesMutation:
 		return c.ProwSuites.mutate(ctx, m)
+	case *PullRequestsMutation:
+		return c.PullRequests.mutate(ctx, m)
 	case *RepositoryMutation:
 		return c.Repository.mutate(ctx, m)
 	case *TeamsMutation:
@@ -736,6 +747,140 @@ func (c *ProwSuitesClient) mutate(ctx context.Context, m *ProwSuitesMutation) (V
 	}
 }
 
+// PullRequestsClient is a client for the PullRequests schema.
+type PullRequestsClient struct {
+	config
+}
+
+// NewPullRequestsClient returns a client for the PullRequests from the given config.
+func NewPullRequestsClient(c config) *PullRequestsClient {
+	return &PullRequestsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pullrequests.Hooks(f(g(h())))`.
+func (c *PullRequestsClient) Use(hooks ...Hook) {
+	c.hooks.PullRequests = append(c.hooks.PullRequests, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `pullrequests.Intercept(f(g(h())))`.
+func (c *PullRequestsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PullRequests = append(c.inters.PullRequests, interceptors...)
+}
+
+// Create returns a builder for creating a PullRequests entity.
+func (c *PullRequestsClient) Create() *PullRequestsCreate {
+	mutation := newPullRequestsMutation(c.config, OpCreate)
+	return &PullRequestsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PullRequests entities.
+func (c *PullRequestsClient) CreateBulk(builders ...*PullRequestsCreate) *PullRequestsCreateBulk {
+	return &PullRequestsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PullRequests.
+func (c *PullRequestsClient) Update() *PullRequestsUpdate {
+	mutation := newPullRequestsMutation(c.config, OpUpdate)
+	return &PullRequestsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PullRequestsClient) UpdateOne(pr *PullRequests) *PullRequestsUpdateOne {
+	mutation := newPullRequestsMutation(c.config, OpUpdateOne, withPullRequests(pr))
+	return &PullRequestsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PullRequestsClient) UpdateOneID(id int) *PullRequestsUpdateOne {
+	mutation := newPullRequestsMutation(c.config, OpUpdateOne, withPullRequestsID(id))
+	return &PullRequestsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PullRequests.
+func (c *PullRequestsClient) Delete() *PullRequestsDelete {
+	mutation := newPullRequestsMutation(c.config, OpDelete)
+	return &PullRequestsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PullRequestsClient) DeleteOne(pr *PullRequests) *PullRequestsDeleteOne {
+	return c.DeleteOneID(pr.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PullRequestsClient) DeleteOneID(id int) *PullRequestsDeleteOne {
+	builder := c.Delete().Where(pullrequests.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PullRequestsDeleteOne{builder}
+}
+
+// Query returns a query builder for PullRequests.
+func (c *PullRequestsClient) Query() *PullRequestsQuery {
+	return &PullRequestsQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePullRequests},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a PullRequests entity by its id.
+func (c *PullRequestsClient) Get(ctx context.Context, id int) (*PullRequests, error) {
+	return c.Query().Where(pullrequests.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PullRequestsClient) GetX(ctx context.Context, id int) *PullRequests {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPrs queries the prs edge of a PullRequests.
+func (c *PullRequestsClient) QueryPrs(pr *PullRequests) *RepositoryQuery {
+	query := (&RepositoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pr.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pullrequests.Table, pullrequests.FieldID, id),
+			sqlgraph.To(repository.Table, repository.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, pullrequests.PrsTable, pullrequests.PrsColumn),
+		)
+		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PullRequestsClient) Hooks() []Hook {
+	return c.hooks.PullRequests
+}
+
+// Interceptors returns the client interceptors.
+func (c *PullRequestsClient) Interceptors() []Interceptor {
+	return c.inters.PullRequests
+}
+
+func (c *PullRequestsClient) mutate(ctx context.Context, m *PullRequestsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PullRequestsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PullRequestsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PullRequestsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PullRequestsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown PullRequests mutation op: %q", m.Op())
+	}
+}
+
 // RepositoryClient is a client for the Repository schema.
 type RepositoryClient struct {
 	config
@@ -902,6 +1047,22 @@ func (c *RepositoryClient) QueryProwJobs(r *Repository) *ProwJobsQuery {
 			sqlgraph.From(repository.Table, repository.FieldID, id),
 			sqlgraph.To(prowjobs.Table, prowjobs.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, repository.ProwJobsTable, repository.ProwJobsColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPrs queries the prs edge of a Repository.
+func (c *RepositoryClient) QueryPrs(r *Repository) *PullRequestsQuery {
+	query := (&PullRequestsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(repository.Table, repository.FieldID, id),
+			sqlgraph.To(pullrequests.Table, pullrequests.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, repository.PrsTable, repository.PrsColumn),
 		)
 		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
 		return fromV, nil

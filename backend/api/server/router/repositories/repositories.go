@@ -167,6 +167,27 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 		})
 	}
 
+	prs, err := rp.Github.GetRepositoryPullRequests(githubRepo.Owner.GetLogin(), githubRepo.GetName())
+	for _, pr := range prs {
+		rp.Storage.CreatePullRequest(repoV1Alpha1.PullRequest{
+			Title:     pr.GetTitle(),
+			CreatedAt: pr.GetCreatedAt(),
+			MergedAt:  pr.GetMergedAt(),
+			ClosedAt:  pr.GetClosedAt(),
+			State:     pr.GetState(),
+			Author:    *pr.GetUser().Login,
+		}, createdRepo.ID)
+	}
+
+	if err != nil {
+		rp.Logger.Error("Failed to fetch pull requests info from github", zap.String("repository", repository.GitRepository), zap.String("git_organization", repository.GitOrganization), zap.Error(err))
+
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    "Failed to save pull requests data in database. There are no repository cached",
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
 	return httputils.WriteJSON(w, http.StatusOK, types.SuccessResponse{
 		Message:    "Successfully created repository in quality-studio",
 		StatusCode: http.StatusCreated,

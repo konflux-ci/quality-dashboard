@@ -15,6 +15,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
@@ -45,13 +46,14 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		bugs.Table:       bugs.ValidColumn,
-		codecov.Table:    codecov.ValidColumn,
-		prowjobs.Table:   prowjobs.ValidColumn,
-		prowsuites.Table: prowsuites.ValidColumn,
-		repository.Table: repository.ValidColumn,
-		teams.Table:      teams.ValidColumn,
-		workflows.Table:  workflows.ValidColumn,
+		bugs.Table:         bugs.ValidColumn,
+		codecov.Table:      codecov.ValidColumn,
+		prowjobs.Table:     prowjobs.ValidColumn,
+		prowsuites.Table:   prowsuites.ValidColumn,
+		pullrequests.Table: pullrequests.ValidColumn,
+		repository.Table:   repository.ValidColumn,
+		teams.Table:        teams.ValidColumn,
+		workflows.Table:    workflows.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {
@@ -101,6 +103,7 @@ type AggregateFunc func(*sql.Selector) string
 //	GroupBy(field1, field2).
 //	Aggregate(db.As(db.Sum(field1), "sum_field1"), (db.As(db.Sum(field2), "sum_field2")).
 //	Scan(ctx, &v)
+//
 func As(fn AggregateFunc, end string) AggregateFunc {
 	return func(s *sql.Selector) string {
 		return sql.As(fn(s), end)

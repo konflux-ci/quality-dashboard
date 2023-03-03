@@ -20,6 +20,8 @@ type Tx struct {
 	ProwJobs *ProwJobsClient
 	// ProwSuites is the client for interacting with the ProwSuites builders.
 	ProwSuites *ProwSuitesClient
+	// PullRequests is the client for interacting with the PullRequests builders.
+	PullRequests *PullRequestsClient
 	// Repository is the client for interacting with the Repository builders.
 	Repository *RepositoryClient
 	// Teams is the client for interacting with the Teams builders.
@@ -161,6 +163,7 @@ func (tx *Tx) init() {
 	tx.CodeCov = NewCodeCovClient(tx.config)
 	tx.ProwJobs = NewProwJobsClient(tx.config)
 	tx.ProwSuites = NewProwSuitesClient(tx.config)
+	tx.PullRequests = NewPullRequestsClient(tx.config)
 	tx.Repository = NewRepositoryClient(tx.config)
 	tx.Teams = NewTeamsClient(tx.config)
 	tx.Workflows = NewWorkflowsClient(tx.config)

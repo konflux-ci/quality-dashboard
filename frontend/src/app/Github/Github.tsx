@@ -1,28 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import { CopyIcon, PlusIcon } from '@patternfly/react-icons';
+import { CopyIcon, ExclamationCircleIcon, PlusIcon } from '@patternfly/react-icons';
 import {
     PageSection,
     PageSectionVariants,
     Title,
     TitleSizes,
-    CardBody,
-    Card,
     ButtonVariant,
+    EmptyState,
+    EmptyStateIcon,
+    EmptyStateVariant,
 } from '@patternfly/react-core';
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
-import { deleteInApi, getAllRepositoriesWithOrgs, getWorkflowByRepositoryName } from '@app/utils/APIService';
+import { deleteInApi, getAllRepositoriesWithOrgs, getPullRequests, getWorkflowByRepositoryName } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
 import {
     InfoCard,
 } from '@app/utils/sharedComponents';
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
-import { Chart, ChartAxis, ChartBar, ChartGroup, ChartVoronoiContainer } from '@patternfly/react-charts';
 import { CodeCov } from './CodeCov';
 import { GithubActions } from './GithubActions';
 import { ActionsColumn, IAction } from '@patternfly/react-table';
+import { FormModal, ModalContext, useDefaultModalContextState, useModalContext } from './CreateRepository';
+import { isValidTeam } from '@app/utils/utils';
+import { PrsStatistics, PullRequestCard, PullRequestsGraphic } from './PullRequests';
+import { formatDate, getRangeDates } from '@app/Reports/utils';
+import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 
 
 // eslint-disable-next-line prefer-const
@@ -35,7 +40,11 @@ let GitHub = () => {
     const [repoOrg, setRepoOrg] = useState("");
     const [repoNameToggle, setRepoNameToggle] = useState(false);
     const [workflows, setWorkflows] = useState([]);
-    const [isOpen, setOpen] = useState<boolean>(false);
+    const [prs, setPrs] = useState<PrsStatistics | null>(null);
+    const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(30));
+    const [noData, setNoData] = useState(false)
+    const defaultModalContext = useDefaultModalContextState();
+    const modalContext = useModalContext()
     const currentTeam = useSelector((state: any) => state.teams.Team);
     const history = useHistory();
     const params = new URLSearchParams(window.location.search);
@@ -89,9 +98,16 @@ let GitHub = () => {
         };
     }
 
+    // Reset rangeDateTime
+    const clearRangeDateTime = () => {
+        setRangeDateTime(getRangeDates(10))
+    }
+
     // Reset all dropwdowns and state variables
     const clearAll = () => {
         clearRepo()
+        clearRangeDateTime()
+        setNoData(false)
     }
 
     // Reset params
@@ -99,6 +115,23 @@ let GitHub = () => {
         clearAll()
         history.push(window.location.pathname + '?' + "team=" + params.get("team"));
     }
+
+    const validatePullRequests = () => {
+        setNoData(false)
+        if (repositories.find(r => r.organization == repoOrg && r.repoName == repoName)) {
+            getPullRequests(repoName, repoOrg, rangeDateTime)
+                .then((data: any) => {
+                    setPrs(data)
+                });
+        } else {
+            setNoData(true)
+        }
+    }
+
+    // Triggers automatic validation when state variables change
+    useEffect(() => {
+        validatePullRequests();
+    }, [repoOrg, repoName, rangeDateTime]);
 
 
     useEffect(() => {
@@ -109,6 +142,8 @@ let GitHub = () => {
             const repository = params.get("repository")
             const organization = params.get("organization")
             const team = params.get("team")
+            const start = params.get("start")
+            const end = params.get("end")
 
             getAllRepositoriesWithOrgs(state.teams.Team, false)
                 .then((data: any) => {
@@ -127,24 +162,26 @@ let GitHub = () => {
                             setRepoName(data[1].repoName)
                             setRepoOrg(data[1].organization)
                             getWorkflows(data[1].repoName)
-                            history.push('/home/github?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName)
+
+                            const start_date = formatDate(rangeDateTime[0])
+                            const end_date = formatDate(rangeDateTime[1])
+
+                            history.push('/home/github?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName
+                                + '&start=' + start_date + ' & end=' + end_date)
 
                         } else {
                             setRepoName(repository)
                             setRepoOrg(organization)
                             getWorkflows(repository)
 
-                            history.push('/home/github?team=' + currentTeam + '&organization=' + organization + '&repository=' + repository)
+                            history.push('/home/github?team=' + currentTeam + '&organization=' + organization + '&repository=' + repository
+                                + '&start=' + start + '&end=' + end)
                         }
                     }
                 })
         }
     }, [setRepositories, currentTeam]);
 
-
-    const handleModalToggle = () => {
-        setOpen(!isOpen)
-    };
 
     async function deleteRepository(gitOrg: string, repoName: string) {
         const data = {
@@ -153,17 +190,17 @@ let GitHub = () => {
         }
         try {
             await deleteInApi(data, '/api/quality/repositories/delete')
+            history.push(window.location.pathname + '?' + "team=" + params.get("team"));
+            window.location.reload();
         } catch (error) {
             console.log(error)
         }
-        history.push(window.location.pathname + '?' + "team=" + params.get("team"));
-        window.location.reload();
     }
 
 
     async function editRepository(repo) {
         try {
-            console.log("ioi")
+            modalContext.handleModalToggle(true, repo)
         } catch (error) {
             console.log(error)
         }
@@ -182,117 +219,140 @@ let GitHub = () => {
     ];
 
 
+    // Validates if the repository and  organization are correct
+    const validQueryParams = (repository, organization) => {
+        if (isValidTeam()) {
+            if (repositories.find(r => r.organization == organization && r.repoName == repository)) {
+                return true;
+            }
+            if (repository == "" && organization == "") {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function handleChange(event, from, to) {
+        setRangeDateTime([from, to])
+        params.set("start", formatDate(from))
+        params.set("end", formatDate(to))
+        history.push(window.location.pathname + '?' + params.toString());
+    }
+
+    const start = rangeDateTime[0]
+    const end = rangeDateTime[1]
+
     return (
-
-        <React.Fragment>
-            {/* page title bar */}
-            <PageSection variant={PageSectionVariants.light}>
-                <Title headingLevel="h3" size={TitleSizes['2xl']}>
-                    GitHub metrics
-                    <Button onClick={() => navigator.clipboard.writeText(window.location.href)} variant="link" icon={<CopyIcon />} iconPosition="right">
-                        Copy link
-                    </Button>
-                    <Button style={{ float: 'right' }} variant={ButtonVariant.secondary} onClick={handleModalToggle}>
+        <ModalContext.Provider value={defaultModalContext}>
+            <React.Fragment>
+                {/* page title bar */}
+                <PageSection variant={PageSectionVariants.light}>
+                    <Title headingLevel="h3" size={TitleSizes['2xl']}>
+                        GitHub metrics
+                        <Button onClick={() => navigator.clipboard.writeText(window.location.href)} variant="link" icon={<CopyIcon />} iconPosition="right">
+                            Copy link
+                        </Button>
+                        <Button style={{ float: 'right' }} variant={ButtonVariant.secondary} onClick={modalContext.handleModalToggle}>
                             <PlusIcon /> &nbsp; Add a repository
-                    </Button>
-                </Title>
-            </PageSection>
-            {/* main content  */}
-            <PageSection>
-                {/* the following toolbar will contain the form (dropdowns and button) to request data to the server */}
-                <Toolbar style={{ width: '100%', margin: 'auto'}}>
-                    <ToolbarContent style={{ textAlign: 'center' }}>
-                        <ToolbarItem style={{ minWidth: "20%", maxWidth: "40%" }}>
-                            <span id="typeahead-select" hidden>
-                                Select a state
-                            </span>
-                            <Select
-                                variant={SelectVariant.typeahead}
-                                typeAheadAriaLabel="Select a repository"
-                                isOpen={repoNameToggle}
-                                onToggle={setRepoNameToggle}
-                                selections={repoName}
-                                onSelect={setRepoNameOnChange}
-                                onClear={clearRepo}
-                                aria-labelledby="typeahead-select"
-                                placeholderText="Select a repository"
-                            >
-                                {repositories.map((value, index) => (
-                                    <SelectOption key={index} value={index} description={value.organization} isDisabled={value.isPlaceholder}>{value.repoName}</SelectOption>
-                                ))}
-                            </Select>
-                        </ToolbarItem>
-                        <ActionsColumn items={defaultActions(getRepository(repoName, repoOrg))}/>
-                        <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent" }}>
-                            <Button variant="link" onClick={clearParams}>Clear</Button>
-                        </ToolbarItem>
-                    </ToolbarContent>
-                </Toolbar>
-        
-                {/* this section will show statistics and details about GitHub metric */}
-                <div style={{ marginTop: '20px' }}>
-                    <Grid hasGutter>
-                        <GridItem span={3} rowSpan={2}>
-                            <InfoCard data={[{ title: "Repository", value: repoName }, { title: "Organization", value: repoOrg }, { title: "Description", value: getDescription(repoName, repoOrg) }]}></InfoCard>
-                        </GridItem>
+                        </Button>
+                    </Title>
+                </PageSection>
+                {/* main content  */}
+                <PageSection>
+                    {/* the following toolbar will contain the form (dropdowns and button) to request data to the server */}
+                    <Toolbar style={{ width: '100%', margin: 'auto' }}>
+                        <ToolbarContent style={{ textAlign: 'center' }}>
+                            <ToolbarItem style={{ minWidth: "20%", maxWidth: "40%" }}>
+                                <span id="typeahead-select" hidden>
+                                    Select a state
+                                </span>
+                                <Select
+                                    variant={SelectVariant.typeahead}
+                                    typeAheadAriaLabel="Select a repository"
+                                    isOpen={repoNameToggle}
+                                    onToggle={setRepoNameToggle}
+                                    selections={repoName}
+                                    onSelect={setRepoNameOnChange}
+                                    onClear={clearRepo}
+                                    aria-labelledby="typeahead-select"
+                                    placeholderText="Select a repository"
+                                >
+                                    {repositories.map((value, index) => (
+                                        <SelectOption key={index} value={index} description={value.organization} isDisabled={value.isPlaceholder}>{value.repoName}</SelectOption>
+                                    ))}
+                                </Select>
+                            </ToolbarItem>
+                            <ActionsColumn items={defaultActions(getRepository(repoName, repoOrg))} />
+                            <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent" }}>
+                                <DateTimeRangePicker
+                                    startDate={start}
+                                    endDate={end}
+                                    handleChange={(event, from, to) => handleChange(event, from, to)}
+                                >
+                                </DateTimeRangePicker>
+                            </ToolbarItem>
+                            <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent" }}>
+                                <Button variant="link" onClick={clearParams}>Clear</Button>
+                            </ToolbarItem>
+                            <FormModal></FormModal>
+                        </ToolbarContent>
+                    </Toolbar>
 
+                    {/* this section will show statistics and details about GitHub metric */}
+                    {validQueryParams(repoName, repoOrg) && prs != null && !noData && <div style={{ marginTop: '20px' }}>
+                        <Grid hasGutter>
+                            <GridItem span={3} rowSpan={2}>
+                                <InfoCard data={[{ title: "Repository", value: repoName }, { title: "Organization", value: repoOrg }, { title: "Description", value: getDescription(repoName, repoOrg) }]}></InfoCard>
+                            </GridItem>
 
-                        <GridItem span={7} rowSpan={4}>
-                            <Card>
-                                <CardBody>
-                                    <Title headingLevel={'h2'}>Pull Requests over time</Title>
-                                    <Chart
-                                        ariaDesc="Average number of pets"
-                                        ariaTitle="Bar chart example"
-                                        containerComponent={<ChartVoronoiContainer labels={({ datum }) => `${datum.name}: ${datum.y}`} constrainToVisibleArea />}
-                                        domain={{ y: [0, 9] }}
-                                        domainPadding={{ x:  [30, 25] }}
-                                        legendData={[{ name: 'Cats' }, { name: 'Dogs' }, { name: 'Birds' }, { name: 'Mice' }]}
-                                        legendOrientation="vertical"
-                                        legendPosition="right"
-                                        height={250}
-                                        name="chart1"
-                                        padding={{
-                                            bottom: 50,
-                                            left: 50,
-                                            right: 200, // Adjusted to accommodate legend
-                                            top: 50
-                                        }}
-                                        width={600}
-                                    >
-                                        <ChartAxis />
-                                        <ChartAxis dependentAxis showGrid />
-                                        <ChartGroup offset={11}>
-                                            <ChartBar data={[{ name: 'Cats', x: '2015', y: 1 }, { name: 'Cats', x: '2016', y: 2 }, { name: 'Cats', x: '2017', y: 5 }, { name: 'Cats', x: '2018', y: 3 }]} />
-                                            <ChartBar data={[{ name: 'Dogs', x: '2015', y: 2 }, { name: 'Dogs', x: '2016', y: 1 }, { name: 'Dogs', x: '2017', y: 7 }, { name: 'Dogs', x: '2018', y: 4 }]} />
-                                            <ChartBar data={[{ name: 'Birds', x: '2015', y: 4 }, { name: 'Birds', x: '2016', y: 4 }, { name: 'Birds', x: '2017', y: 9 }, { name: 'Birds', x: '2018', y: 7 }]} />
-                                            <ChartBar data={[{ name: 'Mice', x: '2015', y: 3 }, { name: 'Mice', x: '2016', y: 3 }, { name: 'Mice', x: '2017', y: 8 }, { name: 'Mice', x: '2018', y: 5 }]} />
-                                        </ChartGroup>
-                                    </Chart>
-                                </CardBody>
-                            </Card>
-                        </GridItem>
+                            <GridItem span={7} rowSpan={4}>
+                                <PullRequestsGraphic metrics={prs?.metrics}></PullRequestsGraphic>
+                            </GridItem>
 
-                        <GridItem span={2} rowSpan={2}>
-                            <InfoCard data={[{ title: "Open Prs", value: repoName }]}></InfoCard>
-                        </GridItem>
+                            <GridItem span={2} rowSpan={1}>
+                                <PullRequestCard title="Open PRs" total={prs?.summary.open_prs}></PullRequestCard>
+                            </GridItem>
 
-                        <GridItem span={3} rowSpan={2}>
-                            <CodeCov repo={getRepository(repoName, repoOrg)}></CodeCov>
-                        </GridItem>
+                            <GridItem span={2} rowSpan={1}>
+                                <PullRequestCard title="Merged PRs" total={prs?.summary.merged_prs}></PullRequestCard>
+                            </GridItem>
 
-                        <GridItem span={2} rowSpan={2}>
-                            <InfoCard data={[{ title: "Closed Prs", value: repoName }]}></InfoCard>
-                        </GridItem>
+                            <GridItem span={3} rowSpan={2}>
+                                <CodeCov repo={getRepository(repoName, repoOrg)}></CodeCov>
+                            </GridItem>
 
-                        {workflows.length > 0 && <GridItem span={12}>
-                            <GithubActions repoName={repoName} workflows={workflows}></GithubActions>
-                        </GridItem>
-                        }
-                    </Grid>
-                </div >
-            </PageSection >
-        </React.Fragment >
+                            <GridItem span={2} rowSpan={2}>
+                                <PullRequestCard title="Merge PR Avg Days" total={prs?.summary.merge_avg}></PullRequestCard>
+                            </GridItem>
+{/*                             
+                            <GridItem span={2} rowSpan={1}>
+                                <PullRequestCard title="Merge PR Avg Days" total={prs?.summary.merge_avg}></PullRequestCard>
+                            </GridItem> */}
+
+                            {workflows.length > 0 && <GridItem span={12}>
+                                <GithubActions repoName={repoName} workflows={workflows}></GithubActions>
+                            </GridItem>
+                            }
+                        </Grid>
+                    </div >
+                    }
+                    {!validQueryParams(repoName, repoOrg) && <EmptyState variant={EmptyStateVariant.xl}>
+                        <EmptyStateIcon icon={ExclamationCircleIcon} />
+                        <Title headingLevel="h1" size="lg">
+                            Something went wrong.
+                        </Title>
+                    </EmptyState>
+                    }
+                    {noData && <EmptyState variant={EmptyStateVariant.xl}>
+                        <EmptyStateIcon icon={ExclamationCircleIcon} />
+                        <Title headingLevel="h1" size="lg">
+                            No repository detected.
+                        </Title>
+                    </EmptyState>
+                    }
+                </PageSection >
+            </React.Fragment >
+        </ModalContext.Provider>
     )
 }
 

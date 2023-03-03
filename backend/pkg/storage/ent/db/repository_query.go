@@ -16,6 +16,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
@@ -33,6 +34,7 @@ type RepositoryQuery struct {
 	withCodecov      *CodeCovQuery
 	withProwSuites   *ProwSuitesQuery
 	withProwJobs     *ProwJobsQuery
+	withPrs          *PullRequestsQuery
 	withFKs          bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -173,6 +175,28 @@ func (rq *RepositoryQuery) QueryProwJobs() *ProwJobsQuery {
 			sqlgraph.From(repository.Table, repository.FieldID, selector),
 			sqlgraph.To(prowjobs.Table, prowjobs.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, repository.ProwJobsTable, repository.ProwJobsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPrs chains the current query on the "prs" edge.
+func (rq *RepositoryQuery) QueryPrs() *PullRequestsQuery {
+	query := (&PullRequestsClient{config: rq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(repository.Table, repository.FieldID, selector),
+			sqlgraph.To(pullrequests.Table, pullrequests.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, repository.PrsTable, repository.PrsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
 		return fromU, nil
@@ -375,6 +399,7 @@ func (rq *RepositoryQuery) Clone() *RepositoryQuery {
 		withCodecov:      rq.withCodecov.Clone(),
 		withProwSuites:   rq.withProwSuites.Clone(),
 		withProwJobs:     rq.withProwJobs.Clone(),
+		withPrs:          rq.withPrs.Clone(),
 		// clone intermediate query.
 		sql:  rq.sql.Clone(),
 		path: rq.path,
@@ -436,6 +461,17 @@ func (rq *RepositoryQuery) WithProwJobs(opts ...func(*ProwJobsQuery)) *Repositor
 	return rq
 }
 
+// WithPrs tells the query-builder to eager-load the nodes that are connected to
+// the "prs" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RepositoryQuery) WithPrs(opts ...func(*PullRequestsQuery)) *RepositoryQuery {
+	query := (&PullRequestsClient{config: rq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withPrs = query
+	return rq
+}
+
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -450,6 +486,7 @@ func (rq *RepositoryQuery) WithProwJobs(opts ...func(*ProwJobsQuery)) *Repositor
 //		GroupBy(repository.FieldRepositoryName).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
+//
 func (rq *RepositoryQuery) GroupBy(field string, fields ...string) *RepositoryGroupBy {
 	rq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &RepositoryGroupBy{build: rq}
@@ -471,6 +508,7 @@ func (rq *RepositoryQuery) GroupBy(field string, fields ...string) *RepositoryGr
 //	client.Repository.Query().
 //		Select(repository.FieldRepositoryName).
 //		Scan(ctx, &v)
+//
 func (rq *RepositoryQuery) Select(fields ...string) *RepositorySelect {
 	rq.ctx.Fields = append(rq.ctx.Fields, fields...)
 	sbuild := &RepositorySelect{RepositoryQuery: rq}
@@ -515,12 +553,13 @@ func (rq *RepositoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*R
 		nodes       = []*Repository{}
 		withFKs     = rq.withFKs
 		_spec       = rq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			rq.withRepositories != nil,
 			rq.withWorkflows != nil,
 			rq.withCodecov != nil,
 			rq.withProwSuites != nil,
 			rq.withProwJobs != nil,
+			rq.withPrs != nil,
 		}
 	)
 	if rq.withRepositories != nil {
@@ -578,6 +617,13 @@ func (rq *RepositoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*R
 		if err := rq.loadProwJobs(ctx, query, nodes,
 			func(n *Repository) { n.Edges.ProwJobs = []*ProwJobs{} },
 			func(n *Repository, e *ProwJobs) { n.Edges.ProwJobs = append(n.Edges.ProwJobs, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rq.withPrs; query != nil {
+		if err := rq.loadPrs(ctx, query, nodes,
+			func(n *Repository) { n.Edges.Prs = []*PullRequests{} },
+			func(n *Repository, e *PullRequests) { n.Edges.Prs = append(n.Edges.Prs, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -735,6 +781,37 @@ func (rq *RepositoryQuery) loadProwJobs(ctx context.Context, query *ProwJobsQuer
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "repository_prow_jobs" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (rq *RepositoryQuery) loadPrs(ctx context.Context, query *PullRequestsQuery, nodes []*Repository, init func(*Repository), assign func(*Repository, *PullRequests)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Repository)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.PullRequests(func(s *sql.Selector) {
+		s.Where(sql.InValues(repository.PrsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.repository_prs
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "repository_prs" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "repository_prs" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

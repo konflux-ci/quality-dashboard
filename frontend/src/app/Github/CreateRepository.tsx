@@ -43,6 +43,7 @@ export const useDefaultModalContextState = () => {
     if (edit == true) {
       defaultModalContext.isEditRepo.set(true)
       defaultModalContext.data.set(data)
+      console.log(data)
     }
     else {
       defaultModalContext.isEditRepo.set(false)
@@ -60,6 +61,7 @@ export const FormModal = () => {
   const [gitOrganizationValue, setGitOrganizationValue] = React.useState("");
   const [monitorGithubActions, setMonitorGithubActions] = React.useState(false);
   const [checked, setChecked] = React.useState('');
+  const params = new URLSearchParams(window.location.search);
 
   const { store } = useContext(ReactReduxContext)
   const state = store.getState()
@@ -99,6 +101,7 @@ export const FormModal = () => {
       }
       modalContext.handleModalToggle()
       await createRepository(data)
+      history.push('/home/github?team=' + params.get("team") + '&organization=' + gitOrganizationValue + '&repository=' + gitRepositoryValue)
       window.location.reload();
     }
     catch (error) {
@@ -112,8 +115,8 @@ export const FormModal = () => {
 
   useEffect(() => {
     if (modalContext.isEditRepo.value) {
-      setGitRepositoryValue(modalContext.data.value.repository_name)
-      setGitOrganizationValue(modalContext.data.value.git_organization)
+      setGitRepositoryValue(modalContext.data.value.repoName)
+      setGitOrganizationValue(modalContext.data.value.organization)
     }
   });
 

@@ -469,6 +469,33 @@ func HasProwJobsWith(preds ...predicate.ProwJobs) predicate.Repository {
 	})
 }
 
+// HasPrs applies the HasEdge predicate on the "prs" edge.
+func HasPrs() predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PrsTable, PrsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasPrsWith applies the HasEdge predicate on the "prs" edge with a given conditions (other predicates).
+func HasPrsWith(preds ...predicate.PullRequests) predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(PrsInverseTable, PullRequestsFieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, PrsTable, PrsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Repository) predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
