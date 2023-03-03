@@ -13,7 +13,7 @@ import {
     Pagination,
     Chip,
     ChipGroup,
-    ToggleGroup, 
+    ToggleGroup,
     ToggleGroupItem,
     Tooltip
 } from '@patternfly/react-core';
@@ -88,7 +88,7 @@ export const Jira = () => {
             if(!apiDataCache.hasOwnProperty(ID)){
                 const promise0 = getJirasOpen(ID)
                 const promise1 = getJirasResolutionTime(ID)
-        
+
                 Promise.all([promise0, promise1]).then(function(values) {
                     let newData = {}
                     newData[ID] = {}
@@ -106,7 +106,7 @@ export const Jira = () => {
             setSelected(ID)
         }
     };
-    
+
     useEffect(() => {
         if(apiDataCache[selected]){
             let rtc = new Array(12).fill(0)
@@ -117,23 +117,23 @@ export const Jira = () => {
 
             apiDataCache[selected].resolved.months.map((item, index) => {
                 let date = item.name.match(/([^_]+)/g)
-                rtc[11-index] = { 
-                    name: "Resolution Time ("+selected+")", 
-                    x: date[0].slice(0, 3)+ "\n" + date[1], 
+                rtc[11-index] = {
+                    name: "Resolution Time ("+selected+")",
+                    x: date[0].slice(0, 3)+ "\n" + date[1],
                     y: item.total
                 }
-                bc[11-index] = { 
-                    name: "Resolved Bugs ("+selected+")",  
-                    x: date[0].slice(0, 3)+ "\n" + date[1], 
+                bc[11-index] = {
+                    name: "Resolved Bugs ("+selected+")",
+                    x: date[0].slice(0, 3)+ "\n" + date[1],
                     y: item.resolved_bugs
                 }
                 rbt = [...rbt, ...item.bugs]
             })
             apiDataCache[selected].open.months.map((item, index) => {
                 let date = item.name.match(/([^_]+)/g)
-                obc[11-index] = { 
-                    name: "Open Bugs ("+selected+")", 
-                    x: date[0].slice(0, 3)+ "\n" + date[1], 
+                obc[11-index] = {
+                    name: "Open Bugs ("+selected+")",
+                    x: date[0].slice(0, 3)+ "\n" + date[1],
                     y: item.open_bugs
                 }
                 obt = [...obt, ...item.bugs]
@@ -192,7 +192,7 @@ export const Jira = () => {
                                         <Title headingLevel='h1' size="2xl">
                                             { apiDataCache[selected] &&
                                             <span>
-                                                <span>{ apiDataCache[selected].open.open_bugs || "-"}</span> 
+                                                <span>{ apiDataCache[selected].open.open_bugs || "-"}</span>
                                                 <span style={{fontSize: '15px', paddingRight: '10px'}}> open </span>
                                                 <span>{ apiDataCache[selected].resolved.resolved_bugs || "-"}</span>
                                                 <span style={{fontSize: '15px', paddingRight: '10px'}}> resolved </span>
@@ -313,14 +313,14 @@ export const Jira = () => {
                                                 isSelected={isSelected === 'resolved'}
                                                 onChange={handleItemClick}
                                             />
-                                        </ToggleGroup>                                        
+                                        </ToggleGroup>
                                     </GridItem>
                                     <GridItem order={{default: "2"}}>
                                         <ChipGroup categoryName="Active filters: " numChips={5}>
                                             <Chip key={selected} isReadOnly style={{fontSize: '15px'}}>
                                                 {selected} bugs
                                             </Chip>
-                                        </ChipGroup>                                        
+                                        </ChipGroup>
                                     </GridItem>
                                 </Grid>
                                 <ComposableTableStripedTr bugs={bugsTable}></ComposableTableStripedTr>
@@ -330,7 +330,7 @@ export const Jira = () => {
                 </Grid>
                 </React.Fragment>
             </PageSection>
-            
+
         </React.Fragment>
     )
 }
@@ -342,11 +342,11 @@ const BugsChart: React.FC<{chartType:string, data:any}> = ({chartType, data}) =>
 
     let legendData: { name: string }[] = []
     if(data.length>0) {
-        legendData = data.map((dataset, index) => { 
+        legendData = data.map((dataset, index) => {
             return {name: dataset[0]["name"]}
         })
-    } 
-    
+    }
+
     return (
       <div style={{ margin: '0 auto', height: '60%', width: '90%', marginTop: '15px' }}>
         { data.length > 0 &&
@@ -355,7 +355,7 @@ const BugsChart: React.FC<{chartType:string, data:any}> = ({chartType, data}) =>
           ariaTitle="Line chart example"
           height={210}
           legendData={legendData}
-          legendPosition='bottom'          
+          legendPosition='bottom'
           padding={{
             bottom: 70, // Adjusted to accommodate legend
             left:  40,
@@ -365,7 +365,7 @@ const BugsChart: React.FC<{chartType:string, data:any}> = ({chartType, data}) =>
         >
           <ChartAxis style={{ axisLabel: {fontSize: 8, padding: 30},tickLabels: {fontSize: 7}}}/>
           <ChartAxis dependentAxis={ true } showGrid style={{ axisLabel: {fontSize: 8, padding: 30}, tickLabels: {fontSize: 8}}}/>
-          { chartType == 'bar' && data.length > 0 && 
+          { chartType == 'bar' && data.length > 0 &&
           <ChartGroup offset={11}>
             {data.map((dataset, index) => (
                 <ChartBar
@@ -373,7 +373,7 @@ const BugsChart: React.FC<{chartType:string, data:any}> = ({chartType, data}) =>
                 style={{
                     data: { strokeWidth: 1},
                     parent: { border: "1px solid #ccc"},
-                    labels: { fill: "grey", fontSize: '7px'} 
+                    labels: { fill: "grey", fontSize: '7px'}
                 }}
                 data={dataset}
                 labels={({ datum }) => `${datum.y}`}
@@ -381,7 +381,7 @@ const BugsChart: React.FC<{chartType:string, data:any}> = ({chartType, data}) =>
             ))}
           </ChartGroup>
           }
-          { chartType == 'line' && data.length > 0 && 
+          { chartType == 'line' && data.length > 0 &&
           <ChartGroup offset={11}>
             {data.map((dataset, index) => (
                 <ChartLine
@@ -389,7 +389,7 @@ const BugsChart: React.FC<{chartType:string, data:any}> = ({chartType, data}) =>
                 style={{
                     data: { strokeWidth: 2},
                     parent: { border: "1px solid #ccc"},
-                    labels: { fill: "grey", fontSize: '7px' } 
+                    labels: { fill: "grey", fontSize: '7px' }
                 }}
                 data={dataset}
                 labels={({ datum }) => `${parseInt(datum.y)}`}
@@ -479,7 +479,7 @@ const ComposableTableStripedTr: React.FC<{bugs:any}> = ({bugs}) => {
       <Tbody>
         {bugsPage.map((bug, index) => (
           <Tr key={bug.jira_key} {...(index % 2 === 0 && { isStriped: true })}>
-            <Td dataLabel={columnNames.jira_key}>{bug.jira_key}</Td>
+            <Td dataLabel={columnNames.jira_key}><a href={bug.url} target={bug.url}>{bug.jira_key}</a></Td>
             <Td dataLabel={columnNames.summary}>{bug.summary}</Td>
             <Td dataLabel={columnNames.status}>{bug.status}</Td>
             <Td dataLabel={columnNames.created_at}>{bug.created_at}</Td>
