@@ -114,3 +114,52 @@ func (s *jiraRouter) openBugsMetrics(ctx context.Context, w http.ResponseWriter,
 
 	return httputils.WriteJSON(w, http.StatusOK, openBugMetrics)
 }
+
+type BugCategoriesMetrics struct {
+	Priority     string `json:"priority"`
+	OpenBugs     int    `json:"open_bugs"`
+	ResolvedBugs int    `json:"resolved_bugs"`
+}
+
+// Jira godoc
+// @Summary Jira API Info
+// @Description returns all bugs stored in database
+// @Tags Jira API Info
+// @Produce json
+// @Router /jira/bugs/metrics/priorities [get]
+// @Success 200 {object} v1alpha1.BugsMetrics
+func (s *jiraRouter) getCountBugsForAlCategories(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	bugByCategory := []BugCategoriesMetrics{}
+	priorities := []string{"Global", "Blocker", "Critical", "Major", "Normal", "Minor", "Undefined"}
+
+	for _, priority := range priorities {
+		totalAvg, err := s.Storage.TotalBugsResolutionTime(priority)
+		if err != nil {
+			s.Logger.Error("Failed to fetch bugs")
+
+			return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+				Message:    err.Error(),
+				StatusCode: http.StatusBadRequest,
+			})
+		}
+
+		openBugMetrics, err := s.Storage.GetOpenBugsMetricsByStatusAndPriority(priority)
+
+		if err != nil {
+			s.Logger.Error("Failed to fetch bugs")
+
+			return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+				Message:    err.Error(),
+				StatusCode: http.StatusBadRequest,
+			})
+		}
+
+		bugByCategory = append(bugByCategory, BugCategoriesMetrics{
+			Priority:     priority,
+			OpenBugs:     openBugMetrics.TotalOpenBugs.NumberOfOpenBugs,
+			ResolvedBugs: totalAvg.ResolutionTimeTotal.NumberOfTotalBugs,
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, bugByCategory)
+}
