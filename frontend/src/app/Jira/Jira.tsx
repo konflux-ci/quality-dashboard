@@ -53,19 +53,36 @@ export const Jira = () => {
 
     useEffect(() => {
         const ID = "Global"
-        const promise0 = getJirasOpen(ID)
-        const promise1 = getJirasResolutionTime(ID)
+        let newData = {}
 
-        Promise.all([promise0, promise1]).then(function(values) {
-            let newData = {}
-            newData[ID] = {}
-            newData[ID].resolved = values[1].data.resolution_time
-            newData[ID].open = values[0].data.open
-            setApiDataCache({
-                ...apiDataCache,
-                ...newData
+        const promises = new Array()
+        const priorities = ["Global", "Major", "Critical", "Blocker", "Normal", "Undefined", "Minor"]
+        priorities.forEach(p =>{
+            promises.push(getJirasOpen(p))
+            promises.push(getJirasResolutionTime(p))
+        })
+
+        Promise.all(promises).then(function(values) {
+            
+            values.map(value => {
+                if(value.data.hasOwnProperty("open")){
+                    if(!newData.hasOwnProperty(value.data.open.priority)){
+                        newData[value.data.open.priority] = {}
+                    }
+                    console.log(value.data.open)
+                    newData[value.data.open.priority].open = value.data.open
+                } else if(value.data.hasOwnProperty("resolution_time")){
+                    if(!newData.hasOwnProperty(value.data.resolution_time.priority)){
+                        newData[value.data.open.priority] = {}
+                    }
+                    console.log(value.data.resolution_time)
+                    newData[value.data.resolution_time.priority].resolved = value.data.resolution_time
+                }
             })
+            console.log(newData)
+            setApiDataCache(newData)
             setSelected(ID)
+
         });
     }, []);
 
@@ -144,7 +161,7 @@ export const Jira = () => {
             if(isSelected == 'resolved') setBugsTable(rbt)
             if(isSelected == 'open') setBugsTable(obt)
         }
-    }, [selected, apiDataCache, isSelected]);
+    }, [selected, isSelected, apiDataCache]);
 
     return (
         <React.Fragment>
