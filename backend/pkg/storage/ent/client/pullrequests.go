@@ -32,8 +32,7 @@ func (d *Database) CreatePullRequest(pr prV1Alpha1.PullRequest, repo_id uuid.UUI
 	return nil
 }
 
-// GetPullRequestsByRepository list all the pull requests of a repository.
-// In addition to that, it also provides information regarding the number of open and closed pull requests.
+// GetPullRequestsByRepository gets the summary and the metrics of the open and merged pull requests.
 func (d *Database) GetPullRequestsByRepository(repositoryName, organization, startDate, endDate string) (info prV1Alpha1.PullRequestsInfo, err error) {
 	metrics := []prV1Alpha1.Metrics{}
 	info = prV1Alpha1.PullRequestsInfo{}
