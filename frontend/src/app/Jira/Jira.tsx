@@ -169,8 +169,8 @@ export const Jira = () => {
                     <GridItem order={{default: "2"}}>
                         <Grid hasGutter sm={6} md={6} lg={6} xl={6}>
                             <GridItem order={{default: "1"}}>
-                                <Card id="tooltip-boundary">
-                                    <CardTitle>Average Resolution Time (for past 12 months)</CardTitle>
+                                <Card style={{textAlign: 'center'}}>
+                                    <CardTitle style={{textAlign: 'center'}}>Average Resolution Time (for past 12 months)</CardTitle>
                                     <CardBody>
                                         <Title headingLevel='h1' size="2xl">
                                             { apiDataCache[selected] &&
@@ -186,7 +186,7 @@ export const Jira = () => {
                                 </Card>
                             </GridItem>
                             <GridItem order={{default: "2"}}>
-                                <Card>
+                                <Card style={{textAlign: 'center'}}>
                                     <CardTitle>Bugs (past 12 months)</CardTitle>
                                     <CardBody>
                                         <Title headingLevel='h1' size="2xl">
@@ -232,7 +232,7 @@ export const Jira = () => {
                                     </CardBody>
                                 </Card>
                             </GridItem>
-                            <GridItem order={{default: "3"}}>
+                            <GridItem order={{default: "4"}}>
                                 <Card isSelectable style={{textAlign: 'center'}} onClick={onClick} isSelected={selected.includes('Major')} id="Major">
                                     <CardTitle>Major Bugs</CardTitle>
                                     <CardBody>
@@ -244,7 +244,7 @@ export const Jira = () => {
                                     </CardBody>
                                 </Card>
                             </GridItem>
-                            <GridItem order={{default: "4"}}>
+                            <GridItem order={{default: "3"}}>
                                 <Card isSelectable onClick={onClick} style={{textAlign: 'center'}} isSelected={selected.includes('Critical')} id="Critical">
                                     <CardTitle>Critical Bugs</CardTitle>
                                     <CardBody>
