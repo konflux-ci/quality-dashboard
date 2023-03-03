@@ -163,3 +163,39 @@ func (s *jiraRouter) getCountBugsForAlCategories(ctx context.Context, w http.Res
 
 	return httputils.WriteJSON(w, http.StatusOK, bugByCategory)
 }
+
+type ProjectListSimplified struct {
+	ProjectKey string `json:"project_key"`
+
+	ProjectName string `json:"project_name"`
+}
+
+// Jira godoc
+// @Summary Jira API Info
+// @Description returns all bugs stored in database
+// @Tags Jira API Info
+// @Produce json
+// @Router /jira/project/list [get]
+// @Success 200 {object} []ProjectListSimplified
+func (s *jiraRouter) getJiraProjects(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	projects := []ProjectListSimplified{}
+
+	list, err := s.Jira.GetJiraProjects()
+	if err != nil {
+		s.Logger.Error("Failed to fetch jira projects")
+
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	for _, p := range *list {
+		projects = append(projects, ProjectListSimplified{
+			ProjectKey:  p.Key,
+			ProjectName: p.Name,
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, projects)
+}
