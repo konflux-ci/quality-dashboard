@@ -23,16 +23,16 @@ export interface Metrics {
 export const PullRequestCard = (props) => {
 
     return (
-        <Card style={{ width: "100%", height: "100%" }}>
+        <Card style={{ width: '100%', height: '100%', textAlign: 'center' }}>
             <CardTitle>
                 <div>{props.title}</div>
                 <div style={{ color: "grey", fontSize: 12 }}>{props.subtitle}</div>
             </CardTitle>
-            {props.repo == undefined && <CardBody style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 20 }}>{props.total}</div>
+            {props.repo == undefined && <CardBody>
+                <div style={{ fontSize: 25 }}>{props.total}</div>
             </CardBody>}
-            {props.repo != undefined && <CardBody style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 20 }}>
+            {props.repo != undefined && <CardBody>
+                <div style={{ fontSize: 25 }}>
                     {props.repo.coverage.average_to_retest_before_merge == 0 ? "N/A" : props.repo.coverage.average_to_retest_before_merge}
                 </div>
             </CardBody>}
@@ -82,7 +82,7 @@ export const PullRequestsGraphic = (props) => {
     return (
         <div style={{ height: '100%', width: '100%', minHeight: "600px" }} className={"pf-c-card"} ref={ref}>
             <div style={{ height: height + 'px', width: width + 'px', background: "white", textAlign: "center" }}>
-                <Title style={{ textAlign: "left", marginLeft: 20, marginTop: 20 }} headingLevel={'h2'}>Pull Requests over the selected time range</Title>
+                <Title style={{ textAlign: "center", marginLeft: 20, marginTop: 20 }} headingLevel={'h2'}>Pull Requests over the selected time range</Title>
                 <Chart
                     ariaDesc="Average number of pets"
                     ariaTitle="Line chart example"

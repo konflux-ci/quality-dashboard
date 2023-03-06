@@ -19,7 +19,7 @@ export const CodeCov = (props) => {
     const coveredFixed = repo.coverage.coverage_percentage
 
     return (
-        <Card style={{ width: "100%", height: "100%" }}>
+        <Card style={{ width: '100%', height: '100%', textAlign: 'center' }}>
             <CardTitle>
                 <div>
                     CodeCov
@@ -30,10 +30,10 @@ export const CodeCov = (props) => {
                     ) : "N/A"}
                 </div>
             </CardTitle>
-           <CardBody style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 20 }}>
+           <CardBody>
+                <div style={{ fontSize: 25 }}>
                     {repo ? (
-                        <div style={{ fontSize: 20, color: getColor(coveredFixed) }}>{coveredFixed.toFixed(2) + "%"}</div>
+                        <div style={{ color: getColor(coveredFixed) }}>{coveredFixed.toFixed(2) + "%"}</div>
                     ) : "N/A"}
                 </div>
             </CardBody>

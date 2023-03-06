@@ -105,7 +105,6 @@ export const TeamsTable: React.FunctionComponent = () => {
                 </Thead>
                 <Tbody>
                     {currentTeamsAvailable.map(team => {
-                        console.log(toUpdateTeam)
                         const rowActions: IAction[] | null = defaultActions(team);
                         return (
                             <Tr key={team.team_name}>
