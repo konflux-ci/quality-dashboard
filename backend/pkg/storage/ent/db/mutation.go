@@ -4100,6 +4100,7 @@ type TeamsMutation struct {
 	id                  *uuid.UUID
 	team_name           *string
 	description         *string
+	jira_keys           *string
 	clearedFields       map[string]struct{}
 	repositories        map[uuid.UUID]struct{}
 	removedrepositories map[uuid.UUID]struct{}
@@ -4288,6 +4289,42 @@ func (m *TeamsMutation) ResetDescription() {
 	m.description = nil
 }
 
+// SetJiraKeys sets the "jira_keys" field.
+func (m *TeamsMutation) SetJiraKeys(s string) {
+	m.jira_keys = &s
+}
+
+// JiraKeys returns the value of the "jira_keys" field in the mutation.
+func (m *TeamsMutation) JiraKeys() (r string, exists bool) {
+	v := m.jira_keys
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJiraKeys returns the old "jira_keys" field's value of the Teams entity.
+// If the Teams object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TeamsMutation) OldJiraKeys(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldJiraKeys is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldJiraKeys requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJiraKeys: %w", err)
+	}
+	return oldValue.JiraKeys, nil
+}
+
+// ResetJiraKeys resets all changes to the "jira_keys" field.
+func (m *TeamsMutation) ResetJiraKeys() {
+	m.jira_keys = nil
+}
+
 // AddRepositoryIDs adds the "repositories" edge to the Repository entity by ids.
 func (m *TeamsMutation) AddRepositoryIDs(ids ...uuid.UUID) {
 	if m.repositories == nil {
@@ -4430,12 +4467,15 @@ func (m *TeamsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TeamsMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.team_name != nil {
 		fields = append(fields, teams.FieldTeamName)
 	}
 	if m.description != nil {
 		fields = append(fields, teams.FieldDescription)
+	}
+	if m.jira_keys != nil {
+		fields = append(fields, teams.FieldJiraKeys)
 	}
 	return fields
 }
@@ -4449,6 +4489,8 @@ func (m *TeamsMutation) Field(name string) (ent.Value, bool) {
 		return m.TeamName()
 	case teams.FieldDescription:
 		return m.Description()
+	case teams.FieldJiraKeys:
+		return m.JiraKeys()
 	}
 	return nil, false
 }
@@ -4462,6 +4504,8 @@ func (m *TeamsMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldTeamName(ctx)
 	case teams.FieldDescription:
 		return m.OldDescription(ctx)
+	case teams.FieldJiraKeys:
+		return m.OldJiraKeys(ctx)
 	}
 	return nil, fmt.Errorf("unknown Teams field %s", name)
 }
@@ -4484,6 +4528,13 @@ func (m *TeamsMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
+		return nil
+	case teams.FieldJiraKeys:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJiraKeys(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Teams field %s", name)
@@ -4539,6 +4590,9 @@ func (m *TeamsMutation) ResetField(name string) error {
 		return nil
 	case teams.FieldDescription:
 		m.ResetDescription()
+		return nil
+	case teams.FieldJiraKeys:
+		m.ResetJiraKeys()
 		return nil
 	}
 	return fmt.Errorf("unknown Teams field %s", name)

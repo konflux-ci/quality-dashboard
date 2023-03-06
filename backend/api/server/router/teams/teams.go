@@ -12,11 +12,13 @@ import (
 
 type TeamsRequest struct {
 	TeamName    string `json:"team_name"`
+	JiraKeys    string `json:"jira_keys,omitempty"`
 	Description string `json:"description"`
 }
 
 type UpdateTeamsRequest struct {
 	TargetTeam  string `json:"target"`
+	JiraKeys    string `json:"jira_keys"`
 	TeamName    string `json:"team_name"`
 	Description string `json:"description"`
 }
@@ -52,12 +54,12 @@ func (s *teamsRouter) createQualityStudioTeam(ctx context.Context, w http.Respon
 	var team TeamsRequest
 	if err := json.NewDecoder(r.Body).Decode(&team); err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-			Message:    "Error reading team_name/description value from body",
+			Message:    "Error reading team_name/description/jira_keys value from body",
 			StatusCode: http.StatusBadRequest,
 		})
 	}
 
-	teams, err := s.Storage.CreateQualityStudioTeam(team.TeamName, team.Description)
+	teams, err := s.Storage.CreateQualityStudioTeam(team.TeamName, team.Description, team.JiraKeys)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),

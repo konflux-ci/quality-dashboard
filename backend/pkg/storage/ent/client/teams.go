@@ -9,10 +9,11 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 )
 
-func (d *Database) CreateQualityStudioTeam(teamName string, description string) (*db.Teams, error) {
+func (d *Database) CreateQualityStudioTeam(teamName string, description string, jira_keys string) (*db.Teams, error) {
 	team, err := d.client.Teams.Create().
 		SetTeamName(teamName).
 		SetDescription(description).
+		SetJiraKeys(jira_keys).
 		Save(context.TODO())
 	if err != nil {
 		return nil, convertDBError("create team status: %w", err)

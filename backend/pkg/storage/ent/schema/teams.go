@@ -23,6 +23,7 @@ func (Teams) Fields() []ent.Field {
 			Unique(),
 		field.String("description").
 			Unique(),
+		field.String("jira_keys"),
 	}
 }
 

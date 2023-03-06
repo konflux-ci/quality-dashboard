@@ -42,7 +42,7 @@ type Storage interface {
 
 	// POST
 	CreateRepository(p repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error)
-	CreateQualityStudioTeam(teamName string, description string) (*db.Teams, error)
+	CreateQualityStudioTeam(teamName string, description string, jira_keys string) (*db.Teams, error)
 	CreateWorkflows(p repoV1Alpha1.Workflow, repo_id uuid.UUID) error
 	CreateCoverage(p coverageV1Alpha1.Coverage, repo_id uuid.UUID) error
 	CreateProwJobSuites(prowJobStatus prowV1Alpha1.JobSuites, repo_id uuid.UUID) error

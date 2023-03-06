@@ -64,6 +64,11 @@ func Description(v string) predicate.Teams {
 	return predicate.Teams(sql.FieldEQ(FieldDescription, v))
 }
 
+// JiraKeys applies equality check predicate on the "jira_keys" field. It's identical to JiraKeysEQ.
+func JiraKeys(v string) predicate.Teams {
+	return predicate.Teams(sql.FieldEQ(FieldJiraKeys, v))
+}
+
 // TeamNameEQ applies the EQ predicate on the "team_name" field.
 func TeamNameEQ(v string) predicate.Teams {
 	return predicate.Teams(sql.FieldEQ(FieldTeamName, v))
@@ -192,6 +197,71 @@ func DescriptionEqualFold(v string) predicate.Teams {
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.Teams {
 	return predicate.Teams(sql.FieldContainsFold(FieldDescription, v))
+}
+
+// JiraKeysEQ applies the EQ predicate on the "jira_keys" field.
+func JiraKeysEQ(v string) predicate.Teams {
+	return predicate.Teams(sql.FieldEQ(FieldJiraKeys, v))
+}
+
+// JiraKeysNEQ applies the NEQ predicate on the "jira_keys" field.
+func JiraKeysNEQ(v string) predicate.Teams {
+	return predicate.Teams(sql.FieldNEQ(FieldJiraKeys, v))
+}
+
+// JiraKeysIn applies the In predicate on the "jira_keys" field.
+func JiraKeysIn(vs ...string) predicate.Teams {
+	return predicate.Teams(sql.FieldIn(FieldJiraKeys, vs...))
+}
+
+// JiraKeysNotIn applies the NotIn predicate on the "jira_keys" field.
+func JiraKeysNotIn(vs ...string) predicate.Teams {
+	return predicate.Teams(sql.FieldNotIn(FieldJiraKeys, vs...))
+}
+
+// JiraKeysGT applies the GT predicate on the "jira_keys" field.
+func JiraKeysGT(v string) predicate.Teams {
+	return predicate.Teams(sql.FieldGT(FieldJiraKeys, v))
+}
+
+// JiraKeysGTE applies the GTE predicate on the "jira_keys" field.
+func JiraKeysGTE(v string) predicate.Teams {
+	return predicate.Teams(sql.FieldGTE(FieldJiraKeys, v))
+}
+
+// JiraKeysLT applies the LT predicate on the "jira_keys" field.
+func JiraKeysLT(v string) predicate.Teams {
+	return predicate.Teams(sql.FieldLT(FieldJiraKeys, v))
+}
+
+// JiraKeysLTE applies the LTE predicate on the "jira_keys" field.
+func JiraKeysLTE(v string) predicate.Teams {
+	return predicate.Teams(sql.FieldLTE(FieldJiraKeys, v))
+}
+
+// JiraKeysContains applies the Contains predicate on the "jira_keys" field.
+func JiraKeysContains(v string) predicate.Teams {
+	return predicate.Teams(sql.FieldContains(FieldJiraKeys, v))
+}
+
+// JiraKeysHasPrefix applies the HasPrefix predicate on the "jira_keys" field.
+func JiraKeysHasPrefix(v string) predicate.Teams {
+	return predicate.Teams(sql.FieldHasPrefix(FieldJiraKeys, v))
+}
+
+// JiraKeysHasSuffix applies the HasSuffix predicate on the "jira_keys" field.
+func JiraKeysHasSuffix(v string) predicate.Teams {
+	return predicate.Teams(sql.FieldHasSuffix(FieldJiraKeys, v))
+}
+
+// JiraKeysEqualFold applies the EqualFold predicate on the "jira_keys" field.
+func JiraKeysEqualFold(v string) predicate.Teams {
+	return predicate.Teams(sql.FieldEqualFold(FieldJiraKeys, v))
+}
+
+// JiraKeysContainsFold applies the ContainsFold predicate on the "jira_keys" field.
+func JiraKeysContainsFold(v string) predicate.Teams {
+	return predicate.Teams(sql.FieldContainsFold(FieldJiraKeys, v))
 }
 
 // HasRepositories applies the HasEdge predicate on the "repositories" edge.
