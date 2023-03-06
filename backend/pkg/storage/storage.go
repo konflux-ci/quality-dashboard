@@ -26,6 +26,7 @@ type Storage interface {
 	Close() error
 
 	// GET
+	TotalBugsResolutionTime(priority string) (bugsMetrics jiraV1Alpha1.BugsMetrics, err error)
 	GetRepository(repositoryName, gitOrganizationName string) (*db.Repository, error)
 	GetLatestProwTestExecution(r *db.Repository, jobType string) (*db.ProwJobs, error)
 	GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error)

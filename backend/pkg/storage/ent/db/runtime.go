@@ -23,6 +23,14 @@ func init() {
 	bugsDescJiraKey := bugsFields[1].Descriptor()
 	// bugs.JiraKeyValidator is a validator for the "jira_key" field. It is called by the builders before save.
 	bugs.JiraKeyValidator = bugsDescJiraKey.Validators[0].(func(string) error)
+	// bugsDescResolved is the schema descriptor for resolved field.
+	bugsDescResolved := bugsFields[5].Descriptor()
+	// bugs.DefaultResolved holds the default value on creation for the resolved field.
+	bugs.DefaultResolved = bugsDescResolved.Default.(bool)
+	// bugsDescResolutionTime is the schema descriptor for resolution_time field.
+	bugsDescResolutionTime := bugsFields[7].Descriptor()
+	// bugs.DefaultResolutionTime holds the default value on creation for the resolution_time field.
+	bugs.DefaultResolutionTime = bugsDescResolutionTime.Default.(float64)
 	// bugsDescID is the schema descriptor for id field.
 	bugsDescID := bugsFields[0].Descriptor()
 	// bugs.DefaultID holds the default value on creation for the id field.

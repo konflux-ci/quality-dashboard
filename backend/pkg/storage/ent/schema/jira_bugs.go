@@ -27,8 +27,15 @@ func (Bugs) Fields() []ent.Field {
 			SchemaType(timeSchema),
 		field.Time("updated_at").
 			SchemaType(timeSchema),
+		field.Time("resolved_at").
+			SchemaType(timeSchema).
+			Nillable(),
+		field.Bool("resolved").
+			Default(false),
 		field.Text("priority").
 			SchemaType(textSchema),
+		field.Float("resolution_time").
+			Default(0),
 		field.Text("status").
 			SchemaType(textSchema),
 		field.Text("summary").

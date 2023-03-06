@@ -71,9 +71,24 @@ func UpdatedAt(v time.Time) predicate.Bugs {
 	return predicate.Bugs(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
+// ResolvedAt applies equality check predicate on the "resolved_at" field. It's identical to ResolvedAtEQ.
+func ResolvedAt(v time.Time) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldResolvedAt, v))
+}
+
+// Resolved applies equality check predicate on the "resolved" field. It's identical to ResolvedEQ.
+func Resolved(v bool) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldResolved, v))
+}
+
 // Priority applies equality check predicate on the "priority" field. It's identical to PriorityEQ.
 func Priority(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldEQ(FieldPriority, v))
+}
+
+// ResolutionTime applies equality check predicate on the "resolution_time" field. It's identical to ResolutionTimeEQ.
+func ResolutionTime(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldResolutionTime, v))
 }
 
 // Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
@@ -236,6 +251,56 @@ func UpdatedAtLTE(v time.Time) predicate.Bugs {
 	return predicate.Bugs(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
+// ResolvedAtEQ applies the EQ predicate on the "resolved_at" field.
+func ResolvedAtEQ(v time.Time) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldResolvedAt, v))
+}
+
+// ResolvedAtNEQ applies the NEQ predicate on the "resolved_at" field.
+func ResolvedAtNEQ(v time.Time) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNEQ(FieldResolvedAt, v))
+}
+
+// ResolvedAtIn applies the In predicate on the "resolved_at" field.
+func ResolvedAtIn(vs ...time.Time) predicate.Bugs {
+	return predicate.Bugs(sql.FieldIn(FieldResolvedAt, vs...))
+}
+
+// ResolvedAtNotIn applies the NotIn predicate on the "resolved_at" field.
+func ResolvedAtNotIn(vs ...time.Time) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotIn(FieldResolvedAt, vs...))
+}
+
+// ResolvedAtGT applies the GT predicate on the "resolved_at" field.
+func ResolvedAtGT(v time.Time) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGT(FieldResolvedAt, v))
+}
+
+// ResolvedAtGTE applies the GTE predicate on the "resolved_at" field.
+func ResolvedAtGTE(v time.Time) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGTE(FieldResolvedAt, v))
+}
+
+// ResolvedAtLT applies the LT predicate on the "resolved_at" field.
+func ResolvedAtLT(v time.Time) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLT(FieldResolvedAt, v))
+}
+
+// ResolvedAtLTE applies the LTE predicate on the "resolved_at" field.
+func ResolvedAtLTE(v time.Time) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLTE(FieldResolvedAt, v))
+}
+
+// ResolvedEQ applies the EQ predicate on the "resolved" field.
+func ResolvedEQ(v bool) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldResolved, v))
+}
+
+// ResolvedNEQ applies the NEQ predicate on the "resolved" field.
+func ResolvedNEQ(v bool) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNEQ(FieldResolved, v))
+}
+
 // PriorityEQ applies the EQ predicate on the "priority" field.
 func PriorityEQ(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldEQ(FieldPriority, v))
@@ -299,6 +364,46 @@ func PriorityEqualFold(v string) predicate.Bugs {
 // PriorityContainsFold applies the ContainsFold predicate on the "priority" field.
 func PriorityContainsFold(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldContainsFold(FieldPriority, v))
+}
+
+// ResolutionTimeEQ applies the EQ predicate on the "resolution_time" field.
+func ResolutionTimeEQ(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldResolutionTime, v))
+}
+
+// ResolutionTimeNEQ applies the NEQ predicate on the "resolution_time" field.
+func ResolutionTimeNEQ(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNEQ(FieldResolutionTime, v))
+}
+
+// ResolutionTimeIn applies the In predicate on the "resolution_time" field.
+func ResolutionTimeIn(vs ...float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldIn(FieldResolutionTime, vs...))
+}
+
+// ResolutionTimeNotIn applies the NotIn predicate on the "resolution_time" field.
+func ResolutionTimeNotIn(vs ...float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotIn(FieldResolutionTime, vs...))
+}
+
+// ResolutionTimeGT applies the GT predicate on the "resolution_time" field.
+func ResolutionTimeGT(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGT(FieldResolutionTime, v))
+}
+
+// ResolutionTimeGTE applies the GTE predicate on the "resolution_time" field.
+func ResolutionTimeGTE(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGTE(FieldResolutionTime, v))
+}
+
+// ResolutionTimeLT applies the LT predicate on the "resolution_time" field.
+func ResolutionTimeLT(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLT(FieldResolutionTime, v))
+}
+
+// ResolutionTimeLTE applies the LTE predicate on the "resolution_time" field.
+func ResolutionTimeLTE(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLTE(FieldResolutionTime, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.

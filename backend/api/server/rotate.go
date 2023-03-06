@@ -68,17 +68,27 @@ func (s *Server) rotateJiraBugs() {
 		wg.Add(1)
 		go func(keyString int, bug jira.Issue, wg *sync.WaitGroup) {
 			defer wg.Done()
-			if bug.Fields.Priority.Name == "" {
-				bug.Fields.Priority.Name = "No Data"
+			var bugIsResolved bool
+			var diff float64
+			if bug.Fields.Status.Name == "Closed" || bug.Fields.Status.Name == "Resolved" || bug.Fields.Status.Name == "Done" {
+				resolvedTime := time.Time(bug.Fields.Resolutiondate).UTC()
+				createdTime := time.Time(bug.Fields.Created).UTC()
+
+				diff = resolvedTime.Sub(createdTime).Hours()
+				bugIsResolved = true
 			}
+
 			if err := s.cfg.Storage.CreateJiraBug(v1alpha1.JiraBug{
-				JiraKey:   bug.Key,
-				CreatedAt: time.Time(bug.Fields.Created),
-				UpdatedAt: time.Time(bug.Fields.Updated),
-				Priority:  bug.Fields.Priority.Name,
-				Status:    bug.Fields.Status.Name,
-				Summary:   bug.Fields.Summary,
-				Url:       fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key),
+				JiraKey:        bug.Key,
+				CreatedAt:      time.Time(bug.Fields.Created),
+				UpdatedAt:      time.Time(bug.Fields.Updated),
+				ResolvedAt:     time.Time(bug.Fields.Resolutiondate),
+				IsResolved:     bugIsResolved,
+				ResolutionTime: diff,
+				Priority:       bug.Fields.Priority.Name,
+				Status:         bug.Fields.Status.Name,
+				Summary:        bug.Fields.Summary,
+				Url:            fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key),
 			}); err != nil {
 				s.cfg.Logger.Sugar().Errorf("failed to update jiras %s, %v", bug.Key, err)
 			}

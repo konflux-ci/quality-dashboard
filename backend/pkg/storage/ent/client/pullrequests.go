@@ -112,7 +112,9 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 		}
 	}
 
-	totalMergeTime = totalMergeTime / float64(len(mergedPullRequestsInTimeRange))
+	if totalMergedPrs != 0 {
+		totalMergeTime = totalMergeTime / float64(len(mergedPullRequestsInTimeRange))
+	}
 
 	info.Summary = prV1Alpha1.Summary{
 		MergedPrsCount: len(totalPullRequestsMerged),
