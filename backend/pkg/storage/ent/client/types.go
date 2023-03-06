@@ -35,9 +35,10 @@ func toStorageRepositoryAllInfo(p *db.Repository, c *db.CodeCov) storage.Reposit
 		GitURL:          p.GitURL,
 		Description:     p.Description,
 		CodeCoverage: coverageV1Alpha1.Coverage{
-			RepositoryName:     p.RepositoryName,
-			GitOrganization:    p.GitOrganization,
-			CoveragePercentage: c.CoveragePercentage,
+			RepositoryName:             p.RepositoryName,
+			GitOrganization:            p.GitOrganization,
+			CoveragePercentage:         c.CoveragePercentage,
+			AverageToRetestPullRequest: c.AverageRetestsToMerge,
 		},
 	}
 }
