@@ -94,7 +94,10 @@ func (gc *Github) RetestsToMerge(source string) (float64, error) {
 
 	if math.IsNaN(average) {
 		average = 0
+	} else {
+		average = math.Round(average*100) / 100
 	}
+
 	return average, nil
 }
 
@@ -106,7 +109,7 @@ func RetestComments(pr *ChatopsPullRequestFragment) float64 {
 
 	for _, timelineItem := range pr.TimelineItems.Nodes {
 		if isRetestCommentAfterLastPush(timelineItem, lastPush) {
-			total += 1
+			total++
 		}
 	}
 	return total

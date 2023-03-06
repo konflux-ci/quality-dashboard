@@ -104,8 +104,6 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 		return info, convertDBError("failed to get merged pull requests in time range: %w", err)
 	}
 
-	fmt.Println(mergedPullRequestsInTimeRange)
-
 	for _, merged := range mergedPullRequestsInTimeRange {
 		mergeTime := merged.MergedAt.Sub(merged.CreatedAt).Hours() / 24
 		if mergeTime > 0 {

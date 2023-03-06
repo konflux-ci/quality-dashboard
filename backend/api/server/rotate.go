@@ -125,7 +125,7 @@ func (s *Server) CacheRepositoriesInformation(storageRepos []repoV1Alpha1.Reposi
 			return err
 		}
 
-		totalRetestRepoAvg, err := s.cfg.Github.RetestsToMerge(fmt.Sprintf("%s/%s", repo.Owner, repo.Name))
+		totalRetestRepoAvg, err := s.cfg.Github.RetestsToMerge(fmt.Sprintf("%s/%s", repo.Owner.Login, repo.Name))
 		if err != nil {
 			return err
 		}

@@ -28,9 +28,12 @@ export const PullRequestCard = (props) => {
                 <div>{props.title}</div>
                 <div style={{ color: "grey", fontSize: 12 }}>{props.subtitle}</div>
             </CardTitle>
-            <CardBody style={{ textAlign: 'center' }}>
+            {props.repo == undefined && <CardBody style={{ textAlign: 'center' }}>
                 {props.total}
-            </CardBody>
+            </CardBody>}
+            {props.repo != undefined && <CardBody>
+                {props.repo.coverage.average_to_retest_before_merge == 0 ? "N/A" : props.repo.coverage.average_to_retest_before_merge}
+            </CardBody>}
         </Card>
     );
 }
@@ -68,7 +71,7 @@ export const PullRequestsGraphic = (props) => {
     };
 
     props.metrics.forEach(metric => {
-        beautifiedData["CREATED_PRS"].data.push({ name: 'created_prs', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short', year: '2-digit'}), y: metric.created_prs_count })
+        beautifiedData["CREATED_PRS"].data.push({ name: 'created_prs', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short', year: '2-digit' }), y: metric.created_prs_count })
         beautifiedData["MERGED_PRS"].data.push({ name: 'merged_prs', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short', year: '2-digit' }), y: metric.merged_prs_count })
     });
 
@@ -77,7 +80,7 @@ export const PullRequestsGraphic = (props) => {
     return (
         <div style={{ height: '100%', width: '100%', minHeight: "600px" }} className={"pf-c-card"} ref={ref}>
             <div style={{ height: height + 'px', width: width + 'px', background: "white", textAlign: "center" }}>
-                <Title style={{ textAlign: "left", marginLeft: 20, marginTop: 20 }} headingLevel={'h2'}>Pull Requests over the selected time range</Title>
+                <Title style={{ textAlign: "left", marginLeft: 20, marginTop: 20 }} headingLevel={'h2'}>Pull Requests over the selected time ran</Title>
                 <Chart
                     ariaDesc="Average number of pets"
                     ariaTitle="Line chart example"
