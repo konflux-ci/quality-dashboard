@@ -115,6 +115,7 @@ func (s *Server) CacheRepositoriesInformation(storageRepos []repoV1Alpha1.Reposi
 		prs, err := s.cfg.Github.GetPullRequestsInRange(context.TODO(), repoV1Alpha1.ListPullRequestsOptions{
 			Repository: repo.Name,
 			Owner:      repo.Owner.Login,
+			TimeField:  repoV1Alpha1.PullRequestNone,
 		}, currentTime.AddDate(0, -3, 0), currentTime)
 		if err != nil {
 			return err

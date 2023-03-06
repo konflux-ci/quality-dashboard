@@ -183,6 +183,7 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 	prs, err := rp.Github.GetPullRequestsInRange(context.TODO(), repoV1Alpha1.ListPullRequestsOptions{
 		Repository: githubRepo.GetName(),
 		Owner:      githubRepo.Owner.GetLogin(),
+		TimeField:  repoV1Alpha1.PullRequestNone,
 	}, time.Now().AddDate(0, -3, 0), time.Now())
 
 	if err != nil {

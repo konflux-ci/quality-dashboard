@@ -105,5 +105,5 @@ func PullRequestOptionsWithRepo(opt ListPullRequestsOptions, owner string, repo 
 }
 
 func (d PullRequestTimeField) String() string {
-	return [...]string{"closed", "created", "merged"}[d]
+	return [...]string{"closed", "created", "merged", "opened"}[d]
 }
