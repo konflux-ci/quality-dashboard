@@ -1,7 +1,8 @@
 import React, { useLayoutEffect, useRef, useState } from "react";
-import { Card, CardBody, CardTitle, Title } from "@patternfly/react-core";
+import { Card, CardBody, CardTitle, Popover, Title } from "@patternfly/react-core";
 import { Chart, ChartAxis, ChartGroup, ChartLegendTooltip, ChartLine, ChartThemeColor, createContainer } from "@patternfly/react-charts";
 import { DashboardLineChartData } from "@app/utils/sharedComponents";
+import { HelpIcon } from "@patternfly/react-icons";
 
 export interface PrsStatistics {
     metrics: (Metrics)[];
@@ -26,7 +27,27 @@ export const PullRequestCard = (props) => {
         <Card style={{ width: '100%', height: '100%', textAlign: 'center' }}>
             <CardTitle>
                 <div>{props.title}</div>
-                <div style={{ color: "grey", fontSize: 12 }}>{props.subtitle}</div>
+                <div style={{ color: "grey", fontSize: 12 }}>
+                    {props.subtitle}
+                    {props.title == "Retest Before Merge Avg" && < Popover
+                        bodyContent={
+                            <div>
+                                Retests to merge: calculate an average how many /test and /retest comments were issued after the last code push
+                            </div>
+                        }
+                    >
+                        <button
+                            type="button"
+                            aria-label="More info for name field"
+                            onClick={e => e.preventDefault()}
+                            aria-describedby="modal-with-form-form-name"
+                            className="pf-c-form__group-label-help"
+                            title=""
+                        >
+                            <HelpIcon style={{ marginLeft: 5 }} noVerticalAlign />
+                        </button>
+                    </Popover>}
+                </div>
             </CardTitle>
             {props.repo == undefined && <CardBody>
                 <div style={{ fontSize: 25 }}>{props.total}</div>
