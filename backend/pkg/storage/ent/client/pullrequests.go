@@ -57,8 +57,8 @@ func (d *Database) CreatePullRequests(prs prV1Alpha1.PullRequests, repo_id strin
 
 	defer func() {
 		if err := recover(); err != nil {
-			// Ussually occurs when u have network issues
-			fmt.Println("Internal panic ocurred, check network connection:", err)
+			// Usually occurs when u have network issues
+			fmt.Println("Internal panic occurred, check network connection:", err)
 		}
 	}()
 
@@ -74,10 +74,8 @@ func (d *Database) CreatePullRequests(prs prV1Alpha1.PullRequests, repo_id strin
 
 // GetPullRequestsByRepository gets the summary and the metrics of the open and merged pull requests.
 func (d *Database) GetPullRequestsByRepository(repositoryName, organization, startDate, endDate string) (info prV1Alpha1.PullRequestsInfo, err error) {
-	var averagePRsMergedInTimeRange float64
-	totalOpenPrs, totalMergedPrs := 0, 0
+	totalMergedPrs := 0
 	var totalMergeTime float64
-	calculateDaysRange := len(getDatesBetweenRange(startDate, endDate))
 	info = prV1Alpha1.PullRequestsInfo{}
 
 	repo := d.client.Repository.Query().Where(predicate.Repository(repository.RepositoryName(repositoryName))).FirstX(context.TODO())
@@ -85,68 +83,45 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 		Select(pullrequests.FieldState).
 		Where(predicate.PullRequests(pullrequests.State("MERGED"))).
 		All(context.TODO())
-
 	if err != nil {
 		return info, convertDBError("failed to get open pull requests: %w", err)
 	}
+
 	totalOpenPullRequests, err := d.client.Repository.QueryPrs(repo).Select(pullrequests.FieldState).
 		Where(predicate.PullRequests(pullrequests.State("OPEN"))).
 		All(context.TODO())
-
 	if err != nil {
-		return info, convertDBError("failed to get Opeen pull requests: %w", err)
+		return info, convertDBError("failed to get open pull requests: %w", err)
 	}
-	mergedPullRequestsInTimeRange, err := d.client.Repository.QueryPrs(repo).Select(pullrequests.FieldState).
+
+	mergedPullRequestsInTimeRange, err := d.client.Repository.QueryPrs(repo).Select().
 		Where(predicate.PullRequests(pullrequests.State("MERGED"))).
 		Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 		}).
 		All(context.TODO())
-
 	if err != nil {
-		return info, convertDBError("failed to get Merged pull requests in time range: %w", err)
+		return info, convertDBError("failed to get merged pull requests in time range: %w", err)
 	}
 
-	// range between one day (same day)
-	if len(getDatesBetweenRange(startDate, endDate)) == 2 && isSameDay(startDate, endDate) {
-		averagePRsMergedInTimeRange = float64(len(mergedPullRequestsInTimeRange)) / 1
+	fmt.Println(mergedPullRequestsInTimeRange)
 
-	} else {
-		averagePRsMergedInTimeRange = float64(len(mergedPullRequestsInTimeRange)) / float64(calculateDaysRange)
-	}
-
-	if math.IsNaN(averagePRsMergedInTimeRange) {
-		averagePRsMergedInTimeRange = 0
-	}
-	pullRequests := make([]prV1Alpha1.PullRequest, 0)
-	metrics := d.getMetrics(repo, startDate, endDate)
-	prs, _ := d.client.Repository.QueryPrs(repo).Select().
-		Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
-			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
-		}).All(context.TODO())
-
-	for _, pr := range prs {
-		if pr.State == "CLOSED" {
-			mergeTime := pr.MergedAt.Sub(pr.CreatedAt).Hours() / 24
-
-			// avoid prs that were close but not merged
-			if mergeTime > 0 {
-				totalMergeTime += mergeTime
-				totalMergedPrs++
-			}
-		} else {
-			totalOpenPrs++
+	for _, merged := range mergedPullRequestsInTimeRange {
+		mergeTime := merged.MergedAt.Sub(merged.CreatedAt).Hours() / 24
+		if mergeTime > 0 {
+			totalMergeTime += mergeTime
+			totalMergedPrs++
 		}
-
-		pullRequests = append(pullRequests, toStoragePrs(pr))
 	}
+
+	totalMergeTime = totalMergeTime / float64(len(mergedPullRequestsInTimeRange))
 
 	info.Summary = prV1Alpha1.Summary{
 		MergedPrsCount: len(totalPullRequestsMerged),
 		OpenPrsCount:   len(totalOpenPullRequests),
-		MergeAvg:       averagePRsMergedInTimeRange,
+		MergeAvg:       math.Round(totalMergeTime*100) / 100,
 	}
-	info.Metrics = metrics
+	info.Metrics = d.getMetrics(repo, startDate, endDate)
 
 	return info, nil
 }

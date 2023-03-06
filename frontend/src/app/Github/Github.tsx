@@ -41,7 +41,7 @@ let GitHub = () => {
     const [repoNameToggle, setRepoNameToggle] = useState(false);
     const [workflows, setWorkflows] = useState([]);
     const [prs, setPrs] = useState<PrsStatistics | null>(null);
-    const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(30));
+    const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(90));
     const [noData, setNoData] = useState(false)
     const defaultModalContext = useDefaultModalContextState();
     const modalContext = useModalContext()
@@ -100,7 +100,7 @@ let GitHub = () => {
 
     // Reset rangeDateTime
     const clearRangeDateTime = () => {
-        setRangeDateTime(getRangeDates(360))
+        setRangeDateTime(getRangeDates(90))
     }
 
     // Reset all dropwdowns and state variables
@@ -316,11 +316,11 @@ let GitHub = () => {
                             </GridItem>
 
                             <GridItem span={2} rowSpan={1}>
-                                <PullRequestCard title="Open PRs" total={prs?.summary?.open_prs}></PullRequestCard>
+                                <PullRequestCard title="Open PRs" subtitle="Total" total={prs?.summary?.open_prs}></PullRequestCard>
                             </GridItem>
 
                             <GridItem span={2} rowSpan={1}>
-                                <PullRequestCard title="Merged PRs" total={prs?.summary?.merged_prs}></PullRequestCard>
+                                <PullRequestCard title="Merged PRs" subtitle="Total" total={prs?.summary?.merged_prs}></PullRequestCard>
                             </GridItem>
 
                             <GridItem span={3} rowSpan={2}>
@@ -328,7 +328,7 @@ let GitHub = () => {
                             </GridItem>
 
                             <GridItem span={2} rowSpan={2}>
-                                <PullRequestCard title="Merge PR Avg Days" total={prs?.summary?.merge_avg}></PullRequestCard>
+                                <PullRequestCard title="Merge PR Avg Days" subtitle="Selected Time Range" total={prs?.summary?.merge_avg}></PullRequestCard>
                             </GridItem>
 {/*                             
                             <GridItem span={2} rowSpan={1}>

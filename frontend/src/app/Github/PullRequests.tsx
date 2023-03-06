@@ -25,7 +25,8 @@ export const PullRequestCard = (props) => {
     return (
         <Card style={{ width: "100%", height: "100%" }}>
             <CardTitle>
-                {props.title}
+                <div>{props.title}</div>
+                <div style={{ color: "grey", fontSize: 12 }}>{props.subtitle}</div>
             </CardTitle>
             <CardBody style={{ textAlign: 'center' }}>
                 {props.total}
@@ -76,7 +77,7 @@ export const PullRequestsGraphic = (props) => {
     return (
         <div style={{ height: '100%', width: '100%', minHeight: "600px" }} className={"pf-c-card"} ref={ref}>
             <div style={{ height: height + 'px', width: width + 'px', background: "white", textAlign: "center" }}>
-                <Title style={{ textAlign: "left", marginLeft: 20, marginTop: 20 }} headingLevel={'h2'}>Pull Requests over time</Title>
+                <Title style={{ textAlign: "left", marginLeft: 20, marginTop: 20 }} headingLevel={'h2'}>Pull Requests over the selected time range</Title>
                 <Chart
                     ariaDesc="Average number of pets"
                     ariaTitle="Line chart example"
