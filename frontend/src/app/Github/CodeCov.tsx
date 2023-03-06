@@ -1,7 +1,5 @@
 import React from "react";
-import { Alert, Card, CardBody, CardTitle } from "@patternfly/react-core";
-import { ExternalLinkAltIcon } from "@patternfly/react-icons";
-
+import { Card, CardBody, CardTitle } from "@patternfly/react-core";
 
 const getColor = (coveredFixed) => {
     if (coveredFixed >= 0 && coveredFixed <= 33.33) {
