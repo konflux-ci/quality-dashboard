@@ -51,7 +51,6 @@ func (gh *Github) GetAllPullRequests(ctx context.Context, opts githubV1Alhpa1.Li
 		prs := make([]githubV1Alhpa1.PullRequest, len(q.Search.Nodes))
 
 		for i, v := range q.Search.Nodes {
-			fmt.Println(v.PullRequest.State)
 			prs[i] = v.PullRequest
 		}
 
@@ -73,8 +72,6 @@ func (gh *Github) GetPullRequestsInRange(ctx context.Context, opts githubV1Alhpa
 	if opts.TimeField != githubV1Alhpa1.PullRequestNone {
 		q = fmt.Sprintf("%s:%s..%s", opts.TimeField.String(), from.Format(time.RFC3339), to.Format(time.RFC3339))
 	}
-
-	fmt.Println(q)
 
 	if opts.Query != nil {
 		q = fmt.Sprintf("%s %s", *opts.Query, q)
