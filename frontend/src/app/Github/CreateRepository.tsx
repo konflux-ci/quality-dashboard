@@ -1,11 +1,22 @@
-import { createRepository } from "@app/utils/APIService";
-import { Button, Checkbox, Form, FormGroup, Modal, ModalVariant, Popover, TextArea, TextInput, Alert } from "@patternfly/react-core";
-import { HelpIcon } from "@patternfly/react-icons";
-import React, { useContext, SetStateAction, useEffect } from "react";
+import { createRepository } from '@app/utils/APIService';
+import {
+  Button,
+  Checkbox,
+  Form,
+  FormGroup,
+  Modal,
+  ModalVariant,
+  Popover,
+  TextArea,
+  TextInput,
+  Alert,
+} from '@patternfly/react-core';
+import { HelpIcon } from '@patternfly/react-icons';
+import React, { useContext, SetStateAction, useEffect } from 'react';
 import { teamIsNotEmpty } from '@app/utils/utils';
 import { useHistory } from 'react-router-dom';
 import { ReactReduxContext } from 'react-redux';
-import { formatDate, getRangeDates } from "@app/Reports/utils";
+import { formatDate, getRangeDates } from '@app/Reports/utils';
 
 interface IModalContext {
   isModalOpen: IModalContextMember;
@@ -15,76 +26,74 @@ interface IModalContext {
 }
 
 interface IModalContextMember {
-  value: any
-  set: SetStateAction<any>
+  value: any;
+  set: SetStateAction<any>;
 }
 
 export const ModalContext = React.createContext<IModalContext>({
   isModalOpen: { set: undefined, value: false },
   isEditRepo: { set: undefined, value: false },
-  handleModalToggle: () => { },
-  data: { set: undefined, value: false }
+  handleModalToggle: () => {},
+  data: { set: undefined, value: false },
 });
 
 export const useModalContext = () => {
   return useContext(ModalContext);
-}
+};
 
 export const useDefaultModalContextState = () => {
-  const [isModalOpen, setModalOpen] = React.useState(false)
+  const [isModalOpen, setModalOpen] = React.useState(false);
   const [isEditRepo, setEditRepo] = React.useState(false);
   const [data, setData] = React.useState({});
   const defaultModalContext = useModalContext();
 
-  defaultModalContext.isModalOpen = { set: setModalOpen, value: isModalOpen }
-  defaultModalContext.isEditRepo = { set: setEditRepo, value: isEditRepo }
-  defaultModalContext.data = { set: setData, value: data }
+  defaultModalContext.isModalOpen = { set: setModalOpen, value: isModalOpen };
+  defaultModalContext.isEditRepo = { set: setEditRepo, value: isEditRepo };
+  defaultModalContext.data = { set: setData, value: data };
   defaultModalContext.handleModalToggle = (edit: Boolean, data: any) => {
-    defaultModalContext.isModalOpen.set(!defaultModalContext.isModalOpen.value)
+    defaultModalContext.isModalOpen.set(!defaultModalContext.isModalOpen.value);
     if (edit == true) {
-      defaultModalContext.isEditRepo.set(true)
-      defaultModalContext.data.set(data)
+      defaultModalContext.isEditRepo.set(true);
+      defaultModalContext.data.set(data);
+    } else {
+      defaultModalContext.isEditRepo.set(false);
     }
-    else {
-      defaultModalContext.isEditRepo.set(false)
-    }
-  }
-  return defaultModalContext
-
-}
+  };
+  return defaultModalContext;
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const FormModal = () => {
-  const modalContext = useModalContext()
-  const history = useHistory()
-  const [gitRepositoryValue, setGitRepositoryValue] = React.useState("");
-  const [gitOrganizationValue, setGitOrganizationValue] = React.useState("");
+  const modalContext = useModalContext();
+  const history = useHistory();
+  const [gitRepositoryValue, setGitRepositoryValue] = React.useState('');
+  const [gitOrganizationValue, setGitOrganizationValue] = React.useState('');
   const [monitorGithubActions, setMonitorGithubActions] = React.useState(false);
   const [checked, setChecked] = React.useState('');
   const params = new URLSearchParams(window.location.search);
 
-  const { store } = useContext(ReactReduxContext)
-  const state = store.getState()
+  const { store } = useContext(ReactReduxContext);
+  const state = store.getState();
 
   const dispatch = store.dispatch;
 
-  const handleGitRepositoryInput = value => {
+  const handleGitRepositoryInput = (value) => {
     setGitRepositoryValue(value);
   };
 
-  const handleGitOrganizationInput = value => {
+  const handleGitOrganizationInput = (value) => {
     setGitOrganizationValue(value);
   };
 
-  const handleGithubActionsMonitor = value => {
+  const handleGithubActionsMonitor = (value) => {
     setMonitorGithubActions(value);
     setChecked(value);
   };
 
   const onUpdateSubmit = async () => {
-    modalContext.handleModalToggle()
+    modalContext.handleModalToggle();
     window.location.reload();
-  }
+  };
 
   interface LoadingPropsType {
     spinnerAriaValueText: string;
@@ -99,50 +108,54 @@ export const FormModal = () => {
   primaryLoadingProps.spinnerAriaLabelledBy = 'primary-loading-button';
   primaryLoadingProps.isLoading = isPrimaryLoading;
 
-
   const onCreateSubmit = async () => {
-    setIsPrimaryLoading(!isPrimaryLoading)
+    setIsPrimaryLoading(!isPrimaryLoading);
     try {
       const data = {
         git_organization: gitOrganizationValue,
         repository_name: gitRepositoryValue,
         jobs: {
           github_actions: {
-            monitor: monitorGithubActions
-          }
+            monitor: monitorGithubActions,
+          },
         },
         artifacts: [],
-        team_name: state.teams.Team
-      }
-      await createRepository(data)
-      setIsPrimaryLoading(!isPrimaryLoading)
-      modalContext.handleModalToggle()
+        team_name: state.teams.Team,
+      };
+      await createRepository(data);
+      setIsPrimaryLoading(!isPrimaryLoading);
+      modalContext.handleModalToggle();
 
-      const rangeDateTime = getRangeDates(90)
-      const start_date = formatDate(rangeDateTime[0])
-      const end_date = formatDate(rangeDateTime[1])
+      const rangeDateTime = getRangeDates(90);
+      const start_date = formatDate(rangeDateTime[0]);
+      const end_date = formatDate(rangeDateTime[1]);
 
-      history.push('/home/github?team=' + params.get("team") +
-        '&organization=' + gitOrganizationValue +
-        '&repository=' + gitRepositoryValue +
-        '&start=' + start_date +
-        '&end=' + end_date
-      )
+      history.push(
+        '/home/github?team=' +
+          params.get('team') +
+          '&organization=' +
+          gitOrganizationValue +
+          '&repository=' +
+          gitRepositoryValue +
+          '&start=' +
+          start_date +
+          '&end=' +
+          end_date
+      );
       window.location.reload();
+    } catch (error) {
+      console.log(error);
     }
-    catch (error) {
-      console.log(error)
-    }
-  }
+  };
 
   const onSubmit = async () => {
     !modalContext.isEditRepo.value ? onCreateSubmit() : onUpdateSubmit();
-  }
+  };
 
   useEffect(() => {
     if (modalContext.isEditRepo.value) {
-      setGitRepositoryValue(modalContext.data.value.repoName)
-      setGitOrganizationValue(modalContext.data.value.organization)
+      setGitRepositoryValue(modalContext.data.value.repoName);
+      setGitOrganizationValue(modalContext.data.value.organization);
     }
   });
 
@@ -150,38 +163,39 @@ export const FormModal = () => {
     <React.Fragment>
       <Modal
         variant={ModalVariant.medium}
-        title={!modalContext.isEditRepo.value ? "Add new git repository" : "Update git repository"}
-        description={!modalContext.isEditRepo.value ? "Enter a new git repository to obtain information in the quality quality studio." : ""}
+        title={!modalContext.isEditRepo.value ? 'Add new git repository' : 'Update git repository'}
+        description={
+          !modalContext.isEditRepo.value
+            ? 'Enter a new git repository to obtain information in the quality quality studio.'
+            : ''
+        }
         isOpen={modalContext.isModalOpen.value}
         onClose={modalContext.handleModalToggle}
         actions={[
-          <Button key="create" variant="primary" form="modal-with-form-form" onClick={onSubmit} isDisabled={!teamIsNotEmpty(state.teams.Team)} {...primaryLoadingProps}>
-            {!modalContext.isEditRepo.value ? "Add" : "Update"}
+          <Button
+            key="create"
+            variant="primary"
+            form="modal-with-form-form"
+            onClick={onSubmit}
+            isDisabled={!teamIsNotEmpty(state.teams.Team)}
+            {...primaryLoadingProps}
+          >
+            {!modalContext.isEditRepo.value ? 'Add' : 'Update'}
           </Button>,
           <Button key="cancel" variant="link" onClick={modalContext.handleModalToggle}>
             Cancel
-          </Button>
+          </Button>,
         ]}
       >
         <Form isHorizontal id="modal-with-form-form">
           <FormGroup
             label="Git Organization"
             labelIcon={
-              <Popover
-                headerContent={
-                  <div>
-                  </div>
-                }
-                bodyContent={
-                  <div>
-                    Git organization name
-                  </div>
-                }
-              >
+              <Popover headerContent={<div></div>} bodyContent={<div>Git organization name</div>}>
                 <button
                   type="button"
                   aria-label="More info for name field"
-                  onClick={e => e.preventDefault()}
+                  onClick={(e) => e.preventDefault()}
                   aria-describedby="modal-with-form-form-name"
                   className="pf-c-form__group-label-help"
                 >
@@ -190,7 +204,8 @@ export const FormModal = () => {
               </Popover>
             }
             isRequired
-            fieldId="modal-with-form-form-name">
+            fieldId="modal-with-form-form-name"
+          >
             <TextInput
               isReadOnly={modalContext.isEditRepo.value}
               isRequired
@@ -205,21 +220,13 @@ export const FormModal = () => {
             label="Repository name"
             labelIcon={
               <Popover
-                headerContent={
-                  <div>
-                    The repository name
-                  </div>
-                }
-                bodyContent={
-                  <div>
-                    An valid github repository bane
-                  </div>
-                }
+                headerContent={<div>The repository name</div>}
+                bodyContent={<div>An valid github repository bane</div>}
               >
                 <button
                   type="button"
                   aria-label="More info for e-mail field"
-                  onClick={e => e.preventDefault()}
+                  onClick={(e) => e.preventDefault()}
                   aria-describedby="modal-with-form-form-email"
                   className="pf-c-form__group-label-help"
                 >
@@ -228,7 +235,8 @@ export const FormModal = () => {
               </Popover>
             }
             isRequired
-            fieldId="modal-with-form-form-email">
+            fieldId="modal-with-form-form-email"
+          >
             <TextInput
               isReadOnly={modalContext.isEditRepo.value}
               isRequired
@@ -240,22 +248,45 @@ export const FormModal = () => {
             />
           </FormGroup>
           <FormGroup label="Team" isRequired isStack hasNoPaddingTop fieldId={''}>
-            {teamIsNotEmpty(state.teams.Team) ? <TextInput
-              isReadOnly={true}
-              isRequired
-              type="text"
-              id="modal-with-form-form-team"
-              name="modal-with-form-form-team"
-              value={state.teams.Team}
-            /> :
+            {teamIsNotEmpty(state.teams.Team) ? (
+              <TextInput
+                isReadOnly={true}
+                isRequired
+                type="text"
+                id="modal-with-form-form-team"
+                name="modal-with-form-form-team"
+                value={state.teams.Team}
+              />
+            ) : (
               <div>
-                <Button onClick={() => { history.push("/home/teams") }} type="button" width={300}>Create your first Team</Button>
-                <Alert style={{ marginTop: "1em" }} variant="danger" isInline isPlain title="You need to create a team before adding a repository" />
+                <Button
+                  onClick={() => {
+                    history.push('/home/teams');
+                  }}
+                  type="button"
+                  width={300}
+                >
+                  Create your first Team
+                </Button>
+                <Alert
+                  style={{ marginTop: '1em' }}
+                  variant="danger"
+                  isInline
+                  isPlain
+                  title="You need to create a team before adding a repository"
+                />
               </div>
-            }
+            )}
           </FormGroup>
           <FormGroup label="Monitor CI Jobs" isRequired isStack hasNoPaddingTop fieldId={''}>
-            <Checkbox label="GitHub Actions" id="alt-form-checkbox-1" name="alt-form-checkbox-1" value={String(monitorGithubActions)} onChange={handleGithubActionsMonitor} isChecked={Boolean(checked)} />
+            <Checkbox
+              label="GitHub Actions"
+              id="alt-form-checkbox-1"
+              name="alt-form-checkbox-1"
+              value={String(monitorGithubActions)}
+              onChange={handleGithubActionsMonitor}
+              isChecked={Boolean(checked)}
+            />
           </FormGroup>
           <FormGroup label="Code Coverage" isRequired isStack hasNoPaddingTop fieldId={''}>
             <Checkbox label="codecov.io" id="alt-form-checkbox-2" name="alt-form-checkbox-2" />
@@ -264,11 +295,7 @@ export const FormModal = () => {
             label="Quay.io Artifacts"
             labelIcon={
               <Popover
-                headerContent={
-                  <div>
-                    Quay.io artifacts related to the repository
-                  </div>
-                }
+                headerContent={<div>Quay.io artifacts related to the repository</div>}
                 bodyContent={
                   <div>
                     If the repository contain more than one artifact add with coma separated:
@@ -279,7 +306,7 @@ export const FormModal = () => {
                 <button
                   type="button"
                   aria-label="More info for address field"
-                  onClick={e => e.preventDefault()}
+                  onClick={(e) => e.preventDefault()}
                   aria-describedby="modal-with-form-form-address"
                   className="pf-c-form__group-label-help"
                 >
@@ -288,15 +315,12 @@ export const FormModal = () => {
               </Popover>
             }
             isRequired
-            fieldId="modal-with-form-form-address">
-            <TextArea
-              name="horizontal-form-exp"
-              id="horizontal-form-exp"
-            />
+            fieldId="modal-with-form-form-address"
+          >
+            <TextArea name="horizontal-form-exp" id="horizontal-form-exp" />
           </FormGroup>
         </Form>
       </Modal>
     </React.Fragment>
   );
 };
-
