@@ -71,17 +71,14 @@ export const Jira = () => {
                     if(!newData.hasOwnProperty(value.data.open.priority)){
                         newData[value.data.open.priority] = {}
                     }
-                    console.log(value.data.open)
                     newData[value.data.open.priority].open = value.data.open
                 } else if(value.data.hasOwnProperty("resolution_time")){
                     if(!newData.hasOwnProperty(value.data.resolution_time.priority)){
                         newData[value.data.open.priority] = {}
                     }
-                    console.log(value.data.resolution_time)
                     newData[value.data.resolution_time.priority].resolved = value.data.resolution_time
                 }
             })
-            console.log(newData)
             setApiDataCache(newData)
             setSelected(ID)
 
@@ -165,6 +162,10 @@ export const Jira = () => {
         }
     }, [selected, isSelected, apiDataCache]);
 
+    function onBarChartClick(event){
+        console.log("clicked", event)
+    }
+
     return (
         <React.Fragment>
             <PageSection style={{
@@ -200,7 +201,7 @@ export const Jira = () => {
                                             }
                                             { !apiDataCache[selected] && "-" }
                                         </Title>
-                                        <BugsChart chartType="line" data={resolutionTimeChart}></BugsChart>
+                                        <BugsChart chartType="line" data={resolutionTimeChart} onBarClick={onBarChartClick}></BugsChart>
                                     </CardBody>
                                 </Card>
                             </GridItem>
@@ -219,7 +220,7 @@ export const Jira = () => {
                                             }
                                             { !apiDataCache[selected] && "-" }
                                         </Title>
-                                        <BugsChart chartType="bar" data={bugsChart}></BugsChart>
+                                        <BugsChart chartType="bar" data={bugsChart} onBarClick={onBarChartClick}></BugsChart>
                                     </CardBody>
                                 </Card>
                             </GridItem>
@@ -355,7 +356,7 @@ export const Jira = () => {
 }
 
 
-const BugsChart: React.FC<{chartType:string, data:any}> = ({chartType, data}) => {
+const BugsChart: React.FC<{chartType:string, data:any, onBarClick:any}> = ({chartType, data, onBarClick}) => {
 
     const CursorVoronoiContainer = createContainer("voronoi", "cursor");
 
@@ -396,6 +397,22 @@ const BugsChart: React.FC<{chartType:string, data:any}> = ({chartType, data}) =>
                 }}
                 data={dataset}
                 labels={({ datum }) => datum.y != 0 ? `${datum.y}` : ``}
+                events={[
+                    {
+                      target: "data",
+                      eventHandlers: {
+                        onClick: () => {
+                          return [{
+                            target: "data",
+                            mutation: (props) => {
+                              onBarClick(props)  
+                              return ({ style: { fill: "orange" } })
+                            }
+                          }];
+                        }
+                      }
+                    }
+                  ]}
                 />
             ))}
           </ChartGroup>

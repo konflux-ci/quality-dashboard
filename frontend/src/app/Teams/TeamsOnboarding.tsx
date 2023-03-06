@@ -4,7 +4,8 @@ import {
   Wizard, PageSection, PageSectionVariants,
   TextInput, FormGroup, Form, TextArea,
   DescriptionList, DescriptionListGroup, DescriptionListDescription, DescriptionListTerm, Title, Spinner,
-  Alert, AlertGroup, AlertVariant, Button, Toolbar, ToolbarContent, ToolbarItem, ToolbarGroup
+  Alert, AlertGroup, AlertVariant, Button, Toolbar, ToolbarContent, ToolbarItem, ToolbarGroup,
+  Select, SelectOption, SelectVariant, Divider
 } from '@patternfly/react-core';
 import { useHistory } from 'react-router-dom';
 import { getTeams } from '@app/utils/APIService';
@@ -164,6 +165,62 @@ export const TeamsWizard = () => {
     </div>
   )
 
+  const [isJiraOpen, setJiraOpen] = useState<boolean>(false);
+  const [options, setOptions] = useState<Array<string>>([])
+  const jiraProjectsOptions = [
+    <SelectOption key={0} value="Active"/>,
+    <SelectOption key={1} value="Cancelled" />,
+    <SelectOption key={2} value="Paused" />,
+    <SelectOption key={4} value="Warning" />,
+    <SelectOption key={5} value="Restarted" />
+  ]
+  const clearSelection = () => {
+    setOptions([])
+  };
+
+  const onToggle = isOpen => {
+    setJiraOpen(isOpen)
+  };
+
+  const onSelect = (event, selection) => {
+    if (options.includes(selection)) {
+      let newState = options.filter(item => item !== selection)
+      setOptions(newState)
+    } 
+    else {
+      let newState = [...options, selection]
+      setOptions(newState)
+    }
+  };
+
+  const JiraProjects = (
+      <div className={'pf-u-m-lg'} >
+        <Title headingLevel="h6" size="xl">Optionally: associate Jira Projects to your team</Title>
+        <Form>
+          <FormGroup label="Jira Projects" fieldId="repo-name" helperText="Select Jira Projects">
+            <Select
+              variant={SelectVariant.checkbox}
+              aria-label="Select Jira Projects"
+              onToggle={onToggle}
+              onSelect={onSelect}
+              selections={options}
+              isOpen={isJiraOpen}
+              placeholderText={options.join(" - ")}
+            >
+              {jiraProjectsOptions}
+            </Select>
+          </FormGroup>
+          <div>
+            <p style={{marginTop: '10px'}}>These projects will be associated to your Team. They will be used to display metrics about bugs in the Jira page.</p>
+            <p style={{marginTop: '10px'}}>You have selected the following Jira Projects:</p>
+              {options.map((project, index ) => (
+              <li key={index}>{project}</li>
+            ))}
+          </div>
+        </Form>
+      </div>
+  )
+
   const DataReview = (
     <div>
       <Title headingLevel="h6" size="xl">Review your data</Title>
@@ -185,6 +242,10 @@ export const TeamsWizard = () => {
             <DescriptionListTerm>Organization</DescriptionListTerm>
             <DescriptionListDescription>{newOrgName}</DescriptionListDescription>
           </DescriptionListGroup>
+          <DescriptionListGroup>
+            <DescriptionListTerm>Jira Projects</DescriptionListTerm>
+            <DescriptionListDescription>{options.join(" - ")}</DescriptionListDescription>
+          </DescriptionListGroup>
         </DescriptionList>
       </div>
       <div style={{ marginTop: "2em" }}>
@@ -199,6 +260,7 @@ export const TeamsWizard = () => {
   )
 
   const ValidateTeam = () => { return newTeamName != "" && newTeamDesc != "" }
+
   const ValidateRepoAndOrg = () => {
     if (newRepoName != "" || newOrgName != "") {
       return newRepoName != "" && newOrgName != ""
@@ -213,6 +275,7 @@ export const TeamsWizard = () => {
   const steps = [
     { id: 'team', name: 'Team Name', component: TeamData, enableNext: ValidateTeam() },
     { id: 'repo', name: 'Add a repository', component: AddRepo, canJumpTo: ValidateTeam(), enableNext: ValidateRepoAndOrg() },
+    { id: 'jira', name: 'Jira Projects', component: JiraProjects, canJumpTo: ValidateTeam(), enableNext: ValidateTeam() },
     {
       id: 'review',
       name: 'Review',
