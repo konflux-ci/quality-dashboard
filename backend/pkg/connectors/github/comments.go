@@ -76,7 +76,7 @@ func (c *Github) chatopsPRQuery(query string) (ChatopsPRList, error) {
 	return mergedQuery.Search.Nodes, err
 }
 
-// RetestsToMerge returns avegerage of retest calls it took to land
+// RetestsToMerge returns average of retest calls it took to land
 // each merged PR in the time.
 func (gc *Github) RetestsToMerge(source string) (float64, error) {
 	var totalRetests, average float64

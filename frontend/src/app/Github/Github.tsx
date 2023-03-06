@@ -105,7 +105,7 @@ let GitHub = () => {
     setRangeDateTime(getRangeDates(90));
   };
 
-  // Reset all dropwdowns and state variables
+  // Reset all dropdowns and state variables
   const clearAll = () => {
     clearRepo();
     clearRangeDateTime();

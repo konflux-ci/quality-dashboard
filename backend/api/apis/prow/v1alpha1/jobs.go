@@ -34,6 +34,6 @@ type Job struct {
 	// Url to some prow cluster
 	JobURL string `json:"job_url"`
 
-	// Indicate if the test infrastracture failed or not
+	// Indicate if the test infrastructure failed or not
 	CIFailed int16 `json:"ci_failed"`
 }

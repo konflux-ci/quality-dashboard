@@ -83,7 +83,7 @@ let Reports = () => {
     }
   };
 
-  // Reset all dropwdowns and state variables
+  // Reset all dropdowns and state variables
   const clearAll = () => {
     setProwVisible(false); // hide the dashboard leaving only the toolbar
     setNoData(false)
