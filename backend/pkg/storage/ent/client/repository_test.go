@@ -11,6 +11,7 @@ import (
 )
 
 var toCreate = s.Repository{
+	ID:   "12345678",
 	Name: "managed-gitops",
 	Owner: s.Owner{
 		Login: "redhat-appstudio",

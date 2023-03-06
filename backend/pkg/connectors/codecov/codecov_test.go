@@ -10,6 +10,7 @@ import (
 )
 
 var repository = repoV1Alpha1.Repository{
+	ID:   "12345678",
 	Name: "managed-gitops",
 	Owner: repoV1Alpha1.Owner{
 		Login: "redhat-appstudio",
