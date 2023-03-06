@@ -38,7 +38,7 @@ export const GithubActions = (props) => {
                             <Td dataLabel={columnNames.name}>{workflow.workflow_name || ""}</Td>
                             <Td dataLabel={columnNames.job}>{workflow.job || ""}</Td>
                             <Td dataLabel={columnNames.badge}><img src={workflow.badge_url}></img></Td>
-                            <Td dataLabel={columnNames.html_url}><a href={workflow.html_url}><ExternalLinkAltIcon>Link</ExternalLinkAltIcon>Go to job</a></Td>
+                            <Td dataLabel={columnNames.html_url}><a href={workflow.html_url} target="blank" rel="noopener noreferrer"><ExternalLinkAltIcon>Link</ExternalLinkAltIcon>Go to job</a></Td>
                         </Tr>
                     );
                 })}
