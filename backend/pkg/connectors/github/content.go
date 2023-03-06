@@ -36,13 +36,14 @@ func (g *Github) GetJobTypes(organization string, repository string) []string {
 	for i := range contents {
 		fileName := *contents[i].Name
 
-		if strings.HasSuffix(fileName, fmt.Sprintf("%s-%s-main-presubmits.yaml", organization, repository)) {
+		if strings.HasSuffix(fileName, "-presubmits.yaml") {
 			jobTypes = append(jobTypes, "presubmit")
 		}
-		if strings.HasSuffix(fileName, fmt.Sprintf("%s-%s-main-postsubmits.yaml", organization, repository)) {
+
+		if strings.HasSuffix(fileName, "-postsubmits.yaml") {
 			jobTypes = append(jobTypes, "postsubmit")
 		}
-		if strings.HasSuffix(fileName, fmt.Sprintf("%s-%s-main-periodics.yaml", organization, repository)) {
+		if strings.HasSuffix(fileName, "-periodics.yaml") {
 			jobTypes = append(jobTypes, "periodic")
 		}
 	}

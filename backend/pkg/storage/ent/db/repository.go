@@ -16,7 +16,7 @@ import (
 type Repository struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID uuid.UUID `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// RepositoryName holds the value of the "repository_name" field.
 	RepositoryName string `json:"repository_name,omitempty"`
 	// GitOrganization holds the value of the "git_organization" field.
@@ -113,10 +113,8 @@ func (*Repository) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case repository.FieldRepositoryName, repository.FieldGitOrganization, repository.FieldDescription, repository.FieldGitURL:
+		case repository.FieldID, repository.FieldRepositoryName, repository.FieldGitOrganization, repository.FieldDescription, repository.FieldGitURL:
 			values[i] = new(sql.NullString)
-		case repository.FieldID:
-			values[i] = new(uuid.UUID)
 		case repository.ForeignKeys[0]: // teams_repositories
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
@@ -135,10 +133,10 @@ func (r *Repository) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case repository.FieldID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
-			} else if value != nil {
-				r.ID = *value
+			} else if value.Valid {
+				r.ID = value.String
 			}
 		case repository.FieldRepositoryName:
 			if value, ok := values[i].(*sql.NullString); !ok {

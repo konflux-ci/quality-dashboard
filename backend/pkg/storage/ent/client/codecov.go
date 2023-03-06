@@ -3,18 +3,18 @@ package client
 import (
 	"context"
 
-	"github.com/google/uuid"
 	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
 // CreateCoverage saves provided coverage information in database.
-func (d *Database) CreateCoverage(repository coverageV1Alpha1.Coverage, repo_id uuid.UUID) error {
+func (d *Database) CreateCoverage(codecoverage coverageV1Alpha1.Coverage, repo_id string) error {
 	c, err := d.client.CodeCov.Create().
-		SetRepositoryName(repository.RepositoryName).
-		SetGitOrganization(repository.GitOrganization).
-		SetCoveragePercentage(repository.CoveragePercentage).
+		SetRepositoryName(codecoverage.RepositoryName).
+		SetGitOrganization(codecoverage.GitOrganization).
+		SetCoveragePercentage(codecoverage.CoveragePercentage).
+		SetAverageRetestsToMerge(codecoverage.AverageToRetestPullRequest).
 		Save(context.TODO())
 	if err != nil {
 		return convertDBError("create coverage: %w", err)
@@ -36,6 +36,7 @@ func (d *Database) UpdateCoverage(codecoverage coverageV1Alpha1.Coverage, repoNa
 		SetRepositoryName(codecoverage.RepositoryName).
 		SetGitOrganization(codecoverage.GitOrganization).
 		SetCoveragePercentage(codecoverage.CoveragePercentage).
+		SetAverageRetestsToMerge(codecoverage.AverageToRetestPullRequest).
 		Save(context.TODO())
 	if err != nil {
 		return convertDBError("create coverage: %w", err)

@@ -63,8 +63,22 @@ func init() {
 	repository.GitURLValidator = repositoryDescGitURL.Validators[0].(func(string) error)
 	// repositoryDescID is the schema descriptor for id field.
 	repositoryDescID := repositoryFields[0].Descriptor()
-	// repository.DefaultID holds the default value on creation for the id field.
-	repository.DefaultID = repositoryDescID.Default.(func() uuid.UUID)
+	// repository.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	repository.IDValidator = func() func(string) error {
+		validators := repositoryDescID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(id string) error {
+			for _, fn := range fns {
+				if err := fn(id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	teamsFields := schema.Teams{}.Fields()
 	_ = teamsFields
 	// teamsDescID is the schema descriptor for id field.

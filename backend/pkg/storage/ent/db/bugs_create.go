@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -20,6 +22,7 @@ type BugsCreate struct {
 	config
 	mutation *BugsMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetJiraKey sets the "jira_key" field.
@@ -203,6 +206,7 @@ func (bc *BugsCreate) createSpec() (*Bugs, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = bc.conflict
 	if id, ok := bc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -258,10 +262,328 @@ func (bc *BugsCreate) createSpec() (*Bugs, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Bugs.Create().
+//		SetJiraKey(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.BugsUpsert) {
+//			SetJiraKey(v+v).
+//		}).
+//		Exec(ctx)
+func (bc *BugsCreate) OnConflict(opts ...sql.ConflictOption) *BugsUpsertOne {
+	bc.conflict = opts
+	return &BugsUpsertOne{
+		create: bc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Bugs.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (bc *BugsCreate) OnConflictColumns(columns ...string) *BugsUpsertOne {
+	bc.conflict = append(bc.conflict, sql.ConflictColumns(columns...))
+	return &BugsUpsertOne{
+		create: bc,
+	}
+}
+
+type (
+	// BugsUpsertOne is the builder for "upsert"-ing
+	//  one Bugs node.
+	BugsUpsertOne struct {
+		create *BugsCreate
+	}
+
+	// BugsUpsert is the "OnConflict" setter.
+	BugsUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetJiraKey sets the "jira_key" field.
+func (u *BugsUpsert) SetJiraKey(v string) *BugsUpsert {
+	u.Set(bugs.FieldJiraKey, v)
+	return u
+}
+
+// UpdateJiraKey sets the "jira_key" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateJiraKey() *BugsUpsert {
+	u.SetExcluded(bugs.FieldJiraKey)
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *BugsUpsert) SetCreatedAt(v time.Time) *BugsUpsert {
+	u.Set(bugs.FieldCreatedAt, v)
+	return u
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateCreatedAt() *BugsUpsert {
+	u.SetExcluded(bugs.FieldCreatedAt)
+	return u
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *BugsUpsert) SetUpdatedAt(v time.Time) *BugsUpsert {
+	u.Set(bugs.FieldUpdatedAt, v)
+	return u
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateUpdatedAt() *BugsUpsert {
+	u.SetExcluded(bugs.FieldUpdatedAt)
+	return u
+}
+
+// SetPriority sets the "priority" field.
+func (u *BugsUpsert) SetPriority(v string) *BugsUpsert {
+	u.Set(bugs.FieldPriority, v)
+	return u
+}
+
+// UpdatePriority sets the "priority" field to the value that was provided on create.
+func (u *BugsUpsert) UpdatePriority() *BugsUpsert {
+	u.SetExcluded(bugs.FieldPriority)
+	return u
+}
+
+// SetStatus sets the "status" field.
+func (u *BugsUpsert) SetStatus(v string) *BugsUpsert {
+	u.Set(bugs.FieldStatus, v)
+	return u
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateStatus() *BugsUpsert {
+	u.SetExcluded(bugs.FieldStatus)
+	return u
+}
+
+// SetSummary sets the "summary" field.
+func (u *BugsUpsert) SetSummary(v string) *BugsUpsert {
+	u.Set(bugs.FieldSummary, v)
+	return u
+}
+
+// UpdateSummary sets the "summary" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateSummary() *BugsUpsert {
+	u.SetExcluded(bugs.FieldSummary)
+	return u
+}
+
+// SetURL sets the "url" field.
+func (u *BugsUpsert) SetURL(v string) *BugsUpsert {
+	u.Set(bugs.FieldURL, v)
+	return u
+}
+
+// UpdateURL sets the "url" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateURL() *BugsUpsert {
+	u.SetExcluded(bugs.FieldURL)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Bugs.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(bugs.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *BugsUpsertOne) UpdateNewValues() *BugsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(bugs.FieldID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Bugs.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *BugsUpsertOne) Ignore() *BugsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *BugsUpsertOne) DoNothing() *BugsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the BugsCreate.OnConflict
+// documentation for more info.
+func (u *BugsUpsertOne) Update(set func(*BugsUpsert)) *BugsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&BugsUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetJiraKey sets the "jira_key" field.
+func (u *BugsUpsertOne) SetJiraKey(v string) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetJiraKey(v)
+	})
+}
+
+// UpdateJiraKey sets the "jira_key" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateJiraKey() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateJiraKey()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *BugsUpsertOne) SetCreatedAt(v time.Time) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateCreatedAt() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *BugsUpsertOne) SetUpdatedAt(v time.Time) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateUpdatedAt() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetPriority sets the "priority" field.
+func (u *BugsUpsertOne) SetPriority(v string) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetPriority(v)
+	})
+}
+
+// UpdatePriority sets the "priority" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdatePriority() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdatePriority()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *BugsUpsertOne) SetStatus(v string) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateStatus() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetSummary sets the "summary" field.
+func (u *BugsUpsertOne) SetSummary(v string) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetSummary(v)
+	})
+}
+
+// UpdateSummary sets the "summary" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateSummary() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateSummary()
+	})
+}
+
+// SetURL sets the "url" field.
+func (u *BugsUpsertOne) SetURL(v string) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetURL(v)
+	})
+}
+
+// UpdateURL sets the "url" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateURL() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateURL()
+	})
+}
+
+// Exec executes the query.
+func (u *BugsUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("db: missing options for BugsCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *BugsUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *BugsUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("db: BugsUpsertOne.ID is not supported by MySQL driver. Use BugsUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *BugsUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // BugsCreateBulk is the builder for creating many Bugs entities in bulk.
 type BugsCreateBulk struct {
 	config
 	builders []*BugsCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Bugs entities in the database.
@@ -288,6 +610,7 @@ func (bcb *BugsCreateBulk) Save(ctx context.Context) ([]*Bugs, error) {
 					_, err = mutators[i+1].Mutate(root, bcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = bcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, bcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -334,6 +657,215 @@ func (bcb *BugsCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (bcb *BugsCreateBulk) ExecX(ctx context.Context) {
 	if err := bcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Bugs.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.BugsUpsert) {
+//			SetJiraKey(v+v).
+//		}).
+//		Exec(ctx)
+func (bcb *BugsCreateBulk) OnConflict(opts ...sql.ConflictOption) *BugsUpsertBulk {
+	bcb.conflict = opts
+	return &BugsUpsertBulk{
+		create: bcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Bugs.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (bcb *BugsCreateBulk) OnConflictColumns(columns ...string) *BugsUpsertBulk {
+	bcb.conflict = append(bcb.conflict, sql.ConflictColumns(columns...))
+	return &BugsUpsertBulk{
+		create: bcb,
+	}
+}
+
+// BugsUpsertBulk is the builder for "upsert"-ing
+// a bulk of Bugs nodes.
+type BugsUpsertBulk struct {
+	create *BugsCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Bugs.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(bugs.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *BugsUpsertBulk) UpdateNewValues() *BugsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(bugs.FieldID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Bugs.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *BugsUpsertBulk) Ignore() *BugsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *BugsUpsertBulk) DoNothing() *BugsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the BugsCreateBulk.OnConflict
+// documentation for more info.
+func (u *BugsUpsertBulk) Update(set func(*BugsUpsert)) *BugsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&BugsUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetJiraKey sets the "jira_key" field.
+func (u *BugsUpsertBulk) SetJiraKey(v string) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetJiraKey(v)
+	})
+}
+
+// UpdateJiraKey sets the "jira_key" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateJiraKey() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateJiraKey()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *BugsUpsertBulk) SetCreatedAt(v time.Time) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateCreatedAt() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (u *BugsUpsertBulk) SetUpdatedAt(v time.Time) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetUpdatedAt(v)
+	})
+}
+
+// UpdateUpdatedAt sets the "updated_at" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateUpdatedAt() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateUpdatedAt()
+	})
+}
+
+// SetPriority sets the "priority" field.
+func (u *BugsUpsertBulk) SetPriority(v string) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetPriority(v)
+	})
+}
+
+// UpdatePriority sets the "priority" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdatePriority() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdatePriority()
+	})
+}
+
+// SetStatus sets the "status" field.
+func (u *BugsUpsertBulk) SetStatus(v string) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetStatus(v)
+	})
+}
+
+// UpdateStatus sets the "status" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateStatus() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateStatus()
+	})
+}
+
+// SetSummary sets the "summary" field.
+func (u *BugsUpsertBulk) SetSummary(v string) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetSummary(v)
+	})
+}
+
+// UpdateSummary sets the "summary" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateSummary() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateSummary()
+	})
+}
+
+// SetURL sets the "url" field.
+func (u *BugsUpsertBulk) SetURL(v string) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetURL(v)
+	})
+}
+
+// UpdateURL sets the "url" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateURL() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateURL()
+	})
+}
+
+// Exec executes the query.
+func (u *BugsUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the BugsCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("db: missing options for BugsCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *BugsUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

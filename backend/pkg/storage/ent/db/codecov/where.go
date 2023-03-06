@@ -69,6 +69,11 @@ func CoveragePercentage(v float64) predicate.CodeCov {
 	return predicate.CodeCov(sql.FieldEQ(FieldCoveragePercentage, v))
 }
 
+// AverageRetestsToMerge applies equality check predicate on the "average_retests_to_merge" field. It's identical to AverageRetestsToMergeEQ.
+func AverageRetestsToMerge(v float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldEQ(FieldAverageRetestsToMerge, v))
+}
+
 // RepositoryNameEQ applies the EQ predicate on the "repository_name" field.
 func RepositoryNameEQ(v string) predicate.CodeCov {
 	return predicate.CodeCov(sql.FieldEQ(FieldRepositoryName, v))
@@ -239,6 +244,46 @@ func CoveragePercentageLTE(v float64) predicate.CodeCov {
 	return predicate.CodeCov(sql.FieldLTE(FieldCoveragePercentage, v))
 }
 
+// AverageRetestsToMergeEQ applies the EQ predicate on the "average_retests_to_merge" field.
+func AverageRetestsToMergeEQ(v float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldEQ(FieldAverageRetestsToMerge, v))
+}
+
+// AverageRetestsToMergeNEQ applies the NEQ predicate on the "average_retests_to_merge" field.
+func AverageRetestsToMergeNEQ(v float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldNEQ(FieldAverageRetestsToMerge, v))
+}
+
+// AverageRetestsToMergeIn applies the In predicate on the "average_retests_to_merge" field.
+func AverageRetestsToMergeIn(vs ...float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldIn(FieldAverageRetestsToMerge, vs...))
+}
+
+// AverageRetestsToMergeNotIn applies the NotIn predicate on the "average_retests_to_merge" field.
+func AverageRetestsToMergeNotIn(vs ...float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldNotIn(FieldAverageRetestsToMerge, vs...))
+}
+
+// AverageRetestsToMergeGT applies the GT predicate on the "average_retests_to_merge" field.
+func AverageRetestsToMergeGT(v float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldGT(FieldAverageRetestsToMerge, v))
+}
+
+// AverageRetestsToMergeGTE applies the GTE predicate on the "average_retests_to_merge" field.
+func AverageRetestsToMergeGTE(v float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldGTE(FieldAverageRetestsToMerge, v))
+}
+
+// AverageRetestsToMergeLT applies the LT predicate on the "average_retests_to_merge" field.
+func AverageRetestsToMergeLT(v float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldLT(FieldAverageRetestsToMerge, v))
+}
+
+// AverageRetestsToMergeLTE applies the LTE predicate on the "average_retests_to_merge" field.
+func AverageRetestsToMergeLTE(v float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldLTE(FieldAverageRetestsToMerge, v))
+}
+
 // HasCodecov applies the HasEdge predicate on the "codecov" edge.
 func HasCodecov() predicate.CodeCov {
 	return predicate.CodeCov(func(s *sql.Selector) {
@@ -255,7 +300,7 @@ func HasCodecovWith(preds ...predicate.Repository) predicate.CodeCov {
 	return predicate.CodeCov(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CodecovInverseTable, RepositoryFieldID),
+			sqlgraph.To(CodecovInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, CodecovTable, CodecovColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

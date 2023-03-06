@@ -43,15 +43,15 @@ type Storage interface {
 	// POST
 	CreateRepository(p repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error)
 	CreateQualityStudioTeam(teamName, description string) (*db.Teams, error)
-	CreateWorkflows(p repoV1Alpha1.Workflow, repo_id uuid.UUID) error
-	CreateCoverage(p coverageV1Alpha1.Coverage, repo_id uuid.UUID) error
-	CreateProwJobSuites(prowJobStatus prowV1Alpha1.JobSuites, repo_id uuid.UUID) error
-	CreateProwJobResults(prowJobStatus prowV1Alpha1.Job, repo_id uuid.UUID) error
+	CreateWorkflows(p repoV1Alpha1.Workflow, repo_id string) error
+	CreateCoverage(p coverageV1Alpha1.Coverage, repo_id string) error
+	CreateProwJobSuites(prowJobStatus prowV1Alpha1.JobSuites, repo_id string) error
+	CreateProwJobResults(prowJobStatus prowV1Alpha1.Job, repo_id string) error
 	ReCreateWorkflow(workflow repoV1Alpha1.Workflow, repoName string) error
 	UpdateCoverage(codecov coverageV1Alpha1.Coverage, repoName string) error
 	CreateJiraBug(bug jiraV1Alpha1.JiraBug) error
 	UpdateTeam(t *db.Teams, target string) error
-	CreatePullRequest(p repoV1Alpha1.PullRequest, repo_id uuid.UUID) error
+	CreatePullRequests(prs repoV1Alpha1.PullRequests, repo_id string) error
 
 	// Delete
 	DeleteRepository(repositoryName, gitOrganizationName string) error

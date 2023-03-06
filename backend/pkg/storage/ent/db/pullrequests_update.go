@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
@@ -27,20 +26,6 @@ type PullRequestsUpdate struct {
 // Where appends a list predicates to the PullRequestsUpdate builder.
 func (pru *PullRequestsUpdate) Where(ps ...predicate.PullRequests) *PullRequestsUpdate {
 	pru.mutation.Where(ps...)
-	return pru
-}
-
-// SetPrID sets the "pr_id" field.
-func (pru *PullRequestsUpdate) SetPrID(u uuid.UUID) *PullRequestsUpdate {
-	pru.mutation.SetPrID(u)
-	return pru
-}
-
-// SetNillablePrID sets the "pr_id" field if the given value is not nil.
-func (pru *PullRequestsUpdate) SetNillablePrID(u *uuid.UUID) *PullRequestsUpdate {
-	if u != nil {
-		pru.SetPrID(*u)
-	}
 	return pru
 }
 
@@ -106,13 +91,13 @@ func (pru *PullRequestsUpdate) SetTitle(s string) *PullRequestsUpdate {
 }
 
 // SetPrsID sets the "prs" edge to the Repository entity by ID.
-func (pru *PullRequestsUpdate) SetPrsID(id uuid.UUID) *PullRequestsUpdate {
+func (pru *PullRequestsUpdate) SetPrsID(id string) *PullRequestsUpdate {
 	pru.mutation.SetPrsID(id)
 	return pru
 }
 
 // SetNillablePrsID sets the "prs" edge to the Repository entity by ID if the given value is not nil.
-func (pru *PullRequestsUpdate) SetNillablePrsID(id *uuid.UUID) *PullRequestsUpdate {
+func (pru *PullRequestsUpdate) SetNillablePrsID(id *string) *PullRequestsUpdate {
 	if id != nil {
 		pru = pru.SetPrsID(*id)
 	}
@@ -180,9 +165,6 @@ func (pru *PullRequestsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := pru.mutation.PrID(); ok {
-		_spec.SetField(pullrequests.FieldPrID, field.TypeUUID, value)
-	}
 	if value, ok := pru.mutation.RepositoryName(); ok {
 		_spec.SetField(pullrequests.FieldRepositoryName, field.TypeString, value)
 	}
@@ -222,7 +204,7 @@ func (pru *PullRequestsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -238,7 +220,7 @@ func (pru *PullRequestsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -266,20 +248,6 @@ type PullRequestsUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *PullRequestsMutation
-}
-
-// SetPrID sets the "pr_id" field.
-func (pruo *PullRequestsUpdateOne) SetPrID(u uuid.UUID) *PullRequestsUpdateOne {
-	pruo.mutation.SetPrID(u)
-	return pruo
-}
-
-// SetNillablePrID sets the "pr_id" field if the given value is not nil.
-func (pruo *PullRequestsUpdateOne) SetNillablePrID(u *uuid.UUID) *PullRequestsUpdateOne {
-	if u != nil {
-		pruo.SetPrID(*u)
-	}
-	return pruo
 }
 
 // SetRepositoryName sets the "repository_name" field.
@@ -344,13 +312,13 @@ func (pruo *PullRequestsUpdateOne) SetTitle(s string) *PullRequestsUpdateOne {
 }
 
 // SetPrsID sets the "prs" edge to the Repository entity by ID.
-func (pruo *PullRequestsUpdateOne) SetPrsID(id uuid.UUID) *PullRequestsUpdateOne {
+func (pruo *PullRequestsUpdateOne) SetPrsID(id string) *PullRequestsUpdateOne {
 	pruo.mutation.SetPrsID(id)
 	return pruo
 }
 
 // SetNillablePrsID sets the "prs" edge to the Repository entity by ID if the given value is not nil.
-func (pruo *PullRequestsUpdateOne) SetNillablePrsID(id *uuid.UUID) *PullRequestsUpdateOne {
+func (pruo *PullRequestsUpdateOne) SetNillablePrsID(id *string) *PullRequestsUpdateOne {
 	if id != nil {
 		pruo = pruo.SetPrsID(*id)
 	}
@@ -442,9 +410,6 @@ func (pruo *PullRequestsUpdateOne) sqlSave(ctx context.Context) (_node *PullRequ
 			}
 		}
 	}
-	if value, ok := pruo.mutation.PrID(); ok {
-		_spec.SetField(pullrequests.FieldPrID, field.TypeUUID, value)
-	}
 	if value, ok := pruo.mutation.RepositoryName(); ok {
 		_spec.SetField(pullrequests.FieldRepositoryName, field.TypeString, value)
 	}
@@ -484,7 +449,7 @@ func (pruo *PullRequestsUpdateOne) sqlSave(ctx context.Context) (_node *PullRequ
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -500,7 +465,7 @@ func (pruo *PullRequestsUpdateOne) sqlSave(ctx context.Context) (_node *PullRequ
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},

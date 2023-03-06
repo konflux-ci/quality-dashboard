@@ -110,39 +110,36 @@ func (s *Server) UpdateDataBaseRepoByTeam() error {
 }
 
 func (s *Server) CacheRepositoriesInformation(storageRepos []repoV1Alpha1.Repository) error {
+	currentTime := time.Now()
 	for _, repo := range storageRepos {
-
-		// update prs info
-		prs, err := s.cfg.Github.GetRepositoryPullRequests(repo.Organization, repo.Name)
+		prs, err := s.cfg.Github.GetPullRequestsInRange(context.TODO(), repoV1Alpha1.ListPullRequestsOptions{
+			Repository: repo.Name,
+			Owner:      repo.Owner.Login,
+		}, currentTime.AddDate(0, -3, 0), currentTime)
 		if err != nil {
 			return err
 		}
 
-		for _, pr := range prs {
-			s.cfg.Storage.CreatePullRequest(repoV1Alpha1.PullRequest{
-				RepositoryName:         repo.Name,
-				RepositoryOrganization: repo.Organization,
-				Number:                 pr.GetNumber(),
-				Title:                  pr.GetTitle(),
-				CreatedAt:              pr.GetCreatedAt(),
-				MergedAt:               pr.GetMergedAt(),
-				ClosedAt:               pr.GetClosedAt(),
-				State:                  pr.GetState(),
-				Author:                 *pr.GetUser().Login,
-			}, repo.ID)
+		if err := s.cfg.Storage.CreatePullRequests(prs, repo.ID); err != nil {
+			return err
 		}
 
+		totalRetestRepoAvg, err := s.cfg.Github.RetestsToMerge(fmt.Sprintf("%s/%s", repo.Owner, repo.Name))
+		if err != nil {
+			return err
+		}
 		//update coverage info
-		coverage, err := s.getCodeCoverage(repo.Organization, repo.Name)
+		coverage, err := s.getCodeCoverage(repo.Owner.Login, repo.Name)
 
 		if err != nil {
 			return err
 		}
 		totalCoverageConverted, _ := coverage.Totals.Coverage.Float64()
 		err = s.cfg.Storage.UpdateCoverage(coverageV1Alpha1.Coverage{
-			GitOrganization:    repo.Organization,
-			RepositoryName:     repo.Name,
-			CoveragePercentage: totalCoverageConverted,
+			GitOrganization:            repo.Owner.Login,
+			RepositoryName:             repo.Name,
+			CoveragePercentage:         totalCoverageConverted,
+			AverageToRetestPullRequest: totalRetestRepoAvg,
 		}, repo.Name)
 		if err != nil {
 			return err

@@ -5,52 +5,51 @@ package repository
 import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id uuid.UUID) predicate.Repository {
+func ID(id string) predicate.Repository {
 	return predicate.Repository(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id uuid.UUID) predicate.Repository {
+func IDEQ(id string) predicate.Repository {
 	return predicate.Repository(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id uuid.UUID) predicate.Repository {
+func IDNEQ(id string) predicate.Repository {
 	return predicate.Repository(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...uuid.UUID) predicate.Repository {
+func IDIn(ids ...string) predicate.Repository {
 	return predicate.Repository(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...uuid.UUID) predicate.Repository {
+func IDNotIn(ids ...string) predicate.Repository {
 	return predicate.Repository(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id uuid.UUID) predicate.Repository {
+func IDGT(id string) predicate.Repository {
 	return predicate.Repository(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id uuid.UUID) predicate.Repository {
+func IDGTE(id string) predicate.Repository {
 	return predicate.Repository(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id uuid.UUID) predicate.Repository {
+func IDLT(id string) predicate.Repository {
 	return predicate.Repository(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id uuid.UUID) predicate.Repository {
+func IDLTE(id string) predicate.Repository {
 	return predicate.Repository(sql.FieldLTE(FieldID, id))
 }
 
@@ -377,7 +376,7 @@ func HasWorkflowsWith(preds ...predicate.Workflows) predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(WorkflowsInverseTable, WorkflowsFieldID),
+			sqlgraph.To(WorkflowsInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, WorkflowsTable, WorkflowsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
@@ -404,7 +403,7 @@ func HasCodecovWith(preds ...predicate.CodeCov) predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CodecovInverseTable, CodeCovFieldID),
+			sqlgraph.To(CodecovInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, CodecovTable, CodecovColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
@@ -431,7 +430,7 @@ func HasProwSuitesWith(preds ...predicate.ProwSuites) predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ProwSuitesInverseTable, ProwSuitesFieldID),
+			sqlgraph.To(ProwSuitesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, ProwSuitesTable, ProwSuitesColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
@@ -458,7 +457,7 @@ func HasProwJobsWith(preds ...predicate.ProwJobs) predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ProwJobsInverseTable, ProwJobsFieldID),
+			sqlgraph.To(ProwJobsInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, ProwJobsTable, ProwJobsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
@@ -485,7 +484,7 @@ func HasPrsWith(preds ...predicate.PullRequests) predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(PrsInverseTable, PullRequestsFieldID),
+			sqlgraph.To(PrsInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, PrsTable, PrsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

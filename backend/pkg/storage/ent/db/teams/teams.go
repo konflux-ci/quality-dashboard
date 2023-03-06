@@ -20,7 +20,7 @@ const (
 	// EdgeBugs holds the string denoting the bugs edge name in mutations.
 	EdgeBugs = "bugs"
 	// RepositoryFieldID holds the string denoting the ID field of the Repository.
-	RepositoryFieldID = "repo_id"
+	RepositoryFieldID = "id"
 	// BugsFieldID holds the string denoting the ID field of the Bugs.
 	BugsFieldID = "id"
 	// Table holds the table name of the teams in the database.

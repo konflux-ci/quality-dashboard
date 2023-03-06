@@ -324,7 +324,7 @@ func HasProwSuitesWith(preds ...predicate.Repository) predicate.ProwSuites {
 	return predicate.ProwSuites(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ProwSuitesInverseTable, RepositoryFieldID),
+			sqlgraph.To(ProwSuitesInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, ProwSuitesTable, ProwSuitesColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

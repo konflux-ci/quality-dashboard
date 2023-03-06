@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
@@ -305,7 +304,6 @@ func (prq *PullRequestsQuery) WithPrs(opts ...func(*RepositoryQuery)) *PullReque
 //		GroupBy(pullrequests.FieldPrID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
-//
 func (prq *PullRequestsQuery) GroupBy(field string, fields ...string) *PullRequestsGroupBy {
 	prq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &PullRequestsGroupBy{build: prq}
@@ -327,7 +325,6 @@ func (prq *PullRequestsQuery) GroupBy(field string, fields ...string) *PullReque
 //	client.PullRequests.Query().
 //		Select(pullrequests.FieldPrID).
 //		Scan(ctx, &v)
-//
 func (prq *PullRequestsQuery) Select(fields ...string) *PullRequestsSelect {
 	prq.ctx.Fields = append(prq.ctx.Fields, fields...)
 	sbuild := &PullRequestsSelect{PullRequestsQuery: prq}
@@ -410,8 +407,8 @@ func (prq *PullRequestsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 }
 
 func (prq *PullRequestsQuery) loadPrs(ctx context.Context, query *RepositoryQuery, nodes []*PullRequests, init func(*PullRequests), assign func(*PullRequests, *Repository)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*PullRequests)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*PullRequests)
 	for i := range nodes {
 		if nodes[i].repository_prs == nil {
 			continue

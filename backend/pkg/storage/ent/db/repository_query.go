@@ -228,8 +228,8 @@ func (rq *RepositoryQuery) FirstX(ctx context.Context) *Repository {
 
 // FirstID returns the first Repository ID from the query.
 // Returns a *NotFoundError when no Repository ID was found.
-func (rq *RepositoryQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
-	var ids []uuid.UUID
+func (rq *RepositoryQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = rq.Limit(1).IDs(setContextOp(ctx, rq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -241,7 +241,7 @@ func (rq *RepositoryQuery) FirstID(ctx context.Context) (id uuid.UUID, err error
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (rq *RepositoryQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (rq *RepositoryQuery) FirstIDX(ctx context.Context) string {
 	id, err := rq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -279,8 +279,8 @@ func (rq *RepositoryQuery) OnlyX(ctx context.Context) *Repository {
 // OnlyID is like Only, but returns the only Repository ID in the query.
 // Returns a *NotSingularError when more than one Repository ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (rq *RepositoryQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
-	var ids []uuid.UUID
+func (rq *RepositoryQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = rq.Limit(2).IDs(setContextOp(ctx, rq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -296,7 +296,7 @@ func (rq *RepositoryQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error)
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (rq *RepositoryQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (rq *RepositoryQuery) OnlyIDX(ctx context.Context) string {
 	id, err := rq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -324,8 +324,8 @@ func (rq *RepositoryQuery) AllX(ctx context.Context) []*Repository {
 }
 
 // IDs executes the query and returns a list of Repository IDs.
-func (rq *RepositoryQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
+func (rq *RepositoryQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
 	ctx = setContextOp(ctx, rq.ctx, "IDs")
 	if err := rq.Select(repository.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
@@ -334,7 +334,7 @@ func (rq *RepositoryQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (rq *RepositoryQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (rq *RepositoryQuery) IDsX(ctx context.Context) []string {
 	ids, err := rq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -486,7 +486,6 @@ func (rq *RepositoryQuery) WithPrs(opts ...func(*PullRequestsQuery)) *Repository
 //		GroupBy(repository.FieldRepositoryName).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
-//
 func (rq *RepositoryQuery) GroupBy(field string, fields ...string) *RepositoryGroupBy {
 	rq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &RepositoryGroupBy{build: rq}
@@ -508,7 +507,6 @@ func (rq *RepositoryQuery) GroupBy(field string, fields ...string) *RepositoryGr
 //	client.Repository.Query().
 //		Select(repository.FieldRepositoryName).
 //		Scan(ctx, &v)
-//
 func (rq *RepositoryQuery) Select(fields ...string) *RepositorySelect {
 	rq.ctx.Fields = append(rq.ctx.Fields, fields...)
 	sbuild := &RepositorySelect{RepositoryQuery: rq}
@@ -664,7 +662,7 @@ func (rq *RepositoryQuery) loadRepositories(ctx context.Context, query *TeamsQue
 }
 func (rq *RepositoryQuery) loadWorkflows(ctx context.Context, query *WorkflowsQuery, nodes []*Repository, init func(*Repository), assign func(*Repository, *Workflows)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Repository)
+	nodeids := make(map[string]*Repository)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -695,7 +693,7 @@ func (rq *RepositoryQuery) loadWorkflows(ctx context.Context, query *WorkflowsQu
 }
 func (rq *RepositoryQuery) loadCodecov(ctx context.Context, query *CodeCovQuery, nodes []*Repository, init func(*Repository), assign func(*Repository, *CodeCov)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Repository)
+	nodeids := make(map[string]*Repository)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -726,7 +724,7 @@ func (rq *RepositoryQuery) loadCodecov(ctx context.Context, query *CodeCovQuery,
 }
 func (rq *RepositoryQuery) loadProwSuites(ctx context.Context, query *ProwSuitesQuery, nodes []*Repository, init func(*Repository), assign func(*Repository, *ProwSuites)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Repository)
+	nodeids := make(map[string]*Repository)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -757,7 +755,7 @@ func (rq *RepositoryQuery) loadProwSuites(ctx context.Context, query *ProwSuites
 }
 func (rq *RepositoryQuery) loadProwJobs(ctx context.Context, query *ProwJobsQuery, nodes []*Repository, init func(*Repository), assign func(*Repository, *ProwJobs)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Repository)
+	nodeids := make(map[string]*Repository)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -788,7 +786,7 @@ func (rq *RepositoryQuery) loadProwJobs(ctx context.Context, query *ProwJobsQuer
 }
 func (rq *RepositoryQuery) loadPrs(ctx context.Context, query *PullRequestsQuery, nodes []*Repository, init func(*Repository), assign func(*Repository, *PullRequests)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Repository)
+	nodeids := make(map[string]*Repository)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -833,7 +831,7 @@ func (rq *RepositoryQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   repository.Table,
 			Columns: repository.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
+				Type:   field.TypeString,
 				Column: repository.FieldID,
 			},
 		},

@@ -17,8 +17,8 @@ func (PullRequests) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("pr_id", uuid.UUID{}).
 			Default(uuid.New).
-			StorageKey("pr_id").
-			Unique(),
+			Unique().
+			Immutable(),
 		field.Text("repository_name").
 			SchemaType(textSchema),
 		field.Text("repository_organization").

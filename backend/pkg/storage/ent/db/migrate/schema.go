@@ -40,7 +40,8 @@ var (
 		{Name: "repository_name", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "git_organization", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "coverage_percentage", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "numeric"}},
-		{Name: "repository_codecov", Type: field.TypeUUID, Nullable: true},
+		{Name: "average_retests_to_merge", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "repository_codecov", Type: field.TypeString, Nullable: true, Size: 25},
 	}
 	// CodeCovsTable holds the schema information for the "code_covs" table.
 	CodeCovsTable = &schema.Table{
@@ -50,7 +51,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "code_covs_repositories_codecov",
-				Columns:    []*schema.Column{CodeCovsColumns[4]},
+				Columns:    []*schema.Column{CodeCovsColumns[5]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -70,7 +71,7 @@ var (
 		{Name: "state", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "job_url", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "ci_failed", Type: field.TypeInt16, SchemaType: map[string]string{"postgres": "numeric"}},
-		{Name: "repository_prow_jobs", Type: field.TypeUUID, Nullable: true},
+		{Name: "repository_prow_jobs", Type: field.TypeString, Nullable: true, Size: 25},
 	}
 	// ProwJobsTable holds the schema information for the "prow_jobs" table.
 	ProwJobsTable = &schema.Table{
@@ -93,7 +94,7 @@ var (
 		{Name: "name", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "status", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "time", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "text"}},
-		{Name: "repository_prow_suites", Type: field.TypeUUID, Nullable: true},
+		{Name: "repository_prow_suites", Type: field.TypeString, Nullable: true, Size: 25},
 	}
 	// ProwSuitesTable holds the schema information for the "prow_suites" table.
 	ProwSuitesTable = &schema.Table{
@@ -122,7 +123,7 @@ var (
 		{Name: "state", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "author", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "title", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
-		{Name: "repository_prs", Type: field.TypeUUID, Nullable: true},
+		{Name: "repository_prs", Type: field.TypeString, Nullable: true, Size: 25},
 	}
 	// PullRequestsTable holds the schema information for the "pull_requests" table.
 	PullRequestsTable = &schema.Table{
@@ -140,7 +141,7 @@ var (
 	}
 	// RepositoriesColumns holds the columns for the "repositories" table.
 	RepositoriesColumns = []*schema.Column{
-		{Name: "repo_id", Type: field.TypeUUID, Unique: true},
+		{Name: "id", Type: field.TypeString, Unique: true, Size: 25},
 		{Name: "repository_name", Type: field.TypeString, Unique: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "git_organization", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "description", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
@@ -182,7 +183,7 @@ var (
 		{Name: "html_url", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "job_url", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "state", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
-		{Name: "repository_workflows", Type: field.TypeUUID, Nullable: true},
+		{Name: "repository_workflows", Type: field.TypeString, Nullable: true, Size: 25},
 	}
 	// WorkflowsTable holds the schema information for the "workflows" table.
 	WorkflowsTable = &schema.Table{

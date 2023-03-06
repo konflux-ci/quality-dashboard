@@ -769,19 +769,21 @@ func (m *BugsMutation) ResetEdge(name string) error {
 // CodeCovMutation represents an operation that mutates the CodeCov nodes in the graph.
 type CodeCovMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *uuid.UUID
-	repository_name        *string
-	git_organization       *string
-	coverage_percentage    *float64
-	addcoverage_percentage *float64
-	clearedFields          map[string]struct{}
-	codecov                *uuid.UUID
-	clearedcodecov         bool
-	done                   bool
-	oldValue               func(context.Context) (*CodeCov, error)
-	predicates             []predicate.CodeCov
+	op                          Op
+	typ                         string
+	id                          *uuid.UUID
+	repository_name             *string
+	git_organization            *string
+	coverage_percentage         *float64
+	addcoverage_percentage      *float64
+	average_retests_to_merge    *float64
+	addaverage_retests_to_merge *float64
+	clearedFields               map[string]struct{}
+	codecov                     *string
+	clearedcodecov              bool
+	done                        bool
+	oldValue                    func(context.Context) (*CodeCov, error)
+	predicates                  []predicate.CodeCov
 }
 
 var _ ent.Mutation = (*CodeCovMutation)(nil)
@@ -1016,8 +1018,64 @@ func (m *CodeCovMutation) ResetCoveragePercentage() {
 	m.addcoverage_percentage = nil
 }
 
+// SetAverageRetestsToMerge sets the "average_retests_to_merge" field.
+func (m *CodeCovMutation) SetAverageRetestsToMerge(f float64) {
+	m.average_retests_to_merge = &f
+	m.addaverage_retests_to_merge = nil
+}
+
+// AverageRetestsToMerge returns the value of the "average_retests_to_merge" field in the mutation.
+func (m *CodeCovMutation) AverageRetestsToMerge() (r float64, exists bool) {
+	v := m.average_retests_to_merge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAverageRetestsToMerge returns the old "average_retests_to_merge" field's value of the CodeCov entity.
+// If the CodeCov object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeCovMutation) OldAverageRetestsToMerge(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAverageRetestsToMerge is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAverageRetestsToMerge requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAverageRetestsToMerge: %w", err)
+	}
+	return oldValue.AverageRetestsToMerge, nil
+}
+
+// AddAverageRetestsToMerge adds f to the "average_retests_to_merge" field.
+func (m *CodeCovMutation) AddAverageRetestsToMerge(f float64) {
+	if m.addaverage_retests_to_merge != nil {
+		*m.addaverage_retests_to_merge += f
+	} else {
+		m.addaverage_retests_to_merge = &f
+	}
+}
+
+// AddedAverageRetestsToMerge returns the value that was added to the "average_retests_to_merge" field in this mutation.
+func (m *CodeCovMutation) AddedAverageRetestsToMerge() (r float64, exists bool) {
+	v := m.addaverage_retests_to_merge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAverageRetestsToMerge resets all changes to the "average_retests_to_merge" field.
+func (m *CodeCovMutation) ResetAverageRetestsToMerge() {
+	m.average_retests_to_merge = nil
+	m.addaverage_retests_to_merge = nil
+}
+
 // SetCodecovID sets the "codecov" edge to the Repository entity by id.
-func (m *CodeCovMutation) SetCodecovID(id uuid.UUID) {
+func (m *CodeCovMutation) SetCodecovID(id string) {
 	m.codecov = &id
 }
 
@@ -1032,7 +1090,7 @@ func (m *CodeCovMutation) CodecovCleared() bool {
 }
 
 // CodecovID returns the "codecov" edge ID in the mutation.
-func (m *CodeCovMutation) CodecovID() (id uuid.UUID, exists bool) {
+func (m *CodeCovMutation) CodecovID() (id string, exists bool) {
 	if m.codecov != nil {
 		return *m.codecov, true
 	}
@@ -1042,7 +1100,7 @@ func (m *CodeCovMutation) CodecovID() (id uuid.UUID, exists bool) {
 // CodecovIDs returns the "codecov" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // CodecovID instead. It exists only for internal usage by the builders.
-func (m *CodeCovMutation) CodecovIDs() (ids []uuid.UUID) {
+func (m *CodeCovMutation) CodecovIDs() (ids []string) {
 	if id := m.codecov; id != nil {
 		ids = append(ids, *id)
 	}
@@ -1089,7 +1147,7 @@ func (m *CodeCovMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CodeCovMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.repository_name != nil {
 		fields = append(fields, codecov.FieldRepositoryName)
 	}
@@ -1098,6 +1156,9 @@ func (m *CodeCovMutation) Fields() []string {
 	}
 	if m.coverage_percentage != nil {
 		fields = append(fields, codecov.FieldCoveragePercentage)
+	}
+	if m.average_retests_to_merge != nil {
+		fields = append(fields, codecov.FieldAverageRetestsToMerge)
 	}
 	return fields
 }
@@ -1113,6 +1174,8 @@ func (m *CodeCovMutation) Field(name string) (ent.Value, bool) {
 		return m.GitOrganization()
 	case codecov.FieldCoveragePercentage:
 		return m.CoveragePercentage()
+	case codecov.FieldAverageRetestsToMerge:
+		return m.AverageRetestsToMerge()
 	}
 	return nil, false
 }
@@ -1128,6 +1191,8 @@ func (m *CodeCovMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldGitOrganization(ctx)
 	case codecov.FieldCoveragePercentage:
 		return m.OldCoveragePercentage(ctx)
+	case codecov.FieldAverageRetestsToMerge:
+		return m.OldAverageRetestsToMerge(ctx)
 	}
 	return nil, fmt.Errorf("unknown CodeCov field %s", name)
 }
@@ -1158,6 +1223,13 @@ func (m *CodeCovMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCoveragePercentage(v)
 		return nil
+	case codecov.FieldAverageRetestsToMerge:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAverageRetestsToMerge(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CodeCov field %s", name)
 }
@@ -1169,6 +1241,9 @@ func (m *CodeCovMutation) AddedFields() []string {
 	if m.addcoverage_percentage != nil {
 		fields = append(fields, codecov.FieldCoveragePercentage)
 	}
+	if m.addaverage_retests_to_merge != nil {
+		fields = append(fields, codecov.FieldAverageRetestsToMerge)
+	}
 	return fields
 }
 
@@ -1179,6 +1254,8 @@ func (m *CodeCovMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case codecov.FieldCoveragePercentage:
 		return m.AddedCoveragePercentage()
+	case codecov.FieldAverageRetestsToMerge:
+		return m.AddedAverageRetestsToMerge()
 	}
 	return nil, false
 }
@@ -1194,6 +1271,13 @@ func (m *CodeCovMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddCoveragePercentage(v)
+		return nil
+	case codecov.FieldAverageRetestsToMerge:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAverageRetestsToMerge(v)
 		return nil
 	}
 	return fmt.Errorf("unknown CodeCov numeric field %s", name)
@@ -1230,6 +1314,9 @@ func (m *CodeCovMutation) ResetField(name string) error {
 		return nil
 	case codecov.FieldCoveragePercentage:
 		m.ResetCoveragePercentage()
+		return nil
+	case codecov.FieldAverageRetestsToMerge:
+		m.ResetAverageRetestsToMerge()
 		return nil
 	}
 	return fmt.Errorf("unknown CodeCov field %s", name)
@@ -1332,7 +1419,7 @@ type ProwJobsMutation struct {
 	ci_failed        *int16
 	addci_failed     *int16
 	clearedFields    map[string]struct{}
-	prow_jobs        *uuid.UUID
+	prow_jobs        *string
 	clearedprow_jobs bool
 	done             bool
 	oldValue         func(context.Context) (*ProwJobs, error)
@@ -1934,7 +2021,7 @@ func (m *ProwJobsMutation) ResetCiFailed() {
 }
 
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by id.
-func (m *ProwJobsMutation) SetProwJobsID(id uuid.UUID) {
+func (m *ProwJobsMutation) SetProwJobsID(id string) {
 	m.prow_jobs = &id
 }
 
@@ -1949,7 +2036,7 @@ func (m *ProwJobsMutation) ProwJobsCleared() bool {
 }
 
 // ProwJobsID returns the "prow_jobs" edge ID in the mutation.
-func (m *ProwJobsMutation) ProwJobsID() (id uuid.UUID, exists bool) {
+func (m *ProwJobsMutation) ProwJobsID() (id string, exists bool) {
 	if m.prow_jobs != nil {
 		return *m.prow_jobs, true
 	}
@@ -1959,7 +2046,7 @@ func (m *ProwJobsMutation) ProwJobsID() (id uuid.UUID, exists bool) {
 // ProwJobsIDs returns the "prow_jobs" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ProwJobsID instead. It exists only for internal usage by the builders.
-func (m *ProwJobsMutation) ProwJobsIDs() (ids []uuid.UUID) {
+func (m *ProwJobsMutation) ProwJobsIDs() (ids []string) {
 	if id := m.prow_jobs; id != nil {
 		ids = append(ids, *id)
 	}
@@ -2422,7 +2509,7 @@ type ProwSuitesMutation struct {
 	time               *float64
 	addtime            *float64
 	clearedFields      map[string]struct{}
-	prow_suites        *uuid.UUID
+	prow_suites        *string
 	clearedprow_suites bool
 	done               bool
 	oldValue           func(context.Context) (*ProwSuites, error)
@@ -2692,7 +2779,7 @@ func (m *ProwSuitesMutation) ResetTime() {
 }
 
 // SetProwSuitesID sets the "prow_suites" edge to the Repository entity by id.
-func (m *ProwSuitesMutation) SetProwSuitesID(id uuid.UUID) {
+func (m *ProwSuitesMutation) SetProwSuitesID(id string) {
 	m.prow_suites = &id
 }
 
@@ -2707,7 +2794,7 @@ func (m *ProwSuitesMutation) ProwSuitesCleared() bool {
 }
 
 // ProwSuitesID returns the "prow_suites" edge ID in the mutation.
-func (m *ProwSuitesMutation) ProwSuitesID() (id uuid.UUID, exists bool) {
+func (m *ProwSuitesMutation) ProwSuitesID() (id string, exists bool) {
 	if m.prow_suites != nil {
 		return *m.prow_suites, true
 	}
@@ -2717,7 +2804,7 @@ func (m *ProwSuitesMutation) ProwSuitesID() (id uuid.UUID, exists bool) {
 // ProwSuitesIDs returns the "prow_suites" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ProwSuitesID instead. It exists only for internal usage by the builders.
-func (m *ProwSuitesMutation) ProwSuitesIDs() (ids []uuid.UUID) {
+func (m *ProwSuitesMutation) ProwSuitesIDs() (ids []string) {
 	if id := m.prow_suites; id != nil {
 		ids = append(ids, *id)
 	}
@@ -3019,7 +3106,7 @@ type PullRequestsMutation struct {
 	author                  *string
 	title                   *string
 	clearedFields           map[string]struct{}
-	prs                     *uuid.UUID
+	prs                     *string
 	clearedprs              bool
 	done                    bool
 	oldValue                func(context.Context) (*PullRequests, error)
@@ -3505,7 +3592,7 @@ func (m *PullRequestsMutation) ResetTitle() {
 }
 
 // SetPrsID sets the "prs" edge to the Repository entity by id.
-func (m *PullRequestsMutation) SetPrsID(id uuid.UUID) {
+func (m *PullRequestsMutation) SetPrsID(id string) {
 	m.prs = &id
 }
 
@@ -3520,7 +3607,7 @@ func (m *PullRequestsMutation) PrsCleared() bool {
 }
 
 // PrsID returns the "prs" edge ID in the mutation.
-func (m *PullRequestsMutation) PrsID() (id uuid.UUID, exists bool) {
+func (m *PullRequestsMutation) PrsID() (id string, exists bool) {
 	if m.prs != nil {
 		return *m.prs, true
 	}
@@ -3530,7 +3617,7 @@ func (m *PullRequestsMutation) PrsID() (id uuid.UUID, exists bool) {
 // PrsIDs returns the "prs" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // PrsID instead. It exists only for internal usage by the builders.
-func (m *PullRequestsMutation) PrsIDs() (ids []uuid.UUID) {
+func (m *PullRequestsMutation) PrsIDs() (ids []string) {
 	if id := m.prs; id != nil {
 		ids = append(ids, *id)
 	}
@@ -3921,7 +4008,7 @@ type RepositoryMutation struct {
 	config
 	op                  Op
 	typ                 string
-	id                  *uuid.UUID
+	id                  *string
 	repository_name     *string
 	git_organization    *string
 	description         *string
@@ -3969,7 +4056,7 @@ func newRepositoryMutation(c config, op Op, opts ...repositoryOption) *Repositor
 }
 
 // withRepositoryID sets the ID field of the mutation.
-func withRepositoryID(id uuid.UUID) repositoryOption {
+func withRepositoryID(id string) repositoryOption {
 	return func(m *RepositoryMutation) {
 		var (
 			err   error
@@ -4021,13 +4108,13 @@ func (m RepositoryMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Repository entities.
-func (m *RepositoryMutation) SetID(id uuid.UUID) {
+func (m *RepositoryMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *RepositoryMutation) ID() (id uuid.UUID, exists bool) {
+func (m *RepositoryMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -4038,12 +4125,12 @@ func (m *RepositoryMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *RepositoryMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *RepositoryMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []uuid.UUID{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -4903,8 +4990,8 @@ type TeamsMutation struct {
 	team_name           *string
 	description         *string
 	clearedFields       map[string]struct{}
-	repositories        map[uuid.UUID]struct{}
-	removedrepositories map[uuid.UUID]struct{}
+	repositories        map[string]struct{}
+	removedrepositories map[string]struct{}
 	clearedrepositories bool
 	bugs                map[uuid.UUID]struct{}
 	removedbugs         map[uuid.UUID]struct{}
@@ -5091,9 +5178,9 @@ func (m *TeamsMutation) ResetDescription() {
 }
 
 // AddRepositoryIDs adds the "repositories" edge to the Repository entity by ids.
-func (m *TeamsMutation) AddRepositoryIDs(ids ...uuid.UUID) {
+func (m *TeamsMutation) AddRepositoryIDs(ids ...string) {
 	if m.repositories == nil {
-		m.repositories = make(map[uuid.UUID]struct{})
+		m.repositories = make(map[string]struct{})
 	}
 	for i := range ids {
 		m.repositories[ids[i]] = struct{}{}
@@ -5111,9 +5198,9 @@ func (m *TeamsMutation) RepositoriesCleared() bool {
 }
 
 // RemoveRepositoryIDs removes the "repositories" edge to the Repository entity by IDs.
-func (m *TeamsMutation) RemoveRepositoryIDs(ids ...uuid.UUID) {
+func (m *TeamsMutation) RemoveRepositoryIDs(ids ...string) {
 	if m.removedrepositories == nil {
-		m.removedrepositories = make(map[uuid.UUID]struct{})
+		m.removedrepositories = make(map[string]struct{})
 	}
 	for i := range ids {
 		delete(m.repositories, ids[i])
@@ -5122,7 +5209,7 @@ func (m *TeamsMutation) RemoveRepositoryIDs(ids ...uuid.UUID) {
 }
 
 // RemovedRepositories returns the removed IDs of the "repositories" edge to the Repository entity.
-func (m *TeamsMutation) RemovedRepositoriesIDs() (ids []uuid.UUID) {
+func (m *TeamsMutation) RemovedRepositoriesIDs() (ids []string) {
 	for id := range m.removedrepositories {
 		ids = append(ids, id)
 	}
@@ -5130,7 +5217,7 @@ func (m *TeamsMutation) RemovedRepositoriesIDs() (ids []uuid.UUID) {
 }
 
 // RepositoriesIDs returns the "repositories" edge IDs in the mutation.
-func (m *TeamsMutation) RepositoriesIDs() (ids []uuid.UUID) {
+func (m *TeamsMutation) RepositoriesIDs() (ids []string) {
 	for id := range m.repositories {
 		ids = append(ids, id)
 	}
@@ -5469,7 +5556,7 @@ type WorkflowsMutation struct {
 	job_url          *string
 	state            *string
 	clearedFields    map[string]struct{}
-	workflows        *uuid.UUID
+	workflows        *string
 	clearedworkflows bool
 	done             bool
 	oldValue         func(context.Context) (*Workflows, error)
@@ -5791,7 +5878,7 @@ func (m *WorkflowsMutation) ResetState() {
 }
 
 // SetWorkflowsID sets the "workflows" edge to the Repository entity by id.
-func (m *WorkflowsMutation) SetWorkflowsID(id uuid.UUID) {
+func (m *WorkflowsMutation) SetWorkflowsID(id string) {
 	m.workflows = &id
 }
 
@@ -5806,7 +5893,7 @@ func (m *WorkflowsMutation) WorkflowsCleared() bool {
 }
 
 // WorkflowsID returns the "workflows" edge ID in the mutation.
-func (m *WorkflowsMutation) WorkflowsID() (id uuid.UUID, exists bool) {
+func (m *WorkflowsMutation) WorkflowsID() (id string, exists bool) {
 	if m.workflows != nil {
 		return *m.workflows, true
 	}
@@ -5816,7 +5903,7 @@ func (m *WorkflowsMutation) WorkflowsID() (id uuid.UUID, exists bool) {
 // WorkflowsIDs returns the "workflows" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // WorkflowsID instead. It exists only for internal usage by the builders.
-func (m *WorkflowsMutation) WorkflowsIDs() (ids []uuid.UUID) {
+func (m *WorkflowsMutation) WorkflowsIDs() (ids []string) {
 	if id := m.workflows; id != nil {
 		ids = append(ids, *id)
 	}

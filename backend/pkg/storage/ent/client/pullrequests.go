@@ -6,54 +6,66 @@ import (
 	"math"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
 	prV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
 // CreatePullRequest saves provided pull request information in database.
-func (d *Database) CreatePullRequest(pr prV1Alpha1.PullRequest, repo_id uuid.UUID) error {
-	prAlreadyExists := d.client.PullRequests.Query().
-		Where(pullrequests.Number(pr.Number)).
-		Where(pullrequests.RepositoryName(pr.RepositoryName)).
-		Where(pullrequests.RepositoryOrganization(pr.RepositoryOrganization)).
-		ExistX(context.TODO())
+func (d *Database) CreatePullRequests(prs prV1Alpha1.PullRequests, repo_id string) error {
+	var create = false
+	bulkPullRequests := make([]*db.PullRequestsCreate, len(prs))
 
-	if prAlreadyExists {
-		_, err := d.client.PullRequests.Update().
-			Where(predicate.PullRequests(pullrequests.Number(pr.Number))).
-			Where(predicate.PullRequests(pullrequests.RepositoryName(pr.RepositoryName))).
-			Where(predicate.PullRequests(pullrequests.RepositoryOrganization(pr.RepositoryOrganization))).
-			SetTitle(pr.Title).
-			SetCreatedAt(pr.CreatedAt).
-			SetMergedAt(pr.MergedAt).
-			SetClosedAt(pr.ClosedAt).
-			SetState(pr.State).
-			SetAuthor(pr.Author).
-			Save(context.TODO())
-		if err != nil {
-			return convertDBError("failed to create bug: %w", err)
+	for i, p := range prs {
+		prAlreadyExists := d.client.PullRequests.Query().
+			Where(pullrequests.Number(p.Number)).
+			Where(pullrequests.RepositoryName(p.Repository.Name)).
+			Where(pullrequests.RepositoryOrganization(p.Repository.Owner.Login)).
+			ExistX(context.TODO())
+		if prAlreadyExists {
+			_, err := d.client.PullRequests.Update().
+				Where(predicate.PullRequests(pullrequests.Number(p.Number))).
+				Where(predicate.PullRequests(pullrequests.RepositoryName(p.Repository.Name))).
+				Where(predicate.PullRequests(pullrequests.RepositoryOrganization(p.Repository.Owner.Login))).
+				SetTitle(p.Title).
+				SetCreatedAt(p.CreatedAt).
+				SetMergedAt(p.MergedAt).
+				SetClosedAt(p.ClosedAt).
+				SetState(p.State).
+				SetAuthor(p.Author.User.Login).
+				Save(context.TODO())
+			if err != nil {
+				return convertDBError("failed to update pull request: %w", err)
+			}
+			continue
 		}
-	} else {
-		p, err := d.client.PullRequests.Create().
-			SetRepositoryName(pr.RepositoryName).
-			SetRepositoryOrganization(pr.RepositoryOrganization).
-			SetNumber(pr.Number).
-			SetTitle(pr.Title).
-			SetCreatedAt(pr.CreatedAt).
-			SetMergedAt(pr.MergedAt).
-			SetClosedAt(pr.ClosedAt).
-			SetState(pr.State).
-			SetAuthor(pr.Author).
-			Save(context.TODO())
-		if err != nil {
-			return convertDBError("create pull request: %w", err)
-		}
+		bulkPullRequests[i] = d.client.PullRequests.Create().
+			SetTitle(p.Title).
+			SetCreatedAt(p.CreatedAt).
+			SetMergedAt(p.MergedAt).
+			SetNumber(p.Number).
+			SetClosedAt(p.ClosedAt).
+			SetPrsID(repo_id).
+			SetState(p.State).
+			SetAuthor(p.Author.User.Login).
+			SetRepositoryName(p.Repository.Name).
+			SetRepositoryOrganization(p.Repository.Owner.Login)
+		create = true
+	}
 
-		_, err = d.client.Repository.UpdateOneID(repo_id).AddPrs(p).Save(context.TODO())
-		if err != nil {
-			return convertDBError("create pull request: %w", err)
+	defer func() {
+		if err := recover(); err != nil {
+			// Ussually occurs when u have network issues
+			fmt.Println("Internal panic ocurred, check network connection:", err)
+		}
+	}()
+
+	// todo: https://github.com/ent/ent/issues/2494 Wait until we can resolve nicely conflicts in psql
+	if create {
+		if err := d.client.PullRequests.CreateBulk(bulkPullRequests...).OnConflict(sql.ResolveWithNewValues()).DoNothing().Exec(context.TODO()); err != nil {
+			return err
 		}
 	}
 
@@ -62,58 +74,54 @@ func (d *Database) CreatePullRequest(pr prV1Alpha1.PullRequest, repo_id uuid.UUI
 
 // GetPullRequestsByRepository gets the summary and the metrics of the open and merged pull requests.
 func (d *Database) GetPullRequestsByRepository(repositoryName, organization, startDate, endDate string) (info prV1Alpha1.PullRequestsInfo, err error) {
-	metrics := []prV1Alpha1.Metrics{}
+	var averagePRsMergedInTimeRange float64
+	calculateDaysRange := len(getDatesBetweenRange(startDate, endDate))
 	info = prV1Alpha1.PullRequestsInfo{}
-	totalOpenPrs, totalMergedPrs := 0, 0
-	var totalMergeTime float64
 
-	repositories, err := d.client.Repository.Query().All(context.TODO())
+	repo := d.client.Repository.Query().Where(predicate.Repository(repository.RepositoryName(repositoryName))).FirstX(context.TODO())
+	totalPullRequestsMerged, err := d.client.Repository.QueryPrs(repo).
+		Select(pullrequests.FieldState).
+		Where(predicate.PullRequests(pullrequests.State("MERGED"))).
+		All(context.TODO())
+
 	if err != nil {
-		return info, convertDBError("list repositories: %w", err)
+		return info, convertDBError("failed to get open pull requests: %w", err)
+	}
+	totalOpenPullRequests, err := d.client.Repository.QueryPrs(repo).Select(pullrequests.FieldState).
+		Where(predicate.PullRequests(pullrequests.State("OPEN"))).
+		All(context.TODO())
+
+	if err != nil {
+		return info, convertDBError("failed to get Opeen pull requests: %w", err)
+	}
+	mergedPullRequestsInTimeRange, err := d.client.Repository.QueryPrs(repo).Select(pullrequests.FieldState).
+		Where(predicate.PullRequests(pullrequests.State("MERGED"))).
+		Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
+			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
+		}).
+		All(context.TODO())
+
+	if err != nil {
+		return info, convertDBError("failed to get Merged pull requests in time range: %w", err)
 	}
 
-	pullRequests := make([]prV1Alpha1.PullRequest, 0, len(repositories))
-	for _, r := range repositories {
-		if r.RepositoryName == repositoryName && r.GitOrganization == organization {
-			metrics = d.getMetrics(r, startDate, endDate)
-			prs, _ := d.client.Repository.QueryPrs(r).Select().
-				Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
-					s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
-				}).All(context.TODO())
+	// range between one day (same day)
+	if len(getDatesBetweenRange(startDate, endDate)) == 2 && isSameDay(startDate, endDate) {
+		averagePRsMergedInTimeRange = float64(len(mergedPullRequestsInTimeRange)) / 1
 
-			for _, pr := range prs {
-				if pr.State == "closed" {
-					mergeTime := pr.MergedAt.Sub(pr.CreatedAt).Hours() / 24
-
-					// avoid prs that were close but not merged
-					if mergeTime > 0 {
-						totalMergeTime += mergeTime
-						totalMergedPrs++
-					}
-				} else {
-					totalOpenPrs++
-				}
-
-				pullRequests = append(pullRequests, toStoragePrs(pr))
-			}
-		}
+	} else {
+		averagePRsMergedInTimeRange = float64(len(mergedPullRequestsInTimeRange)) / float64(calculateDaysRange)
 	}
 
-	mergeAvg := float64(0)
-
-	if totalMergedPrs != 0 {
-		totalMergeTime = totalMergeTime / float64(totalMergedPrs)
-		mergeAvg = math.Round(totalMergeTime*100) / 100
+	if math.IsNaN(averagePRsMergedInTimeRange) {
+		averagePRsMergedInTimeRange = 0
 	}
-
-	totalMergeTime = totalMergeTime / float64(totalMergedPrs)
 
 	info.Summary = prV1Alpha1.Summary{
-		MergedPrsCount: totalMergedPrs,
-		OpenPrsCount:   totalOpenPrs,
-		MergeAvg:       mergeAvg,
+		MergedPrsCount: len(totalOpenPullRequests),
+		OpenPrsCount:   len(totalPullRequestsMerged),
+		MergeAvg:       averagePRsMergedInTimeRange,
 	}
-	info.Metrics = metrics
 
 	return info, nil
 }

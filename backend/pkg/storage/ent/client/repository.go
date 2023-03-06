@@ -15,9 +15,10 @@ import (
 func (d *Database) CreateRepository(repository repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error) {
 	repo, err := d.client.Repository.Create().
 		SetRepositoryName(repository.Name).
-		SetGitOrganization(repository.Organization).
+		SetID(repository.ID).
+		SetGitOrganization(repository.Owner.Login).
 		SetDescription(repository.Description).
-		SetGitURL(repository.HTMLURL).
+		SetGitURL(repository.URL).
 		Save(context.TODO())
 	if err != nil {
 		return nil, convertDBError("create repository: %w", err)

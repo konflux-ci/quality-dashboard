@@ -647,7 +647,7 @@ func HasPrsWith(preds ...predicate.Repository) predicate.PullRequests {
 	return predicate.PullRequests(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(PrsInverseTable, RepositoryFieldID),
+			sqlgraph.To(PrsInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, PrsTable, PrsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

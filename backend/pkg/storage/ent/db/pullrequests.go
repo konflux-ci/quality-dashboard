@@ -41,7 +41,7 @@ type PullRequests struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PullRequestsQuery when eager-loading is set.
 	Edges          PullRequestsEdges `json:"edges"`
-	repository_prs *uuid.UUID
+	repository_prs *string
 }
 
 // PullRequestsEdges holds the relations/edges for other nodes in the graph.
@@ -80,7 +80,7 @@ func (*PullRequests) scanValues(columns []string) ([]any, error) {
 		case pullrequests.FieldPrID:
 			values[i] = new(uuid.UUID)
 		case pullrequests.ForeignKeys[0]: // repository_prs
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type PullRequests", columns[i])
 		}
@@ -163,11 +163,11 @@ func (pr *PullRequests) assignValues(columns []string, values []any) error {
 				pr.Title = value.String
 			}
 		case pullrequests.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field repository_prs", values[i])
 			} else if value.Valid {
-				pr.repository_prs = new(uuid.UUID)
-				*pr.repository_prs = *value.S.(*uuid.UUID)
+				pr.repository_prs = new(string)
+				*pr.repository_prs = value.String
 			}
 		}
 	}

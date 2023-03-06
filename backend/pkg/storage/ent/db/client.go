@@ -144,7 +144,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 //		Bugs.
 //		Query().
 //		Count(ctx)
-//
 func (c *Client) Debug() *Client {
 	if c.debug {
 		return c
@@ -927,7 +926,7 @@ func (c *RepositoryClient) UpdateOne(r *Repository) *RepositoryUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *RepositoryClient) UpdateOneID(id uuid.UUID) *RepositoryUpdateOne {
+func (c *RepositoryClient) UpdateOneID(id string) *RepositoryUpdateOne {
 	mutation := newRepositoryMutation(c.config, OpUpdateOne, withRepositoryID(id))
 	return &RepositoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
@@ -944,7 +943,7 @@ func (c *RepositoryClient) DeleteOne(r *Repository) *RepositoryDeleteOne {
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *RepositoryClient) DeleteOneID(id uuid.UUID) *RepositoryDeleteOne {
+func (c *RepositoryClient) DeleteOneID(id string) *RepositoryDeleteOne {
 	builder := c.Delete().Where(repository.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
@@ -961,12 +960,12 @@ func (c *RepositoryClient) Query() *RepositoryQuery {
 }
 
 // Get returns a Repository entity by its id.
-func (c *RepositoryClient) Get(ctx context.Context, id uuid.UUID) (*Repository, error) {
+func (c *RepositoryClient) Get(ctx context.Context, id string) (*Repository, error) {
 	return c.Query().Where(repository.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *RepositoryClient) GetX(ctx context.Context, id uuid.UUID) *Repository {
+func (c *RepositoryClient) GetX(ctx context.Context, id string) *Repository {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

@@ -305,7 +305,6 @@ func (ccq *CodeCovQuery) WithCodecov(opts ...func(*RepositoryQuery)) *CodeCovQue
 //		GroupBy(codecov.FieldRepositoryName).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
-//
 func (ccq *CodeCovQuery) GroupBy(field string, fields ...string) *CodeCovGroupBy {
 	ccq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &CodeCovGroupBy{build: ccq}
@@ -327,7 +326,6 @@ func (ccq *CodeCovQuery) GroupBy(field string, fields ...string) *CodeCovGroupBy
 //	client.CodeCov.Query().
 //		Select(codecov.FieldRepositoryName).
 //		Scan(ctx, &v)
-//
 func (ccq *CodeCovQuery) Select(fields ...string) *CodeCovSelect {
 	ccq.ctx.Fields = append(ccq.ctx.Fields, fields...)
 	sbuild := &CodeCovSelect{CodeCovQuery: ccq}
@@ -410,8 +408,8 @@ func (ccq *CodeCovQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cod
 }
 
 func (ccq *CodeCovQuery) loadCodecov(ctx context.Context, query *RepositoryQuery, nodes []*CodeCov, init func(*CodeCov), assign func(*CodeCov, *Repository)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*CodeCov)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*CodeCov)
 	for i := range nodes {
 		if nodes[i].repository_codecov == nil {
 			continue

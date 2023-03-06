@@ -33,8 +33,6 @@ const (
 	FieldTitle = "title"
 	// EdgePrs holds the string denoting the prs edge name in mutations.
 	EdgePrs = "prs"
-	// RepositoryFieldID holds the string denoting the ID field of the Repository.
-	RepositoryFieldID = "repo_id"
 	// Table holds the table name of the pullrequests in the database.
 	Table = "pull_requests"
 	// PrsTable is the table that holds the prs relation/edge.

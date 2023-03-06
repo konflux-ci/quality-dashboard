@@ -10,10 +10,12 @@ import (
 )
 
 var repository = repoV1Alpha1.Repository{
-	Name:         "managed-gitops",
-	Organization: "redhat-appstudio",
-	Description:  "GitOps Service: Backend/cluster-agent/utility components aiming to provided GitOps services via Kubernetes-controller-managed Argo CD",
-	HTMLURL:      "https://github.com/redhat-appstudio/managed-gitops",
+	Name: "managed-gitops",
+	Owner: repoV1Alpha1.Owner{
+		Login: "redhat-appstudio",
+	},
+	Description: "GitOps Service: Backend/cluster-agent/utility components aiming to provided GitOps services via Kubernetes-controller-managed Argo CD",
+	URL:         "https://github.com/redhat-appstudio/managed-gitops",
 }
 
 func TestGetCodeCovInfo(t *testing.T) {
@@ -22,7 +24,7 @@ func TestGetCodeCovInfo(t *testing.T) {
 	assert.NoError(t, err)
 
 	// be sure that there is no test repo in the db
-	err = storage.DeleteRepository(repository.Name, repository.Organization)
+	err = storage.DeleteRepository(repository.Name, repository.Owner.Login)
 	assert.NoError(t, err)
 
 	teamName := "team-" + util.GenerateRandomString(6)

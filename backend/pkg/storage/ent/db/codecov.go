@@ -23,10 +23,12 @@ type CodeCov struct {
 	GitOrganization string `json:"git_organization,omitempty"`
 	// CoveragePercentage holds the value of the "coverage_percentage" field.
 	CoveragePercentage float64 `json:"coverage_percentage,omitempty"`
+	// AverageRetestsToMerge holds the value of the "average_retests_to_merge" field.
+	AverageRetestsToMerge float64 `json:"average_retests_to_merge,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CodeCovQuery when eager-loading is set.
 	Edges              CodeCovEdges `json:"edges"`
-	repository_codecov *uuid.UUID
+	repository_codecov *string
 }
 
 // CodeCovEdges holds the relations/edges for other nodes in the graph.
@@ -56,14 +58,14 @@ func (*CodeCov) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case codecov.FieldCoveragePercentage:
+		case codecov.FieldCoveragePercentage, codecov.FieldAverageRetestsToMerge:
 			values[i] = new(sql.NullFloat64)
 		case codecov.FieldRepositoryName, codecov.FieldGitOrganization:
 			values[i] = new(sql.NullString)
 		case codecov.FieldID:
 			values[i] = new(uuid.UUID)
 		case codecov.ForeignKeys[0]: // repository_codecov
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type CodeCov", columns[i])
 		}
@@ -103,12 +105,18 @@ func (cc *CodeCov) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				cc.CoveragePercentage = value.Float64
 			}
+		case codecov.FieldAverageRetestsToMerge:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field average_retests_to_merge", values[i])
+			} else if value.Valid {
+				cc.AverageRetestsToMerge = value.Float64
+			}
 		case codecov.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field repository_codecov", values[i])
 			} else if value.Valid {
-				cc.repository_codecov = new(uuid.UUID)
-				*cc.repository_codecov = *value.S.(*uuid.UUID)
+				cc.repository_codecov = new(string)
+				*cc.repository_codecov = value.String
 			}
 		}
 	}
@@ -151,6 +159,9 @@ func (cc *CodeCov) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("coverage_percentage=")
 	builder.WriteString(fmt.Sprintf("%v", cc.CoveragePercentage))
+	builder.WriteString(", ")
+	builder.WriteString("average_retests_to_merge=")
+	builder.WriteString(fmt.Sprintf("%v", cc.AverageRetestsToMerge))
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -9,11 +9,13 @@ import (
 
 func toStorageRepository(p *db.Repository) repoV1Alpha1.Repository {
 	return repoV1Alpha1.Repository{
-		Name:         p.RepositoryName,
-		Organization: p.GitOrganization,
-		Description:  p.Description,
-		HTMLURL:      p.GitURL,
-		ID:           p.ID,
+		Name: p.RepositoryName,
+		Owner: repoV1Alpha1.Owner{
+			Login: p.GitOrganization,
+		},
+		Description: p.Description,
+		URL:         p.GitURL,
+		ID:          p.ID,
 	}
 }
 
@@ -47,6 +49,5 @@ func toStoragePrs(pr *db.PullRequests) repoV1Alpha1.PullRequest {
 		MergedAt:  pr.MergedAt,
 		ClosedAt:  pr.ClosedAt,
 		State:     pr.State,
-		Author:    pr.Author,
 	}
 }

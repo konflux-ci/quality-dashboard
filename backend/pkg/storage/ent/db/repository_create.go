@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -24,6 +26,7 @@ type RepositoryCreate struct {
 	config
 	mutation *RepositoryMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetRepositoryName sets the "repository_name" field.
@@ -51,16 +54,8 @@ func (rc *RepositoryCreate) SetGitURL(s string) *RepositoryCreate {
 }
 
 // SetID sets the "id" field.
-func (rc *RepositoryCreate) SetID(u uuid.UUID) *RepositoryCreate {
-	rc.mutation.SetID(u)
-	return rc
-}
-
-// SetNillableID sets the "id" field if the given value is not nil.
-func (rc *RepositoryCreate) SetNillableID(u *uuid.UUID) *RepositoryCreate {
-	if u != nil {
-		rc.SetID(*u)
-	}
+func (rc *RepositoryCreate) SetID(s string) *RepositoryCreate {
+	rc.mutation.SetID(s)
 	return rc
 }
 
@@ -165,7 +160,6 @@ func (rc *RepositoryCreate) Mutation() *RepositoryMutation {
 
 // Save creates the Repository in the database.
 func (rc *RepositoryCreate) Save(ctx context.Context) (*Repository, error) {
-	rc.defaults()
 	return withHooks[*Repository, RepositoryMutation](ctx, rc.sqlSave, rc.mutation, rc.hooks)
 }
 
@@ -188,14 +182,6 @@ func (rc *RepositoryCreate) Exec(ctx context.Context) error {
 func (rc *RepositoryCreate) ExecX(ctx context.Context) {
 	if err := rc.Exec(ctx); err != nil {
 		panic(err)
-	}
-}
-
-// defaults sets the default values of the builder before save.
-func (rc *RepositoryCreate) defaults() {
-	if _, ok := rc.mutation.ID(); !ok {
-		v := repository.DefaultID()
-		rc.mutation.SetID(v)
 	}
 }
 
@@ -233,6 +219,11 @@ func (rc *RepositoryCreate) check() error {
 			return &ValidationError{Name: "git_url", err: fmt.Errorf(`db: validator failed for field "Repository.git_url": %w`, err)}
 		}
 	}
+	if v, ok := rc.mutation.ID(); ok {
+		if err := repository.IDValidator(v); err != nil {
+			return &ValidationError{Name: "id", err: fmt.Errorf(`db: validator failed for field "Repository.id": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -248,10 +239,10 @@ func (rc *RepositoryCreate) sqlSave(ctx context.Context) (*Repository, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
-			_node.ID = *id
-		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
-			return nil, err
+		if id, ok := _spec.ID.Value.(string); ok {
+			_node.ID = id
+		} else {
+			return nil, fmt.Errorf("unexpected Repository.ID type: %T", _spec.ID.Value)
 		}
 	}
 	rc.mutation.id = &_node.ID
@@ -265,14 +256,15 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: repository.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
+				Type:   field.TypeString,
 				Column: repository.FieldID,
 			},
 		}
 	)
+	_spec.OnConflict = rc.conflict
 	if id, ok := rc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = &id
+		_spec.ID.Value = id
 	}
 	if value, ok := rc.mutation.RepositoryName(); ok {
 		_spec.SetField(repository.FieldRepositoryName, field.TypeString, value)
@@ -408,10 +400,250 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Repository.Create().
+//		SetRepositoryName(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.RepositoryUpsert) {
+//			SetRepositoryName(v+v).
+//		}).
+//		Exec(ctx)
+func (rc *RepositoryCreate) OnConflict(opts ...sql.ConflictOption) *RepositoryUpsertOne {
+	rc.conflict = opts
+	return &RepositoryUpsertOne{
+		create: rc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Repository.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (rc *RepositoryCreate) OnConflictColumns(columns ...string) *RepositoryUpsertOne {
+	rc.conflict = append(rc.conflict, sql.ConflictColumns(columns...))
+	return &RepositoryUpsertOne{
+		create: rc,
+	}
+}
+
+type (
+	// RepositoryUpsertOne is the builder for "upsert"-ing
+	//  one Repository node.
+	RepositoryUpsertOne struct {
+		create *RepositoryCreate
+	}
+
+	// RepositoryUpsert is the "OnConflict" setter.
+	RepositoryUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetRepositoryName sets the "repository_name" field.
+func (u *RepositoryUpsert) SetRepositoryName(v string) *RepositoryUpsert {
+	u.Set(repository.FieldRepositoryName, v)
+	return u
+}
+
+// UpdateRepositoryName sets the "repository_name" field to the value that was provided on create.
+func (u *RepositoryUpsert) UpdateRepositoryName() *RepositoryUpsert {
+	u.SetExcluded(repository.FieldRepositoryName)
+	return u
+}
+
+// SetGitOrganization sets the "git_organization" field.
+func (u *RepositoryUpsert) SetGitOrganization(v string) *RepositoryUpsert {
+	u.Set(repository.FieldGitOrganization, v)
+	return u
+}
+
+// UpdateGitOrganization sets the "git_organization" field to the value that was provided on create.
+func (u *RepositoryUpsert) UpdateGitOrganization() *RepositoryUpsert {
+	u.SetExcluded(repository.FieldGitOrganization)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *RepositoryUpsert) SetDescription(v string) *RepositoryUpsert {
+	u.Set(repository.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *RepositoryUpsert) UpdateDescription() *RepositoryUpsert {
+	u.SetExcluded(repository.FieldDescription)
+	return u
+}
+
+// SetGitURL sets the "git_url" field.
+func (u *RepositoryUpsert) SetGitURL(v string) *RepositoryUpsert {
+	u.Set(repository.FieldGitURL, v)
+	return u
+}
+
+// UpdateGitURL sets the "git_url" field to the value that was provided on create.
+func (u *RepositoryUpsert) UpdateGitURL() *RepositoryUpsert {
+	u.SetExcluded(repository.FieldGitURL)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.Repository.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(repository.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *RepositoryUpsertOne) UpdateNewValues() *RepositoryUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(repository.FieldID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Repository.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *RepositoryUpsertOne) Ignore() *RepositoryUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *RepositoryUpsertOne) DoNothing() *RepositoryUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the RepositoryCreate.OnConflict
+// documentation for more info.
+func (u *RepositoryUpsertOne) Update(set func(*RepositoryUpsert)) *RepositoryUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&RepositoryUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetRepositoryName sets the "repository_name" field.
+func (u *RepositoryUpsertOne) SetRepositoryName(v string) *RepositoryUpsertOne {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.SetRepositoryName(v)
+	})
+}
+
+// UpdateRepositoryName sets the "repository_name" field to the value that was provided on create.
+func (u *RepositoryUpsertOne) UpdateRepositoryName() *RepositoryUpsertOne {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.UpdateRepositoryName()
+	})
+}
+
+// SetGitOrganization sets the "git_organization" field.
+func (u *RepositoryUpsertOne) SetGitOrganization(v string) *RepositoryUpsertOne {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.SetGitOrganization(v)
+	})
+}
+
+// UpdateGitOrganization sets the "git_organization" field to the value that was provided on create.
+func (u *RepositoryUpsertOne) UpdateGitOrganization() *RepositoryUpsertOne {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.UpdateGitOrganization()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *RepositoryUpsertOne) SetDescription(v string) *RepositoryUpsertOne {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *RepositoryUpsertOne) UpdateDescription() *RepositoryUpsertOne {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// SetGitURL sets the "git_url" field.
+func (u *RepositoryUpsertOne) SetGitURL(v string) *RepositoryUpsertOne {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.SetGitURL(v)
+	})
+}
+
+// UpdateGitURL sets the "git_url" field to the value that was provided on create.
+func (u *RepositoryUpsertOne) UpdateGitURL() *RepositoryUpsertOne {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.UpdateGitURL()
+	})
+}
+
+// Exec executes the query.
+func (u *RepositoryUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("db: missing options for RepositoryCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *RepositoryUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *RepositoryUpsertOne) ID(ctx context.Context) (id string, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("db: RepositoryUpsertOne.ID is not supported by MySQL driver. Use RepositoryUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *RepositoryUpsertOne) IDX(ctx context.Context) string {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // RepositoryCreateBulk is the builder for creating many Repository entities in bulk.
 type RepositoryCreateBulk struct {
 	config
 	builders []*RepositoryCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Repository entities in the database.
@@ -422,7 +654,6 @@ func (rcb *RepositoryCreateBulk) Save(ctx context.Context) ([]*Repository, error
 	for i := range rcb.builders {
 		func(i int, root context.Context) {
 			builder := rcb.builders[i]
-			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*RepositoryMutation)
 				if !ok {
@@ -438,6 +669,7 @@ func (rcb *RepositoryCreateBulk) Save(ctx context.Context) ([]*Repository, error
 					_, err = mutators[i+1].Mutate(root, rcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = rcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, rcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -484,6 +716,173 @@ func (rcb *RepositoryCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (rcb *RepositoryCreateBulk) ExecX(ctx context.Context) {
 	if err := rcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Repository.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.RepositoryUpsert) {
+//			SetRepositoryName(v+v).
+//		}).
+//		Exec(ctx)
+func (rcb *RepositoryCreateBulk) OnConflict(opts ...sql.ConflictOption) *RepositoryUpsertBulk {
+	rcb.conflict = opts
+	return &RepositoryUpsertBulk{
+		create: rcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Repository.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (rcb *RepositoryCreateBulk) OnConflictColumns(columns ...string) *RepositoryUpsertBulk {
+	rcb.conflict = append(rcb.conflict, sql.ConflictColumns(columns...))
+	return &RepositoryUpsertBulk{
+		create: rcb,
+	}
+}
+
+// RepositoryUpsertBulk is the builder for "upsert"-ing
+// a bulk of Repository nodes.
+type RepositoryUpsertBulk struct {
+	create *RepositoryCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Repository.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(repository.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *RepositoryUpsertBulk) UpdateNewValues() *RepositoryUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(repository.FieldID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Repository.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *RepositoryUpsertBulk) Ignore() *RepositoryUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *RepositoryUpsertBulk) DoNothing() *RepositoryUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the RepositoryCreateBulk.OnConflict
+// documentation for more info.
+func (u *RepositoryUpsertBulk) Update(set func(*RepositoryUpsert)) *RepositoryUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&RepositoryUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetRepositoryName sets the "repository_name" field.
+func (u *RepositoryUpsertBulk) SetRepositoryName(v string) *RepositoryUpsertBulk {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.SetRepositoryName(v)
+	})
+}
+
+// UpdateRepositoryName sets the "repository_name" field to the value that was provided on create.
+func (u *RepositoryUpsertBulk) UpdateRepositoryName() *RepositoryUpsertBulk {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.UpdateRepositoryName()
+	})
+}
+
+// SetGitOrganization sets the "git_organization" field.
+func (u *RepositoryUpsertBulk) SetGitOrganization(v string) *RepositoryUpsertBulk {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.SetGitOrganization(v)
+	})
+}
+
+// UpdateGitOrganization sets the "git_organization" field to the value that was provided on create.
+func (u *RepositoryUpsertBulk) UpdateGitOrganization() *RepositoryUpsertBulk {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.UpdateGitOrganization()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *RepositoryUpsertBulk) SetDescription(v string) *RepositoryUpsertBulk {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *RepositoryUpsertBulk) UpdateDescription() *RepositoryUpsertBulk {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.UpdateDescription()
+	})
+}
+
+// SetGitURL sets the "git_url" field.
+func (u *RepositoryUpsertBulk) SetGitURL(v string) *RepositoryUpsertBulk {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.SetGitURL(v)
+	})
+}
+
+// UpdateGitURL sets the "git_url" field to the value that was provided on create.
+func (u *RepositoryUpsertBulk) UpdateGitURL() *RepositoryUpsertBulk {
+	return u.Update(func(s *RepositoryUpsert) {
+		s.UpdateGitURL()
+	})
+}
+
+// Exec executes the query.
+func (u *RepositoryUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the RepositoryCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("db: missing options for RepositoryCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *RepositoryUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }
