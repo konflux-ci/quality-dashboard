@@ -41,7 +41,7 @@ let GitHub = () => {
     const [repoNameToggle, setRepoNameToggle] = useState(false);
     const [workflows, setWorkflows] = useState([]);
     const [prs, setPrs] = useState<PrsStatistics | null>(null);
-    const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(365));
+    const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(30));
     const [noData, setNoData] = useState(false)
     const defaultModalContext = useDefaultModalContextState();
     const modalContext = useModalContext()
@@ -100,7 +100,7 @@ let GitHub = () => {
 
     // Reset rangeDateTime
     const clearRangeDateTime = () => {
-        setRangeDateTime(getRangeDates(365))
+        setRangeDateTime(getRangeDates(360))
     }
 
     // Reset all dropwdowns and state variables
@@ -288,7 +288,6 @@ let GitHub = () => {
                                     ))}
                                 </Select>
                             </ToolbarItem>
-                            <ActionsColumn items={defaultActions(getRepository(repoName, repoOrg))} />
                             <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent" }}>
                                 <DateTimeRangePicker
                                     startDate={start}
@@ -300,6 +299,7 @@ let GitHub = () => {
                             <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent" }}>
                                 <Button variant="link" onClick={clearParams}>Clear</Button>
                             </ToolbarItem>
+                            <ActionsColumn items={defaultActions(getRepository(repoName, repoOrg))} />
                             <FormModal></FormModal>
                         </ToolbarContent>
                     </Toolbar>
