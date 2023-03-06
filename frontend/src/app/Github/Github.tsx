@@ -323,18 +323,18 @@ let GitHub = () => {
                                 <PullRequestCard title="Merged PRs" subtitle="Total" total={prs?.summary?.merged_prs}></PullRequestCard>
                             </GridItem>
 
-                            <GridItem span={3} rowSpan={1}>
+                            <GridItem span={1} rowSpan={2}>
                                 <CodeCov repo={getRepository(repoName, repoOrg)}></CodeCov>
+                            </GridItem>
+
+                            <GridItem span={2} rowSpan={2}>
+                                <PullRequestCard title="Retest Before Merge Avg" subtitle="Last 2 Weeks" repo={getRepository(repoName, repoOrg)}></PullRequestCard>
                             </GridItem>
 
                             <GridItem span={2} rowSpan={2}>
                                 <PullRequestCard title="Merge PR Avg Days" subtitle="Selected Time Range" total={prs?.summary?.merge_avg}></PullRequestCard>
                             </GridItem>
                             
-                            <GridItem span={3} rowSpan={1}>
-                                <PullRequestCard title="Retest Before Merge Avg Times" subtitle="" repo={getRepository(repoName, repoOrg)}></PullRequestCard>
-                            </GridItem>
-
 
                             {workflows.length > 0 && <GridItem span={12}>
                                 <GithubActions repoName={repoName} workflows={workflows}></GithubActions>
