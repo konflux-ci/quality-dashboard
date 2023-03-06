@@ -19,7 +19,7 @@ require (
 	github.com/spf13/viper v1.14.0
 	github.com/stretchr/testify v1.8.2
 	github.com/swaggo/http-swagger v1.3.3
-	github.com/swaggo/swag v1.8.8
+	github.com/swaggo/swag v1.8.10
 	go.uber.org/zap v1.24.0
 	golang.org/x/oauth2 v0.5.0
 	google.golang.org/grpc v1.51.0
