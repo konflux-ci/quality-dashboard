@@ -94,8 +94,10 @@ export const Jira = () => {
     const [bugsTable, setBugsTable] = useState<any>({});
 
     const [isSelected, setIsSelected] = React.useState('open');
+
     const handleItemClick = (isSelected: boolean, event: React.MouseEvent<any> | React.KeyboardEvent | MouseEvent) => {
         const id = event.currentTarget.id;
+        setBugsTable([])
         setIsSelected(id);
     };
 
@@ -159,8 +161,8 @@ export const Jira = () => {
 
             setBugsChart([bc, obc])
             setResolutionTimeChart([rtc])
-            if(isSelected == 'resolved') setBugsTable(rbt)
-            if(isSelected == 'open') setBugsTable(obt)
+            if(isSelected == 'resolved') {setBugsTable(rbt)}
+            if(isSelected == 'open') {setBugsTable(obt)}
         }
     }, [selected, isSelected, apiDataCache]);
 
@@ -428,6 +430,10 @@ const ComposableTableStripedTr: React.FC<{bugs:any}> = ({bugs}) => {
     const [perPage, setPerPage] = React.useState(10);
 
     useEffect(() => {
+        if(bugs.length == 0){
+            setPage(1)
+            setBugsPage([])
+        }
         if(bugs.length > 0){
             setBugsPage(bugs.slice(0, perPage))
             setPage(1)
