@@ -4,13 +4,10 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"sync"
 	"time"
 
-	"github.com/andygrunwald/go-jira"
 	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/api/apis/jira/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"go.uber.org/zap"
@@ -74,41 +71,22 @@ func staticRotationStrategy() rotationStrategy {
 	}
 }
 
+/**
+bugs := s.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", teams.JiraKeys))
+if err := s.Storage.CreateJiraBug(bugs, teams); err != nil {
+	return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+		Message:    err.Error(),
+		StatusCode: http.StatusInternalServerError,
+	})
+}
+
+*/
+
 func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
 	bugs := s.cfg.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys))
-	wg := new(sync.WaitGroup)
-	for keyString, bugValue := range bugs {
-		wg.Add(1)
-		go func(keyString int, bug jira.Issue, wg *sync.WaitGroup) {
-			defer wg.Done()
-			var bugIsResolved bool
-			var diff float64
-			if bug.Fields.Status.Name == "Closed" || bug.Fields.Status.Name == "Resolved" || bug.Fields.Status.Name == "Done" {
-				resolvedTime := time.Time(bug.Fields.Resolutiondate).UTC()
-				createdTime := time.Time(bug.Fields.Created).UTC()
-
-				diff = resolvedTime.Sub(createdTime).Hours()
-				bugIsResolved = true
-			}
-
-			if err := s.cfg.Storage.CreateJiraBug(v1alpha1.JiraBug{
-				JiraKey:        bug.Key,
-				CreatedAt:      time.Time(bug.Fields.Created),
-				UpdatedAt:      time.Time(bug.Fields.Updated),
-				ResolvedAt:     time.Time(bug.Fields.Resolutiondate),
-				IsResolved:     bugIsResolved,
-				ResolutionTime: diff,
-				Priority:       bug.Fields.Priority.Name,
-				Status:         bug.Fields.Status.Name,
-				Summary:        bug.Fields.Summary,
-				Url:            fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key),
-			}, team); err != nil {
-				s.cfg.Logger.Sugar().Errorf("failed to update jiras %s, %v", bug.Key, err)
-			}
-		}(keyString, bugValue, wg)
+	if err := s.cfg.Storage.CreateJiraBug(bugs, team); err != nil {
+		return err
 	}
-
-	wg.Wait()
 
 	return nil
 }

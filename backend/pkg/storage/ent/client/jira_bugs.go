@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/andygrunwald/go-jira"
 	jiraV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/jira/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
@@ -14,41 +15,67 @@ import (
 )
 
 // CreateRepository save provided repository information in database.
-func (d *Database) CreateJiraBug(jiraBug jiraV1Alpha1.JiraBug, team *db.Teams) error {
-	bugAlreadyExists := d.client.Bugs.Query().Where(bugs.JiraKey(jiraBug.JiraKey)).ExistX(context.TODO())
+func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
+	create := false
+	createBulk := make([]*db.BugsCreate, 0)
+	bugAlreadyExists := d.client.Bugs.Query().Where(bugs.JiraKey(team.JiraKeys)).ExistX(context.TODO())
+	for _, bug := range bugsArr {
+		var bugIsResolved bool
+		var diff float64
+		if bug.Fields.Status.Name == "Closed" || bug.Fields.Status.Name == "Resolved" || bug.Fields.Status.Name == "Done" {
+			resolvedTime := time.Time(bug.Fields.Resolutiondate).UTC()
+			createdTime := time.Time(bug.Fields.Created).UTC()
 
-	if bugAlreadyExists {
-		_, err := d.client.Bugs.Update().Where(predicate.Bugs(bugs.JiraKey(jiraBug.JiraKey))).
-			SetCreatedAt(jiraBug.CreatedAt).
-			SetUpdatedAt(jiraBug.UpdatedAt).
-			SetResolvedAt(jiraBug.ResolvedAt).
-			SetResolved(jiraBug.IsResolved).
-			SetResolutionTime(jiraBug.ResolutionTime).
-			SetJiraKey(jiraBug.JiraKey).
-			SetPriority(jiraBug.Priority).
-			SetSummary(jiraBug.Summary).
-			SetURL(jiraBug.Url).
-			SetStatus(jiraBug.Status).
-			SetBugs(team).
-			Save(context.TODO())
-		if err != nil {
-			return convertDBError("failed to create bug: %w", err)
+			diff = resolvedTime.Sub(createdTime).Hours()
+			bugIsResolved = true
 		}
-	} else {
-		_, err := d.client.Bugs.Create().
-			SetCreatedAt(jiraBug.CreatedAt).
-			SetUpdatedAt(jiraBug.UpdatedAt).
-			SetResolutionTime(jiraBug.ResolutionTime).
-			SetJiraKey(jiraBug.JiraKey).
-			SetPriority(jiraBug.Priority).
-			SetSummary(jiraBug.Summary).
-			SetURL(jiraBug.Url).
-			SetResolvedAt(jiraBug.ResolvedAt).
-			SetResolved(jiraBug.IsResolved).
-			SetStatus(jiraBug.Status).
-			Save(context.TODO())
-		if err != nil {
-			return convertDBError("failed to update bug: %w", err)
+
+		if bugAlreadyExists {
+			_, err := d.client.Bugs.Update().Where(predicate.Bugs(bugs.JiraKey(bug.Key))).
+				SetCreatedAt(time.Time(bug.Fields.Created)).
+				SetUpdatedAt(time.Time(bug.Fields.Updated)).
+				SetResolvedAt(time.Time(bug.Fields.Resolutiondate)).
+				SetResolved(bugIsResolved).
+				SetResolutionTime(diff).
+				SetJiraKey(bug.Key).
+				SetPriority(bug.Fields.Priority.Name).
+				SetSummary(bug.Fields.Summary).
+				SetURL(fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key)).
+				SetStatus(bug.Fields.Summary).
+				SetBugs(team).
+				Save(context.TODO())
+			if err != nil {
+				return convertDBError("failed to create bug: %w", err)
+			}
+		} else {
+			createBulkByBug := d.client.Bugs.Create().
+				SetCreatedAt(time.Time(bug.Fields.Created)).
+				SetUpdatedAt(time.Time(bug.Fields.Updated)).
+				SetResolvedAt(time.Time(bug.Fields.Resolutiondate)).
+				SetResolved(bugIsResolved).
+				SetResolutionTime(diff).
+				SetJiraKey(bug.Key).
+				SetPriority(bug.Fields.Priority.Name).
+				SetSummary(bug.Fields.Summary).
+				SetURL(fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key)).
+				SetStatus(bug.Fields.Summary).
+				SetBugs(team)
+			createBulk = append(createBulk, createBulkByBug)
+			create = true
+		}
+	}
+
+	defer func() {
+		if err := recover(); err != nil {
+			// Usually occurs when u have network issues
+			fmt.Println("Internal panic occurred, check network connection:", err)
+		}
+	}()
+
+	// todo: https://github.com/ent/ent/issues/2494 Wait until we can resolve nicely conflicts in psql
+	if create {
+		if err := d.client.Bugs.CreateBulk(createBulk...).OnConflict(sql.ResolveWithNewValues()).DoNothing().Exec(context.TODO()); err != nil {
+			return err
 		}
 	}
 

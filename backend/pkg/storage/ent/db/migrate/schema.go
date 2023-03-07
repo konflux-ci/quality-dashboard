@@ -33,7 +33,7 @@ var (
 				Symbol:     "bugs_teams_bugs",
 				Columns:    []*schema.Column{BugsColumns[11]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}

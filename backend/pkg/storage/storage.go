@@ -3,6 +3,7 @@ package storage
 import (
 	"errors"
 
+	"github.com/andygrunwald/go-jira"
 	"github.com/google/uuid"
 	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
@@ -50,7 +51,7 @@ type Storage interface {
 	CreateProwJobResults(prowJobStatus prowV1Alpha1.Job, repo_id string) error
 	ReCreateWorkflow(workflow repoV1Alpha1.Workflow, repoName string) error
 	UpdateCoverage(codecov coverageV1Alpha1.Coverage, repoName string) error
-	CreateJiraBug(jiraBug jiraV1Alpha1.JiraBug, team *db.Teams) error
+	CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error
 	UpdateTeam(t *db.Teams, target string) error
 	GetOpenBugsMetricsByStatusAndPriority(priority string, team *db.Teams) (bugsMetrics jiraV1Alpha1.OpenBugsMetrics, err error)
 	CreatePullRequests(prs repoV1Alpha1.PullRequests, repo_id string) error

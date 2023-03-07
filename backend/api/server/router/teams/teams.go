@@ -3,6 +3,7 @@ package teams
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/redhat-appstudio/quality-studio/api/types"
@@ -61,6 +62,14 @@ func (s *teamsRouter) createQualityStudioTeam(ctx context.Context, w http.Respon
 
 	teams, err := s.Storage.CreateQualityStudioTeam(team.TeamName, team.Description, team.JiraKeys)
 	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		})
+	}
+
+	bugs := s.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", teams.JiraKeys))
+	if err := s.Storage.CreateJiraBug(bugs, teams); err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,

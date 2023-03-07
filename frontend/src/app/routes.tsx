@@ -76,7 +76,7 @@ const routes: AppRouteConfig[] = [
         isAsync: true,
         label: 'Openshift CI',
         path: '/reports/test',
-        title: 'Openshift CI |  | Quality Studio',
+        title: 'Openshift CI | Quality Studio',
       },
     ],
   },

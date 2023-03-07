@@ -307,6 +307,18 @@ func (u *TeamsUpsert) UpdateDescription() *TeamsUpsert {
 	return u
 }
 
+// SetJiraKeys sets the "jira_keys" field.
+func (u *TeamsUpsert) SetJiraKeys(v string) *TeamsUpsert {
+	u.Set(teams.FieldJiraKeys, v)
+	return u
+}
+
+// UpdateJiraKeys sets the "jira_keys" field to the value that was provided on create.
+func (u *TeamsUpsert) UpdateJiraKeys() *TeamsUpsert {
+	u.SetExcluded(teams.FieldJiraKeys)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -380,6 +392,20 @@ func (u *TeamsUpsertOne) SetDescription(v string) *TeamsUpsertOne {
 func (u *TeamsUpsertOne) UpdateDescription() *TeamsUpsertOne {
 	return u.Update(func(s *TeamsUpsert) {
 		s.UpdateDescription()
+	})
+}
+
+// SetJiraKeys sets the "jira_keys" field.
+func (u *TeamsUpsertOne) SetJiraKeys(v string) *TeamsUpsertOne {
+	return u.Update(func(s *TeamsUpsert) {
+		s.SetJiraKeys(v)
+	})
+}
+
+// UpdateJiraKeys sets the "jira_keys" field to the value that was provided on create.
+func (u *TeamsUpsertOne) UpdateJiraKeys() *TeamsUpsertOne {
+	return u.Update(func(s *TeamsUpsert) {
+		s.UpdateJiraKeys()
 	})
 }
 
@@ -619,6 +645,20 @@ func (u *TeamsUpsertBulk) SetDescription(v string) *TeamsUpsertBulk {
 func (u *TeamsUpsertBulk) UpdateDescription() *TeamsUpsertBulk {
 	return u.Update(func(s *TeamsUpsert) {
 		s.UpdateDescription()
+	})
+}
+
+// SetJiraKeys sets the "jira_keys" field.
+func (u *TeamsUpsertBulk) SetJiraKeys(v string) *TeamsUpsertBulk {
+	return u.Update(func(s *TeamsUpsert) {
+		s.SetJiraKeys(v)
+	})
+}
+
+// UpdateJiraKeys sets the "jira_keys" field to the value that was provided on create.
+func (u *TeamsUpsertBulk) UpdateJiraKeys() *TeamsUpsertBulk {
+	return u.Update(func(s *TeamsUpsert) {
+		s.UpdateJiraKeys()
 	})
 }
 
