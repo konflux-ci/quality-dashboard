@@ -381,7 +381,7 @@ let GitHub = () => {
 
                 <GridItem span={2} rowSpan={2}>
                   <PullRequestCard
-                    title="Merge PR Avg Days"
+                    title="Merge PR Time Avg Days"
                     subtitle="Selected Time Range"
                     total={prs?.summary?.merge_avg}
                   ></PullRequestCard>
