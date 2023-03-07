@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
     Card,
     CardTitle,
@@ -27,6 +27,7 @@ import {
 } from '@patternfly/react-table';
 import { Chart, ChartAxis, ChartGroup, ChartLine,ChartBar, createContainer } from '@patternfly/react-charts';
 import { getJirasResolutionTime, getJirasOpen } from '@app/utils/APIService';
+import { ReactReduxContext, useSelector } from 'react-redux';
 
 interface Bugs {
     jira_key: string;
@@ -47,38 +48,44 @@ interface Bugs {
 }
 
 export const Jira = () => {
+    const { store } = useContext(ReactReduxContext);
+    const state = store.getState();
+    const dispatch = store.dispatch;
+    const currentTeam = useSelector((state: any) => state.teams.Team);
 
     useEffect(() => {
-        const ID = "Global"
-        let newData = {}
-
-        const promises = new Array()
-        const priorities = ["Global", "Major", "Critical", "Blocker", "Normal", "Undefined", "Minor"]
-        priorities.forEach(p =>{
-            promises.push(getJirasOpen(p))
-            promises.push(getJirasResolutionTime(p))
-        })
-
-        Promise.all(promises).then(function(values) {
+        if(currentTeam != ""){
+            const ID = "Global"
+            let newData = {}
             
-            values.map(value => {
-                if(value.data.hasOwnProperty("open")){
-                    if(!newData.hasOwnProperty(value.data.open.priority)){
-                        newData[value.data.open.priority] = {}
-                    }
-                    newData[value.data.open.priority].open = value.data.open
-                } else if(value.data.hasOwnProperty("resolution_time")){
-                    if(!newData.hasOwnProperty(value.data.resolution_time.priority)){
-                        newData[value.data.open.priority] = {}
-                    }
-                    newData[value.data.resolution_time.priority].resolved = value.data.resolution_time
-                }
+            const promises = new Array()
+            const priorities = ["Global", "Major", "Critical", "Blocker", "Normal", "Undefined", "Minor"]
+            priorities.forEach(p =>{
+                promises.push(getJirasOpen(p, state.teams.Team))
+                promises.push(getJirasResolutionTime(p, state.teams.Team))
             })
-            setApiDataCache(newData)
-            setSelected(ID)
 
-        });
-    }, []);
+            Promise.all(promises).then(function(values) {
+                
+                values.map(value => {
+                    if(value.data.hasOwnProperty("open")){
+                        if(!newData.hasOwnProperty(value.data.open.priority)){
+                            newData[value.data.open.priority] = {}
+                        }
+                        newData[value.data.open.priority].open = value.data.open
+                    } else if(value.data.hasOwnProperty("resolution_time")){
+                        if(!newData.hasOwnProperty(value.data.resolution_time.priority)){
+                            newData[value.data.open.priority] = {}
+                        }
+                        newData[value.data.resolution_time.priority].resolved = value.data.resolution_time
+                    }
+                })
+                setApiDataCache(newData)
+                setSelected(ID)
+
+            });
+        }
+    }, [currentTeam]);
 
     const [selected, setSelected] = useState<string>('');
     const [apiDataCache, setApiDataCache] = useState<any>({});
@@ -96,8 +103,8 @@ export const Jira = () => {
         let ID = event.currentTarget.id
         if(selected != ID){
             if(!apiDataCache.hasOwnProperty(ID)){
-                const promise0 = getJirasOpen(ID)
-                const promise1 = getJirasResolutionTime(ID)
+                const promise0 = getJirasOpen(ID, state.teams.Team)
+                const promise1 = getJirasResolutionTime(ID, state.teams.Team)
 
                 Promise.all([promise0, promise1]).then(function(values) {
                     let newData = {}

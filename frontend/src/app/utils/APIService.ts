@@ -58,13 +58,14 @@ async function getJiras() {
   return result;
 }
 
-async function getJirasResolutionTime(priority:string) {
+async function getJirasResolutionTime(priority:string, team:string) {
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/jira/bugs/metrics/resolution';
   const uri = API_URL + subPath;
   await axios
     .post(uri, {
       priority: priority,
+      team_name: team
     })
     .then((res: AxiosResponse) => {
       result.code = res.status;
@@ -94,13 +95,14 @@ async function listJiraProjects() {
   return result;
 }
 
-async function getJirasOpen(priority:string) {
+async function getJirasOpen(priority:string, team:string) {
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/jira/bugs/metrics/open';
   const uri = API_URL + subPath;
   await axios
     .post(uri, {
       priority: priority,
+      team_name: team
     })
     .then((res: AxiosResponse) => {
       result.code = res.status;
