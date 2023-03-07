@@ -408,8 +408,8 @@ func (ccq *CodeCovQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Cod
 }
 
 func (ccq *CodeCovQuery) loadCodecov(ctx context.Context, query *RepositoryQuery, nodes []*CodeCov, init func(*CodeCov), assign func(*CodeCov, *Repository)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*CodeCov)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*CodeCov)
 	for i := range nodes {
 		if nodes[i].repository_codecov == nil {
 			continue

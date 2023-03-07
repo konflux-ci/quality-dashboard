@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -19,6 +21,7 @@ type CodeCovCreate struct {
 	config
 	mutation *CodeCovMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetRepositoryName sets the "repository_name" field.
@@ -39,6 +42,12 @@ func (ccc *CodeCovCreate) SetCoveragePercentage(f float64) *CodeCovCreate {
 	return ccc
 }
 
+// SetAverageRetestsToMerge sets the "average_retests_to_merge" field.
+func (ccc *CodeCovCreate) SetAverageRetestsToMerge(f float64) *CodeCovCreate {
+	ccc.mutation.SetAverageRetestsToMerge(f)
+	return ccc
+}
+
 // SetID sets the "id" field.
 func (ccc *CodeCovCreate) SetID(u uuid.UUID) *CodeCovCreate {
 	ccc.mutation.SetID(u)
@@ -54,13 +63,13 @@ func (ccc *CodeCovCreate) SetNillableID(u *uuid.UUID) *CodeCovCreate {
 }
 
 // SetCodecovID sets the "codecov" edge to the Repository entity by ID.
-func (ccc *CodeCovCreate) SetCodecovID(id uuid.UUID) *CodeCovCreate {
+func (ccc *CodeCovCreate) SetCodecovID(id string) *CodeCovCreate {
 	ccc.mutation.SetCodecovID(id)
 	return ccc
 }
 
 // SetNillableCodecovID sets the "codecov" edge to the Repository entity by ID if the given value is not nil.
-func (ccc *CodeCovCreate) SetNillableCodecovID(id *uuid.UUID) *CodeCovCreate {
+func (ccc *CodeCovCreate) SetNillableCodecovID(id *string) *CodeCovCreate {
 	if id != nil {
 		ccc = ccc.SetCodecovID(*id)
 	}
@@ -129,6 +138,9 @@ func (ccc *CodeCovCreate) check() error {
 	if _, ok := ccc.mutation.CoveragePercentage(); !ok {
 		return &ValidationError{Name: "coverage_percentage", err: errors.New(`db: missing required field "CodeCov.coverage_percentage"`)}
 	}
+	if _, ok := ccc.mutation.AverageRetestsToMerge(); !ok {
+		return &ValidationError{Name: "average_retests_to_merge", err: errors.New(`db: missing required field "CodeCov.average_retests_to_merge"`)}
+	}
 	return nil
 }
 
@@ -166,6 +178,7 @@ func (ccc *CodeCovCreate) createSpec() (*CodeCov, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = ccc.conflict
 	if id, ok := ccc.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
@@ -182,6 +195,10 @@ func (ccc *CodeCovCreate) createSpec() (*CodeCov, *sqlgraph.CreateSpec) {
 		_spec.SetField(codecov.FieldCoveragePercentage, field.TypeFloat64, value)
 		_node.CoveragePercentage = value
 	}
+	if value, ok := ccc.mutation.AverageRetestsToMerge(); ok {
+		_spec.SetField(codecov.FieldAverageRetestsToMerge, field.TypeFloat64, value)
+		_node.AverageRetestsToMerge = value
+	}
 	if nodes := ccc.mutation.CodecovIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -191,7 +208,7 @@ func (ccc *CodeCovCreate) createSpec() (*CodeCov, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -205,10 +222,276 @@ func (ccc *CodeCovCreate) createSpec() (*CodeCov, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.CodeCov.Create().
+//		SetRepositoryName(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CodeCovUpsert) {
+//			SetRepositoryName(v+v).
+//		}).
+//		Exec(ctx)
+func (ccc *CodeCovCreate) OnConflict(opts ...sql.ConflictOption) *CodeCovUpsertOne {
+	ccc.conflict = opts
+	return &CodeCovUpsertOne{
+		create: ccc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.CodeCov.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (ccc *CodeCovCreate) OnConflictColumns(columns ...string) *CodeCovUpsertOne {
+	ccc.conflict = append(ccc.conflict, sql.ConflictColumns(columns...))
+	return &CodeCovUpsertOne{
+		create: ccc,
+	}
+}
+
+type (
+	// CodeCovUpsertOne is the builder for "upsert"-ing
+	//  one CodeCov node.
+	CodeCovUpsertOne struct {
+		create *CodeCovCreate
+	}
+
+	// CodeCovUpsert is the "OnConflict" setter.
+	CodeCovUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetRepositoryName sets the "repository_name" field.
+func (u *CodeCovUpsert) SetRepositoryName(v string) *CodeCovUpsert {
+	u.Set(codecov.FieldRepositoryName, v)
+	return u
+}
+
+// UpdateRepositoryName sets the "repository_name" field to the value that was provided on create.
+func (u *CodeCovUpsert) UpdateRepositoryName() *CodeCovUpsert {
+	u.SetExcluded(codecov.FieldRepositoryName)
+	return u
+}
+
+// SetGitOrganization sets the "git_organization" field.
+func (u *CodeCovUpsert) SetGitOrganization(v string) *CodeCovUpsert {
+	u.Set(codecov.FieldGitOrganization, v)
+	return u
+}
+
+// UpdateGitOrganization sets the "git_organization" field to the value that was provided on create.
+func (u *CodeCovUpsert) UpdateGitOrganization() *CodeCovUpsert {
+	u.SetExcluded(codecov.FieldGitOrganization)
+	return u
+}
+
+// SetCoveragePercentage sets the "coverage_percentage" field.
+func (u *CodeCovUpsert) SetCoveragePercentage(v float64) *CodeCovUpsert {
+	u.Set(codecov.FieldCoveragePercentage, v)
+	return u
+}
+
+// UpdateCoveragePercentage sets the "coverage_percentage" field to the value that was provided on create.
+func (u *CodeCovUpsert) UpdateCoveragePercentage() *CodeCovUpsert {
+	u.SetExcluded(codecov.FieldCoveragePercentage)
+	return u
+}
+
+// AddCoveragePercentage adds v to the "coverage_percentage" field.
+func (u *CodeCovUpsert) AddCoveragePercentage(v float64) *CodeCovUpsert {
+	u.Add(codecov.FieldCoveragePercentage, v)
+	return u
+}
+
+// SetAverageRetestsToMerge sets the "average_retests_to_merge" field.
+func (u *CodeCovUpsert) SetAverageRetestsToMerge(v float64) *CodeCovUpsert {
+	u.Set(codecov.FieldAverageRetestsToMerge, v)
+	return u
+}
+
+// UpdateAverageRetestsToMerge sets the "average_retests_to_merge" field to the value that was provided on create.
+func (u *CodeCovUpsert) UpdateAverageRetestsToMerge() *CodeCovUpsert {
+	u.SetExcluded(codecov.FieldAverageRetestsToMerge)
+	return u
+}
+
+// AddAverageRetestsToMerge adds v to the "average_retests_to_merge" field.
+func (u *CodeCovUpsert) AddAverageRetestsToMerge(v float64) *CodeCovUpsert {
+	u.Add(codecov.FieldAverageRetestsToMerge, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.CodeCov.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(codecov.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *CodeCovUpsertOne) UpdateNewValues() *CodeCovUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(codecov.FieldID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.CodeCov.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *CodeCovUpsertOne) Ignore() *CodeCovUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CodeCovUpsertOne) DoNothing() *CodeCovUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CodeCovCreate.OnConflict
+// documentation for more info.
+func (u *CodeCovUpsertOne) Update(set func(*CodeCovUpsert)) *CodeCovUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CodeCovUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetRepositoryName sets the "repository_name" field.
+func (u *CodeCovUpsertOne) SetRepositoryName(v string) *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.SetRepositoryName(v)
+	})
+}
+
+// UpdateRepositoryName sets the "repository_name" field to the value that was provided on create.
+func (u *CodeCovUpsertOne) UpdateRepositoryName() *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.UpdateRepositoryName()
+	})
+}
+
+// SetGitOrganization sets the "git_organization" field.
+func (u *CodeCovUpsertOne) SetGitOrganization(v string) *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.SetGitOrganization(v)
+	})
+}
+
+// UpdateGitOrganization sets the "git_organization" field to the value that was provided on create.
+func (u *CodeCovUpsertOne) UpdateGitOrganization() *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.UpdateGitOrganization()
+	})
+}
+
+// SetCoveragePercentage sets the "coverage_percentage" field.
+func (u *CodeCovUpsertOne) SetCoveragePercentage(v float64) *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.SetCoveragePercentage(v)
+	})
+}
+
+// AddCoveragePercentage adds v to the "coverage_percentage" field.
+func (u *CodeCovUpsertOne) AddCoveragePercentage(v float64) *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.AddCoveragePercentage(v)
+	})
+}
+
+// UpdateCoveragePercentage sets the "coverage_percentage" field to the value that was provided on create.
+func (u *CodeCovUpsertOne) UpdateCoveragePercentage() *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.UpdateCoveragePercentage()
+	})
+}
+
+// SetAverageRetestsToMerge sets the "average_retests_to_merge" field.
+func (u *CodeCovUpsertOne) SetAverageRetestsToMerge(v float64) *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.SetAverageRetestsToMerge(v)
+	})
+}
+
+// AddAverageRetestsToMerge adds v to the "average_retests_to_merge" field.
+func (u *CodeCovUpsertOne) AddAverageRetestsToMerge(v float64) *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.AddAverageRetestsToMerge(v)
+	})
+}
+
+// UpdateAverageRetestsToMerge sets the "average_retests_to_merge" field to the value that was provided on create.
+func (u *CodeCovUpsertOne) UpdateAverageRetestsToMerge() *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.UpdateAverageRetestsToMerge()
+	})
+}
+
+// Exec executes the query.
+func (u *CodeCovUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("db: missing options for CodeCovCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CodeCovUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *CodeCovUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("db: CodeCovUpsertOne.ID is not supported by MySQL driver. Use CodeCovUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *CodeCovUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // CodeCovCreateBulk is the builder for creating many CodeCov entities in bulk.
 type CodeCovCreateBulk struct {
 	config
 	builders []*CodeCovCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the CodeCov entities in the database.
@@ -235,6 +518,7 @@ func (cccb *CodeCovCreateBulk) Save(ctx context.Context) ([]*CodeCov, error) {
 					_, err = mutators[i+1].Mutate(root, cccb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = cccb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, cccb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -281,6 +565,187 @@ func (cccb *CodeCovCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (cccb *CodeCovCreateBulk) ExecX(ctx context.Context) {
 	if err := cccb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.CodeCov.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.CodeCovUpsert) {
+//			SetRepositoryName(v+v).
+//		}).
+//		Exec(ctx)
+func (cccb *CodeCovCreateBulk) OnConflict(opts ...sql.ConflictOption) *CodeCovUpsertBulk {
+	cccb.conflict = opts
+	return &CodeCovUpsertBulk{
+		create: cccb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.CodeCov.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (cccb *CodeCovCreateBulk) OnConflictColumns(columns ...string) *CodeCovUpsertBulk {
+	cccb.conflict = append(cccb.conflict, sql.ConflictColumns(columns...))
+	return &CodeCovUpsertBulk{
+		create: cccb,
+	}
+}
+
+// CodeCovUpsertBulk is the builder for "upsert"-ing
+// a bulk of CodeCov nodes.
+type CodeCovUpsertBulk struct {
+	create *CodeCovCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.CodeCov.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(codecov.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *CodeCovUpsertBulk) UpdateNewValues() *CodeCovUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(codecov.FieldID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.CodeCov.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *CodeCovUpsertBulk) Ignore() *CodeCovUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *CodeCovUpsertBulk) DoNothing() *CodeCovUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the CodeCovCreateBulk.OnConflict
+// documentation for more info.
+func (u *CodeCovUpsertBulk) Update(set func(*CodeCovUpsert)) *CodeCovUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&CodeCovUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetRepositoryName sets the "repository_name" field.
+func (u *CodeCovUpsertBulk) SetRepositoryName(v string) *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.SetRepositoryName(v)
+	})
+}
+
+// UpdateRepositoryName sets the "repository_name" field to the value that was provided on create.
+func (u *CodeCovUpsertBulk) UpdateRepositoryName() *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.UpdateRepositoryName()
+	})
+}
+
+// SetGitOrganization sets the "git_organization" field.
+func (u *CodeCovUpsertBulk) SetGitOrganization(v string) *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.SetGitOrganization(v)
+	})
+}
+
+// UpdateGitOrganization sets the "git_organization" field to the value that was provided on create.
+func (u *CodeCovUpsertBulk) UpdateGitOrganization() *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.UpdateGitOrganization()
+	})
+}
+
+// SetCoveragePercentage sets the "coverage_percentage" field.
+func (u *CodeCovUpsertBulk) SetCoveragePercentage(v float64) *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.SetCoveragePercentage(v)
+	})
+}
+
+// AddCoveragePercentage adds v to the "coverage_percentage" field.
+func (u *CodeCovUpsertBulk) AddCoveragePercentage(v float64) *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.AddCoveragePercentage(v)
+	})
+}
+
+// UpdateCoveragePercentage sets the "coverage_percentage" field to the value that was provided on create.
+func (u *CodeCovUpsertBulk) UpdateCoveragePercentage() *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.UpdateCoveragePercentage()
+	})
+}
+
+// SetAverageRetestsToMerge sets the "average_retests_to_merge" field.
+func (u *CodeCovUpsertBulk) SetAverageRetestsToMerge(v float64) *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.SetAverageRetestsToMerge(v)
+	})
+}
+
+// AddAverageRetestsToMerge adds v to the "average_retests_to_merge" field.
+func (u *CodeCovUpsertBulk) AddAverageRetestsToMerge(v float64) *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.AddAverageRetestsToMerge(v)
+	})
+}
+
+// UpdateAverageRetestsToMerge sets the "average_retests_to_merge" field to the value that was provided on create.
+func (u *CodeCovUpsertBulk) UpdateAverageRetestsToMerge() *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.UpdateAverageRetestsToMerge()
+	})
+}
+
+// Exec executes the query.
+func (u *CodeCovUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the CodeCovCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("db: missing options for CodeCovCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *CodeCovUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -133,17 +133,37 @@ func (s *Server) UpdateDataBaseRepoByTeam() error {
 }
 
 func (s *Server) CacheRepositoriesInformation(storageRepos []repoV1Alpha1.Repository) error {
+	currentTime := time.Now()
 	for _, repo := range storageRepos {
-		coverage, err := s.getCodeCoverage(repo.Organization, repo.Name)
+		prs, err := s.cfg.Github.GetPullRequestsInRange(context.TODO(), repoV1Alpha1.ListPullRequestsOptions{
+			Repository: repo.Name,
+			Owner:      repo.Owner.Login,
+			TimeField:  repoV1Alpha1.PullRequestNone,
+		}, currentTime.AddDate(0, -3, 0), currentTime)
+		if err != nil {
+			return err
+		}
+
+		if err := s.cfg.Storage.CreatePullRequests(prs, repo.ID); err != nil {
+			return err
+		}
+
+		totalRetestRepoAvg, err := s.cfg.Github.RetestsToMerge(fmt.Sprintf("%s/%s", repo.Owner.Login, repo.Name))
+		if err != nil {
+			return err
+		}
+		//update coverage info
+		coverage, err := s.getCodeCoverage(repo.Owner.Login, repo.Name)
 
 		if err != nil {
 			return err
 		}
 		totalCoverageConverted, _ := coverage.Totals.Coverage.Float64()
 		err = s.cfg.Storage.UpdateCoverage(coverageV1Alpha1.Coverage{
-			GitOrganization:    repo.Organization,
-			RepositoryName:     repo.Name,
-			CoveragePercentage: totalCoverageConverted,
+			GitOrganization:            repo.Owner.Login,
+			RepositoryName:             repo.Name,
+			CoveragePercentage:         totalCoverageConverted,
+			AverageToRetestPullRequest: totalRetestRepoAvg,
 		}, repo.Name)
 		if err != nil {
 			return err

@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
@@ -408,8 +407,8 @@ func (pjq *ProwJobsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pr
 }
 
 func (pjq *ProwJobsQuery) loadProwJobs(ctx context.Context, query *RepositoryQuery, nodes []*ProwJobs, init func(*ProwJobs), assign func(*ProwJobs, *Repository)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*ProwJobs)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*ProwJobs)
 	for i := range nodes {
 		if nodes[i].repository_prow_jobs == nil {
 			continue

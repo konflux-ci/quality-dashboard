@@ -26,6 +26,8 @@ func (CodeCov) Fields() []ent.Field {
 			SchemaType(textSchema),
 		field.Float("coverage_percentage").
 			SchemaType(intSchema),
+		field.Float("average_retests_to_merge").
+			SchemaType(textSchema),
 	}
 }
 

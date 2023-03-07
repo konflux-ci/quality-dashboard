@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
@@ -61,13 +60,13 @@ func (psu *ProwSuitesUpdate) AddTime(f float64) *ProwSuitesUpdate {
 }
 
 // SetProwSuitesID sets the "prow_suites" edge to the Repository entity by ID.
-func (psu *ProwSuitesUpdate) SetProwSuitesID(id uuid.UUID) *ProwSuitesUpdate {
+func (psu *ProwSuitesUpdate) SetProwSuitesID(id string) *ProwSuitesUpdate {
 	psu.mutation.SetProwSuitesID(id)
 	return psu
 }
 
 // SetNillableProwSuitesID sets the "prow_suites" edge to the Repository entity by ID if the given value is not nil.
-func (psu *ProwSuitesUpdate) SetNillableProwSuitesID(id *uuid.UUID) *ProwSuitesUpdate {
+func (psu *ProwSuitesUpdate) SetNillableProwSuitesID(id *string) *ProwSuitesUpdate {
 	if id != nil {
 		psu = psu.SetProwSuitesID(*id)
 	}
@@ -159,7 +158,7 @@ func (psu *ProwSuitesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -175,7 +174,7 @@ func (psu *ProwSuitesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -237,13 +236,13 @@ func (psuo *ProwSuitesUpdateOne) AddTime(f float64) *ProwSuitesUpdateOne {
 }
 
 // SetProwSuitesID sets the "prow_suites" edge to the Repository entity by ID.
-func (psuo *ProwSuitesUpdateOne) SetProwSuitesID(id uuid.UUID) *ProwSuitesUpdateOne {
+func (psuo *ProwSuitesUpdateOne) SetProwSuitesID(id string) *ProwSuitesUpdateOne {
 	psuo.mutation.SetProwSuitesID(id)
 	return psuo
 }
 
 // SetNillableProwSuitesID sets the "prow_suites" edge to the Repository entity by ID if the given value is not nil.
-func (psuo *ProwSuitesUpdateOne) SetNillableProwSuitesID(id *uuid.UUID) *ProwSuitesUpdateOne {
+func (psuo *ProwSuitesUpdateOne) SetNillableProwSuitesID(id *string) *ProwSuitesUpdateOne {
 	if id != nil {
 		psuo = psuo.SetProwSuitesID(*id)
 	}
@@ -359,7 +358,7 @@ func (psuo *ProwSuitesUpdateOne) sqlSave(ctx context.Context) (_node *ProwSuites
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -375,7 +374,7 @@ func (psuo *ProwSuitesUpdateOne) sqlSave(ctx context.Context) (_node *ProwSuites
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},

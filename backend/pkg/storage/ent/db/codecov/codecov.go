@@ -17,10 +17,10 @@ const (
 	FieldGitOrganization = "git_organization"
 	// FieldCoveragePercentage holds the string denoting the coverage_percentage field in the database.
 	FieldCoveragePercentage = "coverage_percentage"
+	// FieldAverageRetestsToMerge holds the string denoting the average_retests_to_merge field in the database.
+	FieldAverageRetestsToMerge = "average_retests_to_merge"
 	// EdgeCodecov holds the string denoting the codecov edge name in mutations.
 	EdgeCodecov = "codecov"
-	// RepositoryFieldID holds the string denoting the ID field of the Repository.
-	RepositoryFieldID = "repo_id"
 	// Table holds the table name of the codecov in the database.
 	Table = "code_covs"
 	// CodecovTable is the table that holds the codecov relation/edge.
@@ -38,6 +38,7 @@ var Columns = []string{
 	FieldRepositoryName,
 	FieldGitOrganization,
 	FieldCoveragePercentage,
+	FieldAverageRetestsToMerge,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "code_covs"

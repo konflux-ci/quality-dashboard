@@ -37,6 +37,7 @@ func NewRouter(s storage.Storage) router.Router {
 		router.NewGetRoute("/repositories/getJobTypesFromRepo", r.getJobTypesFromRepo),
 		router.NewPostRoute("/repositories/create", r.createRepositoryHandler),
 		router.NewDeleteRoute("/repositories/delete", r.deleteRepositoryHandler),
+		router.NewGetRoute("/prs/get", r.getPullRequestsFromRepo),
 	}
 
 	return r

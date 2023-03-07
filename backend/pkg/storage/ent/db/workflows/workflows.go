@@ -25,8 +25,6 @@ const (
 	FieldState = "state"
 	// EdgeWorkflows holds the string denoting the workflows edge name in mutations.
 	EdgeWorkflows = "workflows"
-	// RepositoryFieldID holds the string denoting the ID field of the Repository.
-	RepositoryFieldID = "repo_id"
 	// Table holds the table name of the workflows in the database.
 	Table = "workflows"
 	// WorkflowsTable is the table that holds the workflows relation/edge.

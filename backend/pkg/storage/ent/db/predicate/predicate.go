@@ -18,6 +18,9 @@ type ProwJobs func(*sql.Selector)
 // ProwSuites is the predicate function for prowsuites builders.
 type ProwSuites func(*sql.Selector)
 
+// PullRequests is the predicate function for pullrequests builders.
+type PullRequests func(*sql.Selector)
+
 // Repository is the predicate function for repository builders.
 type Repository func(*sql.Selector)
 

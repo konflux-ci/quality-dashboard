@@ -1,7 +1,7 @@
 import { Flex, FlexItem, InputGroup, DatePicker, isValidDate, TimePicker, yyyyMMddFormat, Select, SelectOption, Button, Popover, InputGroupText } from '@patternfly/react-core';
 import { SearchIcon } from '@patternfly/react-icons';
 import React, { useEffect, useState } from 'react';
-import { formatDate, getRangeDateTime, getRangeDates, ranges } from './utils';
+import { formatDate, getRangeDateTime, getRangeDates, ranges } from '../Reports/utils';
 
 export const DateTimeRangePicker = (props) => {
     const [from, setFrom] = React.useState(props.startDate);

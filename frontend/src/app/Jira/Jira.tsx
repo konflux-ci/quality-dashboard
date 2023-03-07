@@ -57,7 +57,7 @@ export const Jira = () => {
         if(currentTeam != ""){
             const ID = "Global"
             let newData = {}
-            
+
             const promises = new Array()
             const priorities = ["Global", "Major", "Critical", "Blocker", "Normal", "Undefined", "Minor"]
             priorities.forEach(p =>{
@@ -66,7 +66,7 @@ export const Jira = () => {
             })
 
             Promise.all(promises).then(function(values) {
-                
+
                 values.map(value => {
                     if(value.data.hasOwnProperty("open")){
                         if(!newData.hasOwnProperty(value.data.open.priority)){
@@ -117,6 +117,7 @@ export const Jira = () => {
                     })
                     setSelected(ID)
                 });
+
             }
             setSelected(ID)
         } else {

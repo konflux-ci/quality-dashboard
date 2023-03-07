@@ -5,7 +5,6 @@ import (
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 )
 
 // Password holds the schema definition for the Password entity.
@@ -16,10 +15,11 @@ type Repository struct {
 // Fields of the Password.
 func (Repository) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", uuid.UUID{}).
-			Default(uuid.New).
-			StorageKey("repo_id").
-			Unique(),
+		field.String("id").
+			MaxLen(25).
+			NotEmpty().
+			Unique().
+			Immutable(),
 		field.Text("repository_name").
 			SchemaType(textSchema).
 			NotEmpty().
@@ -58,6 +58,10 @@ func (Repository) Edges() []ent.Edge {
 				OnDelete: entsql.Cascade,
 			}),
 		edge.To("prow_jobs", ProwJobs.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
+		edge.To("prs", PullRequests.Type).
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),

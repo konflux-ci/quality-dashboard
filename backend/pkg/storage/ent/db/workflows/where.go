@@ -465,7 +465,7 @@ func HasWorkflowsWith(preds ...predicate.Repository) predicate.Workflows {
 	return predicate.Workflows(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(WorkflowsInverseTable, RepositoryFieldID),
+			sqlgraph.To(WorkflowsInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, WorkflowsTable, WorkflowsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

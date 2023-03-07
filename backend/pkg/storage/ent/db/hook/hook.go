@@ -57,6 +57,18 @@ func (f ProwSuitesFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ProwSuitesMutation", m)
 }
 
+// The PullRequestsFunc type is an adapter to allow the use of ordinary
+// function as PullRequests mutator.
+type PullRequestsFunc func(context.Context, *db.PullRequestsMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PullRequestsFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.PullRequestsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.PullRequestsMutation", m)
+}
+
 // The RepositoryFunc type is an adapter to allow the use of ordinary
 // function as Repository mutator.
 type RepositoryFunc func(context.Context, *db.RepositoryMutation) (db.Value, error)

@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
@@ -54,14 +53,27 @@ func (ccu *CodeCovUpdate) AddCoveragePercentage(f float64) *CodeCovUpdate {
 	return ccu
 }
 
+// SetAverageRetestsToMerge sets the "average_retests_to_merge" field.
+func (ccu *CodeCovUpdate) SetAverageRetestsToMerge(f float64) *CodeCovUpdate {
+	ccu.mutation.ResetAverageRetestsToMerge()
+	ccu.mutation.SetAverageRetestsToMerge(f)
+	return ccu
+}
+
+// AddAverageRetestsToMerge adds f to the "average_retests_to_merge" field.
+func (ccu *CodeCovUpdate) AddAverageRetestsToMerge(f float64) *CodeCovUpdate {
+	ccu.mutation.AddAverageRetestsToMerge(f)
+	return ccu
+}
+
 // SetCodecovID sets the "codecov" edge to the Repository entity by ID.
-func (ccu *CodeCovUpdate) SetCodecovID(id uuid.UUID) *CodeCovUpdate {
+func (ccu *CodeCovUpdate) SetCodecovID(id string) *CodeCovUpdate {
 	ccu.mutation.SetCodecovID(id)
 	return ccu
 }
 
 // SetNillableCodecovID sets the "codecov" edge to the Repository entity by ID if the given value is not nil.
-func (ccu *CodeCovUpdate) SetNillableCodecovID(id *uuid.UUID) *CodeCovUpdate {
+func (ccu *CodeCovUpdate) SetNillableCodecovID(id *string) *CodeCovUpdate {
 	if id != nil {
 		ccu = ccu.SetCodecovID(*id)
 	}
@@ -154,6 +166,12 @@ func (ccu *CodeCovUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ccu.mutation.AddedCoveragePercentage(); ok {
 		_spec.AddField(codecov.FieldCoveragePercentage, field.TypeFloat64, value)
 	}
+	if value, ok := ccu.mutation.AverageRetestsToMerge(); ok {
+		_spec.SetField(codecov.FieldAverageRetestsToMerge, field.TypeFloat64, value)
+	}
+	if value, ok := ccu.mutation.AddedAverageRetestsToMerge(); ok {
+		_spec.AddField(codecov.FieldAverageRetestsToMerge, field.TypeFloat64, value)
+	}
 	if ccu.mutation.CodecovCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -163,7 +181,7 @@ func (ccu *CodeCovUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -179,7 +197,7 @@ func (ccu *CodeCovUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -234,14 +252,27 @@ func (ccuo *CodeCovUpdateOne) AddCoveragePercentage(f float64) *CodeCovUpdateOne
 	return ccuo
 }
 
+// SetAverageRetestsToMerge sets the "average_retests_to_merge" field.
+func (ccuo *CodeCovUpdateOne) SetAverageRetestsToMerge(f float64) *CodeCovUpdateOne {
+	ccuo.mutation.ResetAverageRetestsToMerge()
+	ccuo.mutation.SetAverageRetestsToMerge(f)
+	return ccuo
+}
+
+// AddAverageRetestsToMerge adds f to the "average_retests_to_merge" field.
+func (ccuo *CodeCovUpdateOne) AddAverageRetestsToMerge(f float64) *CodeCovUpdateOne {
+	ccuo.mutation.AddAverageRetestsToMerge(f)
+	return ccuo
+}
+
 // SetCodecovID sets the "codecov" edge to the Repository entity by ID.
-func (ccuo *CodeCovUpdateOne) SetCodecovID(id uuid.UUID) *CodeCovUpdateOne {
+func (ccuo *CodeCovUpdateOne) SetCodecovID(id string) *CodeCovUpdateOne {
 	ccuo.mutation.SetCodecovID(id)
 	return ccuo
 }
 
 // SetNillableCodecovID sets the "codecov" edge to the Repository entity by ID if the given value is not nil.
-func (ccuo *CodeCovUpdateOne) SetNillableCodecovID(id *uuid.UUID) *CodeCovUpdateOne {
+func (ccuo *CodeCovUpdateOne) SetNillableCodecovID(id *string) *CodeCovUpdateOne {
 	if id != nil {
 		ccuo = ccuo.SetCodecovID(*id)
 	}
@@ -358,6 +389,12 @@ func (ccuo *CodeCovUpdateOne) sqlSave(ctx context.Context) (_node *CodeCov, err 
 	if value, ok := ccuo.mutation.AddedCoveragePercentage(); ok {
 		_spec.AddField(codecov.FieldCoveragePercentage, field.TypeFloat64, value)
 	}
+	if value, ok := ccuo.mutation.AverageRetestsToMerge(); ok {
+		_spec.SetField(codecov.FieldAverageRetestsToMerge, field.TypeFloat64, value)
+	}
+	if value, ok := ccuo.mutation.AddedAverageRetestsToMerge(); ok {
+		_spec.AddField(codecov.FieldAverageRetestsToMerge, field.TypeFloat64, value)
+	}
 	if ccuo.mutation.CodecovCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -367,7 +404,7 @@ func (ccuo *CodeCovUpdateOne) sqlSave(ctx context.Context) (_node *CodeCov, err 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -383,7 +420,7 @@ func (ccuo *CodeCovUpdateOne) sqlSave(ctx context.Context) (_node *CodeCov, err 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},

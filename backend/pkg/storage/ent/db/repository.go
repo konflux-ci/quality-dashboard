@@ -16,7 +16,7 @@ import (
 type Repository struct {
 	config `json:"-"`
 	// ID of the ent.
-	ID uuid.UUID `json:"id,omitempty"`
+	ID string `json:"id,omitempty"`
 	// RepositoryName holds the value of the "repository_name" field.
 	RepositoryName string `json:"repository_name,omitempty"`
 	// GitOrganization holds the value of the "git_organization" field.
@@ -43,9 +43,11 @@ type RepositoryEdges struct {
 	ProwSuites []*ProwSuites `json:"prow_suites,omitempty"`
 	// ProwJobs holds the value of the prow_jobs edge.
 	ProwJobs []*ProwJobs `json:"prow_jobs,omitempty"`
+	// Prs holds the value of the prs edge.
+	Prs []*PullRequests `json:"prs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // RepositoriesOrErr returns the Repositories value or an error if the edge
@@ -97,15 +99,22 @@ func (e RepositoryEdges) ProwJobsOrErr() ([]*ProwJobs, error) {
 	return nil, &NotLoadedError{edge: "prow_jobs"}
 }
 
+// PrsOrErr returns the Prs value or an error if the edge
+// was not loaded in eager-loading.
+func (e RepositoryEdges) PrsOrErr() ([]*PullRequests, error) {
+	if e.loadedTypes[5] {
+		return e.Prs, nil
+	}
+	return nil, &NotLoadedError{edge: "prs"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Repository) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case repository.FieldRepositoryName, repository.FieldGitOrganization, repository.FieldDescription, repository.FieldGitURL:
+		case repository.FieldID, repository.FieldRepositoryName, repository.FieldGitOrganization, repository.FieldDescription, repository.FieldGitURL:
 			values[i] = new(sql.NullString)
-		case repository.FieldID:
-			values[i] = new(uuid.UUID)
 		case repository.ForeignKeys[0]: // teams_repositories
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
@@ -124,10 +133,10 @@ func (r *Repository) assignValues(columns []string, values []any) error {
 	for i := range columns {
 		switch columns[i] {
 		case repository.FieldID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
-			} else if value != nil {
-				r.ID = *value
+			} else if value.Valid {
+				r.ID = value.String
 			}
 		case repository.FieldRepositoryName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -188,6 +197,11 @@ func (r *Repository) QueryProwSuites() *ProwSuitesQuery {
 // QueryProwJobs queries the "prow_jobs" edge of the Repository entity.
 func (r *Repository) QueryProwJobs() *ProwJobsQuery {
 	return NewRepositoryClient(r.config).QueryProwJobs(r)
+}
+
+// QueryPrs queries the "prs" edge of the Repository entity.
+func (r *Repository) QueryPrs() *PullRequestsQuery {
+	return NewRepositoryClient(r.config).QueryPrs(r)
 }
 
 // Update returns a builder for updating this Repository.
