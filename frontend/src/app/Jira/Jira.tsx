@@ -349,9 +349,7 @@ export const Jira = () => {
     )
 }
 
-
 const BugsChart: React.FC<{chartType:string, data:any, onBarClick:any}> = ({chartType, data, onBarClick}) => {
-
     let legendData: { name: string }[] = []
     if(data.length>0) {
         legendData = data.map((dataset, index) => {
@@ -369,7 +367,7 @@ const BugsChart: React.FC<{chartType:string, data:any, onBarClick:any}> = ({char
           legendData={legendData}
           legendPosition='bottom'
           padding={{
-            bottom: 70, // Adjusted to accommodate legend
+            bottom: 70,
             left:  40,
             right: 14,
             top: 20
@@ -381,6 +379,7 @@ const BugsChart: React.FC<{chartType:string, data:any, onBarClick:any}> = ({char
           <ChartGroup offset={11}>
             {data.map((dataset, index) => (
                 <ChartBar
+                name={"bar_"+index}
                 key={index}
                 style={{
                     data: { strokeWidth: 1},
@@ -389,22 +388,6 @@ const BugsChart: React.FC<{chartType:string, data:any, onBarClick:any}> = ({char
                 }}
                 data={dataset}
                 labels={({ datum }) => datum.y != 0 ? `${datum.y}` : ``}
-                events={[
-                    {
-                      target: "data",
-                      eventHandlers: {
-                        onClick: () => {
-                          return [{
-                            target: "data",
-                            mutation: (props) => {
-                              onBarClick(props)  
-                              return ({ style: { fill: "orange" } })
-                            }
-                          }];
-                        }
-                      }
-                    }
-                  ]}
                 />
             ))}
           </ChartGroup>

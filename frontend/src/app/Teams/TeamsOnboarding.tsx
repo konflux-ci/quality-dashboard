@@ -304,8 +304,10 @@ export const JiraProjects: React.FC<{onChange:(options:Array<string>) => void, d
     });
   }, []);
 
-  const filterOption = (option: React.ReactNode, input: string) =>
-    (option as React.ReactElement).props.children.includes(input);
+
+  function filterOption(option: React.ReactNode, input: string){
+    return (option as React.ReactElement).props.children.toLowerCase().includes(input.toLowerCase())
+  }
 
   useEffect(() => {
     props.onChange(chosenOptions.map(o => {if(o) return o["key"]}))

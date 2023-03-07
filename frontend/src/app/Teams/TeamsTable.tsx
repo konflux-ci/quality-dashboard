@@ -67,7 +67,6 @@ export const TeamsTable: React.FunctionComponent = () => {
                     target: toUpdateTeam.team_name,
                     jira_keys: jiraProjects.join(",")
                 }
-                console.log(data)
                 let r = await updateTeam(data)
                 clear()
                 window.location.reload();
