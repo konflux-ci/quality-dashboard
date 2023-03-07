@@ -111,7 +111,17 @@ func (s *jiraRouter) openBugsMetrics(ctx context.Context, w http.ResponseWriter,
 		resolution.Priority = "Global"
 	}
 
-	openBugMetrics, err := s.Storage.GetOpenBugsMetricsByStatusAndPriority(resolution.Priority)
+	team, err := s.Storage.GetTeamByName(resolution.TeamName)
+	if err != nil {
+		s.Logger.Error("Failed to fetch bugs")
+
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	openBugMetrics, err := s.Storage.GetOpenBugsMetricsByStatusAndPriority(resolution.Priority, team)
 
 	if err != nil {
 		s.Logger.Error("Failed to fetch bugs")
@@ -139,6 +149,7 @@ type BugCategoriesMetrics struct {
 // @Router /jira/bugs/metrics/priorities [get]
 // @Success 200 {object} v1alpha1.BugsMetrics
 func (s *jiraRouter) getCountBugsForAlCategories(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	teamName := r.URL.Query()["team_name"]
 	bugByCategory := []BugCategoriesMetrics{}
 	priorities := []string{"Global", "Blocker", "Critical", "Major", "Normal", "Minor", "Undefined"}
 
@@ -163,7 +174,17 @@ func (s *jiraRouter) getCountBugsForAlCategories(ctx context.Context, w http.Res
 			})
 		}
 
-		openBugMetrics, err := s.Storage.GetOpenBugsMetricsByStatusAndPriority(priority)
+		team, err := s.Storage.GetTeamByName(teamName[0])
+		if err != nil {
+			s.Logger.Error("Failed to fetch bugs")
+
+			return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+				Message:    err.Error(),
+				StatusCode: http.StatusBadRequest,
+			})
+		}
+
+		openBugMetrics, err := s.Storage.GetOpenBugsMetricsByStatusAndPriority(priority, team)
 
 		if err != nil {
 			s.Logger.Error("Failed to fetch bugs")

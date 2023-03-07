@@ -52,7 +52,7 @@ type Storage interface {
 	CreateJiraBug(jiraBug jiraV1Alpha1.JiraBug, team *db.Teams) error
 	UpdateTeam(t *db.Teams, target string) error
 	DeleteTeam(teamName string) (bool, error)
-	GetOpenBugsMetricsByStatusAndPriority(priority string) (bugsMetrics jiraV1Alpha1.OpenBugsMetrics, err error)
+	GetOpenBugsMetricsByStatusAndPriority(priority string, team *db.Teams) (bugsMetrics jiraV1Alpha1.OpenBugsMetrics, err error)
 
 	// Delete
 	DeleteRepository(repositoryName string, gitOrganizationName string) error
