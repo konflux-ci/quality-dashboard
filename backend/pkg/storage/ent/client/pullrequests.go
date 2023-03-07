@@ -15,10 +15,10 @@ import (
 
 // CreatePullRequest saves provided pull request information in database.
 func (d *Database) CreatePullRequests(prs prV1Alpha1.PullRequests, repo_id string) error {
-	var create = false
-	bulkPullRequests := make([]*db.PullRequestsCreate, len(prs))
+	create := false
+	bulkPullRequests := make([]*db.PullRequestsCreate, 0)
 
-	for i, p := range prs {
+	for _, p := range prs {
 		prAlreadyExists := d.client.PullRequests.Query().
 			Where(pullrequests.Number(p.Number)).
 			Where(pullrequests.RepositoryName(p.Repository.Name)).
@@ -41,7 +41,7 @@ func (d *Database) CreatePullRequests(prs prV1Alpha1.PullRequests, repo_id strin
 			}
 			continue
 		}
-		bulkPullRequests[i] = d.client.PullRequests.Create().
+		bulkPullRequest := d.client.PullRequests.Create().
 			SetTitle(p.Title).
 			SetCreatedAt(p.CreatedAt).
 			SetMergedAt(p.MergedAt).
@@ -52,6 +52,7 @@ func (d *Database) CreatePullRequests(prs prV1Alpha1.PullRequests, repo_id strin
 			SetAuthor(p.Author.User.Login).
 			SetRepositoryName(p.Repository.Name).
 			SetRepositoryOrganization(p.Repository.Owner.Login)
+		bulkPullRequests = append(bulkPullRequests, bulkPullRequest)
 		create = true
 	}
 
