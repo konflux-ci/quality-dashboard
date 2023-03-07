@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/google/uuid"
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
@@ -43,7 +42,7 @@ func (s *Server) ProwStaticUpdate(storageRepos []repoV1Alpha1.Repository, prowjo
 			suitesXml := prow.TestSuites{}
 			prowOrg, prowRepo := ExtractOrgAndRepoFromProwJobLabels(pj.Labels)
 
-			if prowOrg == repo.Organization && prowRepo == repo.Name && pj.Status.State != prow.AbortedState && pj.Status.State != prow.PendingState && !strings.Contains(pj.Status.URL, "-images") && !strings.Contains(pj.Status.URL, "-index") {
+			if prowOrg == repo.Owner.Login && prowRepo == repo.Name && pj.Status.State != prow.AbortedState && pj.Status.State != prow.PendingState && !strings.Contains(pj.Status.URL, "-images") && !strings.Contains(pj.Status.URL, "-index") {
 				// check if job already in database
 				prowJobsInDatabase, _ := s.cfg.Storage.GetProwJobsResultsByJobID(pj.Status.BuildID)
 				if len(prowJobsInDatabase) > 0 {
@@ -55,7 +54,6 @@ func (s *Server) ProwStaticUpdate(storageRepos []repoV1Alpha1.Repository, prowjo
 				matches := RegexpCompiler.FindStringSubmatch(pj.Status.URL)
 
 				if !strings.Contains(pj.Status.URL, "-main-images") && pj.Status.State != prow.ErrorState && pj.Spec.Type == "periodic" && prowOrg == "redhat-appstudio" && len(matches) > 1 {
-					//fmt.Println(repo.ID, repo.RepositoryName, pj.Spec.Type)
 					// convert the url to get GCS url where are stored the artifacts for appstudio
 					suites, _ := fetchSuitesXml(pj.Status.URL + "/" + "artifacts/" + matches[2] + "/" + matches[2] + "/artifacts/e2e-report.xml")
 					// we unmarshal our byteArray which contains our
@@ -72,7 +70,7 @@ func (s *Server) ProwStaticUpdate(storageRepos []repoV1Alpha1.Repository, prowjo
 	}
 }
 
-func SaveProwJobsinDatabase(s storage.Storage, pj prow.ProwJob, ts prow.TestSuites, repositoryId uuid.UUID) error {
+func SaveProwJobsinDatabase(s storage.Storage, pj prow.ProwJob, ts prow.TestSuites, repositoryId string) error {
 	prowJob := prowV1Alpha1.Job{}
 	duration, numTests, testFailed, testSkipped := getSuitesData(pj, ts)
 

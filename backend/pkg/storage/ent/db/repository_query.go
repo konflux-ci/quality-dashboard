@@ -16,6 +16,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
@@ -33,6 +34,7 @@ type RepositoryQuery struct {
 	withCodecov      *CodeCovQuery
 	withProwSuites   *ProwSuitesQuery
 	withProwJobs     *ProwJobsQuery
+	withPrs          *PullRequestsQuery
 	withFKs          bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -180,6 +182,28 @@ func (rq *RepositoryQuery) QueryProwJobs() *ProwJobsQuery {
 	return query
 }
 
+// QueryPrs chains the current query on the "prs" edge.
+func (rq *RepositoryQuery) QueryPrs() *PullRequestsQuery {
+	query := (&PullRequestsClient{config: rq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(repository.Table, repository.FieldID, selector),
+			sqlgraph.To(pullrequests.Table, pullrequests.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, repository.PrsTable, repository.PrsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first Repository entity from the query.
 // Returns a *NotFoundError when no Repository was found.
 func (rq *RepositoryQuery) First(ctx context.Context) (*Repository, error) {
@@ -204,8 +228,8 @@ func (rq *RepositoryQuery) FirstX(ctx context.Context) *Repository {
 
 // FirstID returns the first Repository ID from the query.
 // Returns a *NotFoundError when no Repository ID was found.
-func (rq *RepositoryQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
-	var ids []uuid.UUID
+func (rq *RepositoryQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = rq.Limit(1).IDs(setContextOp(ctx, rq.ctx, "FirstID")); err != nil {
 		return
 	}
@@ -217,7 +241,7 @@ func (rq *RepositoryQuery) FirstID(ctx context.Context) (id uuid.UUID, err error
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (rq *RepositoryQuery) FirstIDX(ctx context.Context) uuid.UUID {
+func (rq *RepositoryQuery) FirstIDX(ctx context.Context) string {
 	id, err := rq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -255,8 +279,8 @@ func (rq *RepositoryQuery) OnlyX(ctx context.Context) *Repository {
 // OnlyID is like Only, but returns the only Repository ID in the query.
 // Returns a *NotSingularError when more than one Repository ID is found.
 // Returns a *NotFoundError when no entities are found.
-func (rq *RepositoryQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
-	var ids []uuid.UUID
+func (rq *RepositoryQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = rq.Limit(2).IDs(setContextOp(ctx, rq.ctx, "OnlyID")); err != nil {
 		return
 	}
@@ -272,7 +296,7 @@ func (rq *RepositoryQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error)
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (rq *RepositoryQuery) OnlyIDX(ctx context.Context) uuid.UUID {
+func (rq *RepositoryQuery) OnlyIDX(ctx context.Context) string {
 	id, err := rq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -300,8 +324,8 @@ func (rq *RepositoryQuery) AllX(ctx context.Context) []*Repository {
 }
 
 // IDs executes the query and returns a list of Repository IDs.
-func (rq *RepositoryQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
+func (rq *RepositoryQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
 	ctx = setContextOp(ctx, rq.ctx, "IDs")
 	if err := rq.Select(repository.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
@@ -310,7 +334,7 @@ func (rq *RepositoryQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (rq *RepositoryQuery) IDsX(ctx context.Context) []uuid.UUID {
+func (rq *RepositoryQuery) IDsX(ctx context.Context) []string {
 	ids, err := rq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -375,6 +399,7 @@ func (rq *RepositoryQuery) Clone() *RepositoryQuery {
 		withCodecov:      rq.withCodecov.Clone(),
 		withProwSuites:   rq.withProwSuites.Clone(),
 		withProwJobs:     rq.withProwJobs.Clone(),
+		withPrs:          rq.withPrs.Clone(),
 		// clone intermediate query.
 		sql:  rq.sql.Clone(),
 		path: rq.path,
@@ -433,6 +458,17 @@ func (rq *RepositoryQuery) WithProwJobs(opts ...func(*ProwJobsQuery)) *Repositor
 		opt(query)
 	}
 	rq.withProwJobs = query
+	return rq
+}
+
+// WithPrs tells the query-builder to eager-load the nodes that are connected to
+// the "prs" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RepositoryQuery) WithPrs(opts ...func(*PullRequestsQuery)) *RepositoryQuery {
+	query := (&PullRequestsClient{config: rq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withPrs = query
 	return rq
 }
 
@@ -515,12 +551,13 @@ func (rq *RepositoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*R
 		nodes       = []*Repository{}
 		withFKs     = rq.withFKs
 		_spec       = rq.querySpec()
-		loadedTypes = [5]bool{
+		loadedTypes = [6]bool{
 			rq.withRepositories != nil,
 			rq.withWorkflows != nil,
 			rq.withCodecov != nil,
 			rq.withProwSuites != nil,
 			rq.withProwJobs != nil,
+			rq.withPrs != nil,
 		}
 	)
 	if rq.withRepositories != nil {
@@ -581,6 +618,13 @@ func (rq *RepositoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*R
 			return nil, err
 		}
 	}
+	if query := rq.withPrs; query != nil {
+		if err := rq.loadPrs(ctx, query, nodes,
+			func(n *Repository) { n.Edges.Prs = []*PullRequests{} },
+			func(n *Repository, e *PullRequests) { n.Edges.Prs = append(n.Edges.Prs, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
 }
 
@@ -618,7 +662,7 @@ func (rq *RepositoryQuery) loadRepositories(ctx context.Context, query *TeamsQue
 }
 func (rq *RepositoryQuery) loadWorkflows(ctx context.Context, query *WorkflowsQuery, nodes []*Repository, init func(*Repository), assign func(*Repository, *Workflows)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Repository)
+	nodeids := make(map[string]*Repository)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -649,7 +693,7 @@ func (rq *RepositoryQuery) loadWorkflows(ctx context.Context, query *WorkflowsQu
 }
 func (rq *RepositoryQuery) loadCodecov(ctx context.Context, query *CodeCovQuery, nodes []*Repository, init func(*Repository), assign func(*Repository, *CodeCov)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Repository)
+	nodeids := make(map[string]*Repository)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -680,7 +724,7 @@ func (rq *RepositoryQuery) loadCodecov(ctx context.Context, query *CodeCovQuery,
 }
 func (rq *RepositoryQuery) loadProwSuites(ctx context.Context, query *ProwSuitesQuery, nodes []*Repository, init func(*Repository), assign func(*Repository, *ProwSuites)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Repository)
+	nodeids := make(map[string]*Repository)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -711,7 +755,7 @@ func (rq *RepositoryQuery) loadProwSuites(ctx context.Context, query *ProwSuites
 }
 func (rq *RepositoryQuery) loadProwJobs(ctx context.Context, query *ProwJobsQuery, nodes []*Repository, init func(*Repository), assign func(*Repository, *ProwJobs)) error {
 	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[uuid.UUID]*Repository)
+	nodeids := make(map[string]*Repository)
 	for i := range nodes {
 		fks = append(fks, nodes[i].ID)
 		nodeids[nodes[i].ID] = nodes[i]
@@ -740,6 +784,37 @@ func (rq *RepositoryQuery) loadProwJobs(ctx context.Context, query *ProwJobsQuer
 	}
 	return nil
 }
+func (rq *RepositoryQuery) loadPrs(ctx context.Context, query *PullRequestsQuery, nodes []*Repository, init func(*Repository), assign func(*Repository, *PullRequests)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Repository)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.PullRequests(func(s *sql.Selector) {
+		s.Where(sql.InValues(repository.PrsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.repository_prs
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "repository_prs" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "repository_prs" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (rq *RepositoryQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := rq.querySpec()
@@ -756,7 +831,7 @@ func (rq *RepositoryQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   repository.Table,
 			Columns: repository.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
+				Type:   field.TypeString,
 				Column: repository.FieldID,
 			},
 		},

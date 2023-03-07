@@ -13,7 +13,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 )
 
-// CreateRepository save provided repository information in database.
+// CreateJiraBug saves provided jira bug information in database.
 func (d *Database) CreateJiraBug(jiraBug jiraV1Alpha1.JiraBug) error {
 	bugAlreadyExists := d.client.Bugs.Query().Where(bugs.JiraKey(jiraBug.JiraKey)).ExistX(context.TODO())
 

@@ -3,12 +3,17 @@ package github
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/google/go-github/v44/github"
 )
 
 var (
 	GENERIC_ERROR_GIT_RESPONSE = errors.New("unable to parse repository. Please verify your token")
+)
+
+var (
+	zeroDate = time.Time{}
 )
 
 func (g *Github) GetGithubRepositoryInformation(organization string, repository string) (*github.Repository, error) {

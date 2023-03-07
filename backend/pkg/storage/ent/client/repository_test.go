@@ -11,10 +11,13 @@ import (
 )
 
 var toCreate = s.Repository{
-	Name:         "managed-gitops",
-	Organization: "redhat-appstudio",
-	Description:  "GitOps Service: Backend/cluster-agent/utility components aiming to provided GitOps services via Kubernetes-controller-managed Argo CD",
-	HTMLURL:      "https://github.com/redhat-appstudio/managed-gitops",
+	ID:   "12345678",
+	Name: "managed-gitops",
+	Owner: s.Owner{
+		Login: "redhat-appstudio",
+	},
+	Description: "GitOps Service: Backend/cluster-agent/utility components aiming to provided GitOps services via Kubernetes-controller-managed Argo CD",
+	URL:         "https://github.com/redhat-appstudio/managed-gitops",
 }
 
 func TestCreateRepository(t *testing.T) {
@@ -24,7 +27,7 @@ func TestCreateRepository(t *testing.T) {
 	assert.NoError(t, err)
 
 	// be sure that there is no test repo in the db
-	err = storage.DeleteRepository(toCreate.Name, toCreate.Organization)
+	err = storage.DeleteRepository(toCreate.Name, toCreate.Owner.Login)
 	assert.NoError(t, err)
 
 	teamName := "team" + util.GenerateRandomString(6)
@@ -47,9 +50,9 @@ func TestCreateRepository(t *testing.T) {
 			Input: &toCreate,
 			Expected: &db.Repository{
 				RepositoryName:  toCreate.Name,
-				GitOrganization: toCreate.Organization,
+				GitOrganization: toCreate.Owner.Login,
 				Description:     toCreate.Description,
-				GitURL:          toCreate.HTMLURL,
+				GitURL:          toCreate.URL,
 			},
 			ExpectedError: "",
 			Team:          &team.ID,
@@ -84,7 +87,7 @@ func TestListRepositories(t *testing.T) {
 	assert.NoError(t, err)
 
 	// be sure that there is no test repo in the db
-	err = storage.DeleteRepository(toCreate.Name, toCreate.Organization)
+	err = storage.DeleteRepository(toCreate.Name, toCreate.Owner.Login)
 	assert.NoError(t, err)
 
 	teamName := "team-" + util.GenerateRandomString(6)
@@ -136,7 +139,7 @@ func TestGetRepository(t *testing.T) {
 	assert.NoError(t, err)
 
 	// be sure that there is no test repo in the db
-	err = storage.DeleteRepository(toCreate.Name, toCreate.Organization)
+	err = storage.DeleteRepository(toCreate.Name, toCreate.Owner.Login)
 	assert.NoError(t, err)
 
 	teamName := "team-" + util.GenerateRandomString(6)

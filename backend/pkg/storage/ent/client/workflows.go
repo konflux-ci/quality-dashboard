@@ -3,14 +3,13 @@ package client
 import (
 	"context"
 
-	"github.com/google/uuid"
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 )
 
-// CreateRepository save provided repository information in database.
-func (d *Database) CreateWorkflows(workflow repoV1Alpha1.Workflow, repo_id uuid.UUID) error {
+// CreateWorkflows saves provided workflow information in database.
+func (d *Database) CreateWorkflows(workflow repoV1Alpha1.Workflow, repo_id string) error {
 	w, err := d.client.Workflows.Create().
 		SetWorkflowName(workflow.Name).
 		SetBadgeURL(workflow.BadgeURL).

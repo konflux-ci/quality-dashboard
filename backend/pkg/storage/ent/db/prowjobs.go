@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
@@ -43,7 +42,7 @@ type ProwJobs struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProwJobsQuery when eager-loading is set.
 	Edges                ProwJobsEdges `json:"edges"`
-	repository_prow_jobs *uuid.UUID
+	repository_prow_jobs *string
 }
 
 // ProwJobsEdges holds the relations/edges for other nodes in the graph.
@@ -82,7 +81,7 @@ func (*ProwJobs) scanValues(columns []string) ([]any, error) {
 		case prowjobs.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
 		case prowjobs.ForeignKeys[0]: // repository_prow_jobs
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type ProwJobs", columns[i])
 		}
@@ -171,11 +170,11 @@ func (pj *ProwJobs) assignValues(columns []string, values []any) error {
 				pj.CiFailed = int16(value.Int64)
 			}
 		case prowjobs.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field repository_prow_jobs", values[i])
 			} else if value.Valid {
-				pj.repository_prow_jobs = new(uuid.UUID)
-				*pj.repository_prow_jobs = *value.S.(*uuid.UUID)
+				pj.repository_prow_jobs = new(string)
+				*pj.repository_prow_jobs = value.String
 			}
 		}
 	}

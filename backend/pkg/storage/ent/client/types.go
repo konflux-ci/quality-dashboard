@@ -9,11 +9,13 @@ import (
 
 func toStorageRepository(p *db.Repository) repoV1Alpha1.Repository {
 	return repoV1Alpha1.Repository{
-		Name:         p.RepositoryName,
-		Organization: p.GitOrganization,
-		Description:  p.Description,
-		HTMLURL:      p.GitURL,
-		ID:           p.ID,
+		Name: p.RepositoryName,
+		Owner: repoV1Alpha1.Owner{
+			Login: p.GitOrganization,
+		},
+		Description: p.Description,
+		URL:         p.GitURL,
+		ID:          p.ID,
 	}
 }
 
@@ -33,9 +35,20 @@ func toStorageRepositoryAllInfo(p *db.Repository, c *db.CodeCov) storage.Reposit
 		GitURL:          p.GitURL,
 		Description:     p.Description,
 		CodeCoverage: coverageV1Alpha1.Coverage{
-			RepositoryName:     p.RepositoryName,
-			GitOrganization:    p.GitOrganization,
-			CoveragePercentage: c.CoveragePercentage,
+			RepositoryName:             p.RepositoryName,
+			GitOrganization:            p.GitOrganization,
+			CoveragePercentage:         c.CoveragePercentage,
+			AverageToRetestPullRequest: c.AverageRetestsToMerge,
 		},
+	}
+}
+
+func toStoragePrs(pr *db.PullRequests) repoV1Alpha1.PullRequest {
+	return repoV1Alpha1.PullRequest{
+		Title:     pr.Title,
+		CreatedAt: pr.CreatedAt,
+		MergedAt:  pr.MergedAt,
+		ClosedAt:  pr.ClosedAt,
+		State:     pr.State,
 	}
 }

@@ -43,14 +43,14 @@ func (tu *TeamsUpdate) SetDescription(s string) *TeamsUpdate {
 }
 
 // AddRepositoryIDs adds the "repositories" edge to the Repository entity by IDs.
-func (tu *TeamsUpdate) AddRepositoryIDs(ids ...uuid.UUID) *TeamsUpdate {
+func (tu *TeamsUpdate) AddRepositoryIDs(ids ...string) *TeamsUpdate {
 	tu.mutation.AddRepositoryIDs(ids...)
 	return tu
 }
 
 // AddRepositories adds the "repositories" edges to the Repository entity.
 func (tu *TeamsUpdate) AddRepositories(r ...*Repository) *TeamsUpdate {
-	ids := make([]uuid.UUID, len(r))
+	ids := make([]string, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
@@ -84,14 +84,14 @@ func (tu *TeamsUpdate) ClearRepositories() *TeamsUpdate {
 }
 
 // RemoveRepositoryIDs removes the "repositories" edge to Repository entities by IDs.
-func (tu *TeamsUpdate) RemoveRepositoryIDs(ids ...uuid.UUID) *TeamsUpdate {
+func (tu *TeamsUpdate) RemoveRepositoryIDs(ids ...string) *TeamsUpdate {
 	tu.mutation.RemoveRepositoryIDs(ids...)
 	return tu
 }
 
 // RemoveRepositories removes "repositories" edges to Repository entities.
 func (tu *TeamsUpdate) RemoveRepositories(r ...*Repository) *TeamsUpdate {
-	ids := make([]uuid.UUID, len(r))
+	ids := make([]string, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
@@ -179,7 +179,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -195,7 +195,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -214,7 +214,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -311,14 +311,14 @@ func (tuo *TeamsUpdateOne) SetDescription(s string) *TeamsUpdateOne {
 }
 
 // AddRepositoryIDs adds the "repositories" edge to the Repository entity by IDs.
-func (tuo *TeamsUpdateOne) AddRepositoryIDs(ids ...uuid.UUID) *TeamsUpdateOne {
+func (tuo *TeamsUpdateOne) AddRepositoryIDs(ids ...string) *TeamsUpdateOne {
 	tuo.mutation.AddRepositoryIDs(ids...)
 	return tuo
 }
 
 // AddRepositories adds the "repositories" edges to the Repository entity.
 func (tuo *TeamsUpdateOne) AddRepositories(r ...*Repository) *TeamsUpdateOne {
-	ids := make([]uuid.UUID, len(r))
+	ids := make([]string, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
@@ -352,14 +352,14 @@ func (tuo *TeamsUpdateOne) ClearRepositories() *TeamsUpdateOne {
 }
 
 // RemoveRepositoryIDs removes the "repositories" edge to Repository entities by IDs.
-func (tuo *TeamsUpdateOne) RemoveRepositoryIDs(ids ...uuid.UUID) *TeamsUpdateOne {
+func (tuo *TeamsUpdateOne) RemoveRepositoryIDs(ids ...string) *TeamsUpdateOne {
 	tuo.mutation.RemoveRepositoryIDs(ids...)
 	return tuo
 }
 
 // RemoveRepositories removes "repositories" edges to Repository entities.
 func (tuo *TeamsUpdateOne) RemoveRepositories(r ...*Repository) *TeamsUpdateOne {
-	ids := make([]uuid.UUID, len(r))
+	ids := make([]string, len(r))
 	for i := range r {
 		ids[i] = r[i].ID
 	}
@@ -471,7 +471,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -487,7 +487,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -506,7 +506,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},

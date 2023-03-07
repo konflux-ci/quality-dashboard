@@ -86,7 +86,7 @@ export const About = () => {
                         <Card isPlain isCompact>
                             <CardHeader><b>Coverage Connector</b></CardHeader>
                             <CardBody>
-                                Connect to <a href="https://about.codecov.io/"><b>CodeCov</b></a> and get the total coverage of your repository.
+                                Connect to <a href="https://about.codecov.io/" target="blank" rel="noopener noreferrer"><b>CodeCov</b></a> and get the total coverage of your repository.
                             </CardBody>
                         </Card>
                     </CardBody>

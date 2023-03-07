@@ -2,15 +2,11 @@
 
 package repository
 
-import (
-	"github.com/google/uuid"
-)
-
 const (
 	// Label holds the string label denoting the repository type in the database.
 	Label = "repository"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID = "repo_id"
+	FieldID = "id"
 	// FieldRepositoryName holds the string denoting the repository_name field in the database.
 	FieldRepositoryName = "repository_name"
 	// FieldGitOrganization holds the string denoting the git_organization field in the database.
@@ -29,16 +25,10 @@ const (
 	EdgeProwSuites = "prow_suites"
 	// EdgeProwJobs holds the string denoting the prow_jobs edge name in mutations.
 	EdgeProwJobs = "prow_jobs"
+	// EdgePrs holds the string denoting the prs edge name in mutations.
+	EdgePrs = "prs"
 	// TeamsFieldID holds the string denoting the ID field of the Teams.
 	TeamsFieldID = "team_id"
-	// WorkflowsFieldID holds the string denoting the ID field of the Workflows.
-	WorkflowsFieldID = "id"
-	// CodeCovFieldID holds the string denoting the ID field of the CodeCov.
-	CodeCovFieldID = "id"
-	// ProwSuitesFieldID holds the string denoting the ID field of the ProwSuites.
-	ProwSuitesFieldID = "id"
-	// ProwJobsFieldID holds the string denoting the ID field of the ProwJobs.
-	ProwJobsFieldID = "id"
 	// Table holds the table name of the repository in the database.
 	Table = "repositories"
 	// RepositoriesTable is the table that holds the repositories relation/edge.
@@ -76,6 +66,13 @@ const (
 	ProwJobsInverseTable = "prow_jobs"
 	// ProwJobsColumn is the table column denoting the prow_jobs relation/edge.
 	ProwJobsColumn = "repository_prow_jobs"
+	// PrsTable is the table that holds the prs relation/edge.
+	PrsTable = "pull_requests"
+	// PrsInverseTable is the table name for the PullRequests entity.
+	// It exists in this package in order to avoid circular dependency with the "pullrequests" package.
+	PrsInverseTable = "pull_requests"
+	// PrsColumn is the table column denoting the prs relation/edge.
+	PrsColumn = "repository_prs"
 )
 
 // Columns holds all SQL columns for repository fields.
@@ -117,6 +114,6 @@ var (
 	DescriptionValidator func(string) error
 	// GitURLValidator is a validator for the "git_url" field. It is called by the builders before save.
 	GitURLValidator func(string) error
-	// DefaultID holds the default value on creation for the "id" field.
-	DefaultID func() uuid.UUID
+	// IDValidator is a validator for the "id" field. It is called by the builders before save.
+	IDValidator func(string) error
 )

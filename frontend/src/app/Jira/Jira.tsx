@@ -166,7 +166,7 @@ export const Jira = () => {
                         <Tr>
                             <Td>
                                 <div>
-                                    <strong style={{ textDecoration: "underline", color: "blue" }}><a href={`https://issues.redhat.com/browse/${j["key"]}`}>{j["key"]}</a></strong>
+                                    <strong style={{ textDecoration: "underline", color: "blue" }}><a href={`https://issues.redhat.com/browse/${j["key"]}`} target="blank" rel="noopener noreferrer">{j["key"]}</a></strong>
                                     : &nbsp;
                                 </div>
                                 <div>{j["fields"]["summary"]}</div>
@@ -185,7 +185,7 @@ export const Jira = () => {
                         <Tr>
                             <Td>
                                 <div>
-                                    <strong style={{ textDecoration: "underline", color: "blue" }}><a href={`https://issues.redhat.com/browse/${j["key"]}`}>{j["key"]}</a></strong>
+                                    <strong style={{ textDecoration: "underline", color: "blue" }}><a href={`https://issues.redhat.com/browse/${j["key"]}`} target="blank" rel="noopener noreferrer">{j["key"]}</a></strong>
                                     : &nbsp;
                                 </div>
                                 <div>{j["fields"]["summary"]}</div>

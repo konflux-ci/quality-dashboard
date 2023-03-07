@@ -32,7 +32,7 @@ type Workflows struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the WorkflowsQuery when eager-loading is set.
 	Edges                WorkflowsEdges `json:"edges"`
-	repository_workflows *uuid.UUID
+	repository_workflows *string
 }
 
 // WorkflowsEdges holds the relations/edges for other nodes in the graph.
@@ -69,7 +69,7 @@ func (*Workflows) scanValues(columns []string) ([]any, error) {
 		case workflows.FieldWorkflowID:
 			values[i] = new(uuid.UUID)
 		case workflows.ForeignKeys[0]: // repository_workflows
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+			values[i] = new(sql.NullString)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Workflows", columns[i])
 		}
@@ -128,11 +128,11 @@ func (w *Workflows) assignValues(columns []string, values []any) error {
 				w.State = value.String
 			}
 		case workflows.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field repository_workflows", values[i])
 			} else if value.Valid {
-				w.repository_workflows = new(uuid.UUID)
-				*w.repository_workflows = *value.S.(*uuid.UUID)
+				w.repository_workflows = new(string)
+				*w.repository_workflows = value.String
 			}
 		}
 	}
