@@ -12,6 +12,7 @@ import (
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/api/apis/jira/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"go.uber.org/zap"
 )
 
@@ -44,10 +45,22 @@ func (s *Server) startUpdateStorage(ctx context.Context, strategy rotationStrate
 }
 
 func (s *Server) rotate() error {
-	s.rotateJiraBugs()
+	teamArr, err := s.cfg.Storage.GetAllTeamsFromDB()
+	if err != nil {
+		s.cfg.Logger.Sugar().Errorf("Failed to update cache", zap.Error(err))
+		return err
+	}
+	for _, team := range teamArr {
+		if team.JiraKeys == "" {
+			continue
+		}
+		if err := s.rotateJiraBugs(team.JiraKeys, team); err != nil {
+			return err
+		}
+	}
 
 	s.UpdateProwStatusByTeam()
-	err := s.UpdateDataBaseRepoByTeam()
+	err = s.UpdateDataBaseRepoByTeam()
 	if err != nil {
 		s.cfg.Logger.Sugar().Errorf("Failed to update cache", zap.Error(err))
 		return err
@@ -61,8 +74,8 @@ func staticRotationStrategy() rotationStrategy {
 	}
 }
 
-func (s *Server) rotateJiraBugs() {
-	bugs := s.cfg.Jira.GetBugsByJQLQuery(`project in ("Hybrid Application Service", "Stonesoup", "CodeReady Toolchain", "GitOps Service", "Pipeline Service", "SVPI", "Stonesoup Build") AND type = Bug`)
+func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
+	bugs := s.cfg.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys))
 	wg := new(sync.WaitGroup)
 	for keyString, bugValue := range bugs {
 		wg.Add(1)
@@ -89,7 +102,7 @@ func (s *Server) rotateJiraBugs() {
 				Status:         bug.Fields.Status.Name,
 				Summary:        bug.Fields.Summary,
 				Url:            fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key),
-			}); err != nil {
+			}, team); err != nil {
 				s.cfg.Logger.Sugar().Errorf("failed to update jiras %s, %v", bug.Key, err)
 			}
 		}(keyString, bugValue, wg)
@@ -97,7 +110,7 @@ func (s *Server) rotateJiraBugs() {
 
 	wg.Wait()
 
-	s.cfg.Logger.Sugar().Info("successfully update jira bugs in database")
+	return nil
 }
 
 func (s *Server) UpdateDataBaseRepoByTeam() error {

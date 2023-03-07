@@ -14,7 +14,7 @@ import (
 )
 
 // CreateRepository save provided repository information in database.
-func (d *Database) CreateJiraBug(jiraBug jiraV1Alpha1.JiraBug) error {
+func (d *Database) CreateJiraBug(jiraBug jiraV1Alpha1.JiraBug, team *db.Teams) error {
 	bugAlreadyExists := d.client.Bugs.Query().Where(bugs.JiraKey(jiraBug.JiraKey)).ExistX(context.TODO())
 
 	if bugAlreadyExists {
@@ -29,6 +29,7 @@ func (d *Database) CreateJiraBug(jiraBug jiraV1Alpha1.JiraBug) error {
 			SetSummary(jiraBug.Summary).
 			SetURL(jiraBug.Url).
 			SetStatus(jiraBug.Status).
+			SetBugs(team).
 			Save(context.TODO())
 		if err != nil {
 			return convertDBError("failed to create bug: %w", err)
@@ -54,7 +55,7 @@ func (d *Database) CreateJiraBug(jiraBug jiraV1Alpha1.JiraBug) error {
 	return nil
 }
 
-func (d *Database) TotalBugsResolutionTime(priority string) (bugsMetrics jiraV1Alpha1.ResolvedBugsMetrics, err error) {
+func (d *Database) TotalBugsResolutionTime(priority string, team *db.Teams) (bugsMetrics jiraV1Alpha1.ResolvedBugsMetrics, err error) {
 	var totalBugs int
 	var totalAverage float64
 	currentTime := time.Now()
@@ -63,13 +64,13 @@ func (d *Database) TotalBugsResolutionTime(priority string) (bugsMetrics jiraV1A
 		firstDayOfMonth := BeginningOfMonth(currentTime.AddDate(0, -month, 0))
 		lastDayOfMonth := EndOfMonth(currentTime.AddDate(0, -month, 0))
 
-		totalMonthResolution, err := d.ResolutionBugByDate(priority, firstDayOfMonth.Format("2006-01-02"), lastDayOfMonth.Format("2006-01-02"))
+		totalMonthResolution, err := d.ResolutionBugByDate(team, priority, firstDayOfMonth.Format("2006-01-02"), lastDayOfMonth.Format("2006-01-02"))
 
 		if err != nil {
 			return jiraV1Alpha1.ResolvedBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
 		}
 
-		bugsAll, err := d.GetBugsByPriorityAndStatus(priority, true, firstDayOfMonth.Format("2006-01-02"), lastDayOfMonth.Format("2006-01-02"))
+		bugsAll, err := d.GetResolvedBugsByPriorityAndStatus(priority, true, firstDayOfMonth.Format("2006-01-02"), lastDayOfMonth.Format("2006-01-02"))
 		if err != nil {
 			return jiraV1Alpha1.ResolvedBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
 		}
@@ -97,13 +98,13 @@ func (d *Database) TotalBugsResolutionTime(priority string) (bugsMetrics jiraV1A
 	}, nil
 }
 
-func (d *Database) ResolutionBugByDate(priority, dateFrom string, dateTo string) (float64, error) {
+func (d *Database) ResolutionBugByDate(team *db.Teams, priority, dateFrom string, dateTo string) (float64, error) {
 	var resolution []struct {
 		Sum, Count float64
 	}
 
 	if priority == "Global" {
-		err := d.client.Bugs.Query().
+		err := d.client.Teams.QueryBugs(team).
 			Where(predicate.Bugs(bugs.Resolved(true))).
 			Where(func(s *sql.Selector) {
 				s.Where(sql.ExprP(fmt.Sprintf("resolved_at BETWEEN '%s' AND '%s'", dateFrom, dateTo)))
@@ -144,7 +145,7 @@ func (d *Database) ResolutionBugByDate(priority, dateFrom string, dateTo string)
 	return totalMonthResolution, nil
 }
 
-func (d *Database) GetBugsByPriorityAndStatus(priority string, IsResolved bool, dateFrom string, dateTo string) (bugsArray []*db.Bugs, err error) {
+func (d *Database) GetResolvedBugsByPriorityAndStatus(priority string, IsResolved bool, dateFrom string, dateTo string) (bugsArray []*db.Bugs, err error) {
 	if priority == "Global" {
 		bugsArray, err = d.client.Bugs.Query().
 			Where(predicate.Bugs(bugs.Resolved(IsResolved))).
@@ -168,6 +169,30 @@ func (d *Database) GetBugsByPriorityAndStatus(priority string, IsResolved bool, 
 	return bugsArray, nil
 }
 
+func (d *Database) GetOpenBugsByPriorityAndStatus(priority string, IsResolved bool, dateFrom string, dateTo string) (bugsArray []*db.Bugs, err error) {
+	if priority == "Global" {
+		bugsArray, err = d.client.Bugs.Query().
+			Where(predicate.Bugs(bugs.Resolved(IsResolved))).
+			Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
+				s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", dateFrom, dateTo)))
+			}).All(context.TODO())
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		bugsArray, err = d.client.Bugs.Query().
+			Where(predicate.Bugs(bugs.Resolved(IsResolved))).
+			Where(predicate.Bugs(bugs.Priority(priority))).
+			Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
+				s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", dateFrom, dateTo)))
+			}).All(context.TODO())
+		if err != nil {
+			return nil, err
+		}
+	}
+	return bugsArray, nil
+}
+
 func (d *Database) GetOpenBugsMetricsByStatusAndPriority(priority string) (bugsMetrics jiraV1Alpha1.OpenBugsMetrics, err error) {
 	var totalBugs int
 	currentTime := time.Now()
@@ -175,7 +200,7 @@ func (d *Database) GetOpenBugsMetricsByStatusAndPriority(priority string) (bugsM
 	for month := 0; month < 12; month++ {
 		firstDayOfMonth := BeginningOfMonth(currentTime.AddDate(0, -month, 0))
 		lastDayOfMonth := EndOfMonth(currentTime.AddDate(0, -month, 0))
-		bugsAll, err := d.GetBugsByPriorityAndStatus(priority, false, firstDayOfMonth.Format("2006-01-02"), lastDayOfMonth.Format("2006-01-02"))
+		bugsAll, err := d.GetOpenBugsByPriorityAndStatus(priority, false, firstDayOfMonth.Format("2006-01-02"), lastDayOfMonth.Format("2006-01-02"))
 		if err != nil {
 			return jiraV1Alpha1.OpenBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
 		}

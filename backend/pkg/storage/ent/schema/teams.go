@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -34,6 +35,9 @@ func (Teams) Edges() []ent.Edge {
 		// and reference it to the "cars" edge (in User schema)
 		// explicitly using the `Ref` method.
 		edge.To("repositories", Repository.Type),
-		edge.To("bugs", Bugs.Type),
+		edge.To("bugs", Bugs.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
 	}
 }
