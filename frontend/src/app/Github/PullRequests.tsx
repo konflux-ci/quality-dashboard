@@ -62,7 +62,7 @@ export const PullRequestCard = (props) => {
           {props.title == 'Retest Before Merge Avg' && (
             help("Retests to merge: calculate an average how many /test and /retest comments were issued after the last code push")
           )}
-          {props.title == 'Merge PR Time Avg Days' && (
+          {props.title == 'Time To Merge PR Avg Days' && (
             help("Average time to merge a PR: calculate an average of how many days were needed to merge a PR (difference between creation and merged date)")
           )}
         </div>
