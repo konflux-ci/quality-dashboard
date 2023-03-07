@@ -13,12 +13,14 @@ import { ITeam } from './TeamsSelect';
 import { deleteInApi, updateTeam } from "@app/utils/APIService";
 import { useSelector } from 'react-redux';
 import { Button, Form, FormGroup, Modal, ModalVariant, TextArea, TextInput } from "@patternfly/react-core";
+import { JiraProjects } from './TeamsOnboarding';
 
 export const TeamsTable: React.FunctionComponent = () => {
     // In real usage, this data would come from some external source like an API via props.
     const columns = {
         team_name: 'Team',
         description: 'Description',
+        jira_keys: "Jira Projects"
     }
 
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -27,12 +29,17 @@ export const TeamsTable: React.FunctionComponent = () => {
     const [toDeleteTeam, setToDeleteTeam] = useState<ITeam>();
     const [newTeamName, setNewTeamName] = useState<string>("");
     const [newTeamDesc, setNewTeamDesc] = useState<string>("");
+    const [jiraProjects, setJiraProjects] = useState<Array<string>>([])
 
     let currentTeamsAvailable = useSelector((state: any) => state.teams.TeamsAvailable);
 
     const editTeam = (team: ITeam) => {
+        console.log(team)
         setIsUpdateModalOpen(true)
         setToUpdateTeam(team)
+        setNewTeamName(team.team_name)
+        setNewTeamDesc(team.description)
+        setJiraProjects(team.jira_keys.split(","))
     }
 
     const deleteTeam = (team: ITeam) => {
@@ -58,8 +65,10 @@ export const TeamsTable: React.FunctionComponent = () => {
                     team_name: newTeamName,
                     description: newTeamDesc,
                     target: toUpdateTeam.team_name,
+                    jira_keys: jiraProjects.join(",")
                 }
-                await updateTeam(data)
+                console.log(data)
+                let r = await updateTeam(data)
                 clear()
                 window.location.reload();
             }
@@ -94,6 +103,10 @@ export const TeamsTable: React.FunctionComponent = () => {
         setNewTeamDesc("")
     }
 
+    const onJiraProjectsSelected = (options:Array<string>) => {
+        setJiraProjects(options)
+    }
+
     return (
         <React.Fragment>
             <TableComposable aria-label="Actions table">
@@ -101,16 +114,17 @@ export const TeamsTable: React.FunctionComponent = () => {
                     <Tr>
                         <Th>{columns.team_name}</Th>
                         <Th>{columns.description}</Th>
+                        <Th>{columns.jira_keys}</Th>
                     </Tr>
                 </Thead>
                 <Tbody>
                     {currentTeamsAvailable.map(team => {
-                        console.log(toUpdateTeam)
                         const rowActions: IAction[] | null = defaultActions(team);
                         return (
                             <Tr key={team.team_name}>
                                 <Td>{team.team_name}</Td>
                                 <Td>{team.description}</Td>
+                                <Td>{team.jira_keys}</Td>
                                 <Td isActionCell>
                                     {rowActions ? (
                                         <ActionsColumn
@@ -143,6 +157,9 @@ export const TeamsTable: React.FunctionComponent = () => {
                     </FormGroup>
                     <FormGroup label="Description" isRequired fieldId='team-description' helperText="Update your team description">
                         <TextArea value={newTeamDesc} type="text" onChange={(value) => { setNewTeamDesc(value) }} aria-label="text area example" placeholder="Update your team description" />
+                    </FormGroup>
+                    <FormGroup label="Jira Projects" fieldId='jira-projects' helperText="Update Jira Projects">
+                        <JiraProjects onChange={onJiraProjectsSelected}></JiraProjects>
                     </FormGroup>
                 </Form>
             </Modal>

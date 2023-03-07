@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Card,
     CardTitle,
@@ -15,7 +15,6 @@ import {
     ChipGroup,
     ToggleGroup,
     ToggleGroupItem,
-    Tooltip
 } from '@patternfly/react-core';
 import {
     TableComposable,
@@ -45,10 +44,6 @@ interface Bugs {
     labels: string;
     url: string;
     teams_bugs: string;
-}
-
-function getMonth(monthStr){
-    return new Date(monthStr+'-1-01').getMonth()+1
 }
 
 export const Jira = () => {
@@ -90,7 +85,6 @@ export const Jira = () => {
     const [resolutionTimeChart, setResolutionTimeChart] = useState<any>({});
     const [bugsChart, setBugsChart] = useState<any>({});
     const [bugsTable, setBugsTable] = useState<any>({});
-    const [stats, setStats] = useState<any>({});
 
     const [isSelected, setIsSelected] = React.useState('open');
     const handleItemClick = (isSelected: boolean, event: React.MouseEvent<any> | React.KeyboardEvent | MouseEvent) => {
@@ -357,8 +351,6 @@ export const Jira = () => {
 
 
 const BugsChart: React.FC<{chartType:string, data:any, onBarClick:any}> = ({chartType, data, onBarClick}) => {
-
-    const CursorVoronoiContainer = createContainer("voronoi", "cursor");
 
     let legendData: { name: string }[] = []
     if(data.length>0) {

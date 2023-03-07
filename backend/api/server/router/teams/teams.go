@@ -127,6 +127,7 @@ func (rp *teamsRouter) updateTeamHandler(ctx context.Context, w http.ResponseWri
 		&db.Teams{
 			TeamName:    team.TeamName,
 			Description: team.Description,
+			JiraKeys:    team.JiraKeys,
 		},
 		team.TargetTeam,
 	)

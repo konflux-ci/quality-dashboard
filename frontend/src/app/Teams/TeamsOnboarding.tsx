@@ -1,11 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { createTeam, createRepository } from "@app/utils/APIService";
+import { createTeam, createRepository, listJiraProjects } from "@app/utils/APIService";
 import {
   Wizard, PageSection, PageSectionVariants,
   TextInput, FormGroup, Form, TextArea,
   DescriptionList, DescriptionListGroup, DescriptionListDescription, DescriptionListTerm, Title, Spinner,
   Alert, AlertGroup, AlertVariant, Button, Toolbar, ToolbarContent, ToolbarItem, ToolbarGroup,
-  Select, SelectOption, SelectVariant, Divider
+  DualListSelector
 } from '@patternfly/react-core';
 import { useHistory } from 'react-router-dom';
 import { getTeams } from '@app/utils/APIService';
@@ -37,6 +37,7 @@ export const TeamsWizard = () => {
   const history = useHistory();
   const params = new URLSearchParams(window.location.search);
   const open = params.get('isOpen');
+  const [jiraProjects, setJiraProjects] = useState<Array<string>>([])
 
   const onSubmit = async () => {
     // Create a team
@@ -45,6 +46,7 @@ export const TeamsWizard = () => {
     const data = {
       "team_name": newTeamName,
       "description": newTeamDesc,
+      "jira_keys": jiraProjects.join(",")
     }
 
     createTeam(data).then(response => {
@@ -165,62 +167,6 @@ export const TeamsWizard = () => {
     </div>
   )
 
-  const [isJiraOpen, setJiraOpen] = useState<boolean>(false);
-  const [options, setOptions] = useState<Array<string>>([])
-  const jiraProjectsOptions = [
-    <SelectOption key={0} value="Active"/>,
-    <SelectOption key={1} value="Cancelled" />,
-    <SelectOption key={2} value="Paused" />,
-    <SelectOption key={4} value="Warning" />,
-    <SelectOption key={5} value="Restarted" />
-  ]
-  const clearSelection = () => {
-    setOptions([])
-  };
-
-  const onToggle = isOpen => {
-    setJiraOpen(isOpen)
-  };
-
-  const onSelect = (event, selection) => {
-    if (options.includes(selection)) {
-      let newState = options.filter(item => item !== selection)
-      setOptions(newState)
-    } 
-    else {
-      let newState = [...options, selection]
-      setOptions(newState)
-    }
-  };
-
-  const JiraProjects = (
-      <div className={'pf-u-m-lg'} >
-        <Title headingLevel="h6" size="xl">Optionally: associate Jira Projects to your team</Title>
-        <Form>
-          <FormGroup label="Jira Projects" fieldId="repo-name" helperText="Select Jira Projects">
-            <Select
-              variant={SelectVariant.checkbox}
-              aria-label="Select Jira Projects"
-              onToggle={onToggle}
-              onSelect={onSelect}
-              selections={options}
-              isOpen={isJiraOpen}
-              placeholderText={options.join(" - ")}
-            >
-              {jiraProjectsOptions}
-            </Select>
-          </FormGroup>
-          <div>
-            <p style={{marginTop: '10px'}}>These projects will be associated to your Team. They will be used to display metrics about bugs in the Jira page.</p>
-            <p style={{marginTop: '10px'}}>You have selected the following Jira Projects:</p>
-              {options.map((project, index ) => (
-              <li key={index}>{project}</li>
-            ))}
-          </div>
-        </Form>
-      </div>
-  )
-
   const DataReview = (
     <div>
       <Title headingLevel="h6" size="xl">Review your data</Title>
@@ -244,7 +190,7 @@ export const TeamsWizard = () => {
           </DescriptionListGroup>
           <DescriptionListGroup>
             <DescriptionListTerm>Jira Projects</DescriptionListTerm>
-            <DescriptionListDescription>{options.join(" - ")}</DescriptionListDescription>
+            <DescriptionListDescription>{jiraProjects.join(" - ")}</DescriptionListDescription>
           </DescriptionListGroup>
         </DescriptionList>
       </div>
@@ -272,10 +218,14 @@ export const TeamsWizard = () => {
 
   }
 
+  const jiraOnChange = (options:Array<string>) => {
+    setJiraProjects(options)
+  }
+
   const steps = [
     { id: 'team', name: 'Team Name', component: TeamData, enableNext: ValidateTeam() },
     { id: 'repo', name: 'Add a repository', component: AddRepo, canJumpTo: ValidateTeam(), enableNext: ValidateRepoAndOrg() },
-    { id: 'jira', name: 'Jira Projects', component: JiraProjects, canJumpTo: ValidateTeam(), enableNext: ValidateTeam() },
+    { id: 'jira', name: 'Jira Projects', component: JiraProjects({onChange:jiraOnChange}), canJumpTo: ValidateTeam(), enableNext: ValidateTeam() },
     {
       id: 'review',
       name: 'Review',
@@ -332,3 +282,50 @@ export const TeamsWizard = () => {
     </React.Fragment>
   );
 }
+
+export const JiraProjects: React.FC<{onChange:(options:Array<string>) => void, default?:Array<string>}> = (props) => {
+  const [availableOptions, setAvailableOptions] = React.useState<React.ReactNode[]>([]);
+  const [chosenOptions, setChosenOptions] = React.useState<React.ReactNode[]>([])
+
+  const onListChange = (newAvailableOptions: React.ReactNode[], newChosenOptions: React.ReactNode[]) => {
+    setAvailableOptions(newAvailableOptions);
+    setChosenOptions(newChosenOptions);
+  };
+
+  useEffect(() => {
+    listJiraProjects().then((res) => { // making the api call here
+      if (res.code === 200) {
+        const result = res.data;
+        const r = result.map(el => {
+          return (<span key={el.project_key}>{el.project_name}</span>)
+        })
+        setAvailableOptions(r)
+      }
+    });
+  }, []);
+
+  const filterOption = (option: React.ReactNode, input: string) =>
+    (option as React.ReactElement).props.children.includes(input);
+
+  useEffect(() => {
+    props.onChange(chosenOptions.map(o => {if(o) return o["key"]}))
+  }, [chosenOptions]);
+
+  return (
+    <React.Fragment>
+      <Title headingLevel='h4'>Select Jira Projects</Title>
+      <p style={{marginBottom: '10px'}}>The Jira Projects you select will be associated to the created Team. The projects will be used to gather and display metrics about bugs in the Jira page.</p>
+      <DualListSelector
+        isSearchable
+        availableOptions={availableOptions}
+        chosenOptions={chosenOptions}
+        addAll={onListChange}
+        removeAll={onListChange}
+        addSelected={onListChange}
+        removeSelected={onListChange}
+        filterOption={filterOption}
+        id="dual-list-selector-complex"
+      />
+    </React.Fragment>
+  );
+};

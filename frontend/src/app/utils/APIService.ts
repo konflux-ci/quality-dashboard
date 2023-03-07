@@ -77,6 +77,23 @@ async function getJirasResolutionTime(priority:string) {
   return result;
 }
 
+async function listJiraProjects() {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/jira/project/list';
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
 async function getJirasOpen(priority:string) {
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/jira/bugs/metrics/open';
@@ -378,5 +395,6 @@ export {
   updateTeam,
   checkDbConnection,
   getJirasResolutionTime,
-  getJirasOpen
+  getJirasOpen,
+  listJiraProjects
 };

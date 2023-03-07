@@ -20,6 +20,7 @@ export interface ITeam {
   id: string
   team_name: string
   description: string
+  jira_keys: string
 }
 
 export const BasicMasthead = () => {
