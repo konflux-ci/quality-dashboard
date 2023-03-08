@@ -20,6 +20,7 @@ export interface ITeam {
   id: string
   team_name: string
   description: string
+  jira_keys: string
 }
 
 export const BasicMasthead = () => {
@@ -50,8 +51,8 @@ export const BasicMasthead = () => {
       history.push('/ci/jobs?team=' + event.target.dataset.value)
     }
 
-    if (history.location.pathname == "/home/repositories" && team != null && team != event.target.dataset.value) {
-      history.push('/home/repositories?team=' + event.target.dataset.value)
+    if (history.location.pathname == "/home/github" && team != null && team != event.target.dataset.value) {
+      history.push('/home/github?team=' + event.target.dataset.value)
     }
   }
 

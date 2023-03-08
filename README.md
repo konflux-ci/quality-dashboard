@@ -159,4 +159,4 @@ The Github connector will pull data from Github, such has repositories info and 
 The codecov connector will pull code coverage data from Codecov.
 
 ### Jira
-The Jira connector will pull data from Jira. We gather Jira issues that are impacting Appstudio (such as blockers, in progress, etc.) and present them in the dashboard for quick reference. 
+The Jira connector will pull data from Jira. We gather Jira issues that are impacting Appstudio (such as blockers, in progress, etc.) and present them in the dashboard for quick reference.  

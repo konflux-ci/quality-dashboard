@@ -4,14 +4,12 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"sync"
 	"time"
 
-	"github.com/andygrunwald/go-jira"
 	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/api/apis/jira/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"go.uber.org/zap"
 )
 
@@ -44,10 +42,22 @@ func (s *Server) startUpdateStorage(ctx context.Context, strategy rotationStrate
 }
 
 func (s *Server) rotate() error {
-	s.rotateJiraBugs()
+	teamArr, err := s.cfg.Storage.GetAllTeamsFromDB()
+	if err != nil {
+		s.cfg.Logger.Sugar().Errorf("Failed to update cache", zap.Error(err))
+		return err
+	}
+	for _, team := range teamArr {
+		if team.JiraKeys == "" {
+			continue
+		}
+		if err := s.rotateJiraBugs(team.JiraKeys, team); err != nil {
+			return err
+		}
+	}
 
 	s.UpdateProwStatusByTeam()
-	err := s.UpdateDataBaseRepoByTeam()
+	err = s.UpdateDataBaseRepoByTeam()
 	if err != nil {
 		s.cfg.Logger.Sugar().Errorf("Failed to update cache", zap.Error(err))
 		return err
@@ -61,43 +71,24 @@ func staticRotationStrategy() rotationStrategy {
 	}
 }
 
-func (s *Server) rotateJiraBugs() {
-	bugs := s.cfg.Jira.GetBugsByJQLQuery(`project in ("Hybrid Application Service", "Stonesoup", "CodeReady Toolchain", "GitOps Service", "Pipeline Service", "SVPI", "Stonesoup Build") AND type = Bug`)
-	wg := new(sync.WaitGroup)
-	for keyString, bugValue := range bugs {
-		wg.Add(1)
-		go func(keyString int, bug jira.Issue, wg *sync.WaitGroup) {
-			defer wg.Done()
-			var bugIsResolved bool
-			var diff float64
-			if bug.Fields.Status.Name == "Closed" || bug.Fields.Status.Name == "Resolved" || bug.Fields.Status.Name == "Done" {
-				resolvedTime := time.Time(bug.Fields.Resolutiondate).UTC()
-				createdTime := time.Time(bug.Fields.Created).UTC()
+/**
+bugs := s.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", teams.JiraKeys))
+if err := s.Storage.CreateJiraBug(bugs, teams); err != nil {
+	return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+		Message:    err.Error(),
+		StatusCode: http.StatusInternalServerError,
+	})
+}
 
-				diff = resolvedTime.Sub(createdTime).Hours()
-				bugIsResolved = true
-			}
+*/
 
-			if err := s.cfg.Storage.CreateJiraBug(v1alpha1.JiraBug{
-				JiraKey:        bug.Key,
-				CreatedAt:      time.Time(bug.Fields.Created),
-				UpdatedAt:      time.Time(bug.Fields.Updated),
-				ResolvedAt:     time.Time(bug.Fields.Resolutiondate),
-				IsResolved:     bugIsResolved,
-				ResolutionTime: diff,
-				Priority:       bug.Fields.Priority.Name,
-				Status:         bug.Fields.Status.Name,
-				Summary:        bug.Fields.Summary,
-				Url:            fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key),
-			}); err != nil {
-				s.cfg.Logger.Sugar().Errorf("failed to update jiras %s, %v", bug.Key, err)
-			}
-		}(keyString, bugValue, wg)
+func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
+	bugs := s.cfg.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys))
+	if err := s.cfg.Storage.CreateJiraBug(bugs, team); err != nil {
+		return err
 	}
 
-	wg.Wait()
-
-	s.cfg.Logger.Sugar().Info("successfully update jira bugs in database")
+	return nil
 }
 
 func (s *Server) UpdateDataBaseRepoByTeam() error {

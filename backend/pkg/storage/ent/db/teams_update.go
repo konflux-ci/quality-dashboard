@@ -42,6 +42,12 @@ func (tu *TeamsUpdate) SetDescription(s string) *TeamsUpdate {
 	return tu
 }
 
+// SetJiraKeys sets the "jira_keys" field.
+func (tu *TeamsUpdate) SetJiraKeys(s string) *TeamsUpdate {
+	tu.mutation.SetJiraKeys(s)
+	return tu
+}
+
 // AddRepositoryIDs adds the "repositories" edge to the Repository entity by IDs.
 func (tu *TeamsUpdate) AddRepositoryIDs(ids ...string) *TeamsUpdate {
 	tu.mutation.AddRepositoryIDs(ids...)
@@ -169,6 +175,9 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := tu.mutation.Description(); ok {
 		_spec.SetField(teams.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := tu.mutation.JiraKeys(); ok {
+		_spec.SetField(teams.FieldJiraKeys, field.TypeString, value)
 	}
 	if tu.mutation.RepositoriesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -307,6 +316,12 @@ func (tuo *TeamsUpdateOne) SetTeamName(s string) *TeamsUpdateOne {
 // SetDescription sets the "description" field.
 func (tuo *TeamsUpdateOne) SetDescription(s string) *TeamsUpdateOne {
 	tuo.mutation.SetDescription(s)
+	return tuo
+}
+
+// SetJiraKeys sets the "jira_keys" field.
+func (tuo *TeamsUpdateOne) SetJiraKeys(s string) *TeamsUpdateOne {
+	tuo.mutation.SetJiraKeys(s)
 	return tuo
 }
 
@@ -461,6 +476,9 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 	}
 	if value, ok := tuo.mutation.Description(); ok {
 		_spec.SetField(teams.FieldDescription, field.TypeString, value)
+	}
+	if value, ok := tuo.mutation.JiraKeys(); ok {
+		_spec.SetField(teams.FieldJiraKeys, field.TypeString, value)
 	}
 	if tuo.mutation.RepositoriesCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -44,10 +44,67 @@ async function getVersion() {
 
 async function getJiras() {
   const result: ApiResponse = { code: 0, data: {} };
-  const subPath = '/api/quality/jira/bugs/e2e';
+  const subPath = '/api/quality/jira/bugs/all';
   const uri = API_URL + subPath;
   await axios
     .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
+async function getJirasResolutionTime(priority:string, team:string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/jira/bugs/metrics/resolution';
+  const uri = API_URL + subPath;
+  await axios
+    .post(uri, {
+      priority: priority,
+      team_name: team
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
+async function listJiraProjects() {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/jira/project/list';
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
+async function getJirasOpen(priority:string, team:string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/jira/bugs/metrics/open';
+  const uri = API_URL + subPath;
+  await axios
+    .post(uri, {
+      priority: priority,
+      team_name: team
+    })
     .then((res: AxiosResponse) => {
       result.code = res.status;
       result.data = res.data;
@@ -369,5 +426,8 @@ export {
   deleteInApi,
   updateTeam,
   checkDbConnection,
+  getJirasResolutionTime,
+  getJirasOpen,
+  listJiraProjects,
   getPullRequests,
 };

@@ -20,6 +20,8 @@ type Teams struct {
 	TeamName string `json:"team_name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// JiraKeys holds the value of the "jira_keys" field.
+	JiraKeys string `json:"jira_keys,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TeamsQuery when eager-loading is set.
 	Edges TeamsEdges `json:"edges"`
@@ -59,7 +61,7 @@ func (*Teams) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case teams.FieldTeamName, teams.FieldDescription:
+		case teams.FieldTeamName, teams.FieldDescription, teams.FieldJiraKeys:
 			values[i] = new(sql.NullString)
 		case teams.FieldID:
 			values[i] = new(uuid.UUID)
@@ -95,6 +97,12 @@ func (t *Teams) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				t.Description = value.String
+			}
+		case teams.FieldJiraKeys:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field jira_keys", values[i])
+			} else if value.Valid {
+				t.JiraKeys = value.String
 			}
 		}
 	}
@@ -139,6 +147,9 @@ func (t *Teams) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(t.Description)
+	builder.WriteString(", ")
+	builder.WriteString("jira_keys=")
+	builder.WriteString(t.JiraKeys)
 	builder.WriteByte(')')
 	return builder.String()
 }

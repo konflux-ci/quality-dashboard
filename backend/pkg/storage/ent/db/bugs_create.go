@@ -410,6 +410,30 @@ func (u *BugsUpsert) UpdateUpdatedAt() *BugsUpsert {
 	return u
 }
 
+// SetResolvedAt sets the "resolved_at" field.
+func (u *BugsUpsert) SetResolvedAt(v time.Time) *BugsUpsert {
+	u.Set(bugs.FieldResolvedAt, v)
+	return u
+}
+
+// UpdateResolvedAt sets the "resolved_at" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateResolvedAt() *BugsUpsert {
+	u.SetExcluded(bugs.FieldResolvedAt)
+	return u
+}
+
+// SetResolved sets the "resolved" field.
+func (u *BugsUpsert) SetResolved(v bool) *BugsUpsert {
+	u.Set(bugs.FieldResolved, v)
+	return u
+}
+
+// UpdateResolved sets the "resolved" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateResolved() *BugsUpsert {
+	u.SetExcluded(bugs.FieldResolved)
+	return u
+}
+
 // SetPriority sets the "priority" field.
 func (u *BugsUpsert) SetPriority(v string) *BugsUpsert {
 	u.Set(bugs.FieldPriority, v)
@@ -419,6 +443,24 @@ func (u *BugsUpsert) SetPriority(v string) *BugsUpsert {
 // UpdatePriority sets the "priority" field to the value that was provided on create.
 func (u *BugsUpsert) UpdatePriority() *BugsUpsert {
 	u.SetExcluded(bugs.FieldPriority)
+	return u
+}
+
+// SetResolutionTime sets the "resolution_time" field.
+func (u *BugsUpsert) SetResolutionTime(v float64) *BugsUpsert {
+	u.Set(bugs.FieldResolutionTime, v)
+	return u
+}
+
+// UpdateResolutionTime sets the "resolution_time" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateResolutionTime() *BugsUpsert {
+	u.SetExcluded(bugs.FieldResolutionTime)
+	return u
+}
+
+// AddResolutionTime adds v to the "resolution_time" field.
+func (u *BugsUpsert) AddResolutionTime(v float64) *BugsUpsert {
+	u.Add(bugs.FieldResolutionTime, v)
 	return u
 }
 
@@ -548,6 +590,34 @@ func (u *BugsUpsertOne) UpdateUpdatedAt() *BugsUpsertOne {
 	})
 }
 
+// SetResolvedAt sets the "resolved_at" field.
+func (u *BugsUpsertOne) SetResolvedAt(v time.Time) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetResolvedAt(v)
+	})
+}
+
+// UpdateResolvedAt sets the "resolved_at" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateResolvedAt() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateResolvedAt()
+	})
+}
+
+// SetResolved sets the "resolved" field.
+func (u *BugsUpsertOne) SetResolved(v bool) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetResolved(v)
+	})
+}
+
+// UpdateResolved sets the "resolved" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateResolved() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateResolved()
+	})
+}
+
 // SetPriority sets the "priority" field.
 func (u *BugsUpsertOne) SetPriority(v string) *BugsUpsertOne {
 	return u.Update(func(s *BugsUpsert) {
@@ -559,6 +629,27 @@ func (u *BugsUpsertOne) SetPriority(v string) *BugsUpsertOne {
 func (u *BugsUpsertOne) UpdatePriority() *BugsUpsertOne {
 	return u.Update(func(s *BugsUpsert) {
 		s.UpdatePriority()
+	})
+}
+
+// SetResolutionTime sets the "resolution_time" field.
+func (u *BugsUpsertOne) SetResolutionTime(v float64) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetResolutionTime(v)
+	})
+}
+
+// AddResolutionTime adds v to the "resolution_time" field.
+func (u *BugsUpsertOne) AddResolutionTime(v float64) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.AddResolutionTime(v)
+	})
+}
+
+// UpdateResolutionTime sets the "resolution_time" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateResolutionTime() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateResolutionTime()
 	})
 }
 
@@ -857,6 +948,34 @@ func (u *BugsUpsertBulk) UpdateUpdatedAt() *BugsUpsertBulk {
 	})
 }
 
+// SetResolvedAt sets the "resolved_at" field.
+func (u *BugsUpsertBulk) SetResolvedAt(v time.Time) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetResolvedAt(v)
+	})
+}
+
+// UpdateResolvedAt sets the "resolved_at" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateResolvedAt() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateResolvedAt()
+	})
+}
+
+// SetResolved sets the "resolved" field.
+func (u *BugsUpsertBulk) SetResolved(v bool) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetResolved(v)
+	})
+}
+
+// UpdateResolved sets the "resolved" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateResolved() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateResolved()
+	})
+}
+
 // SetPriority sets the "priority" field.
 func (u *BugsUpsertBulk) SetPriority(v string) *BugsUpsertBulk {
 	return u.Update(func(s *BugsUpsert) {
@@ -868,6 +987,27 @@ func (u *BugsUpsertBulk) SetPriority(v string) *BugsUpsertBulk {
 func (u *BugsUpsertBulk) UpdatePriority() *BugsUpsertBulk {
 	return u.Update(func(s *BugsUpsert) {
 		s.UpdatePriority()
+	})
+}
+
+// SetResolutionTime sets the "resolution_time" field.
+func (u *BugsUpsertBulk) SetResolutionTime(v float64) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetResolutionTime(v)
+	})
+}
+
+// AddResolutionTime adds v to the "resolution_time" field.
+func (u *BugsUpsertBulk) AddResolutionTime(v float64) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.AddResolutionTime(v)
+	})
+}
+
+// UpdateResolutionTime sets the "resolution_time" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateResolutionTime() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateResolutionTime()
 	})
 }
 

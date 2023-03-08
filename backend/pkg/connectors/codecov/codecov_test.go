@@ -32,7 +32,7 @@ func TestGetCodeCovInfo(t *testing.T) {
 	teamDescription := teamName
 
 	// create team with one repo associated
-	team, err := storage.CreateQualityStudioTeam(teamName, teamDescription)
+	team, err := storage.CreateQualityStudioTeam(teamName, teamDescription, "team_jira")
 	assert.NoError(t, err)
 	assert.Equal(t, teamName, team.TeamName)
 

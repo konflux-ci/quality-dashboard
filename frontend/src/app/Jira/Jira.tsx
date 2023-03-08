@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
     Card,
     CardTitle,
@@ -8,16 +8,13 @@ import {
     Title,
     Grid,
     GridItem,
-    TitleSizes,
-    Drawer,
-    DrawerPanelContent,
-    DrawerContent,
-    DrawerHead,
-    DrawerPanelBody,
-    DrawerActions,
-    DrawerCloseButton,
     TextContent,
     PageSectionVariants,
+    Pagination,
+    Chip,
+    ChipGroup,
+    ToggleGroup,
+    ToggleGroupItem,
 } from '@patternfly/react-core';
 import {
     TableComposable,
@@ -25,199 +22,153 @@ import {
     Tr,
     Th,
     Tbody,
-    Td
+    Td,
+    Caption
 } from '@patternfly/react-table';
-import { ChartDonut, ChartThemeColor } from '@patternfly/react-charts';
-import { getJiras } from '@app/utils/APIService';
-import { ReactReduxContext } from 'react-redux';
-import { isValidTeam } from '@app/utils/utils';
+import { Chart, ChartAxis, ChartGroup, ChartLine,ChartBar, createContainer } from '@patternfly/react-charts';
+import { getJirasResolutionTime, getJirasOpen } from '@app/utils/APIService';
+import { ReactReduxContext, useSelector } from 'react-redux';
+
+interface Bugs {
+    jira_key: string;
+    created_at: string;
+    deleted_at: string;
+    updated_at: string;
+    resolved_at: string;
+    resolution_time: string;
+    last_change_time: string;
+    status: string;
+    summary: string;
+    affects_versions: string;
+    fix_versions: string;
+    components: string;
+    labels: string;
+    url: string;
+    teams_bugs: string;
+}
 
 export const Jira = () => {
-
-    /*
-      ALL JIRA RELATED STUFF
-    */
-    const [isExpanded, setIsExpanded] = React.useState(false);
-    const drawerRef = React.useRef<HTMLDivElement>();
-
-    const onExpand = () => {
-        drawerRef.current && drawerRef.current.focus();
-    };
-
-    const showJiras = (issueType) => {
-        setIsExpanded(!isExpanded);
-        setJiraType(issueType)
-    };
-
-    const onCloseClick = () => {
-        setIsExpanded(false);
-    };
-
-    const [jiraType, setJiraType] = useState("");
-    const [jiras, setJiras] = useState([]);
-    const JIRA_ALL = "All"
-    const JIRA_CRITICAL = "Critical"
-    const JIRA_BLOCKER = "Blocker"
-    const JIRA_MAJOR = "Major"
-    const JIRA_NORMAL = "Normal"
-    const JIRA_MINOR = "Minor"
-    const UNDEFINED_JIRA_Priority = "Undefined"
-
     const { store } = useContext(ReactReduxContext);
     const state = store.getState();
     const dispatch = store.dispatch;
+    const currentTeam = useSelector((state: any) => state.teams.Team);
 
     useEffect(() => {
-        getJiras().then((res) => {
-            if (res.code === 200) {
-                const result = res.data;
-                dispatch({ type: "SET_JIRAS", data: result });
-                setJiras(result)
-            } else {
-                dispatch({ type: "SET_ERROR", data: res });
-            }
-        })
-    }, [jiras, setJiras, dispatch]);
+        if(currentTeam != ""){
+            const ID = "Global"
+            let newData = {}
 
-    function computeJiraIssueCount(type) {
-        try {
-            if (type == JIRA_ALL) {
-                return computeJiraIssueCount(JIRA_BLOCKER) + computeJiraIssueCount(JIRA_CRITICAL) + computeJiraIssueCount(JIRA_MAJOR)
-            }
-            return jiras.filter(j => j["fields"]["priority"]["name"] == type).length
-        } catch (nullError) {
-            return 0
+            const promises = new Array()
+            const priorities = ["Global", "Major", "Critical", "Blocker", "Normal", "Undefined", "Minor"]
+            priorities.forEach(p =>{
+                promises.push(getJirasOpen(p, state.teams.Team))
+                promises.push(getJirasResolutionTime(p, state.teams.Team))
+            })
+
+            Promise.all(promises).then(function(values) {
+
+                values.map(value => {
+                    if(value.data.hasOwnProperty("open")){
+                        if(!newData.hasOwnProperty(value.data.open.priority)){
+                            newData[value.data.open.priority] = {}
+                        }
+                        newData[value.data.open.priority].open = value.data.open
+                    } else if(value.data.hasOwnProperty("resolution_time")){
+                        if(!newData.hasOwnProperty(value.data.resolution_time.priority)){
+                            newData[value.data.open.priority] = {}
+                        }
+                        newData[value.data.resolution_time.priority].resolved = value.data.resolution_time
+                    }
+                })
+                setApiDataCache(newData)
+                setSelected(ID)
+
+            });
         }
-    }
+    }, [currentTeam]);
 
-    const issuesColumnNames = {
-        issue_name: 'Issue',
-        creator: 'Creator',
-        dt_updated: 'Date',
-        time_open: 'Age'
+    const [selected, setSelected] = useState<string>('');
+    const [apiDataCache, setApiDataCache] = useState<any>({});
+    const [resolutionTimeChart, setResolutionTimeChart] = useState<any>({});
+    const [bugsChart, setBugsChart] = useState<any>({});
+    const [bugsTable, setBugsTable] = useState<any>({});
+
+    const [isSelected, setIsSelected] = React.useState('open');
+
+    const handleItemClick = (isSelected: boolean, event: React.MouseEvent<any> | React.KeyboardEvent | MouseEvent) => {
+        const id = event.currentTarget.id;
+        setBugsTable([])
+        setIsSelected(id);
     };
 
-    const monthShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    function parseDate(dt) {
-        const dateTime = []
-        dateTime['year'] = parseInt(dt.slice(0, 4))
-        dateTime['month'] = monthShort[parseInt(dt.slice(5, 7)) - 1]
-        dateTime['day'] = parseInt(dt.slice(8, 10))
-        dateTime['hour'] = parseInt(dt.slice(11, 13))
-        dateTime['minute'] = parseInt(dt.slice(14, 16))
+    const onClick = (event: React.MouseEvent) => {
+        let ID = event.currentTarget.id
+        if(selected != ID){
+            if(!apiDataCache.hasOwnProperty(ID)){
+                const promise0 = getJirasOpen(ID, state.teams.Team)
+                const promise1 = getJirasResolutionTime(ID, state.teams.Team)
 
-        if (dateTime['hour'] < 12) {
-            dateTime['noon'] = 'AM'
-        } else { dateTime['noon'] = 'PM' }
+                Promise.all([promise0, promise1]).then(function(values) {
+                    let newData = {}
+                    newData[ID] = {}
+                    newData[ID].resolved = values[1].data.resolution_time
+                    newData[ID].open = values[0].data.open
+                    setApiDataCache({
+                        ...apiDataCache,
+                        ...newData
+                    })
+                    setSelected(ID)
+                });
 
-        return dateTime
+            }
+            setSelected(ID)
+        } else {
+            setSelected(ID)
+        }
+    };
+
+    useEffect(() => {
+        if(apiDataCache[selected]){
+            let rtc = new Array(12).fill(0)
+            let bc = new Array(12).fill(0)
+            let rbt = new Array()
+            let obt = new Array()
+            let obc = new Array(12).fill(0)
+
+            apiDataCache[selected].resolved.months.map((item, index) => {
+                let date = item.name.match(/([^_]+)/g)
+                rtc[11-index] = {
+                    name: "Resolution Time ("+selected+")",
+                    x: date[0].slice(0, 3)+ "\n" + date[1],
+                    y: item.total
+                }
+                bc[11-index] = {
+                    name: "Resolved Bugs ("+selected+")",
+                    x: date[0].slice(0, 3)+ "\n" + date[1],
+                    y: item.resolved_bugs
+                }
+                rbt = [...rbt, ...item.bugs]
+            })
+            apiDataCache[selected].open.months.map((item, index) => {
+                let date = item.name.match(/([^_]+)/g)
+                obc[11-index] = {
+                    name: "Open Bugs ("+selected+")",
+                    x: date[0].slice(0, 3)+ "\n" + date[1],
+                    y: item.open_bugs
+                }
+                obt = [...obt, ...item.bugs]
+            })
+
+            setBugsChart([bc, obc])
+            setResolutionTimeChart([rtc])
+            if(isSelected == 'resolved') {setBugsTable(rbt)}
+            if(isSelected == 'open') {setBugsTable(obt)}
+        }
+    }, [selected, isSelected, apiDataCache]);
+
+    function onBarChartClick(event){
+        console.log("clicked", event)
     }
-
-    const totalIssues = computeJiraIssueCount(JIRA_BLOCKER) + computeJiraIssueCount(JIRA_CRITICAL) + computeJiraIssueCount(JIRA_MAJOR) + computeJiraIssueCount(JIRA_NORMAL) + computeJiraIssueCount(JIRA_MINOR) + computeJiraIssueCount(UNDEFINED_JIRA_Priority)
-    const allIssueChart = () => (
-        <div style={{ height: '150px', width: '150px' }}>
-            <ChartDonut
-                ariaDesc="Jira Issues All"
-                constrainToVisibleArea
-                data={[{ x: 'Blocker', y: computeJiraIssueCount(JIRA_BLOCKER) }, { x: 'Critical', y: computeJiraIssueCount(JIRA_CRITICAL) }, { x: 'Major', y: computeJiraIssueCount(JIRA_MAJOR) }]}
-                height={150}
-                labels={({ datum }) => `${datum.x}: ${datum.y}/${totalIssues}`}
-                title={totalIssues.toString()}
-                themeColor={ChartThemeColor.blue}
-                width={150}
-            />
-        </div>
-
-    )
-
-    const issueChart = (jiraType) => (
-        <div style={{ height: '150px', width: '150px' }}>
-            <ChartDonut
-                ariaDesc="Issues by type"
-                constrainToVisibleArea
-                data={[{ x: 'Issues', y: computeJiraIssueCount(jiraType) }, { x: 'Whitespace', y: 15 - computeJiraIssueCount(jiraType) }]}
-                height={150}
-                labels={({ datum }) => null}
-                title={computeJiraIssueCount(jiraType).toString()}
-                themeColor={ChartThemeColor.blue}
-                width={150}
-            />
-        </div>
-
-    )
-
-    const dt = null;
-    const JiraIssuesList = () => (
-        <TableComposable aria-label="Jiras table">
-            <Thead>
-                <Tr>
-                    <Th>{issuesColumnNames.issue_name}</Th>
-                    <Th>{issuesColumnNames.dt_updated}</Th>
-                    <Th>{issuesColumnNames.creator}</Th>
-                </Tr>
-            </Thead>
-            {computeJiraIssueCount(jiraType) == 0 &&
-                <div style={{ textAlign: "center", margin: "10px auto", minHeight: "500px" }}><i>No issues here</i></div>
-            }
-            {computeJiraIssueCount(jiraType) > 0 && jiraType == JIRA_ALL &&
-                jiras.map(j => (
-                    // eslint-disable-next-line react/jsx-key
-                    <Tbody style={{ marginTop: "5px" }}>
-                        <Tr>
-                            <Td>
-                                <div>
-                                    <strong style={{ textDecoration: "underline", color: "blue" }}><a href={`https://issues.redhat.com/browse/${j["key"]}`} target="blank" rel="noopener noreferrer">{j["key"]}</a></strong>
-                                    : &nbsp;
-                                </div>
-                                <div>{j["fields"]["summary"]}</div>
-                            </Td>
-                            <Td><div>{parseDate(j['fields']['updated'])['month']} {parseDate(j['fields']['updated'])['day']}, {parseDate(j['fields']['updated'])['year']}</div>
-                                <div>{parseDate(j['fields']['updated'])['hour']}:{parseDate(j['fields']['updated'])['minute']}</div>
-                            </Td>
-                            <Td>{j["fields"]["Creator"]["displayName"]}</Td>
-                        </Tr>
-                    </Tbody>
-                ))
-            }
-            {computeJiraIssueCount(jiraType) > 0 && jiraType != JIRA_ALL &&
-                jiras.filter(j => j["fields"]["priority"]["name"] == jiraType).map(j => (
-                    <Tbody style={{ marginTop: "5px" }}>
-                        <Tr>
-                            <Td>
-                                <div>
-                                    <strong style={{ textDecoration: "underline", color: "blue" }}><a href={`https://issues.redhat.com/browse/${j["key"]}`} target="blank" rel="noopener noreferrer">{j["key"]}</a></strong>
-                                    : &nbsp;
-                                </div>
-                                <div>{j["fields"]["summary"]}</div>
-                            </Td>
-                            <Td><div>{parseDate(j['fields']['updated'])['month']} {parseDate(j['fields']['updated'])['day']}, {parseDate(j['fields']['updated'])['year']}</div>
-                                <div>{parseDate(j['fields']['updated'])['hour']}:{parseDate(j['fields']['updated'])['minute']}</div>
-                            </Td>
-                            <Td>{j["fields"]["Creator"]["displayName"]}</Td>
-                        </Tr>
-                    </Tbody>
-                ))
-            }
-
-        </TableComposable>
-    )
-
-    const panelContent = (
-        <DrawerPanelContent isResizable defaultSize={'15vw'} minSize={'45vw'}>
-            <DrawerHead>
-                <DrawerActions>
-                    <DrawerCloseButton onClick={onCloseClick} />
-                </DrawerActions>
-            </DrawerHead>
-            <DrawerPanelBody>
-                <div>
-                    <Title headingLevel="h1" size="xl" style={{ textTransform: "uppercase", marginBottom: "10px" }}>{jiraType} Issues</Title>
-                    <JiraIssuesList></JiraIssuesList>
-                </div>
-            </DrawerPanelBody>
-        </DrawerPanelContent>
-    );
-
 
     return (
         <React.Fragment>
@@ -229,61 +180,355 @@ export const Jira = () => {
                 opacity: '0.9'
             }} variant={PageSectionVariants.light}
             >
-                <React.Fragment>
-                    <TextContent style={{ color: "white", display: "inline" }}>
-                        <div style={{ float: "left", }}>
-                            <Text component="h2">Get Started with Red Hat Quality Studio</Text>
-                            <Text component="p">Observe which Jira Issues are affecting CI pass rate.</Text>
-                        </div>
-                    </TextContent>
-                </React.Fragment>
+                <TextContent style={{ color: "white", display: "inline" }}>
+                    <div style={{ float: "left", }}>
+                        <Text component="h2">Get Started with Red Hat Quality Studio</Text>
+                        <Text component="p">Observe which Jira Issues are affecting CI pass rate.</Text>
+                    </div>
+                </TextContent>
             </PageSection>
-            <Drawer isExpanded={isExpanded}>
-                <DrawerContent panelContent={panelContent} className={'pf-m-no-background'}>
-                    {isValidTeam() && <PageSection>
-                            <Card>
-                                <CardTitle>
-                                    <Title headingLevel="h2" size="xl" > Issues affecting CI pass rate </Title>
-                                </CardTitle>
-                                <Grid hasGutter span={3}>
-                                    <GridItem aria-expanded={isExpanded} onClick={event => showJiras(JIRA_ALL)}>
-                                        <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "150px", margin: "auto 5px", textAlign: "center" }}>
-                                            <div style={{ cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_ALL)}>
-                                                <Title headingLevel="h2" size={TitleSizes['lg']}>All</Title>
-                                                {allIssueChart()}
-                                            </div>
-                                        </CardBody>
+            <PageSection>
+                <React.Fragment>
+                <Grid hasGutter>
+                    <GridItem order={{default: "2"}}>
+                        <Grid hasGutter sm={6} md={6} lg={6} xl={6}>
+                            <GridItem order={{default: "1"}}>
+                                <Card style={{textAlign: 'center'}}>
+                                    <CardTitle style={{textAlign: 'center'}}>Average Resolution Time (for past 12 months)</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="2xl">
+                                            { apiDataCache[selected] &&
+                                            <span>
+                                                <span>{ parseFloat(apiDataCache[selected].resolved.total).toFixed(2) || "-"}</span>
+                                                <span style={{paddingLeft: '5px', fontSize: '15px', fontWeight: 'normal'}}>hours</span>
+                                            </span>
+                                            }
+                                            { !apiDataCache[selected] && "-" }
+                                        </Title>
+                                        <BugsChart chartType="line" data={resolutionTimeChart} onBarClick={onBarChartClick}></BugsChart>
+                                    </CardBody>
+                                </Card>
+                            </GridItem>
+                            <GridItem order={{default: "2"}}>
+                                <Card style={{textAlign: 'center'}}>
+                                    <CardTitle>Bugs (past 12 months)</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="2xl">
+                                            { apiDataCache[selected] &&
+                                            <span>
+                                                <span>{ apiDataCache[selected].open.open_bugs || "-"}</span>
+                                                <span style={{fontSize: '15px', paddingRight: '10px'}}> open </span>
+                                                <span>{ apiDataCache[selected].resolved.resolved_bugs || "-"}</span>
+                                                <span style={{fontSize: '15px', paddingRight: '10px'}}> resolved </span>
+                                            </span>
+                                            }
+                                            { !apiDataCache[selected] && "-" }
+                                        </Title>
+                                        <BugsChart chartType="bar" data={bugsChart} onBarClick={onBarChartClick}></BugsChart>
+                                    </CardBody>
+                                </Card>
+                            </GridItem>
+                        </Grid>
+                    </GridItem>
+                    <GridItem order={{default: "1"}}>
+                        <Grid hasGutter span={3}>
+                            <GridItem order={{default: "1"}}>
+                                <Card isSelectable onClick={onClick} style={{textAlign: 'center'}} isSelected={selected.includes('Global')} id="Global">
+                                    <CardTitle>Global</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="2xl">
+                                        { apiDataCache["Global"] ? <span>{ apiDataCache["Global"].open.open_bugs } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <span style={{marginLeft: '20px'}}>&nbsp;</span>
+                                        { apiDataCache["Global"] ? <span>{ apiDataCache["Global"].resolved.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        </Title>
+                                    </CardBody>
+                                </Card>
+                            </GridItem>
+                            <GridItem order={{default: "2"}}>
+                                <Card isSelectable onClick={onClick} style={{textAlign: 'center'}} isSelected={selected.includes('Blocker')} id="Blocker">
+                                    <CardTitle>Blockers</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="2xl">
+                                        { apiDataCache["Blocker"] ? <span>{ apiDataCache["Blocker"].open.open_bugs } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <span style={{marginLeft: '20px'}}>&nbsp;</span>
+                                        { apiDataCache["Blocker"] ? <span>{ apiDataCache["Blocker"].resolved.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        </Title>
+                                    </CardBody>
+                                </Card>
+                            </GridItem>
+                            <GridItem order={{default: "4"}}>
+                                <Card isSelectable style={{textAlign: 'center'}} onClick={onClick} isSelected={selected.includes('Major')} id="Major">
+                                    <CardTitle>Major Bugs</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="2xl">
+                                        { apiDataCache["Major"] ? <span>{ apiDataCache["Major"].open.open_bugs } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <span style={{marginLeft: '20px'}}>&nbsp;</span>
+                                        { apiDataCache["Major"] ? <span>{ apiDataCache["Major"].resolved.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        </Title>
+                                    </CardBody>
+                                </Card>
+                            </GridItem>
+                            <GridItem order={{default: "3"}}>
+                                <Card isSelectable onClick={onClick} style={{textAlign: 'center'}} isSelected={selected.includes('Critical')} id="Critical">
+                                    <CardTitle>Critical Bugs</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="2xl">
+                                        { apiDataCache["Critical"] ? <span>{ apiDataCache["Critical"].open.open_bugs } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <span style={{marginLeft: '20px'}}>&nbsp;</span>
+                                        { apiDataCache["Critical"] ? <span>{ apiDataCache["Critical"].resolved.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        </Title>
+                                    </CardBody>
+                                </Card>
+                            </GridItem>
+                            <GridItem order={{default: "5"}}>
+                                <Card isSelectable onClick={onClick} style={{textAlign: 'center'}} isSelected={selected.includes('Normal')} id="Normal">
+                                    <CardTitle>Normal Bugs</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="2xl">
+                                        { apiDataCache["Normal"] ? <span>{ apiDataCache["Normal"].open.open_bugs } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <span style={{marginLeft: '20px'}}>&nbsp;</span>
+                                        { apiDataCache["Normal"] ? <span>{ apiDataCache["Normal"].resolved.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        </Title>
+                                    </CardBody>
+                                </Card>
+                            </GridItem>
+                            <GridItem order={{default: "6"}}>
+                                <Card isSelectable style={{textAlign: 'center'}} onClick={onClick} isSelected={selected.includes('Minor')} id="Minor">
+                                    <CardTitle>Minor Bugs</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="2xl">
+                                        { apiDataCache["Minor"] ? <span>{ apiDataCache["Minor"].open.open_bugs } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <span style={{marginLeft: '20px'}}>&nbsp;</span>
+                                        { apiDataCache["Minor"] ? <span>{ apiDataCache["Minor"].resolved.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        </Title>
+                                    </CardBody>
+                                </Card>
+                            </GridItem>
+                            <GridItem order={{default: "6"}}>
+                                <Card isSelectable style={{textAlign: 'center'}} onClick={onClick} isSelected={selected.includes('Undefined')} id="Undefined">
+                                    <CardTitle>Undefined Bugs</CardTitle>
+                                    <CardBody>
+                                        <Title headingLevel='h1' size="2xl">
+                                        { apiDataCache["Undefined"] ? <span>{ apiDataCache["Undefined"].open.open_bugs } <span style={{fontSize: '10px'}}>open</span></span> : "-"}
+                                        <span style={{marginLeft: '20px'}}>&nbsp;</span>
+                                        { apiDataCache["Undefined"] ? <span>{ apiDataCache["Undefined"].resolved.resolved_bugs} <span style={{fontSize: '10px'}}>resolved</span></span> : "-"}
+                                        </Title>
+                                    </CardBody>
+                                </Card>
+                            </GridItem>
+                        </Grid>
+                    </GridItem>
+                    <GridItem order={{default: "3"}}>
+                        <Card style={{fontSize: "12px"}}>
+                            <CardTitle>Bugs</CardTitle>
+                            <CardBody>
+                                <Grid hasGutter span={2}>
+                                    <GridItem order={{default: "1"}}>
+                                        <ToggleGroup aria-label="Default with single selectable">
+                                            <ToggleGroupItem
+                                                text="Open bugs"
+                                                buttonId="open"
+                                                isSelected={isSelected === 'open'}
+                                                onChange={handleItemClick}
+                                            />
+                                            <ToggleGroupItem
+                                                text="Resolved bugs"
+                                                buttonId="resolved"
+                                                isSelected={isSelected === 'resolved'}
+                                                onChange={handleItemClick}
+                                            />
+                                        </ToggleGroup>
                                     </GridItem>
-                                    <GridItem style={{ cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_BLOCKER)}>
-                                        <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
-                                            <div>
-                                                <Title headingLevel="h2" size={TitleSizes['lg']}>Blocker</Title>
-                                                {issueChart(JIRA_BLOCKER)}
-                                            </div>
-                                        </CardBody>
-                                    </GridItem>
-                                    <GridItem style={{ cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_CRITICAL)}>
-                                        <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
-                                            <div>
-                                                <Title headingLevel="h2" size={TitleSizes['lg']}>Critical</Title>
-                                                {issueChart(JIRA_CRITICAL)}
-                                            </div>
-                                        </CardBody>
-                                    </GridItem>
-                                    <GridItem style={{ cursor: "pointer" }} aria-expanded={isExpanded} onClick={event => showJiras(JIRA_MAJOR)}>
-                                        <CardBody style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", margin: "auto 5px", textAlign: "center" }}>
-                                            <div>
-                                                <Title headingLevel="h2" size={TitleSizes['lg']}>Major</Title>
-                                                {issueChart(JIRA_MAJOR)}
-                                            </div>
-                                        </CardBody>
+                                    <GridItem order={{default: "2"}}>
+                                        <ChipGroup categoryName="Active filters: " numChips={5}>
+                                            <Chip key={selected} isReadOnly style={{fontSize: '15px'}}>
+                                                {selected} bugs
+                                            </Chip>
+                                        </ChipGroup>
                                     </GridItem>
                                 </Grid>
-                            </Card>
-                    </PageSection>
-                    }
-                </DrawerContent>
-            </Drawer>
+                                <ComposableTableStripedTr bugs={bugsTable}></ComposableTableStripedTr>
+                            </CardBody>
+                        </Card>
+                    </GridItem>
+                </Grid>
+                </React.Fragment>
+            </PageSection>
+
         </React.Fragment>
     )
 }
+
+const BugsChart: React.FC<{chartType:string, data:any, onBarClick:any}> = ({chartType, data, onBarClick}) => {
+    let legendData: { name: string }[] = []
+    if(data.length>0) {
+        legendData = data.map((dataset, index) => {
+            return {name: dataset[0]["name"]}
+        })
+    }
+
+    return (
+      <div style={{ margin: '0 auto', height: '60%', width: '90%', marginTop: '15px' }}>
+        { data.length > 0 &&
+        <Chart
+          ariaDesc="Average number of pets"
+          ariaTitle="Line chart example"
+          height={210}
+          legendData={legendData}
+          legendPosition='bottom'
+          padding={{
+            bottom: 70,
+            left:  40,
+            right: 14,
+            top: 20
+          }}
+        >
+          <ChartAxis style={{ axisLabel: {fontSize: 8, padding: 30},tickLabels: {fontSize: 7}}}/>
+          <ChartAxis dependentAxis={ true } showGrid style={{ axisLabel: {fontSize: 8, padding: 30}, tickLabels: {fontSize: 8}}}/>
+          { chartType == 'bar' && data.length > 0 &&
+          <ChartGroup offset={11}>
+            {data.map((dataset, index) => (
+                <ChartBar
+                name={"bar_"+index}
+                key={index}
+                style={{
+                    data: { strokeWidth: 1},
+                    parent: { border: "1px solid #ccc"},
+                    labels: { fill: "grey", fontSize: '7px'}
+                }}
+                data={dataset}
+                labels={({ datum }) => datum.y != 0 ? `${datum.y}` : ``}
+                />
+            ))}
+          </ChartGroup>
+          }
+          { chartType == 'line' && data.length > 0 &&
+          <ChartGroup offset={11}>
+            {data.map((dataset, index) => (
+                <ChartLine
+                key={index}
+                style={{
+                    data: { strokeWidth: 2},
+                    parent: { border: "1px solid #ccc"},
+                    labels: { fill: "grey", fontSize: '7px' }
+                }}
+                data={dataset}
+                labels={({ datum }) => `${parseInt(datum.y)}`}
+                />
+            ))}
+          </ChartGroup>
+          }
+        </Chart>
+        }
+      </div>
+    );
+}
+
+const ComposableTableStripedTr: React.FC<{bugs:any}> = ({bugs}) => {
+    const [bugsPage, setBugsPage] = useState<Array<Bugs>>([]);
+    const [page, setPage] = React.useState(1);
+    const [perPage, setPerPage] = React.useState(10);
+
+    useEffect(() => {
+        if(bugs.length == 0){
+            setPage(1)
+            setBugsPage([])
+        }
+        if(bugs.length > 0){
+            setBugsPage(bugs.slice(0, perPage))
+            setPage(1)
+        }
+    }, [bugs]);
+
+    const columnNames = {
+        jira_key: "ID",
+        created_at: "Created at",
+        deleted_at: "Deleted at",
+        updated_at: "Updated at",
+        resolved_at: "Resolved at",
+        resolution_time: "Resolution time",
+        last_change_time: "Last changed at",
+        status: "Status",
+        summary: "Summary",
+        affects_versions: "Affected versions",
+        fix_versions: "Fix versions",
+        components: "Components",
+        labels: "Labels",
+        url: "URL",
+        teams_bugs: "Team"
+    };
+
+    useEffect(() => {
+        if(bugs.length > 0){
+            let from = (page-1)*perPage
+            let to = (page-1)*perPage + perPage > bugs.length ? bugs.length - 1 : (page-1)*perPage + perPage;
+            setBugsPage(bugs.slice(from, to))
+        }
+    }, [page, perPage]);
+
+
+    const onSetPage = (_event: React.MouseEvent | React.KeyboardEvent | MouseEvent, newPage: number) => {
+        setPage(newPage);
+    };
+
+    const onPerPageSelect = (
+        _event: React.MouseEvent | React.KeyboardEvent | MouseEvent,
+        newPerPage: number,
+        newPage: number
+    ) => {
+        setPerPage(newPerPage);
+        setPage(newPage);
+    };
+
+  return (
+    <div>
+    <Pagination
+        perPageComponent="button"
+        itemCount={bugs.length}
+        perPage={perPage}
+        page={page}
+        onSetPage={onSetPage}
+        widgetId="top-example"
+        onPerPageSelect={onPerPageSelect}
+    />
+
+    <TableComposable aria-label="Simple table" >
+      <Caption>Jira bugs</Caption>
+      <Thead>
+        <Tr>
+          <Th>{columnNames.jira_key}</Th>
+          <Th>{columnNames.summary}</Th>
+          <Th>{columnNames.status}</Th>
+          <Th>{columnNames.created_at}</Th>
+          <Th>{columnNames.updated_at}</Th>
+          <Th>{columnNames.resolved_at}</Th>
+          <Th>{columnNames.resolution_time}</Th>
+        </Tr>
+      </Thead>
+      <Tbody>
+        {bugsPage.map((bug, index) => (
+          <Tr key={bug.jira_key} {...(index % 2 === 0 && { isStriped: true })}>
+            <Td dataLabel={columnNames.jira_key}><a href={bug.url} target={bug.url}>{bug.jira_key}</a></Td>
+            <Td dataLabel={columnNames.summary}>{bug.summary}</Td>
+            <Td dataLabel={columnNames.status}>{bug.status}</Td>
+            <Td dataLabel={columnNames.created_at}>{bug.created_at}</Td>
+            <Td dataLabel={columnNames.updated_at}>{bug.updated_at}</Td>
+            <Td dataLabel={columnNames.resolved_at}>{bug.resolved_at}</Td>
+            <Td dataLabel={columnNames.resolution_time}>{!Number.isNaN(parseFloat(bug.resolution_time)) ? parseFloat(bug.resolution_time).toFixed(2)+"h" : "-"}</Td>
+          </Tr>
+        ))}
+      </Tbody>
+    </TableComposable>
+
+    <Pagination
+        perPageComponent="button"
+        itemCount={bugs.length}
+        perPage={perPage}
+        page={page}
+        onSetPage={onSetPage}
+        widgetId="top-example"
+        onPerPageSelect={onPerPageSelect}
+        />
+    </div>
+  );
+};

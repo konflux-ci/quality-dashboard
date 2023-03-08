@@ -15,6 +15,8 @@ const (
 	FieldTeamName = "team_name"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
+	// FieldJiraKeys holds the string denoting the jira_keys field in the database.
+	FieldJiraKeys = "jira_keys"
 	// EdgeRepositories holds the string denoting the repositories edge name in mutations.
 	EdgeRepositories = "repositories"
 	// EdgeBugs holds the string denoting the bugs edge name in mutations.
@@ -46,6 +48,7 @@ var Columns = []string{
 	FieldID,
 	FieldTeamName,
 	FieldDescription,
+	FieldJiraKeys,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

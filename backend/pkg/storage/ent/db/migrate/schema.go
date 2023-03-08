@@ -33,7 +33,7 @@ var (
 				Symbol:     "bugs_teams_bugs",
 				Columns:    []*schema.Column{BugsColumns[11]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
-				OnDelete:   schema.SetNull,
+				OnDelete:   schema.Cascade,
 			},
 		},
 	}
@@ -170,6 +170,7 @@ var (
 		{Name: "team_id", Type: field.TypeUUID, Unique: true},
 		{Name: "team_name", Type: field.TypeString, Unique: true},
 		{Name: "description", Type: field.TypeString, Unique: true},
+		{Name: "jira_keys", Type: field.TypeString},
 	}
 	// TeamsTable holds the schema information for the "teams" table.
 	TeamsTable = &schema.Table{

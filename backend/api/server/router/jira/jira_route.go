@@ -28,8 +28,11 @@ func NewRouter(s storage.Storage) router.Router {
 
 	r.Route = []router.Route{
 		router.NewGetRoute("/jira/bugs/e2e", r.listE2EBugsKnown),
-		router.NewGetRoute("/jira/bugs/all", r.listAllBugs),
-		router.NewPostRoute("/jira/bugs/resolution", r.calculateRates),
+		router.NewGetRoute("/jira/bugs/all", r.listAllBugs), ///jira/project/list
+		router.NewGetRoute("/jira/bugs/metrics/priorities", r.getCountBugsForAlCategories),
+		router.NewGetRoute("/jira/project/list", r.getJiraProjects),
+		router.NewPostRoute("/jira/bugs/metrics/resolution", r.calculateRates),
+		router.NewPostRoute("/jira/bugs/metrics/open", r.openBugsMetrics),
 	}
 
 	return r

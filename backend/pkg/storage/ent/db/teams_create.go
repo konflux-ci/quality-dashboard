@@ -37,6 +37,12 @@ func (tc *TeamsCreate) SetDescription(s string) *TeamsCreate {
 	return tc
 }
 
+// SetJiraKeys sets the "jira_keys" field.
+func (tc *TeamsCreate) SetJiraKeys(s string) *TeamsCreate {
+	tc.mutation.SetJiraKeys(s)
+	return tc
+}
+
 // SetID sets the "id" field.
 func (tc *TeamsCreate) SetID(u uuid.UUID) *TeamsCreate {
 	tc.mutation.SetID(u)
@@ -130,6 +136,9 @@ func (tc *TeamsCreate) check() error {
 	if _, ok := tc.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "Teams.description"`)}
 	}
+	if _, ok := tc.mutation.JiraKeys(); !ok {
+		return &ValidationError{Name: "jira_keys", err: errors.New(`db: missing required field "Teams.jira_keys"`)}
+	}
 	return nil
 }
 
@@ -179,6 +188,10 @@ func (tc *TeamsCreate) createSpec() (*Teams, *sqlgraph.CreateSpec) {
 	if value, ok := tc.mutation.Description(); ok {
 		_spec.SetField(teams.FieldDescription, field.TypeString, value)
 		_node.Description = value
+	}
+	if value, ok := tc.mutation.JiraKeys(); ok {
+		_spec.SetField(teams.FieldJiraKeys, field.TypeString, value)
+		_node.JiraKeys = value
 	}
 	if nodes := tc.mutation.RepositoriesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -294,6 +307,18 @@ func (u *TeamsUpsert) UpdateDescription() *TeamsUpsert {
 	return u
 }
 
+// SetJiraKeys sets the "jira_keys" field.
+func (u *TeamsUpsert) SetJiraKeys(v string) *TeamsUpsert {
+	u.Set(teams.FieldJiraKeys, v)
+	return u
+}
+
+// UpdateJiraKeys sets the "jira_keys" field to the value that was provided on create.
+func (u *TeamsUpsert) UpdateJiraKeys() *TeamsUpsert {
+	u.SetExcluded(teams.FieldJiraKeys)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -367,6 +392,20 @@ func (u *TeamsUpsertOne) SetDescription(v string) *TeamsUpsertOne {
 func (u *TeamsUpsertOne) UpdateDescription() *TeamsUpsertOne {
 	return u.Update(func(s *TeamsUpsert) {
 		s.UpdateDescription()
+	})
+}
+
+// SetJiraKeys sets the "jira_keys" field.
+func (u *TeamsUpsertOne) SetJiraKeys(v string) *TeamsUpsertOne {
+	return u.Update(func(s *TeamsUpsert) {
+		s.SetJiraKeys(v)
+	})
+}
+
+// UpdateJiraKeys sets the "jira_keys" field to the value that was provided on create.
+func (u *TeamsUpsertOne) UpdateJiraKeys() *TeamsUpsertOne {
+	return u.Update(func(s *TeamsUpsert) {
+		s.UpdateJiraKeys()
 	})
 }
 
@@ -606,6 +645,20 @@ func (u *TeamsUpsertBulk) SetDescription(v string) *TeamsUpsertBulk {
 func (u *TeamsUpsertBulk) UpdateDescription() *TeamsUpsertBulk {
 	return u.Update(func(s *TeamsUpsert) {
 		s.UpdateDescription()
+	})
+}
+
+// SetJiraKeys sets the "jira_keys" field.
+func (u *TeamsUpsertBulk) SetJiraKeys(v string) *TeamsUpsertBulk {
+	return u.Update(func(s *TeamsUpsert) {
+		s.SetJiraKeys(v)
+	})
+}
+
+// UpdateJiraKeys sets the "jira_keys" field to the value that was provided on create.
+func (u *TeamsUpsertBulk) UpdateJiraKeys() *TeamsUpsertBulk {
+	return u.Update(func(s *TeamsUpsert) {
+		s.UpdateJiraKeys()
 	})
 }
 

@@ -34,7 +34,7 @@ func TestCreateRepository(t *testing.T) {
 	teamDescription := teamName
 
 	// create a team
-	team, err := storage.CreateQualityStudioTeam(teamName, teamDescription)
+	team, err := storage.CreateQualityStudioTeam(teamName, teamDescription, "teamJira")
 	assert.NoError(t, err)
 	assert.Equal(t, teamName, team.TeamName)
 
@@ -94,12 +94,12 @@ func TestListRepositories(t *testing.T) {
 	teamDescription := teamName
 
 	// create team1 without any repo associated
-	team1, err := storage.CreateQualityStudioTeam(teamName, teamDescription)
+	team1, err := storage.CreateQualityStudioTeam(teamName, teamDescription, "teamjira")
 	assert.NoError(t, err)
 	assert.Equal(t, teamName, team1.TeamName)
 
 	// create team2 with one repo associated
-	team2, err := storage.CreateQualityStudioTeam(teamName+"-", teamDescription+"-")
+	team2, err := storage.CreateQualityStudioTeam(teamName+"-", teamDescription+"-", "team_jira")
 	assert.NoError(t, err)
 	assert.Equal(t, teamName+"-", team2.TeamName)
 
@@ -146,7 +146,7 @@ func TestGetRepository(t *testing.T) {
 	teamDescription := teamName
 
 	// create team with one repo associated
-	team, err := storage.CreateQualityStudioTeam(teamName, teamDescription)
+	team, err := storage.CreateQualityStudioTeam(teamName, teamDescription, "team_jira")
 	assert.NoError(t, err)
 	assert.Equal(t, teamName, team.TeamName)
 

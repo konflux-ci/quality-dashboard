@@ -3,6 +3,7 @@ package storage
 import (
 	"errors"
 
+	"github.com/andygrunwald/go-jira"
 	"github.com/google/uuid"
 	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
@@ -26,8 +27,8 @@ type Storage interface {
 	Close() error
 
 	// GET
-	TotalBugsResolutionTime(priority string) (bugsMetrics jiraV1Alpha1.BugsMetrics, err error)
-	GetRepository(repositoryName, gitOrganizationName string) (*db.Repository, error)
+	TotalBugsResolutionTime(priority string, team *db.Teams) (bugsMetrics jiraV1Alpha1.ResolvedBugsMetrics, err error)
+	GetRepository(repositoryName string, gitOrganizationName string) (*db.Repository, error)
 	GetLatestProwTestExecution(r *db.Repository, jobType string) (*db.ProwJobs, error)
 	GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error)
 	GetProwJobsResults(*db.Repository) ([]*db.ProwSuites, error)
@@ -43,15 +44,16 @@ type Storage interface {
 
 	// POST
 	CreateRepository(p repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error)
-	CreateQualityStudioTeam(teamName, description string) (*db.Teams, error)
+	CreateQualityStudioTeam(teamName string, description string, jira_keys string) (*db.Teams, error)
 	CreateWorkflows(p repoV1Alpha1.Workflow, repo_id string) error
 	CreateCoverage(p coverageV1Alpha1.Coverage, repo_id string) error
 	CreateProwJobSuites(prowJobStatus prowV1Alpha1.JobSuites, repo_id string) error
 	CreateProwJobResults(prowJobStatus prowV1Alpha1.Job, repo_id string) error
 	ReCreateWorkflow(workflow repoV1Alpha1.Workflow, repoName string) error
 	UpdateCoverage(codecov coverageV1Alpha1.Coverage, repoName string) error
-	CreateJiraBug(bug jiraV1Alpha1.JiraBug) error
+	CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error
 	UpdateTeam(t *db.Teams, target string) error
+	GetOpenBugsMetricsByStatusAndPriority(priority string, team *db.Teams) (bugsMetrics jiraV1Alpha1.OpenBugsMetrics, err error)
 	CreatePullRequests(prs repoV1Alpha1.PullRequests, repo_id string) error
 
 	// Delete
