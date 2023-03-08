@@ -67,13 +67,14 @@ func (s *teamsRouter) createQualityStudioTeam(ctx context.Context, w http.Respon
 			StatusCode: http.StatusInternalServerError,
 		})
 	}
-
-	bugs := s.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", teams.JiraKeys))
-	if err := s.Storage.CreateJiraBug(bugs, teams); err != nil {
-		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-			Message:    err.Error(),
-			StatusCode: http.StatusInternalServerError,
-		})
+	if teams.JiraKeys != "" {
+		bugs := s.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", teams.JiraKeys))
+		if err := s.Storage.CreateJiraBug(bugs, teams); err != nil {
+			return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+				Message:    err.Error(),
+				StatusCode: http.StatusInternalServerError,
+			})
+		}
 	}
 
 	return httputils.WriteJSON(w, http.StatusOK, teams)
