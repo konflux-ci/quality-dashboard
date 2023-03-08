@@ -115,6 +115,7 @@ let GitHub = () => {
   // Reset params
   const clearParams = () => {
     clearAll();
+    setNoData(true);
     history.push(window.location.pathname + '?' + 'team=' + params.get('team'));
   };
 
@@ -174,15 +175,15 @@ let GitHub = () => {
 
             history.push(
               '/home/github?team=' +
-                currentTeam +
-                '&organization=' +
-                data[1].organization +
-                '&repository=' +
-                data[1].repoName +
-                '&start=' +
-                start_date +
-                '&end=' +
-                end_date
+              currentTeam +
+              '&organization=' +
+              data[1].organization +
+              '&repository=' +
+              data[1].repoName +
+              '&start=' +
+              start_date +
+              '&end=' +
+              end_date
             );
           } else {
             setRepoName(repository);
@@ -192,15 +193,15 @@ let GitHub = () => {
 
             history.push(
               '/home/github?team=' +
-                currentTeam +
-                '&organization=' +
-                organization +
-                '&repository=' +
-                repository +
-                '&start=' +
-                start +
-                '&end=' +
-                end
+              currentTeam +
+              '&organization=' +
+              organization +
+              '&repository=' +
+              repository +
+              '&start=' +
+              start +
+              '&end=' +
+              end
             );
           }
         }
@@ -403,11 +404,11 @@ let GitHub = () => {
               </Title>
             </EmptyState>
           )}
-          {noData && (
+          {validQueryParams(repoName, repoOrg) && noData && (
             <EmptyState variant={EmptyStateVariant.xl}>
               <EmptyStateIcon icon={ExclamationCircleIcon} />
               <Title headingLevel="h1" size="lg">
-                No repository detected.
+                {repositories.length == 0 ? "No repository detected." : "No repository selected."}
               </Title>
             </EmptyState>
           )}
