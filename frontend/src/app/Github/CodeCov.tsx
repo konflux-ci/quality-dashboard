@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, CardBody, CardTitle } from '@patternfly/react-core';
+import { isUndefined } from 'lodash';
 
 const getColor = (coveredFixed) => {
   if (coveredFixed >= 0 && coveredFixed <= 33.33) {
@@ -12,14 +13,13 @@ const getColor = (coveredFixed) => {
 
 export const CodeCov = (props) => {
   const repo = props.repo;
-  const coveredFixed = repo.coverage.coverage_percentage;
 
   return (
     <Card style={{ width: '100%', height: '100%', textAlign: 'center' }}>
       <CardTitle>
         <div>CodeCov</div>
         <div style={{ color: 'grey', fontSize: 12 }}>
-          {repo ? (
+          {!isUndefined(repo) ? (
             <a
               href={`https://app.codecov.io/gh/${repo.organization}/${repo.repoName}`}
               target="blank"
@@ -34,7 +34,7 @@ export const CodeCov = (props) => {
       </CardTitle>
       <CardBody>
         <div style={{ fontSize: 25 }}>
-          {repo ? <div style={{ color: getColor(coveredFixed) }}>{coveredFixed.toFixed(2) + '%'}</div> : 'N/A'}
+          {!isUndefined(repo) ? <div style={{ color: getColor(repo.coverage.coverage_percentage) }}>{repo.coverage.coverage_percentage.toFixed(2) + '%'}</div> : 'N/A'}
         </div>
       </CardBody>
     </Card>

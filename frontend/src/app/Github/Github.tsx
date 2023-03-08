@@ -333,7 +333,7 @@ let GitHub = () => {
                   Clear
                 </Button>
               </ToolbarItem>
-              <ActionsColumn items={defaultActions(getRepository(repoName, repoOrg))} />
+              {validQueryParams(repoName, repoOrg) && !noData && <ActionsColumn items={defaultActions(getRepository(repoName, repoOrg))} />}
               <FormModal></FormModal>
             </ToolbarContent>
           </Toolbar>
