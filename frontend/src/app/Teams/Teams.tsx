@@ -16,9 +16,9 @@ export const Teams = () => {
       >
         <React.Fragment>
           <TextContent style={{ color: "white", display: "inline" }}>
-            <div style={{ float: "left", }}>
+            <div style={{ float: "left" }}>
               <Text component="h2">Get Started with Red Hat Quality Studio</Text>
-              <Text component="p">Onboard your team and start to add components to get quality metrics</Text>
+              <Text component="p">Onboard your team and start to add components to get quality metrics.</Text>
             </div>
           </TextContent>
         </React.Fragment>

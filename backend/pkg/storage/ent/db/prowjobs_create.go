@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
@@ -20,6 +20,7 @@ type ProwJobsCreate struct {
 	config
 	mutation *ProwJobsMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetJobID sets the "job_id" field.
@@ -89,13 +90,13 @@ func (pjc *ProwJobsCreate) SetCiFailed(i int16) *ProwJobsCreate {
 }
 
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
-func (pjc *ProwJobsCreate) SetProwJobsID(id uuid.UUID) *ProwJobsCreate {
+func (pjc *ProwJobsCreate) SetProwJobsID(id string) *ProwJobsCreate {
 	pjc.mutation.SetProwJobsID(id)
 	return pjc
 }
 
 // SetNillableProwJobsID sets the "prow_jobs" edge to the Repository entity by ID if the given value is not nil.
-func (pjc *ProwJobsCreate) SetNillableProwJobsID(id *uuid.UUID) *ProwJobsCreate {
+func (pjc *ProwJobsCreate) SetNillableProwJobsID(id *string) *ProwJobsCreate {
 	if id != nil {
 		pjc = pjc.SetProwJobsID(*id)
 	}
@@ -206,6 +207,7 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = pjc.conflict
 	if value, ok := pjc.mutation.JobID(); ok {
 		_spec.SetField(prowjobs.FieldJobID, field.TypeString, value)
 		_node.JobID = value
@@ -259,7 +261,7 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -273,10 +275,484 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.ProwJobs.Create().
+//		SetJobID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ProwJobsUpsert) {
+//			SetJobID(v+v).
+//		}).
+//		Exec(ctx)
+func (pjc *ProwJobsCreate) OnConflict(opts ...sql.ConflictOption) *ProwJobsUpsertOne {
+	pjc.conflict = opts
+	return &ProwJobsUpsertOne{
+		create: pjc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.ProwJobs.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (pjc *ProwJobsCreate) OnConflictColumns(columns ...string) *ProwJobsUpsertOne {
+	pjc.conflict = append(pjc.conflict, sql.ConflictColumns(columns...))
+	return &ProwJobsUpsertOne{
+		create: pjc,
+	}
+}
+
+type (
+	// ProwJobsUpsertOne is the builder for "upsert"-ing
+	//  one ProwJobs node.
+	ProwJobsUpsertOne struct {
+		create *ProwJobsCreate
+	}
+
+	// ProwJobsUpsert is the "OnConflict" setter.
+	ProwJobsUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetJobID sets the "job_id" field.
+func (u *ProwJobsUpsert) SetJobID(v string) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldJobID, v)
+	return u
+}
+
+// UpdateJobID sets the "job_id" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateJobID() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldJobID)
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *ProwJobsUpsert) SetCreatedAt(v time.Time) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldCreatedAt, v)
+	return u
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateCreatedAt() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldCreatedAt)
+	return u
+}
+
+// SetDuration sets the "duration" field.
+func (u *ProwJobsUpsert) SetDuration(v float64) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldDuration, v)
+	return u
+}
+
+// UpdateDuration sets the "duration" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateDuration() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldDuration)
+	return u
+}
+
+// AddDuration adds v to the "duration" field.
+func (u *ProwJobsUpsert) AddDuration(v float64) *ProwJobsUpsert {
+	u.Add(prowjobs.FieldDuration, v)
+	return u
+}
+
+// SetTestsCount sets the "tests_count" field.
+func (u *ProwJobsUpsert) SetTestsCount(v int64) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldTestsCount, v)
+	return u
+}
+
+// UpdateTestsCount sets the "tests_count" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateTestsCount() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldTestsCount)
+	return u
+}
+
+// AddTestsCount adds v to the "tests_count" field.
+func (u *ProwJobsUpsert) AddTestsCount(v int64) *ProwJobsUpsert {
+	u.Add(prowjobs.FieldTestsCount, v)
+	return u
+}
+
+// SetFailedCount sets the "failed_count" field.
+func (u *ProwJobsUpsert) SetFailedCount(v int64) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldFailedCount, v)
+	return u
+}
+
+// UpdateFailedCount sets the "failed_count" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateFailedCount() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldFailedCount)
+	return u
+}
+
+// AddFailedCount adds v to the "failed_count" field.
+func (u *ProwJobsUpsert) AddFailedCount(v int64) *ProwJobsUpsert {
+	u.Add(prowjobs.FieldFailedCount, v)
+	return u
+}
+
+// SetSkippedCount sets the "skipped_count" field.
+func (u *ProwJobsUpsert) SetSkippedCount(v int64) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldSkippedCount, v)
+	return u
+}
+
+// UpdateSkippedCount sets the "skipped_count" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateSkippedCount() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldSkippedCount)
+	return u
+}
+
+// AddSkippedCount adds v to the "skipped_count" field.
+func (u *ProwJobsUpsert) AddSkippedCount(v int64) *ProwJobsUpsert {
+	u.Add(prowjobs.FieldSkippedCount, v)
+	return u
+}
+
+// SetJobName sets the "job_name" field.
+func (u *ProwJobsUpsert) SetJobName(v string) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldJobName, v)
+	return u
+}
+
+// UpdateJobName sets the "job_name" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateJobName() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldJobName)
+	return u
+}
+
+// SetJobType sets the "job_type" field.
+func (u *ProwJobsUpsert) SetJobType(v string) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldJobType, v)
+	return u
+}
+
+// UpdateJobType sets the "job_type" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateJobType() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldJobType)
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *ProwJobsUpsert) SetState(v string) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateState() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldState)
+	return u
+}
+
+// SetJobURL sets the "job_url" field.
+func (u *ProwJobsUpsert) SetJobURL(v string) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldJobURL, v)
+	return u
+}
+
+// UpdateJobURL sets the "job_url" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateJobURL() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldJobURL)
+	return u
+}
+
+// SetCiFailed sets the "ci_failed" field.
+func (u *ProwJobsUpsert) SetCiFailed(v int16) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldCiFailed, v)
+	return u
+}
+
+// UpdateCiFailed sets the "ci_failed" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateCiFailed() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldCiFailed)
+	return u
+}
+
+// AddCiFailed adds v to the "ci_failed" field.
+func (u *ProwJobsUpsert) AddCiFailed(v int16) *ProwJobsUpsert {
+	u.Add(prowjobs.FieldCiFailed, v)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.ProwJobs.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *ProwJobsUpsertOne) UpdateNewValues() *ProwJobsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.ProwJobs.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *ProwJobsUpsertOne) Ignore() *ProwJobsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ProwJobsUpsertOne) DoNothing() *ProwJobsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ProwJobsCreate.OnConflict
+// documentation for more info.
+func (u *ProwJobsUpsertOne) Update(set func(*ProwJobsUpsert)) *ProwJobsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ProwJobsUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetJobID sets the "job_id" field.
+func (u *ProwJobsUpsertOne) SetJobID(v string) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetJobID(v)
+	})
+}
+
+// UpdateJobID sets the "job_id" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateJobID() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateJobID()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *ProwJobsUpsertOne) SetCreatedAt(v time.Time) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateCreatedAt() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetDuration sets the "duration" field.
+func (u *ProwJobsUpsertOne) SetDuration(v float64) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetDuration(v)
+	})
+}
+
+// AddDuration adds v to the "duration" field.
+func (u *ProwJobsUpsertOne) AddDuration(v float64) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.AddDuration(v)
+	})
+}
+
+// UpdateDuration sets the "duration" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateDuration() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateDuration()
+	})
+}
+
+// SetTestsCount sets the "tests_count" field.
+func (u *ProwJobsUpsertOne) SetTestsCount(v int64) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetTestsCount(v)
+	})
+}
+
+// AddTestsCount adds v to the "tests_count" field.
+func (u *ProwJobsUpsertOne) AddTestsCount(v int64) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.AddTestsCount(v)
+	})
+}
+
+// UpdateTestsCount sets the "tests_count" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateTestsCount() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateTestsCount()
+	})
+}
+
+// SetFailedCount sets the "failed_count" field.
+func (u *ProwJobsUpsertOne) SetFailedCount(v int64) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetFailedCount(v)
+	})
+}
+
+// AddFailedCount adds v to the "failed_count" field.
+func (u *ProwJobsUpsertOne) AddFailedCount(v int64) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.AddFailedCount(v)
+	})
+}
+
+// UpdateFailedCount sets the "failed_count" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateFailedCount() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateFailedCount()
+	})
+}
+
+// SetSkippedCount sets the "skipped_count" field.
+func (u *ProwJobsUpsertOne) SetSkippedCount(v int64) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetSkippedCount(v)
+	})
+}
+
+// AddSkippedCount adds v to the "skipped_count" field.
+func (u *ProwJobsUpsertOne) AddSkippedCount(v int64) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.AddSkippedCount(v)
+	})
+}
+
+// UpdateSkippedCount sets the "skipped_count" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateSkippedCount() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateSkippedCount()
+	})
+}
+
+// SetJobName sets the "job_name" field.
+func (u *ProwJobsUpsertOne) SetJobName(v string) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetJobName(v)
+	})
+}
+
+// UpdateJobName sets the "job_name" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateJobName() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateJobName()
+	})
+}
+
+// SetJobType sets the "job_type" field.
+func (u *ProwJobsUpsertOne) SetJobType(v string) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetJobType(v)
+	})
+}
+
+// UpdateJobType sets the "job_type" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateJobType() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateJobType()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *ProwJobsUpsertOne) SetState(v string) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateState() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetJobURL sets the "job_url" field.
+func (u *ProwJobsUpsertOne) SetJobURL(v string) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetJobURL(v)
+	})
+}
+
+// UpdateJobURL sets the "job_url" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateJobURL() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateJobURL()
+	})
+}
+
+// SetCiFailed sets the "ci_failed" field.
+func (u *ProwJobsUpsertOne) SetCiFailed(v int16) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetCiFailed(v)
+	})
+}
+
+// AddCiFailed adds v to the "ci_failed" field.
+func (u *ProwJobsUpsertOne) AddCiFailed(v int16) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.AddCiFailed(v)
+	})
+}
+
+// UpdateCiFailed sets the "ci_failed" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateCiFailed() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateCiFailed()
+	})
+}
+
+// Exec executes the query.
+func (u *ProwJobsUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("db: missing options for ProwJobsCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ProwJobsUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *ProwJobsUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *ProwJobsUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // ProwJobsCreateBulk is the builder for creating many ProwJobs entities in bulk.
 type ProwJobsCreateBulk struct {
 	config
 	builders []*ProwJobsCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the ProwJobs entities in the database.
@@ -302,6 +778,7 @@ func (pjcb *ProwJobsCreateBulk) Save(ctx context.Context) ([]*ProwJobs, error) {
 					_, err = mutators[i+1].Mutate(root, pjcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = pjcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, pjcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -352,6 +829,296 @@ func (pjcb *ProwJobsCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (pjcb *ProwJobsCreateBulk) ExecX(ctx context.Context) {
 	if err := pjcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.ProwJobs.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.ProwJobsUpsert) {
+//			SetJobID(v+v).
+//		}).
+//		Exec(ctx)
+func (pjcb *ProwJobsCreateBulk) OnConflict(opts ...sql.ConflictOption) *ProwJobsUpsertBulk {
+	pjcb.conflict = opts
+	return &ProwJobsUpsertBulk{
+		create: pjcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.ProwJobs.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (pjcb *ProwJobsCreateBulk) OnConflictColumns(columns ...string) *ProwJobsUpsertBulk {
+	pjcb.conflict = append(pjcb.conflict, sql.ConflictColumns(columns...))
+	return &ProwJobsUpsertBulk{
+		create: pjcb,
+	}
+}
+
+// ProwJobsUpsertBulk is the builder for "upsert"-ing
+// a bulk of ProwJobs nodes.
+type ProwJobsUpsertBulk struct {
+	create *ProwJobsCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.ProwJobs.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *ProwJobsUpsertBulk) UpdateNewValues() *ProwJobsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.ProwJobs.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *ProwJobsUpsertBulk) Ignore() *ProwJobsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *ProwJobsUpsertBulk) DoNothing() *ProwJobsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the ProwJobsCreateBulk.OnConflict
+// documentation for more info.
+func (u *ProwJobsUpsertBulk) Update(set func(*ProwJobsUpsert)) *ProwJobsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&ProwJobsUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetJobID sets the "job_id" field.
+func (u *ProwJobsUpsertBulk) SetJobID(v string) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetJobID(v)
+	})
+}
+
+// UpdateJobID sets the "job_id" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateJobID() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateJobID()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *ProwJobsUpsertBulk) SetCreatedAt(v time.Time) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateCreatedAt() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// SetDuration sets the "duration" field.
+func (u *ProwJobsUpsertBulk) SetDuration(v float64) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetDuration(v)
+	})
+}
+
+// AddDuration adds v to the "duration" field.
+func (u *ProwJobsUpsertBulk) AddDuration(v float64) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.AddDuration(v)
+	})
+}
+
+// UpdateDuration sets the "duration" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateDuration() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateDuration()
+	})
+}
+
+// SetTestsCount sets the "tests_count" field.
+func (u *ProwJobsUpsertBulk) SetTestsCount(v int64) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetTestsCount(v)
+	})
+}
+
+// AddTestsCount adds v to the "tests_count" field.
+func (u *ProwJobsUpsertBulk) AddTestsCount(v int64) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.AddTestsCount(v)
+	})
+}
+
+// UpdateTestsCount sets the "tests_count" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateTestsCount() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateTestsCount()
+	})
+}
+
+// SetFailedCount sets the "failed_count" field.
+func (u *ProwJobsUpsertBulk) SetFailedCount(v int64) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetFailedCount(v)
+	})
+}
+
+// AddFailedCount adds v to the "failed_count" field.
+func (u *ProwJobsUpsertBulk) AddFailedCount(v int64) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.AddFailedCount(v)
+	})
+}
+
+// UpdateFailedCount sets the "failed_count" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateFailedCount() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateFailedCount()
+	})
+}
+
+// SetSkippedCount sets the "skipped_count" field.
+func (u *ProwJobsUpsertBulk) SetSkippedCount(v int64) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetSkippedCount(v)
+	})
+}
+
+// AddSkippedCount adds v to the "skipped_count" field.
+func (u *ProwJobsUpsertBulk) AddSkippedCount(v int64) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.AddSkippedCount(v)
+	})
+}
+
+// UpdateSkippedCount sets the "skipped_count" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateSkippedCount() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateSkippedCount()
+	})
+}
+
+// SetJobName sets the "job_name" field.
+func (u *ProwJobsUpsertBulk) SetJobName(v string) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetJobName(v)
+	})
+}
+
+// UpdateJobName sets the "job_name" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateJobName() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateJobName()
+	})
+}
+
+// SetJobType sets the "job_type" field.
+func (u *ProwJobsUpsertBulk) SetJobType(v string) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetJobType(v)
+	})
+}
+
+// UpdateJobType sets the "job_type" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateJobType() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateJobType()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *ProwJobsUpsertBulk) SetState(v string) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateState() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateState()
+	})
+}
+
+// SetJobURL sets the "job_url" field.
+func (u *ProwJobsUpsertBulk) SetJobURL(v string) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetJobURL(v)
+	})
+}
+
+// UpdateJobURL sets the "job_url" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateJobURL() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateJobURL()
+	})
+}
+
+// SetCiFailed sets the "ci_failed" field.
+func (u *ProwJobsUpsertBulk) SetCiFailed(v int16) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetCiFailed(v)
+	})
+}
+
+// AddCiFailed adds v to the "ci_failed" field.
+func (u *ProwJobsUpsertBulk) AddCiFailed(v int16) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.AddCiFailed(v)
+	})
+}
+
+// UpdateCiFailed sets the "ci_failed" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateCiFailed() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateCiFailed()
+	})
+}
+
+// Exec executes the query.
+func (u *ProwJobsUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the ProwJobsCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("db: missing options for ProwJobsCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *ProwJobsUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

@@ -13,8 +13,6 @@ import {
 } from '@patternfly/react-core';
 import CaretDownIcon from '@patternfly/react-icons/dist/js/icons/caret-down-icon';
 import { useHistory } from 'react-router-dom';
-import { teamIsNotEmpty } from '@app/utils/utils';
-import ArrowRightIcon from '@patternfly/react-icons/dist/esm/icons/arrow-right-icon';
 import { SignOutAltIcon } from '@patternfly/react-icons';
 import { ReactReduxContext, useSelector } from 'react-redux';
 
@@ -22,6 +20,7 @@ export interface ITeam {
   id: string
   team_name: string
   description: string
+  jira_keys: string
 }
 
 export const BasicMasthead = () => {
@@ -52,8 +51,8 @@ export const BasicMasthead = () => {
       history.push('/ci/jobs?team=' + event.target.dataset.value)
     }
 
-    if (history.location.pathname == "/home/overview" && team != null && team != event.target.dataset.value) {
-      history.push('/home/overview?team=' + event.target.dataset.value)
+    if (history.location.pathname == "/home/github" && team != null && team != event.target.dataset.value) {
+      history.push('/home/github?team=' + event.target.dataset.value)
     }
   }
 
@@ -87,9 +86,6 @@ export const BasicMasthead = () => {
                   dropdownItems={dropdownItems}
                   isFullHeight
                 />
-              </ToolbarItem>
-              <ToolbarItem visibility={{ default: 'hidden', lg: 'visible' }}>
-                {!teamIsNotEmpty(state.teams.Team) && <Button style={{ verticalAlign: "middle", backgroundColor: "var(--pf-c-button--m-primary--Color)", color: "var(--pf-c-button--m-primary--BackgroundColor)" }} onClick={() => { history.push("/home/teams") }} type="button" width={300} variant="primary">Create your first Team <ArrowRightIcon /></Button>}
               </ToolbarItem>
             </ToolbarGroup>
           </ToolbarContent>

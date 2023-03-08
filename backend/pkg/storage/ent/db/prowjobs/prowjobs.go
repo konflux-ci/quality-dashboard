@@ -31,8 +31,6 @@ const (
 	FieldCiFailed = "ci_failed"
 	// EdgeProwJobs holds the string denoting the prow_jobs edge name in mutations.
 	EdgeProwJobs = "prow_jobs"
-	// RepositoryFieldID holds the string denoting the ID field of the Repository.
-	RepositoryFieldID = "repo_id"
 	// Table holds the table name of the prowjobs in the database.
 	Table = "prow_jobs"
 	// ProwJobsTable is the table that holds the prow_jobs relation/edge.

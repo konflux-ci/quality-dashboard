@@ -11,9 +11,11 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
@@ -44,12 +46,14 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		codecov.Table:    codecov.ValidColumn,
-		prowjobs.Table:   prowjobs.ValidColumn,
-		prowsuites.Table: prowsuites.ValidColumn,
-		repository.Table: repository.ValidColumn,
-		teams.Table:      teams.ValidColumn,
-		workflows.Table:  workflows.ValidColumn,
+		bugs.Table:         bugs.ValidColumn,
+		codecov.Table:      codecov.ValidColumn,
+		prowjobs.Table:     prowjobs.ValidColumn,
+		prowsuites.Table:   prowsuites.ValidColumn,
+		pullrequests.Table: pullrequests.ValidColumn,
+		repository.Table:   repository.ValidColumn,
+		teams.Table:        teams.ValidColumn,
+		workflows.Table:    workflows.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {

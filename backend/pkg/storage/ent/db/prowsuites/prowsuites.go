@@ -17,8 +17,6 @@ const (
 	FieldTime = "time"
 	// EdgeProwSuites holds the string denoting the prow_suites edge name in mutations.
 	EdgeProwSuites = "prow_suites"
-	// RepositoryFieldID holds the string denoting the ID field of the Repository.
-	RepositoryFieldID = "repo_id"
 	// Table holds the table name of the prowsuites in the database.
 	Table = "prow_suites"
 	// ProwSuitesTable is the table that holds the prow_suites relation/edge.

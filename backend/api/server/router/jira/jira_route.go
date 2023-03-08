@@ -1,8 +1,8 @@
 package jira
 
 import (
-	jiraAPI "github.com/redhat-appstudio/quality-studio/api/apis/jira"
 	"github.com/redhat-appstudio/quality-studio/api/server/router"
+	jiraAPI "github.com/redhat-appstudio/quality-studio/pkg/connectors/jira"
 	"github.com/redhat-appstudio/quality-studio/pkg/logger"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"go.uber.org/zap"
@@ -28,6 +28,11 @@ func NewRouter(s storage.Storage) router.Router {
 
 	r.Route = []router.Route{
 		router.NewGetRoute("/jira/bugs/e2e", r.listE2EBugsKnown),
+		router.NewGetRoute("/jira/bugs/all", r.listAllBugs), ///jira/project/list
+		router.NewGetRoute("/jira/bugs/metrics/priorities", r.getCountBugsForAlCategories),
+		router.NewGetRoute("/jira/project/list", r.getJiraProjects),
+		router.NewPostRoute("/jira/bugs/metrics/resolution", r.calculateRates),
+		router.NewPostRoute("/jira/bugs/metrics/open", r.openBugsMetrics),
 	}
 
 	return r

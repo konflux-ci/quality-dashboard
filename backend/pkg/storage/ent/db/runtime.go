@@ -4,7 +4,9 @@ package db
 
 import (
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
@@ -15,6 +17,24 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	bugsFields := schema.Bugs{}.Fields()
+	_ = bugsFields
+	// bugsDescJiraKey is the schema descriptor for jira_key field.
+	bugsDescJiraKey := bugsFields[1].Descriptor()
+	// bugs.JiraKeyValidator is a validator for the "jira_key" field. It is called by the builders before save.
+	bugs.JiraKeyValidator = bugsDescJiraKey.Validators[0].(func(string) error)
+	// bugsDescResolved is the schema descriptor for resolved field.
+	bugsDescResolved := bugsFields[5].Descriptor()
+	// bugs.DefaultResolved holds the default value on creation for the resolved field.
+	bugs.DefaultResolved = bugsDescResolved.Default.(bool)
+	// bugsDescResolutionTime is the schema descriptor for resolution_time field.
+	bugsDescResolutionTime := bugsFields[7].Descriptor()
+	// bugs.DefaultResolutionTime holds the default value on creation for the resolution_time field.
+	bugs.DefaultResolutionTime = bugsDescResolutionTime.Default.(float64)
+	// bugsDescID is the schema descriptor for id field.
+	bugsDescID := bugsFields[0].Descriptor()
+	// bugs.DefaultID holds the default value on creation for the id field.
+	bugs.DefaultID = bugsDescID.Default.(func() uuid.UUID)
 	codecovFields := schema.CodeCov{}.Fields()
 	_ = codecovFields
 	// codecovDescRepositoryName is the schema descriptor for repository_name field.
@@ -25,6 +45,12 @@ func init() {
 	codecovDescID := codecovFields[0].Descriptor()
 	// codecov.DefaultID holds the default value on creation for the id field.
 	codecov.DefaultID = codecovDescID.Default.(func() uuid.UUID)
+	pullrequestsFields := schema.PullRequests{}.Fields()
+	_ = pullrequestsFields
+	// pullrequestsDescPrID is the schema descriptor for pr_id field.
+	pullrequestsDescPrID := pullrequestsFields[0].Descriptor()
+	// pullrequests.DefaultPrID holds the default value on creation for the pr_id field.
+	pullrequests.DefaultPrID = pullrequestsDescPrID.Default.(func() uuid.UUID)
 	repositoryFields := schema.Repository{}.Fields()
 	_ = repositoryFields
 	// repositoryDescRepositoryName is the schema descriptor for repository_name field.
@@ -45,8 +71,22 @@ func init() {
 	repository.GitURLValidator = repositoryDescGitURL.Validators[0].(func(string) error)
 	// repositoryDescID is the schema descriptor for id field.
 	repositoryDescID := repositoryFields[0].Descriptor()
-	// repository.DefaultID holds the default value on creation for the id field.
-	repository.DefaultID = repositoryDescID.Default.(func() uuid.UUID)
+	// repository.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	repository.IDValidator = func() func(string) error {
+		validators := repositoryDescID.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(id string) error {
+			for _, fn := range fns {
+				if err := fn(id); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
 	teamsFields := schema.Teams{}.Fields()
 	_ = teamsFields
 	// teamsDescID is the schema descriptor for id field.

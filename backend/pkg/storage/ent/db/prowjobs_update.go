@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
@@ -132,13 +131,13 @@ func (pju *ProwJobsUpdate) AddCiFailed(i int16) *ProwJobsUpdate {
 }
 
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
-func (pju *ProwJobsUpdate) SetProwJobsID(id uuid.UUID) *ProwJobsUpdate {
+func (pju *ProwJobsUpdate) SetProwJobsID(id string) *ProwJobsUpdate {
 	pju.mutation.SetProwJobsID(id)
 	return pju
 }
 
 // SetNillableProwJobsID sets the "prow_jobs" edge to the Repository entity by ID if the given value is not nil.
-func (pju *ProwJobsUpdate) SetNillableProwJobsID(id *uuid.UUID) *ProwJobsUpdate {
+func (pju *ProwJobsUpdate) SetNillableProwJobsID(id *string) *ProwJobsUpdate {
 	if id != nil {
 		pju = pju.SetProwJobsID(*id)
 	}
@@ -263,7 +262,7 @@ func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -279,7 +278,7 @@ func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -411,13 +410,13 @@ func (pjuo *ProwJobsUpdateOne) AddCiFailed(i int16) *ProwJobsUpdateOne {
 }
 
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
-func (pjuo *ProwJobsUpdateOne) SetProwJobsID(id uuid.UUID) *ProwJobsUpdateOne {
+func (pjuo *ProwJobsUpdateOne) SetProwJobsID(id string) *ProwJobsUpdateOne {
 	pjuo.mutation.SetProwJobsID(id)
 	return pjuo
 }
 
 // SetNillableProwJobsID sets the "prow_jobs" edge to the Repository entity by ID if the given value is not nil.
-func (pjuo *ProwJobsUpdateOne) SetNillableProwJobsID(id *uuid.UUID) *ProwJobsUpdateOne {
+func (pjuo *ProwJobsUpdateOne) SetNillableProwJobsID(id *string) *ProwJobsUpdateOne {
 	if id != nil {
 		pjuo = pjuo.SetProwJobsID(*id)
 	}
@@ -566,7 +565,7 @@ func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -582,7 +581,7 @@ func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, er
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},

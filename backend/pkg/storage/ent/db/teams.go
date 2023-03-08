@@ -20,6 +20,8 @@ type Teams struct {
 	TeamName string `json:"team_name,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
+	// JiraKeys holds the value of the "jira_keys" field.
+	JiraKeys string `json:"jira_keys,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TeamsQuery when eager-loading is set.
 	Edges TeamsEdges `json:"edges"`
@@ -29,9 +31,11 @@ type Teams struct {
 type TeamsEdges struct {
 	// Repositories holds the value of the repositories edge.
 	Repositories []*Repository `json:"repositories,omitempty"`
+	// Bugs holds the value of the bugs edge.
+	Bugs []*Bugs `json:"bugs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // RepositoriesOrErr returns the Repositories value or an error if the edge
@@ -43,12 +47,21 @@ func (e TeamsEdges) RepositoriesOrErr() ([]*Repository, error) {
 	return nil, &NotLoadedError{edge: "repositories"}
 }
 
+// BugsOrErr returns the Bugs value or an error if the edge
+// was not loaded in eager-loading.
+func (e TeamsEdges) BugsOrErr() ([]*Bugs, error) {
+	if e.loadedTypes[1] {
+		return e.Bugs, nil
+	}
+	return nil, &NotLoadedError{edge: "bugs"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Teams) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case teams.FieldTeamName, teams.FieldDescription:
+		case teams.FieldTeamName, teams.FieldDescription, teams.FieldJiraKeys:
 			values[i] = new(sql.NullString)
 		case teams.FieldID:
 			values[i] = new(uuid.UUID)
@@ -85,6 +98,12 @@ func (t *Teams) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				t.Description = value.String
 			}
+		case teams.FieldJiraKeys:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field jira_keys", values[i])
+			} else if value.Valid {
+				t.JiraKeys = value.String
+			}
 		}
 	}
 	return nil
@@ -93,6 +112,11 @@ func (t *Teams) assignValues(columns []string, values []any) error {
 // QueryRepositories queries the "repositories" edge of the Teams entity.
 func (t *Teams) QueryRepositories() *RepositoryQuery {
 	return NewTeamsClient(t.config).QueryRepositories(t)
+}
+
+// QueryBugs queries the "bugs" edge of the Teams entity.
+func (t *Teams) QueryBugs() *BugsQuery {
+	return NewTeamsClient(t.config).QueryBugs(t)
 }
 
 // Update returns a builder for updating this Teams.
@@ -123,6 +147,9 @@ func (t *Teams) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("description=")
 	builder.WriteString(t.Description)
+	builder.WriteString(", ")
+	builder.WriteString("jira_keys=")
+	builder.WriteString(t.JiraKeys)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -691,7 +691,7 @@ func HasProwJobsWith(preds ...predicate.Repository) predicate.ProwJobs {
 	return predicate.ProwJobs(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ProwJobsInverseTable, RepositoryFieldID),
+			sqlgraph.To(ProwJobsInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, ProwJobsTable, ProwJobsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
