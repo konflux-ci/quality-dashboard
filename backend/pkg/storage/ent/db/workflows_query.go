@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
@@ -408,8 +407,8 @@ func (wq *WorkflowsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Wo
 }
 
 func (wq *WorkflowsQuery) loadWorkflows(ctx context.Context, query *RepositoryQuery, nodes []*Workflows, init func(*Workflows), assign func(*Workflows, *Repository)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*Workflows)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*Workflows)
 	for i := range nodes {
 		if nodes[i].repository_workflows == nil {
 			continue

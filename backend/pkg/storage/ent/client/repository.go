@@ -5,18 +5,20 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
-// CreateRepository save provided repository information in database.
-func (d *Database) CreateRepository(repository storage.Repository, team_id uuid.UUID) (*db.Repository, error) {
+// CreateRepository saves provided repository information in database.
+func (d *Database) CreateRepository(repository repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error) {
 	repo, err := d.client.Repository.Create().
-		SetRepositoryName(repository.RepositoryName).
-		SetGitOrganization(repository.GitOrganization).
+		SetRepositoryName(repository.Name).
+		SetID(repository.ID).
+		SetGitOrganization(repository.Owner.Login).
 		SetDescription(repository.Description).
-		SetGitURL(repository.GitURL).
+		SetGitURL(repository.URL).
 		Save(context.TODO())
 	if err != nil {
 		return nil, convertDBError("create repository: %w", err)
@@ -24,19 +26,19 @@ func (d *Database) CreateRepository(repository storage.Repository, team_id uuid.
 
 	_, err = d.client.Teams.UpdateOneID(team_id).AddRepositories(repo).Save(context.TODO())
 	if err != nil {
-		return nil, convertDBError("create workflows: %w", err)
+		return nil, convertDBError("create repository: %w", err)
 	}
 	return repo, nil
 }
 
 // ListPasswords extracts an array of repositories from the database.
-func (d *Database) ListRepositories(team *db.Teams) ([]storage.Repository, error) {
+func (d *Database) ListRepositories(team *db.Teams) ([]repoV1Alpha1.Repository, error) {
 	repositories, err := d.client.Teams.QueryRepositories(team).All(context.TODO())
 	if err != nil {
 		return nil, convertDBError("list repositories: %w", err)
 	}
 
-	storageRepositories := make([]storage.Repository, 0, len(repositories))
+	storageRepositories := make([]repoV1Alpha1.Repository, 0, len(repositories))
 	for _, p := range repositories {
 		storageRepositories = append(storageRepositories, toStorageRepository(p))
 	}
@@ -64,9 +66,11 @@ func (d *Database) ListRepositoriesQualityInfo(team *db.Teams) ([]storage.Reposi
 
 	storageRepositories := make([]storage.RepositoryQualityInfo, 0, len(repositories))
 	for _, p := range repositories {
-		w, _ := d.client.Repository.QueryWorkflows(p).All(context.TODO())
-		c, _ := d.client.Repository.QueryCodecov(p).Only(context.TODO())
-		storageRepositories = append(storageRepositories, toStorageRepositoryAllInfo(p, w, c))
+		c, err := d.client.Repository.QueryCodecov(p).Only(context.TODO())
+		if err != nil {
+			return nil, convertDBError("list coverage failed: %w", err)
+		}
+		storageRepositories = append(storageRepositories, toStorageRepositoryAllInfo(p, c))
 	}
 	return storageRepositories, nil
 }

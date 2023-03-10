@@ -10,7 +10,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
@@ -408,8 +407,8 @@ func (psq *ProwSuitesQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 }
 
 func (psq *ProwSuitesQuery) loadProwSuites(ctx context.Context, query *RepositoryQuery, nodes []*ProwSuites, init func(*ProwSuites), assign func(*ProwSuites, *Repository)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*ProwSuites)
+	ids := make([]string, 0, len(nodes))
+	nodeids := make(map[string][]*ProwSuites)
 	for i := range nodes {
 		if nodes[i].repository_prow_suites == nil {
 			continue

@@ -31,7 +31,7 @@ import { ReactReduxContext, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { isValidTeam } from '@app/utils/utils';
 import { formatDate, getRangeDates } from './utils';
-import { DateTimeRangePicker } from './DateTimeRangePicker';
+import { DateTimeRangePicker } from '../utils/DateTimeRangePicker';
 import { Table, TableBody, TableHeader, TableProps, cellWidth, info, sortable } from '@patternfly/react-table';
 
 // eslint-disable-next-line prefer-const
@@ -83,7 +83,7 @@ let Reports = () => {
     }
   };
 
-  // Reset all dropwdowns and state variables
+  // Reset all dropdowns and state variables
   const clearAll = () => {
     setProwVisible(false); // hide the dashboard leaving only the toolbar
     setNoData(false)

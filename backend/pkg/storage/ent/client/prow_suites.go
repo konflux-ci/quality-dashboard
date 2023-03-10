@@ -3,14 +3,13 @@ package client
 import (
 	"context"
 
-	"github.com/google/uuid"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage"
+	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 )
 
 // CreateProwJobResults save provided repository information in database.
-func (d *Database) CreateProwJobSuites(suites storage.ProwJobSuites, repo_id uuid.UUID) error {
+func (d *Database) CreateProwJobSuites(suites prowV1Alpha1.JobSuites, repo_id string) error {
 	c, err := d.client.ProwSuites.Create().
 		SetJobID(suites.JobID).
 		SetName(suites.TestCaseName).

@@ -3,13 +3,23 @@ package teams
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/redhat-appstudio/quality-studio/api/types"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
 )
 
 type TeamsRequest struct {
+	TeamName    string `json:"team_name"`
+	JiraKeys    string `json:"jira_keys,omitempty"`
+	Description string `json:"description"`
+}
+
+type UpdateTeamsRequest struct {
+	TargetTeam  string `json:"target"`
+	JiraKeys    string `json:"jira_keys"`
 	TeamName    string `json:"team_name"`
 	Description string `json:"description"`
 }
@@ -45,18 +55,101 @@ func (s *teamsRouter) createQualityStudioTeam(ctx context.Context, w http.Respon
 	var team TeamsRequest
 	if err := json.NewDecoder(r.Body).Decode(&team); err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-			Message:    "Error reading team_name/description value from body",
+			Message:    "Error reading team_name/description/jira_keys value from body",
 			StatusCode: http.StatusBadRequest,
 		})
 	}
 
-	teams, err := s.Storage.CreateQualityStudioTeam(team.TeamName, team.Description)
+	teams, err := s.Storage.CreateQualityStudioTeam(team.TeamName, team.Description, team.JiraKeys)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		})
 	}
+	if teams.JiraKeys != "" {
+		bugs := s.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", teams.JiraKeys))
+		if err := s.Storage.CreateJiraBug(bugs, teams); err != nil {
+			return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+				Message:    err.Error(),
+				StatusCode: http.StatusInternalServerError,
+			})
+		}
+	}
 
 	return httputils.WriteJSON(w, http.StatusOK, teams)
+}
+
+// Teams godoc
+// @Summary Teams API Info
+// @Description delete a team in quality studio
+// @Tags Teams API Info
+// @Produce json
+// @Param repository body TeamsRequest true "team_name"
+// @Router /teams/delete [delete]
+// @Success 200 {object} types.SuccessResponse
+// @Failure 400 {object} types.ErrorResponse
+func (rp *teamsRouter) deleteTeamHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	var team TeamsRequest
+	json.NewDecoder(r.Body).Decode(&team)
+
+	if team.TeamName == "" {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "Failed to remove team. Field 'team_name' missing",
+			StatusCode: 400,
+		})
+	}
+
+	_, err := rp.Storage.DeleteTeam(team.TeamName)
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "Failed to remove team",
+			StatusCode: 400,
+		})
+	}
+	return httputils.WriteJSON(w, http.StatusOK, types.SuccessResponse{
+		Message:    "Team deleted",
+		StatusCode: 200,
+	})
+}
+
+// Teams godoc
+// @Summary Teams API Info
+// @Description update a team in quality studio
+// @Tags Teams API Info
+// @Produce json
+// @Param repository body TeamsRequest true "team_name"
+// @Router /teams/update [put]
+// @Success 200 {object} types.SuccessResponse
+// @Failure 400 {object} types.ErrorResponse
+func (rp *teamsRouter) updateTeamHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	var team UpdateTeamsRequest
+	json.NewDecoder(r.Body).Decode(&team)
+
+	if team.TeamName == "" {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "Failed to remove team. Field 'team_name' missing",
+			StatusCode: 400,
+		})
+	}
+
+	err := rp.Storage.UpdateTeam(
+		&db.Teams{
+			TeamName:    team.TeamName,
+			Description: team.Description,
+			JiraKeys:    team.JiraKeys,
+		},
+		team.TargetTeam,
+	)
+
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "Message: " + err.Error(),
+			StatusCode: 400,
+		})
+	}
+	return httputils.WriteJSON(w, http.StatusOK, types.SuccessResponse{
+		Message:    "Team update",
+		StatusCode: 200,
+	})
 }

@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Bugs is the predicate function for bugs builders.
+type Bugs func(*sql.Selector)
+
 // CodeCov is the predicate function for codecov builders.
 type CodeCov func(*sql.Selector)
 
@@ -14,6 +17,9 @@ type ProwJobs func(*sql.Selector)
 
 // ProwSuites is the predicate function for prowsuites builders.
 type ProwSuites func(*sql.Selector)
+
+// PullRequests is the predicate function for pullrequests builders.
+type PullRequests func(*sql.Selector)
 
 // Repository is the predicate function for repository builders.
 type Repository func(*sql.Selector)

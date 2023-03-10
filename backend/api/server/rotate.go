@@ -2,11 +2,14 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"time"
 
-	"github.com/redhat-appstudio/quality-studio/api/apis/codecov"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage"
+	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
+	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
+	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"go.uber.org/zap"
 )
 
@@ -39,8 +42,22 @@ func (s *Server) startUpdateStorage(ctx context.Context, strategy rotationStrate
 }
 
 func (s *Server) rotate() error {
+	teamArr, err := s.cfg.Storage.GetAllTeamsFromDB()
+	if err != nil {
+		s.cfg.Logger.Sugar().Errorf("Failed to update cache", zap.Error(err))
+		return err
+	}
+	for _, team := range teamArr {
+		if team.JiraKeys == "" {
+			continue
+		}
+		if err := s.rotateJiraBugs(team.JiraKeys, team); err != nil {
+			return err
+		}
+	}
+
 	s.UpdateProwStatusByTeam()
-	err := s.UpdateDataBaseRepoByTeam()
+	err = s.UpdateDataBaseRepoByTeam()
 	if err != nil {
 		s.cfg.Logger.Sugar().Errorf("Failed to update cache", zap.Error(err))
 		return err
@@ -50,35 +67,82 @@ func (s *Server) rotate() error {
 }
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
-		rotationFrequency: time.Minute * 30,
+		rotationFrequency: time.Minute * 15,
 	}
 }
 
+/**
+bugs := s.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", teams.JiraKeys))
+if err := s.Storage.CreateJiraBug(bugs, teams); err != nil {
+	return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+		Message:    err.Error(),
+		StatusCode: http.StatusInternalServerError,
+	})
+}
+
+*/
+
+func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
+	bugs := s.cfg.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys))
+	if err := s.cfg.Storage.CreateJiraBug(bugs, team); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *Server) UpdateDataBaseRepoByTeam() error {
-	teamArr, _ := s.cfg.Storage.GetAllTeamsFromDB()
+	teamArr, err := s.cfg.Storage.GetAllTeamsFromDB()
+	if err != nil {
+		return err
+	}
 
 	for _, team := range teamArr {
-		repo, _ := s.cfg.Storage.ListRepositories(team)
+		repo, err := s.cfg.Storage.ListRepositories(team)
+		if err != nil {
+			return err
+		}
+
 		if err := s.CacheRepositoriesInformation(repo); err != nil {
-			s.cfg.Logger.Sugar().Errorf("failed to update repository %s", repo)
+			s.cfg.Logger.Sugar().Errorf("failed to update repository %s, %v", repo, err)
 		}
 	}
 	return nil
 }
 
-func (s *Server) CacheRepositoriesInformation(storageRepos []storage.Repository) error {
+func (s *Server) CacheRepositoriesInformation(storageRepos []repoV1Alpha1.Repository) error {
+	currentTime := time.Now()
 	for _, repo := range storageRepos {
-		coverage, err := s.getCodeCoverage(repo.GitOrganization, repo.RepositoryName)
+		prs, err := s.cfg.Github.GetPullRequestsInRange(context.TODO(), repoV1Alpha1.ListPullRequestsOptions{
+			Repository: repo.Name,
+			Owner:      repo.Owner.Login,
+			TimeField:  repoV1Alpha1.PullRequestNone,
+		}, currentTime.AddDate(0, -3, 0), currentTime)
+		if err != nil {
+			return err
+		}
+
+		if err := s.cfg.Storage.CreatePullRequests(prs, repo.ID); err != nil {
+			return err
+		}
+
+		totalRetestRepoAvg, err := s.cfg.Github.RetestsToMerge(fmt.Sprintf("%s/%s", repo.Owner.Login, repo.Name))
+		if err != nil {
+			return err
+		}
+		//update coverage info
+		coverage, err := s.getCodeCoverage(repo.Owner.Login, repo.Name)
 
 		if err != nil {
 			return err
 		}
 		totalCoverageConverted, _ := coverage.Totals.Coverage.Float64()
-		err = s.cfg.Storage.UpdateCoverage(storage.Coverage{
-			GitOrganization:    repo.GitOrganization,
-			RepositoryName:     repo.RepositoryName,
-			CoveragePercentage: totalCoverageConverted,
-		}, repo.RepositoryName)
+		err = s.cfg.Storage.UpdateCoverage(coverageV1Alpha1.Coverage{
+			GitOrganization:            repo.Owner.Login,
+			RepositoryName:             repo.Name,
+			CoveragePercentage:         totalCoverageConverted,
+			AverageToRetestPullRequest: totalRetestRepoAvg,
+		}, repo.Name)
 		if err != nil {
 			return err
 		}

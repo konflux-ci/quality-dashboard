@@ -27,20 +27,24 @@ type config struct {
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		CodeCov    []ent.Hook
-		ProwJobs   []ent.Hook
-		ProwSuites []ent.Hook
-		Repository []ent.Hook
-		Teams      []ent.Hook
-		Workflows  []ent.Hook
+		Bugs         []ent.Hook
+		CodeCov      []ent.Hook
+		ProwJobs     []ent.Hook
+		ProwSuites   []ent.Hook
+		PullRequests []ent.Hook
+		Repository   []ent.Hook
+		Teams        []ent.Hook
+		Workflows    []ent.Hook
 	}
 	inters struct {
-		CodeCov    []ent.Interceptor
-		ProwJobs   []ent.Interceptor
-		ProwSuites []ent.Interceptor
-		Repository []ent.Interceptor
-		Teams      []ent.Interceptor
-		Workflows  []ent.Interceptor
+		Bugs         []ent.Interceptor
+		CodeCov      []ent.Interceptor
+		ProwJobs     []ent.Interceptor
+		ProwSuites   []ent.Interceptor
+		PullRequests []ent.Interceptor
+		Repository   []ent.Interceptor
+		Teams        []ent.Interceptor
+		Workflows    []ent.Interceptor
 	}
 )
 

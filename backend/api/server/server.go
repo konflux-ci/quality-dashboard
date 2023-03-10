@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"crypto/tls"
+	"database/sql"
 	"fmt"
 	"net"
 	"net/http"
@@ -12,16 +13,18 @@ import (
 	"github.com/etherlabsio/healthcheck/v2"
 	"github.com/etherlabsio/healthcheck/v2/checkers"
 	"github.com/gorilla/mux"
-	"github.com/redhat-appstudio/quality-studio/api/apis/codecov"
-	"github.com/redhat-appstudio/quality-studio/api/apis/github"
 	"github.com/redhat-appstudio/quality-studio/api/server/middleware"
 	"github.com/redhat-appstudio/quality-studio/api/server/router"
+	"github.com/redhat-appstudio/quality-studio/api/server/router/database"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/jira"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/repositories"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/teams"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/version"
 	_ "github.com/redhat-appstudio/quality-studio/docs/swagger"
+	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/connectors/github"
+	jiraAPI "github.com/redhat-appstudio/quality-studio/pkg/connectors/jira"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils/errdefs"
@@ -51,12 +54,14 @@ import (
 type Config struct {
 	Logger      *zap.Logger
 	Storage     storage.Storage
+	Jira        jiraAPI.Jira
 	CorsHeaders string
 	Version     string
 	SocketGroup string
 	TLSConfig   *tls.Config
 	Github      *github.Github
 	CodeCov     *codecov.API
+	Db          *sql.DB
 }
 
 // HTTPServer contains an instance of http server and the listener.
@@ -118,7 +123,7 @@ func (s *Server) serveAPI() error {
 	c := cors.New(cors.Options{
 		AllowedOrigins:   make([]string, 0),
 		AllowCredentials: true,
-		AllowedMethods:   []string{"POST", "GET", "DELETE"},
+		AllowedMethods:   []string{"POST", "GET", "DELETE", "PUT"},
 		// Enable Debugging for testing, consider disabling in production
 		Debug: false,
 	})
@@ -179,10 +184,12 @@ func (s *Server) makeHTTPHandler(handler httputils.APIFunc) http.HandlerFunc {
 // This method also enables the Go profiler.
 func (s *Server) InitRouter() {
 	s.routers = append(s.routers,
-		version.NewRouter(), repositories.NewRouter(s.cfg.Storage),
+		version.NewRouter(),
+		repositories.NewRouter(s.cfg.Storage),
 		prow.NewRouter(s.cfg.Storage),
 		teams.NewRouter(s.cfg.Storage),
-		jira.NewRouter(s.cfg.Storage))
+		jira.NewRouter(s.cfg.Storage),
+		database.NewRouter(s.cfg.Db))
 }
 
 type pageNotFoundError struct{}

@@ -9,6 +9,18 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 )
 
+// The BugsFunc type is an adapter to allow the use of ordinary
+// function as Bugs mutator.
+type BugsFunc func(context.Context, *db.BugsMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BugsFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.BugsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.BugsMutation", m)
+}
+
 // The CodeCovFunc type is an adapter to allow the use of ordinary
 // function as CodeCov mutator.
 type CodeCovFunc func(context.Context, *db.CodeCovMutation) (db.Value, error)
@@ -43,6 +55,18 @@ func (f ProwSuitesFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, er
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ProwSuitesMutation", m)
+}
+
+// The PullRequestsFunc type is an adapter to allow the use of ordinary
+// function as PullRequests mutator.
+type PullRequestsFunc func(context.Context, *db.PullRequestsMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PullRequestsFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.PullRequestsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.PullRequestsMutation", m)
 }
 
 // The RepositoryFunc type is an adapter to allow the use of ordinary

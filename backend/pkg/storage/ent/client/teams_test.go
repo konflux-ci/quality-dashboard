@@ -12,7 +12,7 @@ import (
 func TestCreateQualityStudioTeam(t *testing.T) {
 	// get database client
 	cfg := GetPostgresConnectionDetails()
-	storage, err := cfg.Open()
+	storage, _, err := cfg.Open()
 	require.NoError(t, err, "GetPostgresConnectionDetails() should not return an error")
 
 	teamName := "team-" + util.GenerateRandomString(6)
@@ -48,13 +48,13 @@ func TestCreateQualityStudioTeam(t *testing.T) {
 				TeamDescription: teamDescription,
 			},
 			Expected:      &db.Teams{},
-			ExpectedError: "Already exists",
+			ExpectedError: "already exists",
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			got, err := storage.CreateQualityStudioTeam(c.Input.TeamName, c.Input.TeamDescription)
+			got, err := storage.CreateQualityStudioTeam(c.Input.TeamName, c.Input.TeamDescription, "teamJira")
 
 			if err != nil || c.ExpectedError != "" {
 				assert.EqualError(t, err, c.ExpectedError)
@@ -69,13 +69,13 @@ func TestCreateQualityStudioTeam(t *testing.T) {
 func TestGetAllTeamsFromDB(t *testing.T) {
 	// get database client
 	cfg := GetPostgresConnectionDetails()
-	storage, err := cfg.Open()
+	storage, _, err := cfg.Open()
 	require.NoError(t, err, "GetPostgresConnectionDetails() should not return an error")
 
 	teamName := "team-" + util.GenerateRandomString(6)
 	teamDescription := teamName
 
-	toFind, err := storage.CreateQualityStudioTeam(teamName, teamDescription)
+	toFind, err := storage.CreateQualityStudioTeam(teamName, teamDescription, "Team_jira")
 	assert.NoError(t, err)
 	assert.Equal(t, teamName, toFind.TeamName)
 
@@ -91,13 +91,13 @@ func TestGetAllTeamsFromDB(t *testing.T) {
 func TestGetTeamByName(t *testing.T) {
 	// get database client
 	cfg := GetPostgresConnectionDetails()
-	storage, err := cfg.Open()
+	storage, _, err := cfg.Open()
 	require.NoError(t, err, "GetPostgresConnectionDetails() should not return an error")
 
 	teamName := "team-" + util.GenerateRandomString(6)
 	teamDescription := teamName
 
-	expected, err := storage.CreateQualityStudioTeam(teamName, teamDescription)
+	expected, err := storage.CreateQualityStudioTeam(teamName, teamDescription, "team_jira")
 	assert.NoError(t, err)
 	assert.Equal(t, teamName, expected.TeamName)
 

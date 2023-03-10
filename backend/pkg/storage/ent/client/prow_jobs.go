@@ -3,25 +3,24 @@ package client
 import (
 	"context"
 
-	"github.com/google/uuid"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage"
+	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 )
 
-func (d *Database) CreateProwJobResults(prowJobStatus storage.ProwJobStatus, repo_id uuid.UUID) error {
+func (d *Database) CreateProwJobResults(job prowV1Alpha1.Job, repo_id string) error {
 	c, err := d.client.ProwJobs.Create().
-		SetJobID(prowJobStatus.JobID).
-		SetState(prowJobStatus.State).
-		SetCreatedAt(prowJobStatus.CreatedAt).
-		SetDuration(prowJobStatus.Duration).
-		SetTestsCount(prowJobStatus.TestsCount).
-		SetFailedCount(prowJobStatus.FailedCount).
-		SetSkippedCount(prowJobStatus.SkippedCount).
-		SetJobType(prowJobStatus.JobType).
-		SetJobName(prowJobStatus.JobName).
-		SetJobURL(prowJobStatus.JobURL).
-		SetCiFailed(prowJobStatus.CIFailed).
+		SetJobID(job.JobID).
+		SetState(job.State).
+		SetCreatedAt(job.CreatedAt).
+		SetDuration(job.Duration).
+		SetTestsCount(job.TestsCount).
+		SetFailedCount(job.FailedCount).
+		SetSkippedCount(job.SkippedCount).
+		SetJobType(job.JobType).
+		SetJobName(job.JobName).
+		SetJobURL(job.JobURL).
+		SetCiFailed(job.CIFailed).
 		Save(context.TODO())
 	if err != nil {
 		return convertDBError("create prow status: %w", err)

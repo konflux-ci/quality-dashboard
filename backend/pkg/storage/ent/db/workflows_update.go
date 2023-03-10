@@ -74,13 +74,13 @@ func (wu *WorkflowsUpdate) SetState(s string) *WorkflowsUpdate {
 }
 
 // SetWorkflowsID sets the "workflows" edge to the Repository entity by ID.
-func (wu *WorkflowsUpdate) SetWorkflowsID(id uuid.UUID) *WorkflowsUpdate {
+func (wu *WorkflowsUpdate) SetWorkflowsID(id string) *WorkflowsUpdate {
 	wu.mutation.SetWorkflowsID(id)
 	return wu
 }
 
 // SetNillableWorkflowsID sets the "workflows" edge to the Repository entity by ID if the given value is not nil.
-func (wu *WorkflowsUpdate) SetNillableWorkflowsID(id *uuid.UUID) *WorkflowsUpdate {
+func (wu *WorkflowsUpdate) SetNillableWorkflowsID(id *string) *WorkflowsUpdate {
 	if id != nil {
 		wu = wu.SetWorkflowsID(*id)
 	}
@@ -188,7 +188,7 @@ func (wu *WorkflowsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -204,7 +204,7 @@ func (wu *WorkflowsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -279,13 +279,13 @@ func (wuo *WorkflowsUpdateOne) SetState(s string) *WorkflowsUpdateOne {
 }
 
 // SetWorkflowsID sets the "workflows" edge to the Repository entity by ID.
-func (wuo *WorkflowsUpdateOne) SetWorkflowsID(id uuid.UUID) *WorkflowsUpdateOne {
+func (wuo *WorkflowsUpdateOne) SetWorkflowsID(id string) *WorkflowsUpdateOne {
 	wuo.mutation.SetWorkflowsID(id)
 	return wuo
 }
 
 // SetNillableWorkflowsID sets the "workflows" edge to the Repository entity by ID if the given value is not nil.
-func (wuo *WorkflowsUpdateOne) SetNillableWorkflowsID(id *uuid.UUID) *WorkflowsUpdateOne {
+func (wuo *WorkflowsUpdateOne) SetNillableWorkflowsID(id *string) *WorkflowsUpdateOne {
 	if id != nil {
 		wuo = wuo.SetWorkflowsID(*id)
 	}
@@ -417,7 +417,7 @@ func (wuo *WorkflowsUpdateOne) sqlSave(ctx context.Context) (_node *Workflows, e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -433,7 +433,7 @@ func (wuo *WorkflowsUpdateOne) sqlSave(ctx context.Context) (_node *Workflows, e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},

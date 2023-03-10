@@ -12,12 +12,16 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Bugs is the client for interacting with the Bugs builders.
+	Bugs *BugsClient
 	// CodeCov is the client for interacting with the CodeCov builders.
 	CodeCov *CodeCovClient
 	// ProwJobs is the client for interacting with the ProwJobs builders.
 	ProwJobs *ProwJobsClient
 	// ProwSuites is the client for interacting with the ProwSuites builders.
 	ProwSuites *ProwSuitesClient
+	// PullRequests is the client for interacting with the PullRequests builders.
+	PullRequests *PullRequestsClient
 	// Repository is the client for interacting with the Repository builders.
 	Repository *RepositoryClient
 	// Teams is the client for interacting with the Teams builders.
@@ -155,9 +159,11 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Bugs = NewBugsClient(tx.config)
 	tx.CodeCov = NewCodeCovClient(tx.config)
 	tx.ProwJobs = NewProwJobsClient(tx.config)
 	tx.ProwSuites = NewProwSuitesClient(tx.config)
+	tx.PullRequests = NewPullRequestsClient(tx.config)
 	tx.Repository = NewRepositoryClient(tx.config)
 	tx.Teams = NewTeamsClient(tx.config)
 	tx.Workflows = NewWorkflowsClient(tx.config)
@@ -170,7 +176,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: CodeCov.QueryXXX(), the query will be executed
+// applies a query, for example: Bugs.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

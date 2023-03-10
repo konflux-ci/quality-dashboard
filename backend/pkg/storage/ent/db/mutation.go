@@ -10,10 +10,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
@@ -31,30 +33,955 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeCodeCov    = "CodeCov"
-	TypeProwJobs   = "ProwJobs"
-	TypeProwSuites = "ProwSuites"
-	TypeRepository = "Repository"
-	TypeTeams      = "Teams"
-	TypeWorkflows  = "Workflows"
+	TypeBugs         = "Bugs"
+	TypeCodeCov      = "CodeCov"
+	TypeProwJobs     = "ProwJobs"
+	TypeProwSuites   = "ProwSuites"
+	TypePullRequests = "PullRequests"
+	TypeRepository   = "Repository"
+	TypeTeams        = "Teams"
+	TypeWorkflows    = "Workflows"
 )
+
+// BugsMutation represents an operation that mutates the Bugs nodes in the graph.
+type BugsMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	jira_key           *string
+	created_at         *time.Time
+	updated_at         *time.Time
+	resolved_at        *time.Time
+	resolved           *bool
+	priority           *string
+	resolution_time    *float64
+	addresolution_time *float64
+	status             *string
+	summary            *string
+	url                *string
+	clearedFields      map[string]struct{}
+	bugs               *uuid.UUID
+	clearedbugs        bool
+	done               bool
+	oldValue           func(context.Context) (*Bugs, error)
+	predicates         []predicate.Bugs
+}
+
+var _ ent.Mutation = (*BugsMutation)(nil)
+
+// bugsOption allows management of the mutation configuration using functional options.
+type bugsOption func(*BugsMutation)
+
+// newBugsMutation creates new mutation for the Bugs entity.
+func newBugsMutation(c config, op Op, opts ...bugsOption) *BugsMutation {
+	m := &BugsMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeBugs,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withBugsID sets the ID field of the mutation.
+func withBugsID(id uuid.UUID) bugsOption {
+	return func(m *BugsMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Bugs
+		)
+		m.oldValue = func(ctx context.Context) (*Bugs, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Bugs.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withBugs sets the old Bugs of the mutation.
+func withBugs(node *Bugs) bugsOption {
+	return func(m *BugsMutation) {
+		m.oldValue = func(context.Context) (*Bugs, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m BugsMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m BugsMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Bugs entities.
+func (m *BugsMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *BugsMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *BugsMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Bugs.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetJiraKey sets the "jira_key" field.
+func (m *BugsMutation) SetJiraKey(s string) {
+	m.jira_key = &s
+}
+
+// JiraKey returns the value of the "jira_key" field in the mutation.
+func (m *BugsMutation) JiraKey() (r string, exists bool) {
+	v := m.jira_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJiraKey returns the old "jira_key" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldJiraKey(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldJiraKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldJiraKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJiraKey: %w", err)
+	}
+	return oldValue.JiraKey, nil
+}
+
+// ResetJiraKey resets all changes to the "jira_key" field.
+func (m *BugsMutation) ResetJiraKey() {
+	m.jira_key = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *BugsMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *BugsMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *BugsMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *BugsMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *BugsMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *BugsMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetResolvedAt sets the "resolved_at" field.
+func (m *BugsMutation) SetResolvedAt(t time.Time) {
+	m.resolved_at = &t
+}
+
+// ResolvedAt returns the value of the "resolved_at" field in the mutation.
+func (m *BugsMutation) ResolvedAt() (r time.Time, exists bool) {
+	v := m.resolved_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResolvedAt returns the old "resolved_at" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldResolvedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResolvedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResolvedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResolvedAt: %w", err)
+	}
+	return oldValue.ResolvedAt, nil
+}
+
+// ResetResolvedAt resets all changes to the "resolved_at" field.
+func (m *BugsMutation) ResetResolvedAt() {
+	m.resolved_at = nil
+}
+
+// SetResolved sets the "resolved" field.
+func (m *BugsMutation) SetResolved(b bool) {
+	m.resolved = &b
+}
+
+// Resolved returns the value of the "resolved" field in the mutation.
+func (m *BugsMutation) Resolved() (r bool, exists bool) {
+	v := m.resolved
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResolved returns the old "resolved" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldResolved(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResolved is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResolved requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResolved: %w", err)
+	}
+	return oldValue.Resolved, nil
+}
+
+// ResetResolved resets all changes to the "resolved" field.
+func (m *BugsMutation) ResetResolved() {
+	m.resolved = nil
+}
+
+// SetPriority sets the "priority" field.
+func (m *BugsMutation) SetPriority(s string) {
+	m.priority = &s
+}
+
+// Priority returns the value of the "priority" field in the mutation.
+func (m *BugsMutation) Priority() (r string, exists bool) {
+	v := m.priority
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPriority returns the old "priority" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldPriority(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPriority is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPriority requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPriority: %w", err)
+	}
+	return oldValue.Priority, nil
+}
+
+// ResetPriority resets all changes to the "priority" field.
+func (m *BugsMutation) ResetPriority() {
+	m.priority = nil
+}
+
+// SetResolutionTime sets the "resolution_time" field.
+func (m *BugsMutation) SetResolutionTime(f float64) {
+	m.resolution_time = &f
+	m.addresolution_time = nil
+}
+
+// ResolutionTime returns the value of the "resolution_time" field in the mutation.
+func (m *BugsMutation) ResolutionTime() (r float64, exists bool) {
+	v := m.resolution_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResolutionTime returns the old "resolution_time" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldResolutionTime(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldResolutionTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldResolutionTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResolutionTime: %w", err)
+	}
+	return oldValue.ResolutionTime, nil
+}
+
+// AddResolutionTime adds f to the "resolution_time" field.
+func (m *BugsMutation) AddResolutionTime(f float64) {
+	if m.addresolution_time != nil {
+		*m.addresolution_time += f
+	} else {
+		m.addresolution_time = &f
+	}
+}
+
+// AddedResolutionTime returns the value that was added to the "resolution_time" field in this mutation.
+func (m *BugsMutation) AddedResolutionTime() (r float64, exists bool) {
+	v := m.addresolution_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetResolutionTime resets all changes to the "resolution_time" field.
+func (m *BugsMutation) ResetResolutionTime() {
+	m.resolution_time = nil
+	m.addresolution_time = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *BugsMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *BugsMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *BugsMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetSummary sets the "summary" field.
+func (m *BugsMutation) SetSummary(s string) {
+	m.summary = &s
+}
+
+// Summary returns the value of the "summary" field in the mutation.
+func (m *BugsMutation) Summary() (r string, exists bool) {
+	v := m.summary
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSummary returns the old "summary" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldSummary(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSummary is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSummary requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSummary: %w", err)
+	}
+	return oldValue.Summary, nil
+}
+
+// ResetSummary resets all changes to the "summary" field.
+func (m *BugsMutation) ResetSummary() {
+	m.summary = nil
+}
+
+// SetURL sets the "url" field.
+func (m *BugsMutation) SetURL(s string) {
+	m.url = &s
+}
+
+// URL returns the value of the "url" field in the mutation.
+func (m *BugsMutation) URL() (r string, exists bool) {
+	v := m.url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldURL returns the old "url" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldURL: %w", err)
+	}
+	return oldValue.URL, nil
+}
+
+// ResetURL resets all changes to the "url" field.
+func (m *BugsMutation) ResetURL() {
+	m.url = nil
+}
+
+// SetBugsID sets the "bugs" edge to the Teams entity by id.
+func (m *BugsMutation) SetBugsID(id uuid.UUID) {
+	m.bugs = &id
+}
+
+// ClearBugs clears the "bugs" edge to the Teams entity.
+func (m *BugsMutation) ClearBugs() {
+	m.clearedbugs = true
+}
+
+// BugsCleared reports if the "bugs" edge to the Teams entity was cleared.
+func (m *BugsMutation) BugsCleared() bool {
+	return m.clearedbugs
+}
+
+// BugsID returns the "bugs" edge ID in the mutation.
+func (m *BugsMutation) BugsID() (id uuid.UUID, exists bool) {
+	if m.bugs != nil {
+		return *m.bugs, true
+	}
+	return
+}
+
+// BugsIDs returns the "bugs" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// BugsID instead. It exists only for internal usage by the builders.
+func (m *BugsMutation) BugsIDs() (ids []uuid.UUID) {
+	if id := m.bugs; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetBugs resets all changes to the "bugs" edge.
+func (m *BugsMutation) ResetBugs() {
+	m.bugs = nil
+	m.clearedbugs = false
+}
+
+// Where appends a list predicates to the BugsMutation builder.
+func (m *BugsMutation) Where(ps ...predicate.Bugs) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the BugsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *BugsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Bugs, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *BugsMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *BugsMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Bugs).
+func (m *BugsMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *BugsMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.jira_key != nil {
+		fields = append(fields, bugs.FieldJiraKey)
+	}
+	if m.created_at != nil {
+		fields = append(fields, bugs.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, bugs.FieldUpdatedAt)
+	}
+	if m.resolved_at != nil {
+		fields = append(fields, bugs.FieldResolvedAt)
+	}
+	if m.resolved != nil {
+		fields = append(fields, bugs.FieldResolved)
+	}
+	if m.priority != nil {
+		fields = append(fields, bugs.FieldPriority)
+	}
+	if m.resolution_time != nil {
+		fields = append(fields, bugs.FieldResolutionTime)
+	}
+	if m.status != nil {
+		fields = append(fields, bugs.FieldStatus)
+	}
+	if m.summary != nil {
+		fields = append(fields, bugs.FieldSummary)
+	}
+	if m.url != nil {
+		fields = append(fields, bugs.FieldURL)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *BugsMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case bugs.FieldJiraKey:
+		return m.JiraKey()
+	case bugs.FieldCreatedAt:
+		return m.CreatedAt()
+	case bugs.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case bugs.FieldResolvedAt:
+		return m.ResolvedAt()
+	case bugs.FieldResolved:
+		return m.Resolved()
+	case bugs.FieldPriority:
+		return m.Priority()
+	case bugs.FieldResolutionTime:
+		return m.ResolutionTime()
+	case bugs.FieldStatus:
+		return m.Status()
+	case bugs.FieldSummary:
+		return m.Summary()
+	case bugs.FieldURL:
+		return m.URL()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *BugsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case bugs.FieldJiraKey:
+		return m.OldJiraKey(ctx)
+	case bugs.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case bugs.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case bugs.FieldResolvedAt:
+		return m.OldResolvedAt(ctx)
+	case bugs.FieldResolved:
+		return m.OldResolved(ctx)
+	case bugs.FieldPriority:
+		return m.OldPriority(ctx)
+	case bugs.FieldResolutionTime:
+		return m.OldResolutionTime(ctx)
+	case bugs.FieldStatus:
+		return m.OldStatus(ctx)
+	case bugs.FieldSummary:
+		return m.OldSummary(ctx)
+	case bugs.FieldURL:
+		return m.OldURL(ctx)
+	}
+	return nil, fmt.Errorf("unknown Bugs field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BugsMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case bugs.FieldJiraKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJiraKey(v)
+		return nil
+	case bugs.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case bugs.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case bugs.FieldResolvedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResolvedAt(v)
+		return nil
+	case bugs.FieldResolved:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResolved(v)
+		return nil
+	case bugs.FieldPriority:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPriority(v)
+		return nil
+	case bugs.FieldResolutionTime:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResolutionTime(v)
+		return nil
+	case bugs.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case bugs.FieldSummary:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSummary(v)
+		return nil
+	case bugs.FieldURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetURL(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Bugs field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *BugsMutation) AddedFields() []string {
+	var fields []string
+	if m.addresolution_time != nil {
+		fields = append(fields, bugs.FieldResolutionTime)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *BugsMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case bugs.FieldResolutionTime:
+		return m.AddedResolutionTime()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *BugsMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case bugs.FieldResolutionTime:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddResolutionTime(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Bugs numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *BugsMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *BugsMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *BugsMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Bugs nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *BugsMutation) ResetField(name string) error {
+	switch name {
+	case bugs.FieldJiraKey:
+		m.ResetJiraKey()
+		return nil
+	case bugs.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case bugs.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case bugs.FieldResolvedAt:
+		m.ResetResolvedAt()
+		return nil
+	case bugs.FieldResolved:
+		m.ResetResolved()
+		return nil
+	case bugs.FieldPriority:
+		m.ResetPriority()
+		return nil
+	case bugs.FieldResolutionTime:
+		m.ResetResolutionTime()
+		return nil
+	case bugs.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case bugs.FieldSummary:
+		m.ResetSummary()
+		return nil
+	case bugs.FieldURL:
+		m.ResetURL()
+		return nil
+	}
+	return fmt.Errorf("unknown Bugs field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *BugsMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.bugs != nil {
+		edges = append(edges, bugs.EdgeBugs)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *BugsMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case bugs.EdgeBugs:
+		if id := m.bugs; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *BugsMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *BugsMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *BugsMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedbugs {
+		edges = append(edges, bugs.EdgeBugs)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *BugsMutation) EdgeCleared(name string) bool {
+	switch name {
+	case bugs.EdgeBugs:
+		return m.clearedbugs
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *BugsMutation) ClearEdge(name string) error {
+	switch name {
+	case bugs.EdgeBugs:
+		m.ClearBugs()
+		return nil
+	}
+	return fmt.Errorf("unknown Bugs unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *BugsMutation) ResetEdge(name string) error {
+	switch name {
+	case bugs.EdgeBugs:
+		m.ResetBugs()
+		return nil
+	}
+	return fmt.Errorf("unknown Bugs edge %s", name)
+}
 
 // CodeCovMutation represents an operation that mutates the CodeCov nodes in the graph.
 type CodeCovMutation struct {
 	config
-	op                     Op
-	typ                    string
-	id                     *uuid.UUID
-	repository_name        *string
-	git_organization       *string
-	coverage_percentage    *float64
-	addcoverage_percentage *float64
-	clearedFields          map[string]struct{}
-	codecov                *uuid.UUID
-	clearedcodecov         bool
-	done                   bool
-	oldValue               func(context.Context) (*CodeCov, error)
-	predicates             []predicate.CodeCov
+	op                          Op
+	typ                         string
+	id                          *uuid.UUID
+	repository_name             *string
+	git_organization            *string
+	coverage_percentage         *float64
+	addcoverage_percentage      *float64
+	average_retests_to_merge    *float64
+	addaverage_retests_to_merge *float64
+	clearedFields               map[string]struct{}
+	codecov                     *string
+	clearedcodecov              bool
+	done                        bool
+	oldValue                    func(context.Context) (*CodeCov, error)
+	predicates                  []predicate.CodeCov
 }
 
 var _ ent.Mutation = (*CodeCovMutation)(nil)
@@ -289,8 +1216,64 @@ func (m *CodeCovMutation) ResetCoveragePercentage() {
 	m.addcoverage_percentage = nil
 }
 
+// SetAverageRetestsToMerge sets the "average_retests_to_merge" field.
+func (m *CodeCovMutation) SetAverageRetestsToMerge(f float64) {
+	m.average_retests_to_merge = &f
+	m.addaverage_retests_to_merge = nil
+}
+
+// AverageRetestsToMerge returns the value of the "average_retests_to_merge" field in the mutation.
+func (m *CodeCovMutation) AverageRetestsToMerge() (r float64, exists bool) {
+	v := m.average_retests_to_merge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAverageRetestsToMerge returns the old "average_retests_to_merge" field's value of the CodeCov entity.
+// If the CodeCov object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeCovMutation) OldAverageRetestsToMerge(ctx context.Context) (v float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAverageRetestsToMerge is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAverageRetestsToMerge requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAverageRetestsToMerge: %w", err)
+	}
+	return oldValue.AverageRetestsToMerge, nil
+}
+
+// AddAverageRetestsToMerge adds f to the "average_retests_to_merge" field.
+func (m *CodeCovMutation) AddAverageRetestsToMerge(f float64) {
+	if m.addaverage_retests_to_merge != nil {
+		*m.addaverage_retests_to_merge += f
+	} else {
+		m.addaverage_retests_to_merge = &f
+	}
+}
+
+// AddedAverageRetestsToMerge returns the value that was added to the "average_retests_to_merge" field in this mutation.
+func (m *CodeCovMutation) AddedAverageRetestsToMerge() (r float64, exists bool) {
+	v := m.addaverage_retests_to_merge
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetAverageRetestsToMerge resets all changes to the "average_retests_to_merge" field.
+func (m *CodeCovMutation) ResetAverageRetestsToMerge() {
+	m.average_retests_to_merge = nil
+	m.addaverage_retests_to_merge = nil
+}
+
 // SetCodecovID sets the "codecov" edge to the Repository entity by id.
-func (m *CodeCovMutation) SetCodecovID(id uuid.UUID) {
+func (m *CodeCovMutation) SetCodecovID(id string) {
 	m.codecov = &id
 }
 
@@ -305,7 +1288,7 @@ func (m *CodeCovMutation) CodecovCleared() bool {
 }
 
 // CodecovID returns the "codecov" edge ID in the mutation.
-func (m *CodeCovMutation) CodecovID() (id uuid.UUID, exists bool) {
+func (m *CodeCovMutation) CodecovID() (id string, exists bool) {
 	if m.codecov != nil {
 		return *m.codecov, true
 	}
@@ -315,7 +1298,7 @@ func (m *CodeCovMutation) CodecovID() (id uuid.UUID, exists bool) {
 // CodecovIDs returns the "codecov" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // CodecovID instead. It exists only for internal usage by the builders.
-func (m *CodeCovMutation) CodecovIDs() (ids []uuid.UUID) {
+func (m *CodeCovMutation) CodecovIDs() (ids []string) {
 	if id := m.codecov; id != nil {
 		ids = append(ids, *id)
 	}
@@ -362,7 +1345,7 @@ func (m *CodeCovMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CodeCovMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 4)
 	if m.repository_name != nil {
 		fields = append(fields, codecov.FieldRepositoryName)
 	}
@@ -371,6 +1354,9 @@ func (m *CodeCovMutation) Fields() []string {
 	}
 	if m.coverage_percentage != nil {
 		fields = append(fields, codecov.FieldCoveragePercentage)
+	}
+	if m.average_retests_to_merge != nil {
+		fields = append(fields, codecov.FieldAverageRetestsToMerge)
 	}
 	return fields
 }
@@ -386,6 +1372,8 @@ func (m *CodeCovMutation) Field(name string) (ent.Value, bool) {
 		return m.GitOrganization()
 	case codecov.FieldCoveragePercentage:
 		return m.CoveragePercentage()
+	case codecov.FieldAverageRetestsToMerge:
+		return m.AverageRetestsToMerge()
 	}
 	return nil, false
 }
@@ -401,6 +1389,8 @@ func (m *CodeCovMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldGitOrganization(ctx)
 	case codecov.FieldCoveragePercentage:
 		return m.OldCoveragePercentage(ctx)
+	case codecov.FieldAverageRetestsToMerge:
+		return m.OldAverageRetestsToMerge(ctx)
 	}
 	return nil, fmt.Errorf("unknown CodeCov field %s", name)
 }
@@ -431,6 +1421,13 @@ func (m *CodeCovMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCoveragePercentage(v)
 		return nil
+	case codecov.FieldAverageRetestsToMerge:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAverageRetestsToMerge(v)
+		return nil
 	}
 	return fmt.Errorf("unknown CodeCov field %s", name)
 }
@@ -442,6 +1439,9 @@ func (m *CodeCovMutation) AddedFields() []string {
 	if m.addcoverage_percentage != nil {
 		fields = append(fields, codecov.FieldCoveragePercentage)
 	}
+	if m.addaverage_retests_to_merge != nil {
+		fields = append(fields, codecov.FieldAverageRetestsToMerge)
+	}
 	return fields
 }
 
@@ -452,6 +1452,8 @@ func (m *CodeCovMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case codecov.FieldCoveragePercentage:
 		return m.AddedCoveragePercentage()
+	case codecov.FieldAverageRetestsToMerge:
+		return m.AddedAverageRetestsToMerge()
 	}
 	return nil, false
 }
@@ -467,6 +1469,13 @@ func (m *CodeCovMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddCoveragePercentage(v)
+		return nil
+	case codecov.FieldAverageRetestsToMerge:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAverageRetestsToMerge(v)
 		return nil
 	}
 	return fmt.Errorf("unknown CodeCov numeric field %s", name)
@@ -503,6 +1512,9 @@ func (m *CodeCovMutation) ResetField(name string) error {
 		return nil
 	case codecov.FieldCoveragePercentage:
 		m.ResetCoveragePercentage()
+		return nil
+	case codecov.FieldAverageRetestsToMerge:
+		m.ResetAverageRetestsToMerge()
 		return nil
 	}
 	return fmt.Errorf("unknown CodeCov field %s", name)
@@ -605,7 +1617,7 @@ type ProwJobsMutation struct {
 	ci_failed        *int16
 	addci_failed     *int16
 	clearedFields    map[string]struct{}
-	prow_jobs        *uuid.UUID
+	prow_jobs        *string
 	clearedprow_jobs bool
 	done             bool
 	oldValue         func(context.Context) (*ProwJobs, error)
@@ -1207,7 +2219,7 @@ func (m *ProwJobsMutation) ResetCiFailed() {
 }
 
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by id.
-func (m *ProwJobsMutation) SetProwJobsID(id uuid.UUID) {
+func (m *ProwJobsMutation) SetProwJobsID(id string) {
 	m.prow_jobs = &id
 }
 
@@ -1222,7 +2234,7 @@ func (m *ProwJobsMutation) ProwJobsCleared() bool {
 }
 
 // ProwJobsID returns the "prow_jobs" edge ID in the mutation.
-func (m *ProwJobsMutation) ProwJobsID() (id uuid.UUID, exists bool) {
+func (m *ProwJobsMutation) ProwJobsID() (id string, exists bool) {
 	if m.prow_jobs != nil {
 		return *m.prow_jobs, true
 	}
@@ -1232,7 +2244,7 @@ func (m *ProwJobsMutation) ProwJobsID() (id uuid.UUID, exists bool) {
 // ProwJobsIDs returns the "prow_jobs" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ProwJobsID instead. It exists only for internal usage by the builders.
-func (m *ProwJobsMutation) ProwJobsIDs() (ids []uuid.UUID) {
+func (m *ProwJobsMutation) ProwJobsIDs() (ids []string) {
 	if id := m.prow_jobs; id != nil {
 		ids = append(ids, *id)
 	}
@@ -1695,7 +2707,7 @@ type ProwSuitesMutation struct {
 	time               *float64
 	addtime            *float64
 	clearedFields      map[string]struct{}
-	prow_suites        *uuid.UUID
+	prow_suites        *string
 	clearedprow_suites bool
 	done               bool
 	oldValue           func(context.Context) (*ProwSuites, error)
@@ -1965,7 +2977,7 @@ func (m *ProwSuitesMutation) ResetTime() {
 }
 
 // SetProwSuitesID sets the "prow_suites" edge to the Repository entity by id.
-func (m *ProwSuitesMutation) SetProwSuitesID(id uuid.UUID) {
+func (m *ProwSuitesMutation) SetProwSuitesID(id string) {
 	m.prow_suites = &id
 }
 
@@ -1980,7 +2992,7 @@ func (m *ProwSuitesMutation) ProwSuitesCleared() bool {
 }
 
 // ProwSuitesID returns the "prow_suites" edge ID in the mutation.
-func (m *ProwSuitesMutation) ProwSuitesID() (id uuid.UUID, exists bool) {
+func (m *ProwSuitesMutation) ProwSuitesID() (id string, exists bool) {
 	if m.prow_suites != nil {
 		return *m.prow_suites, true
 	}
@@ -1990,7 +3002,7 @@ func (m *ProwSuitesMutation) ProwSuitesID() (id uuid.UUID, exists bool) {
 // ProwSuitesIDs returns the "prow_suites" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // ProwSuitesID instead. It exists only for internal usage by the builders.
-func (m *ProwSuitesMutation) ProwSuitesIDs() (ids []uuid.UUID) {
+func (m *ProwSuitesMutation) ProwSuitesIDs() (ids []string) {
 	if id := m.prow_suites; id != nil {
 		ids = append(ids, *id)
 	}
@@ -2274,12 +3286,927 @@ func (m *ProwSuitesMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown ProwSuites edge %s", name)
 }
 
+// PullRequestsMutation represents an operation that mutates the PullRequests nodes in the graph.
+type PullRequestsMutation struct {
+	config
+	op                      Op
+	typ                     string
+	id                      *int
+	pr_id                   *uuid.UUID
+	repository_name         *string
+	repository_organization *string
+	number                  *int
+	addnumber               *int
+	created_at              *time.Time
+	closed_at               *time.Time
+	merged_at               *time.Time
+	state                   *string
+	author                  *string
+	title                   *string
+	clearedFields           map[string]struct{}
+	prs                     *string
+	clearedprs              bool
+	done                    bool
+	oldValue                func(context.Context) (*PullRequests, error)
+	predicates              []predicate.PullRequests
+}
+
+var _ ent.Mutation = (*PullRequestsMutation)(nil)
+
+// pullrequestsOption allows management of the mutation configuration using functional options.
+type pullrequestsOption func(*PullRequestsMutation)
+
+// newPullRequestsMutation creates new mutation for the PullRequests entity.
+func newPullRequestsMutation(c config, op Op, opts ...pullrequestsOption) *PullRequestsMutation {
+	m := &PullRequestsMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePullRequests,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPullRequestsID sets the ID field of the mutation.
+func withPullRequestsID(id int) pullrequestsOption {
+	return func(m *PullRequestsMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PullRequests
+		)
+		m.oldValue = func(ctx context.Context) (*PullRequests, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PullRequests.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPullRequests sets the old PullRequests of the mutation.
+func withPullRequests(node *PullRequests) pullrequestsOption {
+	return func(m *PullRequestsMutation) {
+		m.oldValue = func(context.Context) (*PullRequests, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PullRequestsMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PullRequestsMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PullRequestsMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PullRequestsMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().PullRequests.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetPrID sets the "pr_id" field.
+func (m *PullRequestsMutation) SetPrID(u uuid.UUID) {
+	m.pr_id = &u
+}
+
+// PrID returns the value of the "pr_id" field in the mutation.
+func (m *PullRequestsMutation) PrID() (r uuid.UUID, exists bool) {
+	v := m.pr_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrID returns the old "pr_id" field's value of the PullRequests entity.
+// If the PullRequests object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PullRequestsMutation) OldPrID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrID: %w", err)
+	}
+	return oldValue.PrID, nil
+}
+
+// ResetPrID resets all changes to the "pr_id" field.
+func (m *PullRequestsMutation) ResetPrID() {
+	m.pr_id = nil
+}
+
+// SetRepositoryName sets the "repository_name" field.
+func (m *PullRequestsMutation) SetRepositoryName(s string) {
+	m.repository_name = &s
+}
+
+// RepositoryName returns the value of the "repository_name" field in the mutation.
+func (m *PullRequestsMutation) RepositoryName() (r string, exists bool) {
+	v := m.repository_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRepositoryName returns the old "repository_name" field's value of the PullRequests entity.
+// If the PullRequests object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PullRequestsMutation) OldRepositoryName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRepositoryName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRepositoryName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRepositoryName: %w", err)
+	}
+	return oldValue.RepositoryName, nil
+}
+
+// ResetRepositoryName resets all changes to the "repository_name" field.
+func (m *PullRequestsMutation) ResetRepositoryName() {
+	m.repository_name = nil
+}
+
+// SetRepositoryOrganization sets the "repository_organization" field.
+func (m *PullRequestsMutation) SetRepositoryOrganization(s string) {
+	m.repository_organization = &s
+}
+
+// RepositoryOrganization returns the value of the "repository_organization" field in the mutation.
+func (m *PullRequestsMutation) RepositoryOrganization() (r string, exists bool) {
+	v := m.repository_organization
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRepositoryOrganization returns the old "repository_organization" field's value of the PullRequests entity.
+// If the PullRequests object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PullRequestsMutation) OldRepositoryOrganization(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRepositoryOrganization is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRepositoryOrganization requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRepositoryOrganization: %w", err)
+	}
+	return oldValue.RepositoryOrganization, nil
+}
+
+// ResetRepositoryOrganization resets all changes to the "repository_organization" field.
+func (m *PullRequestsMutation) ResetRepositoryOrganization() {
+	m.repository_organization = nil
+}
+
+// SetNumber sets the "number" field.
+func (m *PullRequestsMutation) SetNumber(i int) {
+	m.number = &i
+	m.addnumber = nil
+}
+
+// Number returns the value of the "number" field in the mutation.
+func (m *PullRequestsMutation) Number() (r int, exists bool) {
+	v := m.number
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldNumber returns the old "number" field's value of the PullRequests entity.
+// If the PullRequests object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PullRequestsMutation) OldNumber(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldNumber is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldNumber requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldNumber: %w", err)
+	}
+	return oldValue.Number, nil
+}
+
+// AddNumber adds i to the "number" field.
+func (m *PullRequestsMutation) AddNumber(i int) {
+	if m.addnumber != nil {
+		*m.addnumber += i
+	} else {
+		m.addnumber = &i
+	}
+}
+
+// AddedNumber returns the value that was added to the "number" field in this mutation.
+func (m *PullRequestsMutation) AddedNumber() (r int, exists bool) {
+	v := m.addnumber
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetNumber resets all changes to the "number" field.
+func (m *PullRequestsMutation) ResetNumber() {
+	m.number = nil
+	m.addnumber = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PullRequestsMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PullRequestsMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PullRequests entity.
+// If the PullRequests object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PullRequestsMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PullRequestsMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetClosedAt sets the "closed_at" field.
+func (m *PullRequestsMutation) SetClosedAt(t time.Time) {
+	m.closed_at = &t
+}
+
+// ClosedAt returns the value of the "closed_at" field in the mutation.
+func (m *PullRequestsMutation) ClosedAt() (r time.Time, exists bool) {
+	v := m.closed_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClosedAt returns the old "closed_at" field's value of the PullRequests entity.
+// If the PullRequests object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PullRequestsMutation) OldClosedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClosedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClosedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClosedAt: %w", err)
+	}
+	return oldValue.ClosedAt, nil
+}
+
+// ResetClosedAt resets all changes to the "closed_at" field.
+func (m *PullRequestsMutation) ResetClosedAt() {
+	m.closed_at = nil
+}
+
+// SetMergedAt sets the "merged_at" field.
+func (m *PullRequestsMutation) SetMergedAt(t time.Time) {
+	m.merged_at = &t
+}
+
+// MergedAt returns the value of the "merged_at" field in the mutation.
+func (m *PullRequestsMutation) MergedAt() (r time.Time, exists bool) {
+	v := m.merged_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMergedAt returns the old "merged_at" field's value of the PullRequests entity.
+// If the PullRequests object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PullRequestsMutation) OldMergedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMergedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMergedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMergedAt: %w", err)
+	}
+	return oldValue.MergedAt, nil
+}
+
+// ResetMergedAt resets all changes to the "merged_at" field.
+func (m *PullRequestsMutation) ResetMergedAt() {
+	m.merged_at = nil
+}
+
+// SetState sets the "state" field.
+func (m *PullRequestsMutation) SetState(s string) {
+	m.state = &s
+}
+
+// State returns the value of the "state" field in the mutation.
+func (m *PullRequestsMutation) State() (r string, exists bool) {
+	v := m.state
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldState returns the old "state" field's value of the PullRequests entity.
+// If the PullRequests object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PullRequestsMutation) OldState(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldState is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldState requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldState: %w", err)
+	}
+	return oldValue.State, nil
+}
+
+// ResetState resets all changes to the "state" field.
+func (m *PullRequestsMutation) ResetState() {
+	m.state = nil
+}
+
+// SetAuthor sets the "author" field.
+func (m *PullRequestsMutation) SetAuthor(s string) {
+	m.author = &s
+}
+
+// Author returns the value of the "author" field in the mutation.
+func (m *PullRequestsMutation) Author() (r string, exists bool) {
+	v := m.author
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAuthor returns the old "author" field's value of the PullRequests entity.
+// If the PullRequests object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PullRequestsMutation) OldAuthor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAuthor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAuthor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAuthor: %w", err)
+	}
+	return oldValue.Author, nil
+}
+
+// ResetAuthor resets all changes to the "author" field.
+func (m *PullRequestsMutation) ResetAuthor() {
+	m.author = nil
+}
+
+// SetTitle sets the "title" field.
+func (m *PullRequestsMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *PullRequestsMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the PullRequests entity.
+// If the PullRequests object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PullRequestsMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *PullRequestsMutation) ResetTitle() {
+	m.title = nil
+}
+
+// SetPrsID sets the "prs" edge to the Repository entity by id.
+func (m *PullRequestsMutation) SetPrsID(id string) {
+	m.prs = &id
+}
+
+// ClearPrs clears the "prs" edge to the Repository entity.
+func (m *PullRequestsMutation) ClearPrs() {
+	m.clearedprs = true
+}
+
+// PrsCleared reports if the "prs" edge to the Repository entity was cleared.
+func (m *PullRequestsMutation) PrsCleared() bool {
+	return m.clearedprs
+}
+
+// PrsID returns the "prs" edge ID in the mutation.
+func (m *PullRequestsMutation) PrsID() (id string, exists bool) {
+	if m.prs != nil {
+		return *m.prs, true
+	}
+	return
+}
+
+// PrsIDs returns the "prs" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PrsID instead. It exists only for internal usage by the builders.
+func (m *PullRequestsMutation) PrsIDs() (ids []string) {
+	if id := m.prs; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPrs resets all changes to the "prs" edge.
+func (m *PullRequestsMutation) ResetPrs() {
+	m.prs = nil
+	m.clearedprs = false
+}
+
+// Where appends a list predicates to the PullRequestsMutation builder.
+func (m *PullRequestsMutation) Where(ps ...predicate.PullRequests) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PullRequestsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PullRequestsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PullRequests, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PullRequestsMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PullRequestsMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (PullRequests).
+func (m *PullRequestsMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PullRequestsMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.pr_id != nil {
+		fields = append(fields, pullrequests.FieldPrID)
+	}
+	if m.repository_name != nil {
+		fields = append(fields, pullrequests.FieldRepositoryName)
+	}
+	if m.repository_organization != nil {
+		fields = append(fields, pullrequests.FieldRepositoryOrganization)
+	}
+	if m.number != nil {
+		fields = append(fields, pullrequests.FieldNumber)
+	}
+	if m.created_at != nil {
+		fields = append(fields, pullrequests.FieldCreatedAt)
+	}
+	if m.closed_at != nil {
+		fields = append(fields, pullrequests.FieldClosedAt)
+	}
+	if m.merged_at != nil {
+		fields = append(fields, pullrequests.FieldMergedAt)
+	}
+	if m.state != nil {
+		fields = append(fields, pullrequests.FieldState)
+	}
+	if m.author != nil {
+		fields = append(fields, pullrequests.FieldAuthor)
+	}
+	if m.title != nil {
+		fields = append(fields, pullrequests.FieldTitle)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PullRequestsMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case pullrequests.FieldPrID:
+		return m.PrID()
+	case pullrequests.FieldRepositoryName:
+		return m.RepositoryName()
+	case pullrequests.FieldRepositoryOrganization:
+		return m.RepositoryOrganization()
+	case pullrequests.FieldNumber:
+		return m.Number()
+	case pullrequests.FieldCreatedAt:
+		return m.CreatedAt()
+	case pullrequests.FieldClosedAt:
+		return m.ClosedAt()
+	case pullrequests.FieldMergedAt:
+		return m.MergedAt()
+	case pullrequests.FieldState:
+		return m.State()
+	case pullrequests.FieldAuthor:
+		return m.Author()
+	case pullrequests.FieldTitle:
+		return m.Title()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PullRequestsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case pullrequests.FieldPrID:
+		return m.OldPrID(ctx)
+	case pullrequests.FieldRepositoryName:
+		return m.OldRepositoryName(ctx)
+	case pullrequests.FieldRepositoryOrganization:
+		return m.OldRepositoryOrganization(ctx)
+	case pullrequests.FieldNumber:
+		return m.OldNumber(ctx)
+	case pullrequests.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case pullrequests.FieldClosedAt:
+		return m.OldClosedAt(ctx)
+	case pullrequests.FieldMergedAt:
+		return m.OldMergedAt(ctx)
+	case pullrequests.FieldState:
+		return m.OldState(ctx)
+	case pullrequests.FieldAuthor:
+		return m.OldAuthor(ctx)
+	case pullrequests.FieldTitle:
+		return m.OldTitle(ctx)
+	}
+	return nil, fmt.Errorf("unknown PullRequests field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PullRequestsMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case pullrequests.FieldPrID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrID(v)
+		return nil
+	case pullrequests.FieldRepositoryName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRepositoryName(v)
+		return nil
+	case pullrequests.FieldRepositoryOrganization:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRepositoryOrganization(v)
+		return nil
+	case pullrequests.FieldNumber:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetNumber(v)
+		return nil
+	case pullrequests.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case pullrequests.FieldClosedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClosedAt(v)
+		return nil
+	case pullrequests.FieldMergedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMergedAt(v)
+		return nil
+	case pullrequests.FieldState:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetState(v)
+		return nil
+	case pullrequests.FieldAuthor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAuthor(v)
+		return nil
+	case pullrequests.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PullRequests field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PullRequestsMutation) AddedFields() []string {
+	var fields []string
+	if m.addnumber != nil {
+		fields = append(fields, pullrequests.FieldNumber)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PullRequestsMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case pullrequests.FieldNumber:
+		return m.AddedNumber()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PullRequestsMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case pullrequests.FieldNumber:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddNumber(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PullRequests numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PullRequestsMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PullRequestsMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PullRequestsMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown PullRequests nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PullRequestsMutation) ResetField(name string) error {
+	switch name {
+	case pullrequests.FieldPrID:
+		m.ResetPrID()
+		return nil
+	case pullrequests.FieldRepositoryName:
+		m.ResetRepositoryName()
+		return nil
+	case pullrequests.FieldRepositoryOrganization:
+		m.ResetRepositoryOrganization()
+		return nil
+	case pullrequests.FieldNumber:
+		m.ResetNumber()
+		return nil
+	case pullrequests.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case pullrequests.FieldClosedAt:
+		m.ResetClosedAt()
+		return nil
+	case pullrequests.FieldMergedAt:
+		m.ResetMergedAt()
+		return nil
+	case pullrequests.FieldState:
+		m.ResetState()
+		return nil
+	case pullrequests.FieldAuthor:
+		m.ResetAuthor()
+		return nil
+	case pullrequests.FieldTitle:
+		m.ResetTitle()
+		return nil
+	}
+	return fmt.Errorf("unknown PullRequests field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PullRequestsMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.prs != nil {
+		edges = append(edges, pullrequests.EdgePrs)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PullRequestsMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case pullrequests.EdgePrs:
+		if id := m.prs; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PullRequestsMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PullRequestsMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PullRequestsMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedprs {
+		edges = append(edges, pullrequests.EdgePrs)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PullRequestsMutation) EdgeCleared(name string) bool {
+	switch name {
+	case pullrequests.EdgePrs:
+		return m.clearedprs
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PullRequestsMutation) ClearEdge(name string) error {
+	switch name {
+	case pullrequests.EdgePrs:
+		m.ClearPrs()
+		return nil
+	}
+	return fmt.Errorf("unknown PullRequests unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PullRequestsMutation) ResetEdge(name string) error {
+	switch name {
+	case pullrequests.EdgePrs:
+		m.ResetPrs()
+		return nil
+	}
+	return fmt.Errorf("unknown PullRequests edge %s", name)
+}
+
 // RepositoryMutation represents an operation that mutates the Repository nodes in the graph.
 type RepositoryMutation struct {
 	config
 	op                  Op
 	typ                 string
-	id                  *uuid.UUID
+	id                  *string
 	repository_name     *string
 	git_organization    *string
 	description         *string
@@ -2299,6 +4226,9 @@ type RepositoryMutation struct {
 	prow_jobs           map[int]struct{}
 	removedprow_jobs    map[int]struct{}
 	clearedprow_jobs    bool
+	prs                 map[int]struct{}
+	removedprs          map[int]struct{}
+	clearedprs          bool
 	done                bool
 	oldValue            func(context.Context) (*Repository, error)
 	predicates          []predicate.Repository
@@ -2324,7 +4254,7 @@ func newRepositoryMutation(c config, op Op, opts ...repositoryOption) *Repositor
 }
 
 // withRepositoryID sets the ID field of the mutation.
-func withRepositoryID(id uuid.UUID) repositoryOption {
+func withRepositoryID(id string) repositoryOption {
 	return func(m *RepositoryMutation) {
 		var (
 			err   error
@@ -2376,13 +4306,13 @@ func (m RepositoryMutation) Tx() (*Tx, error) {
 
 // SetID sets the value of the id field. Note that this
 // operation is only accepted on creation of Repository entities.
-func (m *RepositoryMutation) SetID(id uuid.UUID) {
+func (m *RepositoryMutation) SetID(id string) {
 	m.id = &id
 }
 
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *RepositoryMutation) ID() (id uuid.UUID, exists bool) {
+func (m *RepositoryMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -2393,12 +4323,12 @@ func (m *RepositoryMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *RepositoryMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *RepositoryMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []uuid.UUID{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -2807,6 +4737,60 @@ func (m *RepositoryMutation) ResetProwJobs() {
 	m.removedprow_jobs = nil
 }
 
+// AddPrIDs adds the "prs" edge to the PullRequests entity by ids.
+func (m *RepositoryMutation) AddPrIDs(ids ...int) {
+	if m.prs == nil {
+		m.prs = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.prs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPrs clears the "prs" edge to the PullRequests entity.
+func (m *RepositoryMutation) ClearPrs() {
+	m.clearedprs = true
+}
+
+// PrsCleared reports if the "prs" edge to the PullRequests entity was cleared.
+func (m *RepositoryMutation) PrsCleared() bool {
+	return m.clearedprs
+}
+
+// RemovePrIDs removes the "prs" edge to the PullRequests entity by IDs.
+func (m *RepositoryMutation) RemovePrIDs(ids ...int) {
+	if m.removedprs == nil {
+		m.removedprs = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.prs, ids[i])
+		m.removedprs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPrs returns the removed IDs of the "prs" edge to the PullRequests entity.
+func (m *RepositoryMutation) RemovedPrsIDs() (ids []int) {
+	for id := range m.removedprs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PrsIDs returns the "prs" edge IDs in the mutation.
+func (m *RepositoryMutation) PrsIDs() (ids []int) {
+	for id := range m.prs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPrs resets all changes to the "prs" edge.
+func (m *RepositoryMutation) ResetPrs() {
+	m.prs = nil
+	m.clearedprs = false
+	m.removedprs = nil
+}
+
 // Where appends a list predicates to the RepositoryMutation builder.
 func (m *RepositoryMutation) Where(ps ...predicate.Repository) {
 	m.predicates = append(m.predicates, ps...)
@@ -2991,7 +4975,7 @@ func (m *RepositoryMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RepositoryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.repositories != nil {
 		edges = append(edges, repository.EdgeRepositories)
 	}
@@ -3006,6 +4990,9 @@ func (m *RepositoryMutation) AddedEdges() []string {
 	}
 	if m.prow_jobs != nil {
 		edges = append(edges, repository.EdgeProwJobs)
+	}
+	if m.prs != nil {
+		edges = append(edges, repository.EdgePrs)
 	}
 	return edges
 }
@@ -3042,13 +5029,19 @@ func (m *RepositoryMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case repository.EdgePrs:
+		ids := make([]ent.Value, 0, len(m.prs))
+		for id := range m.prs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RepositoryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.removedworkflows != nil {
 		edges = append(edges, repository.EdgeWorkflows)
 	}
@@ -3060,6 +5053,9 @@ func (m *RepositoryMutation) RemovedEdges() []string {
 	}
 	if m.removedprow_jobs != nil {
 		edges = append(edges, repository.EdgeProwJobs)
+	}
+	if m.removedprs != nil {
+		edges = append(edges, repository.EdgePrs)
 	}
 	return edges
 }
@@ -3092,13 +5088,19 @@ func (m *RepositoryMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case repository.EdgePrs:
+		ids := make([]ent.Value, 0, len(m.removedprs))
+		for id := range m.removedprs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RepositoryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 5)
+	edges := make([]string, 0, 6)
 	if m.clearedrepositories {
 		edges = append(edges, repository.EdgeRepositories)
 	}
@@ -3113,6 +5115,9 @@ func (m *RepositoryMutation) ClearedEdges() []string {
 	}
 	if m.clearedprow_jobs {
 		edges = append(edges, repository.EdgeProwJobs)
+	}
+	if m.clearedprs {
+		edges = append(edges, repository.EdgePrs)
 	}
 	return edges
 }
@@ -3131,6 +5136,8 @@ func (m *RepositoryMutation) EdgeCleared(name string) bool {
 		return m.clearedprow_suites
 	case repository.EdgeProwJobs:
 		return m.clearedprow_jobs
+	case repository.EdgePrs:
+		return m.clearedprs
 	}
 	return false
 }
@@ -3165,6 +5172,9 @@ func (m *RepositoryMutation) ResetEdge(name string) error {
 	case repository.EdgeProwJobs:
 		m.ResetProwJobs()
 		return nil
+	case repository.EdgePrs:
+		m.ResetPrs()
+		return nil
 	}
 	return fmt.Errorf("unknown Repository edge %s", name)
 }
@@ -3177,10 +5187,14 @@ type TeamsMutation struct {
 	id                  *uuid.UUID
 	team_name           *string
 	description         *string
+	jira_keys           *string
 	clearedFields       map[string]struct{}
-	repositories        map[uuid.UUID]struct{}
-	removedrepositories map[uuid.UUID]struct{}
+	repositories        map[string]struct{}
+	removedrepositories map[string]struct{}
 	clearedrepositories bool
+	bugs                map[uuid.UUID]struct{}
+	removedbugs         map[uuid.UUID]struct{}
+	clearedbugs         bool
 	done                bool
 	oldValue            func(context.Context) (*Teams, error)
 	predicates          []predicate.Teams
@@ -3362,10 +5376,46 @@ func (m *TeamsMutation) ResetDescription() {
 	m.description = nil
 }
 
+// SetJiraKeys sets the "jira_keys" field.
+func (m *TeamsMutation) SetJiraKeys(s string) {
+	m.jira_keys = &s
+}
+
+// JiraKeys returns the value of the "jira_keys" field in the mutation.
+func (m *TeamsMutation) JiraKeys() (r string, exists bool) {
+	v := m.jira_keys
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJiraKeys returns the old "jira_keys" field's value of the Teams entity.
+// If the Teams object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TeamsMutation) OldJiraKeys(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldJiraKeys is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldJiraKeys requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJiraKeys: %w", err)
+	}
+	return oldValue.JiraKeys, nil
+}
+
+// ResetJiraKeys resets all changes to the "jira_keys" field.
+func (m *TeamsMutation) ResetJiraKeys() {
+	m.jira_keys = nil
+}
+
 // AddRepositoryIDs adds the "repositories" edge to the Repository entity by ids.
-func (m *TeamsMutation) AddRepositoryIDs(ids ...uuid.UUID) {
+func (m *TeamsMutation) AddRepositoryIDs(ids ...string) {
 	if m.repositories == nil {
-		m.repositories = make(map[uuid.UUID]struct{})
+		m.repositories = make(map[string]struct{})
 	}
 	for i := range ids {
 		m.repositories[ids[i]] = struct{}{}
@@ -3383,9 +5433,9 @@ func (m *TeamsMutation) RepositoriesCleared() bool {
 }
 
 // RemoveRepositoryIDs removes the "repositories" edge to the Repository entity by IDs.
-func (m *TeamsMutation) RemoveRepositoryIDs(ids ...uuid.UUID) {
+func (m *TeamsMutation) RemoveRepositoryIDs(ids ...string) {
 	if m.removedrepositories == nil {
-		m.removedrepositories = make(map[uuid.UUID]struct{})
+		m.removedrepositories = make(map[string]struct{})
 	}
 	for i := range ids {
 		delete(m.repositories, ids[i])
@@ -3394,7 +5444,7 @@ func (m *TeamsMutation) RemoveRepositoryIDs(ids ...uuid.UUID) {
 }
 
 // RemovedRepositories returns the removed IDs of the "repositories" edge to the Repository entity.
-func (m *TeamsMutation) RemovedRepositoriesIDs() (ids []uuid.UUID) {
+func (m *TeamsMutation) RemovedRepositoriesIDs() (ids []string) {
 	for id := range m.removedrepositories {
 		ids = append(ids, id)
 	}
@@ -3402,7 +5452,7 @@ func (m *TeamsMutation) RemovedRepositoriesIDs() (ids []uuid.UUID) {
 }
 
 // RepositoriesIDs returns the "repositories" edge IDs in the mutation.
-func (m *TeamsMutation) RepositoriesIDs() (ids []uuid.UUID) {
+func (m *TeamsMutation) RepositoriesIDs() (ids []string) {
 	for id := range m.repositories {
 		ids = append(ids, id)
 	}
@@ -3414,6 +5464,60 @@ func (m *TeamsMutation) ResetRepositories() {
 	m.repositories = nil
 	m.clearedrepositories = false
 	m.removedrepositories = nil
+}
+
+// AddBugIDs adds the "bugs" edge to the Bugs entity by ids.
+func (m *TeamsMutation) AddBugIDs(ids ...uuid.UUID) {
+	if m.bugs == nil {
+		m.bugs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.bugs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearBugs clears the "bugs" edge to the Bugs entity.
+func (m *TeamsMutation) ClearBugs() {
+	m.clearedbugs = true
+}
+
+// BugsCleared reports if the "bugs" edge to the Bugs entity was cleared.
+func (m *TeamsMutation) BugsCleared() bool {
+	return m.clearedbugs
+}
+
+// RemoveBugIDs removes the "bugs" edge to the Bugs entity by IDs.
+func (m *TeamsMutation) RemoveBugIDs(ids ...uuid.UUID) {
+	if m.removedbugs == nil {
+		m.removedbugs = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.bugs, ids[i])
+		m.removedbugs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedBugs returns the removed IDs of the "bugs" edge to the Bugs entity.
+func (m *TeamsMutation) RemovedBugsIDs() (ids []uuid.UUID) {
+	for id := range m.removedbugs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// BugsIDs returns the "bugs" edge IDs in the mutation.
+func (m *TeamsMutation) BugsIDs() (ids []uuid.UUID) {
+	for id := range m.bugs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetBugs resets all changes to the "bugs" edge.
+func (m *TeamsMutation) ResetBugs() {
+	m.bugs = nil
+	m.clearedbugs = false
+	m.removedbugs = nil
 }
 
 // Where appends a list predicates to the TeamsMutation builder.
@@ -3450,12 +5554,15 @@ func (m *TeamsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TeamsMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+	fields := make([]string, 0, 3)
 	if m.team_name != nil {
 		fields = append(fields, teams.FieldTeamName)
 	}
 	if m.description != nil {
 		fields = append(fields, teams.FieldDescription)
+	}
+	if m.jira_keys != nil {
+		fields = append(fields, teams.FieldJiraKeys)
 	}
 	return fields
 }
@@ -3469,6 +5576,8 @@ func (m *TeamsMutation) Field(name string) (ent.Value, bool) {
 		return m.TeamName()
 	case teams.FieldDescription:
 		return m.Description()
+	case teams.FieldJiraKeys:
+		return m.JiraKeys()
 	}
 	return nil, false
 }
@@ -3482,6 +5591,8 @@ func (m *TeamsMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldTeamName(ctx)
 	case teams.FieldDescription:
 		return m.OldDescription(ctx)
+	case teams.FieldJiraKeys:
+		return m.OldJiraKeys(ctx)
 	}
 	return nil, fmt.Errorf("unknown Teams field %s", name)
 }
@@ -3504,6 +5615,13 @@ func (m *TeamsMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
+		return nil
+	case teams.FieldJiraKeys:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJiraKeys(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Teams field %s", name)
@@ -3560,15 +5678,21 @@ func (m *TeamsMutation) ResetField(name string) error {
 	case teams.FieldDescription:
 		m.ResetDescription()
 		return nil
+	case teams.FieldJiraKeys:
+		m.ResetJiraKeys()
+		return nil
 	}
 	return fmt.Errorf("unknown Teams field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TeamsMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.repositories != nil {
 		edges = append(edges, teams.EdgeRepositories)
+	}
+	if m.bugs != nil {
+		edges = append(edges, teams.EdgeBugs)
 	}
 	return edges
 }
@@ -3583,15 +5707,24 @@ func (m *TeamsMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case teams.EdgeBugs:
+		ids := make([]ent.Value, 0, len(m.bugs))
+		for id := range m.bugs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TeamsMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedrepositories != nil {
 		edges = append(edges, teams.EdgeRepositories)
+	}
+	if m.removedbugs != nil {
+		edges = append(edges, teams.EdgeBugs)
 	}
 	return edges
 }
@@ -3606,15 +5739,24 @@ func (m *TeamsMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case teams.EdgeBugs:
+		ids := make([]ent.Value, 0, len(m.removedbugs))
+		for id := range m.removedbugs {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TeamsMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedrepositories {
 		edges = append(edges, teams.EdgeRepositories)
+	}
+	if m.clearedbugs {
+		edges = append(edges, teams.EdgeBugs)
 	}
 	return edges
 }
@@ -3625,6 +5767,8 @@ func (m *TeamsMutation) EdgeCleared(name string) bool {
 	switch name {
 	case teams.EdgeRepositories:
 		return m.clearedrepositories
+	case teams.EdgeBugs:
+		return m.clearedbugs
 	}
 	return false
 }
@@ -3644,6 +5788,9 @@ func (m *TeamsMutation) ResetEdge(name string) error {
 	case teams.EdgeRepositories:
 		m.ResetRepositories()
 		return nil
+	case teams.EdgeBugs:
+		m.ResetBugs()
+		return nil
 	}
 	return fmt.Errorf("unknown Teams edge %s", name)
 }
@@ -3661,7 +5808,7 @@ type WorkflowsMutation struct {
 	job_url          *string
 	state            *string
 	clearedFields    map[string]struct{}
-	workflows        *uuid.UUID
+	workflows        *string
 	clearedworkflows bool
 	done             bool
 	oldValue         func(context.Context) (*Workflows, error)
@@ -3983,7 +6130,7 @@ func (m *WorkflowsMutation) ResetState() {
 }
 
 // SetWorkflowsID sets the "workflows" edge to the Repository entity by id.
-func (m *WorkflowsMutation) SetWorkflowsID(id uuid.UUID) {
+func (m *WorkflowsMutation) SetWorkflowsID(id string) {
 	m.workflows = &id
 }
 
@@ -3998,7 +6145,7 @@ func (m *WorkflowsMutation) WorkflowsCleared() bool {
 }
 
 // WorkflowsID returns the "workflows" edge ID in the mutation.
-func (m *WorkflowsMutation) WorkflowsID() (id uuid.UUID, exists bool) {
+func (m *WorkflowsMutation) WorkflowsID() (id string, exists bool) {
 	if m.workflows != nil {
 		return *m.workflows, true
 	}
@@ -4008,7 +6155,7 @@ func (m *WorkflowsMutation) WorkflowsID() (id uuid.UUID, exists bool) {
 // WorkflowsIDs returns the "workflows" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // WorkflowsID instead. It exists only for internal usage by the builders.
-func (m *WorkflowsMutation) WorkflowsIDs() (ids []uuid.UUID) {
+func (m *WorkflowsMutation) WorkflowsIDs() (ids []string) {
 	if id := m.workflows; id != nil {
 		ids = append(ids, *id)
 	}

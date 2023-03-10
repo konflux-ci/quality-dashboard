@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -19,6 +20,7 @@ type WorkflowsCreate struct {
 	config
 	mutation *WorkflowsMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetWorkflowID sets the "workflow_id" field.
@@ -66,13 +68,13 @@ func (wc *WorkflowsCreate) SetState(s string) *WorkflowsCreate {
 }
 
 // SetWorkflowsID sets the "workflows" edge to the Repository entity by ID.
-func (wc *WorkflowsCreate) SetWorkflowsID(id uuid.UUID) *WorkflowsCreate {
+func (wc *WorkflowsCreate) SetWorkflowsID(id string) *WorkflowsCreate {
 	wc.mutation.SetWorkflowsID(id)
 	return wc
 }
 
 // SetNillableWorkflowsID sets the "workflows" edge to the Repository entity by ID if the given value is not nil.
-func (wc *WorkflowsCreate) SetNillableWorkflowsID(id *uuid.UUID) *WorkflowsCreate {
+func (wc *WorkflowsCreate) SetNillableWorkflowsID(id *string) *WorkflowsCreate {
 	if id != nil {
 		wc = wc.SetWorkflowsID(*id)
 	}
@@ -182,6 +184,7 @@ func (wc *WorkflowsCreate) createSpec() (*Workflows, *sqlgraph.CreateSpec) {
 			},
 		}
 	)
+	_spec.OnConflict = wc.conflict
 	if value, ok := wc.mutation.WorkflowID(); ok {
 		_spec.SetField(workflows.FieldWorkflowID, field.TypeUUID, value)
 		_node.WorkflowID = value
@@ -215,7 +218,7 @@ func (wc *WorkflowsCreate) createSpec() (*Workflows, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
+					Type:   field.TypeString,
 					Column: repository.FieldID,
 				},
 			},
@@ -229,10 +232,289 @@ func (wc *WorkflowsCreate) createSpec() (*Workflows, *sqlgraph.CreateSpec) {
 	return _node, _spec
 }
 
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Workflows.Create().
+//		SetWorkflowID(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.WorkflowsUpsert) {
+//			SetWorkflowID(v+v).
+//		}).
+//		Exec(ctx)
+func (wc *WorkflowsCreate) OnConflict(opts ...sql.ConflictOption) *WorkflowsUpsertOne {
+	wc.conflict = opts
+	return &WorkflowsUpsertOne{
+		create: wc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Workflows.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (wc *WorkflowsCreate) OnConflictColumns(columns ...string) *WorkflowsUpsertOne {
+	wc.conflict = append(wc.conflict, sql.ConflictColumns(columns...))
+	return &WorkflowsUpsertOne{
+		create: wc,
+	}
+}
+
+type (
+	// WorkflowsUpsertOne is the builder for "upsert"-ing
+	//  one Workflows node.
+	WorkflowsUpsertOne struct {
+		create *WorkflowsCreate
+	}
+
+	// WorkflowsUpsert is the "OnConflict" setter.
+	WorkflowsUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *WorkflowsUpsert) SetWorkflowID(v uuid.UUID) *WorkflowsUpsert {
+	u.Set(workflows.FieldWorkflowID, v)
+	return u
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *WorkflowsUpsert) UpdateWorkflowID() *WorkflowsUpsert {
+	u.SetExcluded(workflows.FieldWorkflowID)
+	return u
+}
+
+// SetWorkflowName sets the "workflow_name" field.
+func (u *WorkflowsUpsert) SetWorkflowName(v string) *WorkflowsUpsert {
+	u.Set(workflows.FieldWorkflowName, v)
+	return u
+}
+
+// UpdateWorkflowName sets the "workflow_name" field to the value that was provided on create.
+func (u *WorkflowsUpsert) UpdateWorkflowName() *WorkflowsUpsert {
+	u.SetExcluded(workflows.FieldWorkflowName)
+	return u
+}
+
+// SetBadgeURL sets the "badge_url" field.
+func (u *WorkflowsUpsert) SetBadgeURL(v string) *WorkflowsUpsert {
+	u.Set(workflows.FieldBadgeURL, v)
+	return u
+}
+
+// UpdateBadgeURL sets the "badge_url" field to the value that was provided on create.
+func (u *WorkflowsUpsert) UpdateBadgeURL() *WorkflowsUpsert {
+	u.SetExcluded(workflows.FieldBadgeURL)
+	return u
+}
+
+// SetHTMLURL sets the "html_url" field.
+func (u *WorkflowsUpsert) SetHTMLURL(v string) *WorkflowsUpsert {
+	u.Set(workflows.FieldHTMLURL, v)
+	return u
+}
+
+// UpdateHTMLURL sets the "html_url" field to the value that was provided on create.
+func (u *WorkflowsUpsert) UpdateHTMLURL() *WorkflowsUpsert {
+	u.SetExcluded(workflows.FieldHTMLURL)
+	return u
+}
+
+// SetJobURL sets the "job_url" field.
+func (u *WorkflowsUpsert) SetJobURL(v string) *WorkflowsUpsert {
+	u.Set(workflows.FieldJobURL, v)
+	return u
+}
+
+// UpdateJobURL sets the "job_url" field to the value that was provided on create.
+func (u *WorkflowsUpsert) UpdateJobURL() *WorkflowsUpsert {
+	u.SetExcluded(workflows.FieldJobURL)
+	return u
+}
+
+// SetState sets the "state" field.
+func (u *WorkflowsUpsert) SetState(v string) *WorkflowsUpsert {
+	u.Set(workflows.FieldState, v)
+	return u
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *WorkflowsUpsert) UpdateState() *WorkflowsUpsert {
+	u.SetExcluded(workflows.FieldState)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create.
+// Using this option is equivalent to using:
+//
+//	client.Workflows.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *WorkflowsUpsertOne) UpdateNewValues() *WorkflowsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Workflows.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *WorkflowsUpsertOne) Ignore() *WorkflowsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *WorkflowsUpsertOne) DoNothing() *WorkflowsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the WorkflowsCreate.OnConflict
+// documentation for more info.
+func (u *WorkflowsUpsertOne) Update(set func(*WorkflowsUpsert)) *WorkflowsUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&WorkflowsUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *WorkflowsUpsertOne) SetWorkflowID(v uuid.UUID) *WorkflowsUpsertOne {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.SetWorkflowID(v)
+	})
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *WorkflowsUpsertOne) UpdateWorkflowID() *WorkflowsUpsertOne {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.UpdateWorkflowID()
+	})
+}
+
+// SetWorkflowName sets the "workflow_name" field.
+func (u *WorkflowsUpsertOne) SetWorkflowName(v string) *WorkflowsUpsertOne {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.SetWorkflowName(v)
+	})
+}
+
+// UpdateWorkflowName sets the "workflow_name" field to the value that was provided on create.
+func (u *WorkflowsUpsertOne) UpdateWorkflowName() *WorkflowsUpsertOne {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.UpdateWorkflowName()
+	})
+}
+
+// SetBadgeURL sets the "badge_url" field.
+func (u *WorkflowsUpsertOne) SetBadgeURL(v string) *WorkflowsUpsertOne {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.SetBadgeURL(v)
+	})
+}
+
+// UpdateBadgeURL sets the "badge_url" field to the value that was provided on create.
+func (u *WorkflowsUpsertOne) UpdateBadgeURL() *WorkflowsUpsertOne {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.UpdateBadgeURL()
+	})
+}
+
+// SetHTMLURL sets the "html_url" field.
+func (u *WorkflowsUpsertOne) SetHTMLURL(v string) *WorkflowsUpsertOne {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.SetHTMLURL(v)
+	})
+}
+
+// UpdateHTMLURL sets the "html_url" field to the value that was provided on create.
+func (u *WorkflowsUpsertOne) UpdateHTMLURL() *WorkflowsUpsertOne {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.UpdateHTMLURL()
+	})
+}
+
+// SetJobURL sets the "job_url" field.
+func (u *WorkflowsUpsertOne) SetJobURL(v string) *WorkflowsUpsertOne {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.SetJobURL(v)
+	})
+}
+
+// UpdateJobURL sets the "job_url" field to the value that was provided on create.
+func (u *WorkflowsUpsertOne) UpdateJobURL() *WorkflowsUpsertOne {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.UpdateJobURL()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *WorkflowsUpsertOne) SetState(v string) *WorkflowsUpsertOne {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.SetState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *WorkflowsUpsertOne) UpdateState() *WorkflowsUpsertOne {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.UpdateState()
+	})
+}
+
+// Exec executes the query.
+func (u *WorkflowsUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("db: missing options for WorkflowsCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *WorkflowsUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *WorkflowsUpsertOne) ID(ctx context.Context) (id int, err error) {
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *WorkflowsUpsertOne) IDX(ctx context.Context) int {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
 // WorkflowsCreateBulk is the builder for creating many Workflows entities in bulk.
 type WorkflowsCreateBulk struct {
 	config
 	builders []*WorkflowsCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the Workflows entities in the database.
@@ -259,6 +541,7 @@ func (wcb *WorkflowsCreateBulk) Save(ctx context.Context) ([]*Workflows, error) 
 					_, err = mutators[i+1].Mutate(root, wcb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = wcb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, wcb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -309,6 +592,191 @@ func (wcb *WorkflowsCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (wcb *WorkflowsCreateBulk) ExecX(ctx context.Context) {
 	if err := wcb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.Workflows.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.WorkflowsUpsert) {
+//			SetWorkflowID(v+v).
+//		}).
+//		Exec(ctx)
+func (wcb *WorkflowsCreateBulk) OnConflict(opts ...sql.ConflictOption) *WorkflowsUpsertBulk {
+	wcb.conflict = opts
+	return &WorkflowsUpsertBulk{
+		create: wcb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.Workflows.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (wcb *WorkflowsCreateBulk) OnConflictColumns(columns ...string) *WorkflowsUpsertBulk {
+	wcb.conflict = append(wcb.conflict, sql.ConflictColumns(columns...))
+	return &WorkflowsUpsertBulk{
+		create: wcb,
+	}
+}
+
+// WorkflowsUpsertBulk is the builder for "upsert"-ing
+// a bulk of Workflows nodes.
+type WorkflowsUpsertBulk struct {
+	create *WorkflowsCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.Workflows.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//		).
+//		Exec(ctx)
+func (u *WorkflowsUpsertBulk) UpdateNewValues() *WorkflowsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.Workflows.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *WorkflowsUpsertBulk) Ignore() *WorkflowsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *WorkflowsUpsertBulk) DoNothing() *WorkflowsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the WorkflowsCreateBulk.OnConflict
+// documentation for more info.
+func (u *WorkflowsUpsertBulk) Update(set func(*WorkflowsUpsert)) *WorkflowsUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&WorkflowsUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetWorkflowID sets the "workflow_id" field.
+func (u *WorkflowsUpsertBulk) SetWorkflowID(v uuid.UUID) *WorkflowsUpsertBulk {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.SetWorkflowID(v)
+	})
+}
+
+// UpdateWorkflowID sets the "workflow_id" field to the value that was provided on create.
+func (u *WorkflowsUpsertBulk) UpdateWorkflowID() *WorkflowsUpsertBulk {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.UpdateWorkflowID()
+	})
+}
+
+// SetWorkflowName sets the "workflow_name" field.
+func (u *WorkflowsUpsertBulk) SetWorkflowName(v string) *WorkflowsUpsertBulk {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.SetWorkflowName(v)
+	})
+}
+
+// UpdateWorkflowName sets the "workflow_name" field to the value that was provided on create.
+func (u *WorkflowsUpsertBulk) UpdateWorkflowName() *WorkflowsUpsertBulk {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.UpdateWorkflowName()
+	})
+}
+
+// SetBadgeURL sets the "badge_url" field.
+func (u *WorkflowsUpsertBulk) SetBadgeURL(v string) *WorkflowsUpsertBulk {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.SetBadgeURL(v)
+	})
+}
+
+// UpdateBadgeURL sets the "badge_url" field to the value that was provided on create.
+func (u *WorkflowsUpsertBulk) UpdateBadgeURL() *WorkflowsUpsertBulk {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.UpdateBadgeURL()
+	})
+}
+
+// SetHTMLURL sets the "html_url" field.
+func (u *WorkflowsUpsertBulk) SetHTMLURL(v string) *WorkflowsUpsertBulk {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.SetHTMLURL(v)
+	})
+}
+
+// UpdateHTMLURL sets the "html_url" field to the value that was provided on create.
+func (u *WorkflowsUpsertBulk) UpdateHTMLURL() *WorkflowsUpsertBulk {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.UpdateHTMLURL()
+	})
+}
+
+// SetJobURL sets the "job_url" field.
+func (u *WorkflowsUpsertBulk) SetJobURL(v string) *WorkflowsUpsertBulk {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.SetJobURL(v)
+	})
+}
+
+// UpdateJobURL sets the "job_url" field to the value that was provided on create.
+func (u *WorkflowsUpsertBulk) UpdateJobURL() *WorkflowsUpsertBulk {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.UpdateJobURL()
+	})
+}
+
+// SetState sets the "state" field.
+func (u *WorkflowsUpsertBulk) SetState(v string) *WorkflowsUpsertBulk {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.SetState(v)
+	})
+}
+
+// UpdateState sets the "state" field to the value that was provided on create.
+func (u *WorkflowsUpsertBulk) UpdateState() *WorkflowsUpsertBulk {
+	return u.Update(func(s *WorkflowsUpsert) {
+		s.UpdateState()
+	})
+}
+
+// Exec executes the query.
+func (u *WorkflowsUpsertBulk) Exec(ctx context.Context) error {
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the WorkflowsCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("db: missing options for WorkflowsCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *WorkflowsUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

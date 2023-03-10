@@ -1,9 +1,9 @@
 package repositories
 
 import (
-	"github.com/redhat-appstudio/quality-studio/api/apis/codecov"
-	"github.com/redhat-appstudio/quality-studio/api/apis/github"
 	"github.com/redhat-appstudio/quality-studio/api/server/router"
+	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/connectors/github"
 	"github.com/redhat-appstudio/quality-studio/pkg/logger"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
@@ -37,6 +37,7 @@ func NewRouter(s storage.Storage) router.Router {
 		router.NewGetRoute("/repositories/getJobTypesFromRepo", r.getJobTypesFromRepo),
 		router.NewPostRoute("/repositories/create", r.createRepositoryHandler),
 		router.NewDeleteRoute("/repositories/delete", r.deleteRepositoryHandler),
+		router.NewGetRoute("/prs/get", r.getPullRequestsFromRepo),
 	}
 
 	return r

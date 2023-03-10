@@ -1,13 +1,14 @@
 import * as React from 'react';
 import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { accessibleRouteChangeHandler } from '@app/utils/utils';
-import { Dashboard } from '@app/Dashboard/Dashboard';
+import { Overview } from '@app/Overview/Overview';
 import { Reports } from '@app/Reports/Reports';
 import { useDocumentTitle } from '@app/utils/useDocumentTitle';
 import { LastLocationProvider, useLastLocation } from 'react-router-last-location';
-import { JobsComponent } from '@app/Jobs/Jobs';
 import { Teams } from '@app/Teams/Teams';
 import { ReactReduxContext } from 'react-redux';
+import { Jira } from './Jira/Jira';
+import { GitHub } from './Github/Github';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -34,11 +35,11 @@ const routes: AppRouteConfig[] = [
     label: 'Home',
     routes: [
       {
-        component: Dashboard,
+        component: Overview,
         exact: true,
         label: 'Overview',
         path: '/home/overview',
-        title: 'Quality Studio | Overview',
+        title: 'Overview | Quality Studio',
       },
       {
         component: Teams,
@@ -46,25 +47,38 @@ const routes: AppRouteConfig[] = [
         isAsync: true,
         label: 'Teams',
         path: '/home/teams',
-        title: 'Quality Studio | Teams',
+        title: 'Teams | Quality Studio',
       },
     ],
   },
   {
-    component: Reports,
-    exact: true,
-    isAsync: true,
-    label: 'Openshift CI',
-    path: '/reports/test',
-    title: 'Quality Studio | Openshift CI',
-  },
-  {
-    component: JobsComponent,
-    exact: true,
-    isAsync: true,
-    label: 'GitHub Actions',
-    path: '/ci/jobs',
-    title: 'Quality Studio | GitHub Actions',
+    label: 'Plugins',
+    routes: [
+      {
+        component: GitHub,
+        exact: true,
+        isAsync: true,
+        label: 'Github',
+        path: '/home/github',
+        title: 'Github | Quality Studio',
+      },
+      {
+        component: Jira,
+        exact: true,
+        isAsync: true,
+        label: 'Jira',
+        path: '/home/jira',
+        title: 'Jira  | Quality Studio',
+      },
+      {
+        component: Reports,
+        exact: true,
+        isAsync: true,
+        label: 'Openshift CI',
+        path: '/reports/test',
+        title: 'Openshift CI | Quality Studio',
+      },
+    ],
   },
 ];
 

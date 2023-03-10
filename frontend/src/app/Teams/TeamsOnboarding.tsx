@@ -1,15 +1,17 @@
-import React, { useState, useContext } from 'react';
-import { createTeam, createRepository } from "@app/utils/APIService";
+import React, { useState, useContext, useEffect } from 'react';
+import { createTeam, createRepository, listJiraProjects } from "@app/utils/APIService";
 import {
   Wizard, PageSection, PageSectionVariants,
   TextInput, FormGroup, Form, TextArea,
   DescriptionList, DescriptionListGroup, DescriptionListDescription, DescriptionListTerm, Title, Spinner,
-  Alert, AlertGroup, AlertVariant, Button, Toolbar, ToolbarContent, ToolbarItem, ToolbarGroup
+  Alert, AlertGroup, AlertVariant, Button, Toolbar, ToolbarContent, ToolbarItem, ToolbarGroup,
+  DualListSelector
 } from '@patternfly/react-core';
 import { useHistory } from 'react-router-dom';
 import { getTeams } from '@app/utils/APIService';
 import { PlusIcon } from '@patternfly/react-icons/dist/esm/icons';
-import { ReactReduxContext, useSelector } from 'react-redux';
+import { ReactReduxContext } from 'react-redux';
+import { TeamsTable } from './TeamsTable';
 
 interface AlertInfo {
   title: string;
@@ -17,13 +19,7 @@ interface AlertInfo {
   key: string;
 }
 
-import { Table, TableHeader, TableBody, TableProps } from '@patternfly/react-table';
-
-
-
 export const TeamsWizard = () => {
-  const history = useHistory();
-
   const { store } = useContext(ReactReduxContext);
   const state = store.getState();
   const dispatch = store.dispatch;
@@ -38,6 +34,10 @@ export const TeamsWizard = () => {
   const [creationError, setCreationError] = useState<boolean>(false);
   const [isFinishedWizard, setIsFinishedWizard] = useState<boolean>(false);
   const [isOpen, setOpen] = useState<boolean>(false);
+  const history = useHistory();
+  const params = new URLSearchParams(window.location.search);
+  const open = params.get('isOpen');
+  const [jiraProjects, setJiraProjects] = useState<Array<string>>([])
 
   const onSubmit = async () => {
     // Create a team
@@ -46,6 +46,7 @@ export const TeamsWizard = () => {
     const data = {
       "team_name": newTeamName,
       "description": newTeamDesc,
+      "jira_keys": jiraProjects.join(",")
     }
 
     createTeam(data).then(response => {
@@ -135,6 +136,8 @@ export const TeamsWizard = () => {
     setNewTeamDesc("")
     setNewOrgName("")
     setNewRepoName("")
+    history.push("/home/teams")
+    window.location.reload();
   };
 
   const TeamData = (
@@ -185,6 +188,10 @@ export const TeamsWizard = () => {
             <DescriptionListTerm>Organization</DescriptionListTerm>
             <DescriptionListDescription>{newOrgName}</DescriptionListDescription>
           </DescriptionListGroup>
+          <DescriptionListGroup>
+            <DescriptionListTerm>Jira Projects</DescriptionListTerm>
+            <DescriptionListDescription>{jiraProjects.join(" - ")}</DescriptionListDescription>
+          </DescriptionListGroup>
         </DescriptionList>
       </div>
       <div style={{ marginTop: "2em" }}>
@@ -199,6 +206,7 @@ export const TeamsWizard = () => {
   )
 
   const ValidateTeam = () => { return newTeamName != "" && newTeamDesc != "" }
+
   const ValidateRepoAndOrg = () => {
     if (newRepoName != "" || newOrgName != "") {
       return newRepoName != "" && newOrgName != ""
@@ -210,9 +218,14 @@ export const TeamsWizard = () => {
 
   }
 
+  const jiraOnChange = (options:Array<string>) => {
+    setJiraProjects(options)
+  }
+
   const steps = [
     { id: 'team', name: 'Team Name', component: TeamData, enableNext: ValidateTeam() },
     { id: 'repo', name: 'Add a repository', component: AddRepo, canJumpTo: ValidateTeam(), enableNext: ValidateRepoAndOrg() },
+    { id: 'jira', name: 'Jira Projects', component: JiraProjects({onChange:jiraOnChange}), canJumpTo: ValidateTeam(), enableNext: ValidateTeam() },
     {
       id: 'review',
       name: 'Review',
@@ -229,6 +242,12 @@ export const TeamsWizard = () => {
   const handleModalToggle = () => {
     setOpen(!isOpen)
   };
+
+  useEffect(() => {
+    if (open == "true") {
+      setOpen(true)
+    }
+  }, []);
 
   return (
     <React.Fragment>
@@ -262,33 +281,53 @@ export const TeamsWizard = () => {
       </PageSection>
     </React.Fragment>
   );
-};
+}
 
-export const TeamsTable: React.FunctionComponent = () => {
-  // In real usage, this data would come from some external source like an API via props.
+export const JiraProjects: React.FC<{onChange:(options:Array<string>) => void, default?:Array<string>}> = (props) => {
+  const [availableOptions, setAvailableOptions] = React.useState<React.ReactNode[]>([]);
+  const [chosenOptions, setChosenOptions] = React.useState<React.ReactNode[]>([])
 
-  const { store } = useContext(ReactReduxContext);
-  const state = store.getState();
-  const columns: TableProps['cells'] = ['Name', 'Description'];
+  const onListChange = (newAvailableOptions: React.ReactNode[], newChosenOptions: React.ReactNode[]) => {
+    setAvailableOptions(newAvailableOptions);
+    setChosenOptions(newChosenOptions);
+  };
 
-  let currentTeamsAvailable = useSelector((state: any) => state.teams.TeamsAvailable);
-  //store.subscribe(currentTeamsAvailable = useSelector((state:any) => state.teams.TeamsAvailable));
+  useEffect(() => {
+    listJiraProjects().then((res) => { // making the api call here
+      if (res.code === 200) {
+        const result = res.data;
+        const r = result.map(el => {
+          return (<span key={el.project_key}>{el.project_name}</span>)
+        })
+        setAvailableOptions(r)
+      }
+    });
+  }, []);
 
-  const rows: TableProps['rows'] = currentTeamsAvailable.map(team => [
-    team.team_name,
-    team.description
-  ]);
+
+  function filterOption(option: React.ReactNode, input: string){
+    return (option as React.ReactElement).props.children.toLowerCase().includes(input.toLowerCase())
+  }
+
+  useEffect(() => {
+    props.onChange(chosenOptions.map(o => {if(o) return o["key"]}))
+  }, [chosenOptions]);
 
   return (
     <React.Fragment>
-      <Table
-        aria-label="Teams Table"
-        cells={columns}
-        rows={rows}
-      >
-        <TableHeader />
-        <TableBody />
-      </Table>
+      <Title headingLevel='h4'>Select Jira Projects</Title>
+      <p style={{marginBottom: '10px'}}>The Jira Projects you select will be associated to the created Team. The projects will be used to gather and display metrics about bugs in the Jira page.</p>
+      <DualListSelector
+        isSearchable
+        availableOptions={availableOptions}
+        chosenOptions={chosenOptions}
+        addAll={onListChange}
+        removeAll={onListChange}
+        addSelected={onListChange}
+        removeSelected={onListChange}
+        filterOption={filterOption}
+        id="dual-list-selector-complex"
+      />
     </React.Fragment>
   );
 };

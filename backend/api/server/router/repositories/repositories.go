@@ -3,8 +3,12 @@ package repositories
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 
+	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
+	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/api/types"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
@@ -42,14 +46,12 @@ func (rp *repositoryRouter) listAllRepositoriesQuality(ctx context.Context, w ht
 		})
 	}
 	repos, err := rp.Storage.ListRepositoriesQualityInfo(team)
-
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
 			StatusCode: http.StatusInternalServerError,
 		})
 	}
-
 	// in the OpenShift CI tab, do not include repos that do not exist in OpenShift CI
 	isOpenShiftCI := r.URL.Query()["openshift_ci"]
 	if len(isOpenShiftCI) != 0 && isOpenShiftCI[0] == "true" {
@@ -57,6 +59,7 @@ func (rp *repositoryRouter) listAllRepositoriesQuality(ctx context.Context, w ht
 		for _, repo := range repos {
 			if rp.Github.CheckIfRepoExistsInOpenshiftCI(repo.GitOrganization, repo.RepositoryName) &&
 				len(rp.Github.GetJobTypes(repo.GitOrganization, repo.RepositoryName)) > 0 {
+
 				clean = append(clean, repo)
 			}
 		}
@@ -108,11 +111,14 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 	if description == "" {
 		description = "Repository don't contain a description"
 	}
-	createdRepo, err := rp.Storage.CreateRepository(storage.Repository{
-		RepositoryName:  githubRepo.GetName(),
-		GitOrganization: githubRepo.Owner.GetLogin(),
-		Description:     description,
-		GitURL:          githubRepo.GetHTMLURL(),
+	createdRepo, err := rp.Storage.CreateRepository(repoV1Alpha1.Repository{
+		ID:   fmt.Sprint(githubRepo.GetID()),
+		Name: githubRepo.GetName(),
+		Owner: repoV1Alpha1.Owner{
+			Login: githubRepo.Owner.GetLogin(),
+		},
+		Description: description,
+		URL:         githubRepo.GetHTMLURL(),
 	}, team.ID)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
@@ -131,11 +137,20 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 		})
 	}
 
+	totalRetestRepoAvg, err := rp.Github.RetestsToMerge(fmt.Sprintf("%s/%s", githubRepo.Owner.GetLogin(), githubRepo.GetName()))
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
 	totalCoverageConverted, _ := coverage.Totals.Coverage.Float64()
-	err = rp.Storage.CreateCoverage(storage.Coverage{
-		GitOrganization:    githubRepo.Owner.GetLogin(),
-		RepositoryName:     githubRepo.GetName(),
-		CoveragePercentage: totalCoverageConverted,
+	err = rp.Storage.CreateCoverage(coverageV1Alpha1.Coverage{
+		GitOrganization:            githubRepo.Owner.GetLogin(),
+		RepositoryName:             githubRepo.GetName(),
+		CoveragePercentage:         totalCoverageConverted,
+		AverageToRetestPullRequest: totalRetestRepoAvg,
 	}, createdRepo.ID)
 
 	if err != nil {
@@ -147,12 +162,12 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 
 	workflows, err := rp.Github.GetRepositoryWorkflows(githubRepo.Owner.GetLogin(), githubRepo.GetName())
 	for _, w := range workflows.Workflows {
-		rp.Storage.CreateWorkflows(storage.GithubWorkflows{
-			WorkflowName: w.GetName(),
-			BadgeURL:     w.GetBadgeURL(),
-			HTMLURL:      w.GetHTMLURL(),
-			JobURL:       w.GetURL(),
-			State:        w.GetState(),
+		rp.Storage.CreateWorkflows(repoV1Alpha1.Workflow{
+			Name:     w.GetName(),
+			BadgeURL: w.GetBadgeURL(),
+			HTMLURL:  w.GetHTMLURL(),
+			JobURL:   w.GetURL(),
+			State:    w.GetState(),
 		}, createdRepo.ID)
 	}
 
@@ -161,6 +176,30 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    "Failed to save workflows data in database. There are no repository cached",
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	prs, err := rp.Github.GetPullRequestsInRange(context.TODO(), repoV1Alpha1.ListPullRequestsOptions{
+		Repository: githubRepo.GetName(),
+		Owner:      githubRepo.Owner.GetLogin(),
+		TimeField:  repoV1Alpha1.PullRequestNone,
+	}, time.Now().AddDate(0, -3, 0), time.Now())
+
+	if err != nil {
+		rp.Logger.Error("Failed to fetch pull requests from github", zap.String("repository", repository.GitRepository), zap.String("git_organization", repository.GitOrganization), zap.Error(err))
+
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    "Failed to get pull requests",
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	if err := rp.Storage.CreatePullRequests(prs, createdRepo.ID); err != nil {
+		rp.Logger.Error("Failed to fetch pull requests info from github", zap.String("repository", repository.GitRepository), zap.String("git_organization", repository.GitOrganization), zap.Error(err))
+
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    "Failed to save pull requests data in database. There are no repository cached",
 			StatusCode: http.StatusBadRequest,
 		})
 	}
