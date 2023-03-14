@@ -2251,9 +2251,22 @@ func (m *ProwJobsMutation) OldE2eFailedTestMessages(ctx context.Context) (v *str
 	return oldValue.E2eFailedTestMessages, nil
 }
 
+// ClearE2eFailedTestMessages clears the value of the "e2e_failed_test_messages" field.
+func (m *ProwJobsMutation) ClearE2eFailedTestMessages() {
+	m.e2e_failed_test_messages = nil
+	m.clearedFields[prowjobs.FieldE2eFailedTestMessages] = struct{}{}
+}
+
+// E2eFailedTestMessagesCleared returns if the "e2e_failed_test_messages" field was cleared in this mutation.
+func (m *ProwJobsMutation) E2eFailedTestMessagesCleared() bool {
+	_, ok := m.clearedFields[prowjobs.FieldE2eFailedTestMessages]
+	return ok
+}
+
 // ResetE2eFailedTestMessages resets all changes to the "e2e_failed_test_messages" field.
 func (m *ProwJobsMutation) ResetE2eFailedTestMessages() {
 	m.e2e_failed_test_messages = nil
+	delete(m.clearedFields, prowjobs.FieldE2eFailedTestMessages)
 }
 
 // SetSuitesXMLURL sets the "suites_xml_url" field.
@@ -2287,9 +2300,22 @@ func (m *ProwJobsMutation) OldSuitesXMLURL(ctx context.Context) (v *string, err 
 	return oldValue.SuitesXMLURL, nil
 }
 
+// ClearSuitesXMLURL clears the value of the "suites_xml_url" field.
+func (m *ProwJobsMutation) ClearSuitesXMLURL() {
+	m.suites_xml_url = nil
+	m.clearedFields[prowjobs.FieldSuitesXMLURL] = struct{}{}
+}
+
+// SuitesXMLURLCleared returns if the "suites_xml_url" field was cleared in this mutation.
+func (m *ProwJobsMutation) SuitesXMLURLCleared() bool {
+	_, ok := m.clearedFields[prowjobs.FieldSuitesXMLURL]
+	return ok
+}
+
 // ResetSuitesXMLURL resets all changes to the "suites_xml_url" field.
 func (m *ProwJobsMutation) ResetSuitesXMLURL() {
 	m.suites_xml_url = nil
+	delete(m.clearedFields, prowjobs.FieldSuitesXMLURL)
 }
 
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by id.
@@ -2666,7 +2692,14 @@ func (m *ProwJobsMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *ProwJobsMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(prowjobs.FieldE2eFailedTestMessages) {
+		fields = append(fields, prowjobs.FieldE2eFailedTestMessages)
+	}
+	if m.FieldCleared(prowjobs.FieldSuitesXMLURL) {
+		fields = append(fields, prowjobs.FieldSuitesXMLURL)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -2679,6 +2712,14 @@ func (m *ProwJobsMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *ProwJobsMutation) ClearField(name string) error {
+	switch name {
+	case prowjobs.FieldE2eFailedTestMessages:
+		m.ClearE2eFailedTestMessages()
+		return nil
+	case prowjobs.FieldSuitesXMLURL:
+		m.ClearSuitesXMLURL()
+		return nil
+	}
 	return fmt.Errorf("unknown ProwJobs nullable field %s", name)
 }
 

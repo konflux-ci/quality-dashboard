@@ -95,9 +95,25 @@ func (pjc *ProwJobsCreate) SetE2eFailedTestMessages(s string) *ProwJobsCreate {
 	return pjc
 }
 
+// SetNillableE2eFailedTestMessages sets the "e2e_failed_test_messages" field if the given value is not nil.
+func (pjc *ProwJobsCreate) SetNillableE2eFailedTestMessages(s *string) *ProwJobsCreate {
+	if s != nil {
+		pjc.SetE2eFailedTestMessages(*s)
+	}
+	return pjc
+}
+
 // SetSuitesXMLURL sets the "suites_xml_url" field.
 func (pjc *ProwJobsCreate) SetSuitesXMLURL(s string) *ProwJobsCreate {
 	pjc.mutation.SetSuitesXMLURL(s)
+	return pjc
+}
+
+// SetNillableSuitesXMLURL sets the "suites_xml_url" field if the given value is not nil.
+func (pjc *ProwJobsCreate) SetNillableSuitesXMLURL(s *string) *ProwJobsCreate {
+	if s != nil {
+		pjc.SetSuitesXMLURL(*s)
+	}
 	return pjc
 }
 
@@ -186,12 +202,6 @@ func (pjc *ProwJobsCreate) check() error {
 	}
 	if _, ok := pjc.mutation.CiFailed(); !ok {
 		return &ValidationError{Name: "ci_failed", err: errors.New(`db: missing required field "ProwJobs.ci_failed"`)}
-	}
-	if _, ok := pjc.mutation.E2eFailedTestMessages(); !ok {
-		return &ValidationError{Name: "e2e_failed_test_messages", err: errors.New(`db: missing required field "ProwJobs.e2e_failed_test_messages"`)}
-	}
-	if _, ok := pjc.mutation.SuitesXMLURL(); !ok {
-		return &ValidationError{Name: "suites_xml_url", err: errors.New(`db: missing required field "ProwJobs.suites_xml_url"`)}
 	}
 	return nil
 }
@@ -526,6 +536,12 @@ func (u *ProwJobsUpsert) UpdateE2eFailedTestMessages() *ProwJobsUpsert {
 	return u
 }
 
+// ClearE2eFailedTestMessages clears the value of the "e2e_failed_test_messages" field.
+func (u *ProwJobsUpsert) ClearE2eFailedTestMessages() *ProwJobsUpsert {
+	u.SetNull(prowjobs.FieldE2eFailedTestMessages)
+	return u
+}
+
 // SetSuitesXMLURL sets the "suites_xml_url" field.
 func (u *ProwJobsUpsert) SetSuitesXMLURL(v string) *ProwJobsUpsert {
 	u.Set(prowjobs.FieldSuitesXMLURL, v)
@@ -535,6 +551,12 @@ func (u *ProwJobsUpsert) SetSuitesXMLURL(v string) *ProwJobsUpsert {
 // UpdateSuitesXMLURL sets the "suites_xml_url" field to the value that was provided on create.
 func (u *ProwJobsUpsert) UpdateSuitesXMLURL() *ProwJobsUpsert {
 	u.SetExcluded(prowjobs.FieldSuitesXMLURL)
+	return u
+}
+
+// ClearSuitesXMLURL clears the value of the "suites_xml_url" field.
+func (u *ProwJobsUpsert) ClearSuitesXMLURL() *ProwJobsUpsert {
+	u.SetNull(prowjobs.FieldSuitesXMLURL)
 	return u
 }
 
@@ -783,6 +805,13 @@ func (u *ProwJobsUpsertOne) UpdateE2eFailedTestMessages() *ProwJobsUpsertOne {
 	})
 }
 
+// ClearE2eFailedTestMessages clears the value of the "e2e_failed_test_messages" field.
+func (u *ProwJobsUpsertOne) ClearE2eFailedTestMessages() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearE2eFailedTestMessages()
+	})
+}
+
 // SetSuitesXMLURL sets the "suites_xml_url" field.
 func (u *ProwJobsUpsertOne) SetSuitesXMLURL(v string) *ProwJobsUpsertOne {
 	return u.Update(func(s *ProwJobsUpsert) {
@@ -794,6 +823,13 @@ func (u *ProwJobsUpsertOne) SetSuitesXMLURL(v string) *ProwJobsUpsertOne {
 func (u *ProwJobsUpsertOne) UpdateSuitesXMLURL() *ProwJobsUpsertOne {
 	return u.Update(func(s *ProwJobsUpsert) {
 		s.UpdateSuitesXMLURL()
+	})
+}
+
+// ClearSuitesXMLURL clears the value of the "suites_xml_url" field.
+func (u *ProwJobsUpsertOne) ClearSuitesXMLURL() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearSuitesXMLURL()
 	})
 }
 
@@ -1203,6 +1239,13 @@ func (u *ProwJobsUpsertBulk) UpdateE2eFailedTestMessages() *ProwJobsUpsertBulk {
 	})
 }
 
+// ClearE2eFailedTestMessages clears the value of the "e2e_failed_test_messages" field.
+func (u *ProwJobsUpsertBulk) ClearE2eFailedTestMessages() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearE2eFailedTestMessages()
+	})
+}
+
 // SetSuitesXMLURL sets the "suites_xml_url" field.
 func (u *ProwJobsUpsertBulk) SetSuitesXMLURL(v string) *ProwJobsUpsertBulk {
 	return u.Update(func(s *ProwJobsUpsert) {
@@ -1214,6 +1257,13 @@ func (u *ProwJobsUpsertBulk) SetSuitesXMLURL(v string) *ProwJobsUpsertBulk {
 func (u *ProwJobsUpsertBulk) UpdateSuitesXMLURL() *ProwJobsUpsertBulk {
 	return u.Update(func(s *ProwJobsUpsert) {
 		s.UpdateSuitesXMLURL()
+	})
+}
+
+// ClearSuitesXMLURL clears the value of the "suites_xml_url" field.
+func (u *ProwJobsUpsertBulk) ClearSuitesXMLURL() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearSuitesXMLURL()
 	})
 }
 
