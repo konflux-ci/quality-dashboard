@@ -56,9 +56,6 @@ export const FailedE2ETests: React.FC<{ failedProwJobs: any }> = ({ failedProwJo
         if (failedProwJobs.length > 0) {
             let from = (page - 1) * perPage
             let to = (page - 1) * perPage + perPage >= failedProwJobs.length ? failedProwJobs.length : (page - 1) * perPage + perPage;
-            console.log("from", from)
-            console.log("to", to)
-            console.log(failedProwJobs.slice(from, to))
             setFailedProwJobsPage(failedProwJobs.slice(from, to))
         }
     }, [page, perPage]);
