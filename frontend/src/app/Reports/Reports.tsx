@@ -8,15 +8,12 @@ import {
   EmptyStateBody,
   Title, TitleSizes,
   Alert, AlertGroup, AlertActionCloseButton,
-  Badge, Spinner, Pagination,
-  Card, CardTitle, CardBody,
-  Bullseye
+  Badge, Spinner,
 } from '@patternfly/react-core';
-import SearchIcon from '@patternfly/react-icons/dist/esm/icons/search-icon';
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
-import { getAllRepositoriesWithOrgs, getJobTypes, getLatestProwJob, getProwJobStatistics, getProwJobs } from '@app/utils/APIService';
+import { getAllRepositoriesWithOrgs, getJobTypes, getProwJobStatistics, getProwJobs } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
 import {
   JobsStatistics,
@@ -32,7 +29,6 @@ import { useHistory } from 'react-router-dom';
 import { isValidTeam } from '@app/utils/utils';
 import { formatDate, getRangeDates } from './utils';
 import { DateTimeRangePicker } from '../utils/DateTimeRangePicker';
-import { Table, TableBody, TableHeader, TableProps, cellWidth, info, sortable } from '@patternfly/react-table';
 import { FailedE2ETests, Job, getFailedProwJobsInE2ETests } from './FailedE2ETests';
 
 // eslint-disable-next-line prefer-const
@@ -228,7 +224,6 @@ let Reports = () => {
 
   const [selectedJob, setSelectedJob] = useState(0)
   const [prowJobsStats, setprowJobsStats] = useState<JobsStatistics | null>(null);
-  const [prowJobSuite, setProwJobSuite] = useState([])
   const [prowJobs, setProwJobs] = useState<Job[] | null>(null);
 
   // Get the prow jobs from API
@@ -239,11 +234,6 @@ let Reports = () => {
     setLoadingState(true)
     setNoData(false)
     try {
-      // Get job suite details
-      if (jobType == "periodic") {
-        const data = await getLatestProwJob(repoName, repoOrg, jobType)
-        setProwJobSuite(data)
-      }
       // Get statistics and metrics
       const stats = await getProwJobStatistics(repoName, repoOrg, jobType, rangeDateTime)
       // Get jobs
@@ -330,102 +320,6 @@ let Reports = () => {
     ]
     beautifiedData["CI_FAILED_RATE_AVG_INDEX"].style = { data: { stroke: "rgba(240, 171, 0, 0.3)", strokeDasharray: 10, strokeWidth: 5 } }
   }
-
-  // Prow test suites details table and its pagination
-  const [activeSortIndex, setActiveSortIndex] = React.useState<number | null>(1);
-  const [activeSortDirection, setActiveSortDirection] = React.useState<'asc' | 'desc' | null>('desc');
-  const [page, setPage] = React.useState(1);
-  const [perPage, setPerPage] = React.useState(10);
-
-  let statusColorMap = new Map<string, string>([
-    ["skipped", "lightgrey"],
-    ["passed", "darkgreen"],
-    ["failed", "darkred"]
-  ]);
-
-  const getSortableRowValues = (suite: any): (string | number)[] => {
-    return [suite['name'], suite['status'], suite['time']];
-  };
-
-  let sortedRows = repositories;
-
-  if (activeSortIndex !== null) {
-    sortedRows = prowJobSuite.sort((a, b) => {
-      const aValue = getSortableRowValues(a)[activeSortIndex];
-      const bValue = getSortableRowValues(b)[activeSortIndex];
-      if (typeof aValue === 'number') {
-        // Numeric sort
-        if (activeSortDirection === 'asc') {
-          return (aValue as number) - (bValue as number);
-        }
-        return (bValue as number) - (aValue as number);
-      } else {
-        // String sort
-        if (activeSortDirection === 'asc') {
-          return (aValue as string).localeCompare(bValue as string);
-        }
-        return (bValue as string).localeCompare(aValue as string);
-      }
-    });
-  }
-
-  const columns: TableProps['cells'] = [
-    { title: 'Name', transforms: [sortable, cellWidth(70)] },
-    {
-      title: 'Status',
-      transforms: [
-        info({
-          tooltip: 'More information about branches'
-        }),
-        sortable
-      ]
-    },
-    { title: 'Time Elapsed', transforms: [sortable] }
-  ];
-
-
-  let rows: TableProps['rows'] = prowJobSuite.slice((page - 1) * perPage, (page) * perPage).map(suite => [
-    suite['name'],
-    { title: <div style={{ color: statusColorMap.get(suite["status"]), textTransform: 'uppercase', fontWeight: 'bold' }}>{suite['status']}</div> },
-    suite['time']
-  ]);
-
-  if (prowJobSuite.length == 0) {
-    rows = [
-      {
-        heightAuto: true,
-        cells: [
-          {
-            props: { colSpan: 8 },
-            title: (
-              <Bullseye>
-                <EmptyState variant={EmptyStateVariant.small}>
-                  <EmptyStateIcon icon={SearchIcon} />
-                  <Title headingLevel="h2" size="lg">
-                    No results found
-                  </Title>
-                  <EmptyStateBody>The job selected does not have test suites details to show</EmptyStateBody>
-                </EmptyState>
-              </Bullseye>
-            )
-          }
-        ]
-      }
-    ]
-  }
-
-  const onSetPage = (_event: React.MouseEvent | React.KeyboardEvent | MouseEvent, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const onPerPageSelect = (
-    _event: React.MouseEvent | React.KeyboardEvent | MouseEvent,
-    newPerPage: number,
-    newPage: number
-  ) => {
-    setPerPage(newPerPage);
-    setPage(newPage);
-  };
 
   function handleChange(event, from, to) {
     setRangeDateTime([from, to])
@@ -543,39 +437,6 @@ let Reports = () => {
               {prowJobs != null && <GridItem span={12}>
                 <FailedE2ETests failedProwJobs={getFailedProwJobsInE2ETests(prowJobs, jobType)} jobType={jobType}></FailedE2ETests>
               </GridItem>}
-
-              {jobType == "periodic" && <GridItem span={12}>
-                <Card style={{ width: "100%", height: "100%", fontSize: "1rem" }}>
-                  <CardTitle>Last Prow Job Test Suites Details</CardTitle>
-                  <CardBody>
-                    <Table
-                      sortBy={{
-                        index: activeSortIndex as number,
-                        direction: activeSortDirection as any
-                      }}
-                      onSort={(_event, index, direction) => {
-                        setActiveSortIndex(index);
-                        setActiveSortDirection(direction);
-                      }}
-                      aria-label="Test suites details table"
-                      cells={columns}
-                      rows={rows}>
-                      <TableHeader />
-                      <TableBody />
-                    </Table>
-                    <Pagination
-                      style={{ marginTop: "30px" }}
-                      itemCount={prowJobSuite.length}
-                      perPage={perPage}
-                      page={page}
-                      onSetPage={onSetPage}
-                      widgetId="pagination-options-menu-top"
-                      onPerPageSelect={onPerPageSelect}
-                    />
-                  </CardBody>
-                </Card>
-              </GridItem>
-              }
             </Grid>
             }
 
