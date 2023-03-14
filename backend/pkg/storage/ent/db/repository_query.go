@@ -486,6 +486,7 @@ func (rq *RepositoryQuery) WithPrs(opts ...func(*PullRequestsQuery)) *Repository
 //		GroupBy(repository.FieldRepositoryName).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
+//
 func (rq *RepositoryQuery) GroupBy(field string, fields ...string) *RepositoryGroupBy {
 	rq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &RepositoryGroupBy{build: rq}
@@ -507,6 +508,7 @@ func (rq *RepositoryQuery) GroupBy(field string, fields ...string) *RepositoryGr
 //	client.Repository.Query().
 //		Select(repository.FieldRepositoryName).
 //		Scan(ctx, &v)
+//
 func (rq *RepositoryQuery) Select(fields ...string) *RepositorySelect {
 	rq.ctx.Fields = append(rq.ctx.Fields, fields...)
 	sbuild := &RepositorySelect{RepositoryQuery: rq}

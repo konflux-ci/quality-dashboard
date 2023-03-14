@@ -36,4 +36,10 @@ type Job struct {
 
 	// Indicate if the test infrastructure failed or not
 	CIFailed int16 `json:"ci_failed"`
+
+	// Set of failed test cases from /artifacts/redhat-appstudio-e2e/redhat-appstudio-e2e/artifacts/e2e-report.xml
+	E2EFailedTestMessages string `json:"e2e_failed_test_messages"`
+
+	// URL to the e2e-report.xml of the job
+	SuitesXmlUrl string `json:"suites_xml_url"`
 }

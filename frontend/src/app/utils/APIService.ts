@@ -5,6 +5,7 @@ import { JobsStatistics } from '@app/utils/sharedComponents';
 import { teamIsNotEmpty } from '@app/utils/utils';
 import { formatDate } from '@app/Reports/utils';
 import { PrsStatistics } from '@app/Github/PullRequests';
+import { Job } from '@app/Reports/FailedE2ETests';
 
 type ApiResponse = {
   code: number;
@@ -59,14 +60,14 @@ async function getJiras() {
   return result;
 }
 
-async function getJirasResolutionTime(priority:string, team:string) {
+async function getJirasResolutionTime(priority: string, team: string) {
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/jira/bugs/metrics/resolution';
   const uri = API_URL + subPath;
   await axios
     .post(uri, {
       priority: priority,
-      team_name: team
+      team_name: team,
     })
     .then((res: AxiosResponse) => {
       result.code = res.status;
@@ -96,14 +97,14 @@ async function listJiraProjects() {
   return result;
 }
 
-async function getJirasOpen(priority:string, team:string) {
+async function getJirasOpen(priority: string, team: string) {
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/jira/bugs/metrics/open';
   const uri = API_URL + subPath;
   await axios
     .post(uri, {
       priority: priority,
-      team_name: team
+      team_name: team,
     })
     .then((res: AxiosResponse) => {
       result.code = res.status;
@@ -411,6 +412,18 @@ async function getPullRequests(repoName: string, repoOrg: string, rangeDateTime:
   return data;
 }
 
+async function getProwJobs(repoName: string, repoOrg: string) {
+  const response = await fetch(
+    API_URL + '/api/quality/prow/results/get?repository_name=' + repoName + '&git_organization=' + repoOrg
+  );
+  if (!response.ok) {
+    throw 'Error fetching data from server. ';
+  }
+
+  const data: Job[] = await response.json();
+  return data;
+}
+
 export {
   getVersion,
   getRepositories,
@@ -419,6 +432,7 @@ export {
   getAllRepositoriesWithOrgs,
   getLatestProwJob,
   getProwJobStatistics,
+  getProwJobs,
   getTeams,
   createTeam,
   getJiras,

@@ -416,6 +416,7 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 //			SetRepositoryName(v+v).
 //		}).
 //		Exec(ctx)
+//
 func (rc *RepositoryCreate) OnConflict(opts ...sql.ConflictOption) *RepositoryUpsertOne {
 	rc.conflict = opts
 	return &RepositoryUpsertOne{
@@ -429,6 +430,7 @@ func (rc *RepositoryCreate) OnConflict(opts ...sql.ConflictOption) *RepositoryUp
 //	client.Repository.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
+//
 func (rc *RepositoryCreate) OnConflictColumns(columns ...string) *RepositoryUpsertOne {
 	rc.conflict = append(rc.conflict, sql.ConflictColumns(columns...))
 	return &RepositoryUpsertOne{
@@ -508,6 +510,7 @@ func (u *RepositoryUpsert) UpdateGitURL() *RepositoryUpsert {
 //			}),
 //		).
 //		Exec(ctx)
+//
 func (u *RepositoryUpsertOne) UpdateNewValues() *RepositoryUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -521,9 +524,10 @@ func (u *RepositoryUpsertOne) UpdateNewValues() *RepositoryUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//	client.Repository.Create().
-//	    OnConflict(sql.ResolveWithIgnore()).
-//	    Exec(ctx)
+//  client.Repository.Create().
+//      OnConflict(sql.ResolveWithIgnore()).
+//      Exec(ctx)
+//
 func (u *RepositoryUpsertOne) Ignore() *RepositoryUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -735,6 +739,7 @@ func (rcb *RepositoryCreateBulk) ExecX(ctx context.Context) {
 //			SetRepositoryName(v+v).
 //		}).
 //		Exec(ctx)
+//
 func (rcb *RepositoryCreateBulk) OnConflict(opts ...sql.ConflictOption) *RepositoryUpsertBulk {
 	rcb.conflict = opts
 	return &RepositoryUpsertBulk{
@@ -748,6 +753,7 @@ func (rcb *RepositoryCreateBulk) OnConflict(opts ...sql.ConflictOption) *Reposit
 //	client.Repository.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
+//
 func (rcb *RepositoryCreateBulk) OnConflictColumns(columns ...string) *RepositoryUpsertBulk {
 	rcb.conflict = append(rcb.conflict, sql.ConflictColumns(columns...))
 	return &RepositoryUpsertBulk{
@@ -772,6 +778,7 @@ type RepositoryUpsertBulk struct {
 //			}),
 //		).
 //		Exec(ctx)
+//
 func (u *RepositoryUpsertBulk) UpdateNewValues() *RepositoryUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -790,6 +797,7 @@ func (u *RepositoryUpsertBulk) UpdateNewValues() *RepositoryUpsertBulk {
 //	client.Repository.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
+//
 func (u *RepositoryUpsertBulk) Ignore() *RepositoryUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u

@@ -238,6 +238,7 @@ func (ccc *CodeCovCreate) createSpec() (*CodeCov, *sqlgraph.CreateSpec) {
 //			SetRepositoryName(v+v).
 //		}).
 //		Exec(ctx)
+//
 func (ccc *CodeCovCreate) OnConflict(opts ...sql.ConflictOption) *CodeCovUpsertOne {
 	ccc.conflict = opts
 	return &CodeCovUpsertOne{
@@ -251,6 +252,7 @@ func (ccc *CodeCovCreate) OnConflict(opts ...sql.ConflictOption) *CodeCovUpsertO
 //	client.CodeCov.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
+//
 func (ccc *CodeCovCreate) OnConflictColumns(columns ...string) *CodeCovUpsertOne {
 	ccc.conflict = append(ccc.conflict, sql.ConflictColumns(columns...))
 	return &CodeCovUpsertOne{
@@ -342,6 +344,7 @@ func (u *CodeCovUpsert) AddAverageRetestsToMerge(v float64) *CodeCovUpsert {
 //			}),
 //		).
 //		Exec(ctx)
+//
 func (u *CodeCovUpsertOne) UpdateNewValues() *CodeCovUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -355,9 +358,10 @@ func (u *CodeCovUpsertOne) UpdateNewValues() *CodeCovUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//	client.CodeCov.Create().
-//	    OnConflict(sql.ResolveWithIgnore()).
-//	    Exec(ctx)
+//  client.CodeCov.Create().
+//      OnConflict(sql.ResolveWithIgnore()).
+//      Exec(ctx)
+//
 func (u *CodeCovUpsertOne) Ignore() *CodeCovUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -584,6 +588,7 @@ func (cccb *CodeCovCreateBulk) ExecX(ctx context.Context) {
 //			SetRepositoryName(v+v).
 //		}).
 //		Exec(ctx)
+//
 func (cccb *CodeCovCreateBulk) OnConflict(opts ...sql.ConflictOption) *CodeCovUpsertBulk {
 	cccb.conflict = opts
 	return &CodeCovUpsertBulk{
@@ -597,6 +602,7 @@ func (cccb *CodeCovCreateBulk) OnConflict(opts ...sql.ConflictOption) *CodeCovUp
 //	client.CodeCov.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
+//
 func (cccb *CodeCovCreateBulk) OnConflictColumns(columns ...string) *CodeCovUpsertBulk {
 	cccb.conflict = append(cccb.conflict, sql.ConflictColumns(columns...))
 	return &CodeCovUpsertBulk{
@@ -621,6 +627,7 @@ type CodeCovUpsertBulk struct {
 //			}),
 //		).
 //		Exec(ctx)
+//
 func (u *CodeCovUpsertBulk) UpdateNewValues() *CodeCovUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -639,6 +646,7 @@ func (u *CodeCovUpsertBulk) UpdateNewValues() *CodeCovUpsertBulk {
 //	client.CodeCov.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
+//
 func (u *CodeCovUpsertBulk) Ignore() *CodeCovUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u

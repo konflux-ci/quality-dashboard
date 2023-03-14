@@ -461,7 +461,7 @@ const ComposableTableStripedTr: React.FC<{bugs:any}> = ({bugs}) => {
     useEffect(() => {
         if(bugs.length > 0){
             let from = (page-1)*perPage
-            let to = (page-1)*perPage + perPage > bugs.length ? bugs.length - 1 : (page-1)*perPage + perPage;
+            let to = (page-1)*perPage + perPage > bugs.length ? bugs.length : (page-1)*perPage + perPage;
             setBugsPage(bugs.slice(from, to))
         }
     }, [page, perPage]);

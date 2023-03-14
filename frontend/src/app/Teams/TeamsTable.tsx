@@ -34,7 +34,6 @@ export const TeamsTable: React.FunctionComponent = () => {
     let currentTeamsAvailable = useSelector((state: any) => state.teams.TeamsAvailable);
 
     const editTeam = (team: ITeam) => {
-        console.log(team)
         setIsUpdateModalOpen(true)
         setToUpdateTeam(team)
         setNewTeamName(team.team_name)

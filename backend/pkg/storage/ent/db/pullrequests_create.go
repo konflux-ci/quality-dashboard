@@ -296,6 +296,7 @@ func (prc *PullRequestsCreate) createSpec() (*PullRequests, *sqlgraph.CreateSpec
 //			SetPrID(v+v).
 //		}).
 //		Exec(ctx)
+//
 func (prc *PullRequestsCreate) OnConflict(opts ...sql.ConflictOption) *PullRequestsUpsertOne {
 	prc.conflict = opts
 	return &PullRequestsUpsertOne{
@@ -309,6 +310,7 @@ func (prc *PullRequestsCreate) OnConflict(opts ...sql.ConflictOption) *PullReque
 //	client.PullRequests.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
+//
 func (prc *PullRequestsCreate) OnConflictColumns(columns ...string) *PullRequestsUpsertOne {
 	prc.conflict = append(prc.conflict, sql.ConflictColumns(columns...))
 	return &PullRequestsUpsertOne{
@@ -451,6 +453,7 @@ func (u *PullRequestsUpsert) UpdateTitle() *PullRequestsUpsert {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
+//
 func (u *PullRequestsUpsertOne) UpdateNewValues() *PullRequestsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -464,9 +467,10 @@ func (u *PullRequestsUpsertOne) UpdateNewValues() *PullRequestsUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//	client.PullRequests.Create().
-//	    OnConflict(sql.ResolveWithIgnore()).
-//	    Exec(ctx)
+//  client.PullRequests.Create().
+//      OnConflict(sql.ResolveWithIgnore()).
+//      Exec(ctx)
+//
 func (u *PullRequestsUpsertOne) Ignore() *PullRequestsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -755,6 +759,7 @@ func (prcb *PullRequestsCreateBulk) ExecX(ctx context.Context) {
 //			SetPrID(v+v).
 //		}).
 //		Exec(ctx)
+//
 func (prcb *PullRequestsCreateBulk) OnConflict(opts ...sql.ConflictOption) *PullRequestsUpsertBulk {
 	prcb.conflict = opts
 	return &PullRequestsUpsertBulk{
@@ -768,6 +773,7 @@ func (prcb *PullRequestsCreateBulk) OnConflict(opts ...sql.ConflictOption) *Pull
 //	client.PullRequests.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
+//
 func (prcb *PullRequestsCreateBulk) OnConflictColumns(columns ...string) *PullRequestsUpsertBulk {
 	prcb.conflict = append(prcb.conflict, sql.ConflictColumns(columns...))
 	return &PullRequestsUpsertBulk{
@@ -789,6 +795,7 @@ type PullRequestsUpsertBulk struct {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
+//
 func (u *PullRequestsUpsertBulk) UpdateNewValues() *PullRequestsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -807,6 +814,7 @@ func (u *PullRequestsUpsertBulk) UpdateNewValues() *PullRequestsUpsertBulk {
 //	client.PullRequests.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
+//
 func (u *PullRequestsUpsertBulk) Ignore() *PullRequestsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u

@@ -89,6 +89,18 @@ func (pjc *ProwJobsCreate) SetCiFailed(i int16) *ProwJobsCreate {
 	return pjc
 }
 
+// SetE2eFailedTestMessages sets the "e2e_failed_test_messages" field.
+func (pjc *ProwJobsCreate) SetE2eFailedTestMessages(s string) *ProwJobsCreate {
+	pjc.mutation.SetE2eFailedTestMessages(s)
+	return pjc
+}
+
+// SetSuitesXMLURL sets the "suites_xml_url" field.
+func (pjc *ProwJobsCreate) SetSuitesXMLURL(s string) *ProwJobsCreate {
+	pjc.mutation.SetSuitesXMLURL(s)
+	return pjc
+}
+
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
 func (pjc *ProwJobsCreate) SetProwJobsID(id string) *ProwJobsCreate {
 	pjc.mutation.SetProwJobsID(id)
@@ -175,6 +187,12 @@ func (pjc *ProwJobsCreate) check() error {
 	if _, ok := pjc.mutation.CiFailed(); !ok {
 		return &ValidationError{Name: "ci_failed", err: errors.New(`db: missing required field "ProwJobs.ci_failed"`)}
 	}
+	if _, ok := pjc.mutation.E2eFailedTestMessages(); !ok {
+		return &ValidationError{Name: "e2e_failed_test_messages", err: errors.New(`db: missing required field "ProwJobs.e2e_failed_test_messages"`)}
+	}
+	if _, ok := pjc.mutation.SuitesXMLURL(); !ok {
+		return &ValidationError{Name: "suites_xml_url", err: errors.New(`db: missing required field "ProwJobs.suites_xml_url"`)}
+	}
 	return nil
 }
 
@@ -252,6 +270,14 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 		_spec.SetField(prowjobs.FieldCiFailed, field.TypeInt16, value)
 		_node.CiFailed = value
 	}
+	if value, ok := pjc.mutation.E2eFailedTestMessages(); ok {
+		_spec.SetField(prowjobs.FieldE2eFailedTestMessages, field.TypeString, value)
+		_node.E2eFailedTestMessages = &value
+	}
+	if value, ok := pjc.mutation.SuitesXMLURL(); ok {
+		_spec.SetField(prowjobs.FieldSuitesXMLURL, field.TypeString, value)
+		_node.SuitesXMLURL = &value
+	}
 	if nodes := pjc.mutation.ProwJobsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -291,6 +317,7 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 //			SetJobID(v+v).
 //		}).
 //		Exec(ctx)
+//
 func (pjc *ProwJobsCreate) OnConflict(opts ...sql.ConflictOption) *ProwJobsUpsertOne {
 	pjc.conflict = opts
 	return &ProwJobsUpsertOne{
@@ -304,6 +331,7 @@ func (pjc *ProwJobsCreate) OnConflict(opts ...sql.ConflictOption) *ProwJobsUpser
 //	client.ProwJobs.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
+//
 func (pjc *ProwJobsCreate) OnConflictColumns(columns ...string) *ProwJobsUpsertOne {
 	pjc.conflict = append(pjc.conflict, sql.ConflictColumns(columns...))
 	return &ProwJobsUpsertOne{
@@ -486,6 +514,30 @@ func (u *ProwJobsUpsert) AddCiFailed(v int16) *ProwJobsUpsert {
 	return u
 }
 
+// SetE2eFailedTestMessages sets the "e2e_failed_test_messages" field.
+func (u *ProwJobsUpsert) SetE2eFailedTestMessages(v string) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldE2eFailedTestMessages, v)
+	return u
+}
+
+// UpdateE2eFailedTestMessages sets the "e2e_failed_test_messages" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateE2eFailedTestMessages() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldE2eFailedTestMessages)
+	return u
+}
+
+// SetSuitesXMLURL sets the "suites_xml_url" field.
+func (u *ProwJobsUpsert) SetSuitesXMLURL(v string) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldSuitesXMLURL, v)
+	return u
+}
+
+// UpdateSuitesXMLURL sets the "suites_xml_url" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateSuitesXMLURL() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldSuitesXMLURL)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -494,6 +546,7 @@ func (u *ProwJobsUpsert) AddCiFailed(v int16) *ProwJobsUpsert {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
+//
 func (u *ProwJobsUpsertOne) UpdateNewValues() *ProwJobsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	return u
@@ -502,9 +555,10 @@ func (u *ProwJobsUpsertOne) UpdateNewValues() *ProwJobsUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//	client.ProwJobs.Create().
-//	    OnConflict(sql.ResolveWithIgnore()).
-//	    Exec(ctx)
+//  client.ProwJobs.Create().
+//      OnConflict(sql.ResolveWithIgnore()).
+//      Exec(ctx)
+//
 func (u *ProwJobsUpsertOne) Ignore() *ProwJobsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -715,6 +769,34 @@ func (u *ProwJobsUpsertOne) UpdateCiFailed() *ProwJobsUpsertOne {
 	})
 }
 
+// SetE2eFailedTestMessages sets the "e2e_failed_test_messages" field.
+func (u *ProwJobsUpsertOne) SetE2eFailedTestMessages(v string) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetE2eFailedTestMessages(v)
+	})
+}
+
+// UpdateE2eFailedTestMessages sets the "e2e_failed_test_messages" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateE2eFailedTestMessages() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateE2eFailedTestMessages()
+	})
+}
+
+// SetSuitesXMLURL sets the "suites_xml_url" field.
+func (u *ProwJobsUpsertOne) SetSuitesXMLURL(v string) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetSuitesXMLURL(v)
+	})
+}
+
+// UpdateSuitesXMLURL sets the "suites_xml_url" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateSuitesXMLURL() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateSuitesXMLURL()
+	})
+}
+
 // Exec executes the query.
 func (u *ProwJobsUpsertOne) Exec(ctx context.Context) error {
 	if len(u.create.conflict) == 0 {
@@ -848,6 +930,7 @@ func (pjcb *ProwJobsCreateBulk) ExecX(ctx context.Context) {
 //			SetJobID(v+v).
 //		}).
 //		Exec(ctx)
+//
 func (pjcb *ProwJobsCreateBulk) OnConflict(opts ...sql.ConflictOption) *ProwJobsUpsertBulk {
 	pjcb.conflict = opts
 	return &ProwJobsUpsertBulk{
@@ -861,6 +944,7 @@ func (pjcb *ProwJobsCreateBulk) OnConflict(opts ...sql.ConflictOption) *ProwJobs
 //	client.ProwJobs.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
+//
 func (pjcb *ProwJobsCreateBulk) OnConflictColumns(columns ...string) *ProwJobsUpsertBulk {
 	pjcb.conflict = append(pjcb.conflict, sql.ConflictColumns(columns...))
 	return &ProwJobsUpsertBulk{
@@ -882,6 +966,7 @@ type ProwJobsUpsertBulk struct {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
+//
 func (u *ProwJobsUpsertBulk) UpdateNewValues() *ProwJobsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	return u
@@ -893,6 +978,7 @@ func (u *ProwJobsUpsertBulk) UpdateNewValues() *ProwJobsUpsertBulk {
 //	client.ProwJobs.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
+//
 func (u *ProwJobsUpsertBulk) Ignore() *ProwJobsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -1100,6 +1186,34 @@ func (u *ProwJobsUpsertBulk) AddCiFailed(v int16) *ProwJobsUpsertBulk {
 func (u *ProwJobsUpsertBulk) UpdateCiFailed() *ProwJobsUpsertBulk {
 	return u.Update(func(s *ProwJobsUpsert) {
 		s.UpdateCiFailed()
+	})
+}
+
+// SetE2eFailedTestMessages sets the "e2e_failed_test_messages" field.
+func (u *ProwJobsUpsertBulk) SetE2eFailedTestMessages(v string) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetE2eFailedTestMessages(v)
+	})
+}
+
+// UpdateE2eFailedTestMessages sets the "e2e_failed_test_messages" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateE2eFailedTestMessages() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateE2eFailedTestMessages()
+	})
+}
+
+// SetSuitesXMLURL sets the "suites_xml_url" field.
+func (u *ProwJobsUpsertBulk) SetSuitesXMLURL(v string) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetSuitesXMLURL(v)
+	})
+}
+
+// UpdateSuitesXMLURL sets the "suites_xml_url" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateSuitesXMLURL() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateSuitesXMLURL()
 	})
 }
 

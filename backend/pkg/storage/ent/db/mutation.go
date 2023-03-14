@@ -1597,31 +1597,33 @@ func (m *CodeCovMutation) ResetEdge(name string) error {
 // ProwJobsMutation represents an operation that mutates the ProwJobs nodes in the graph.
 type ProwJobsMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *int
-	job_id           *string
-	created_at       *time.Time
-	duration         *float64
-	addduration      *float64
-	tests_count      *int64
-	addtests_count   *int64
-	failed_count     *int64
-	addfailed_count  *int64
-	skipped_count    *int64
-	addskipped_count *int64
-	job_name         *string
-	job_type         *string
-	state            *string
-	job_url          *string
-	ci_failed        *int16
-	addci_failed     *int16
-	clearedFields    map[string]struct{}
-	prow_jobs        *string
-	clearedprow_jobs bool
-	done             bool
-	oldValue         func(context.Context) (*ProwJobs, error)
-	predicates       []predicate.ProwJobs
+	op                       Op
+	typ                      string
+	id                       *int
+	job_id                   *string
+	created_at               *time.Time
+	duration                 *float64
+	addduration              *float64
+	tests_count              *int64
+	addtests_count           *int64
+	failed_count             *int64
+	addfailed_count          *int64
+	skipped_count            *int64
+	addskipped_count         *int64
+	job_name                 *string
+	job_type                 *string
+	state                    *string
+	job_url                  *string
+	ci_failed                *int16
+	addci_failed             *int16
+	e2e_failed_test_messages *string
+	suites_xml_url           *string
+	clearedFields            map[string]struct{}
+	prow_jobs                *string
+	clearedprow_jobs         bool
+	done                     bool
+	oldValue                 func(context.Context) (*ProwJobs, error)
+	predicates               []predicate.ProwJobs
 }
 
 var _ ent.Mutation = (*ProwJobsMutation)(nil)
@@ -2218,6 +2220,78 @@ func (m *ProwJobsMutation) ResetCiFailed() {
 	m.addci_failed = nil
 }
 
+// SetE2eFailedTestMessages sets the "e2e_failed_test_messages" field.
+func (m *ProwJobsMutation) SetE2eFailedTestMessages(s string) {
+	m.e2e_failed_test_messages = &s
+}
+
+// E2eFailedTestMessages returns the value of the "e2e_failed_test_messages" field in the mutation.
+func (m *ProwJobsMutation) E2eFailedTestMessages() (r string, exists bool) {
+	v := m.e2e_failed_test_messages
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldE2eFailedTestMessages returns the old "e2e_failed_test_messages" field's value of the ProwJobs entity.
+// If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwJobsMutation) OldE2eFailedTestMessages(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldE2eFailedTestMessages is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldE2eFailedTestMessages requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldE2eFailedTestMessages: %w", err)
+	}
+	return oldValue.E2eFailedTestMessages, nil
+}
+
+// ResetE2eFailedTestMessages resets all changes to the "e2e_failed_test_messages" field.
+func (m *ProwJobsMutation) ResetE2eFailedTestMessages() {
+	m.e2e_failed_test_messages = nil
+}
+
+// SetSuitesXMLURL sets the "suites_xml_url" field.
+func (m *ProwJobsMutation) SetSuitesXMLURL(s string) {
+	m.suites_xml_url = &s
+}
+
+// SuitesXMLURL returns the value of the "suites_xml_url" field in the mutation.
+func (m *ProwJobsMutation) SuitesXMLURL() (r string, exists bool) {
+	v := m.suites_xml_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSuitesXMLURL returns the old "suites_xml_url" field's value of the ProwJobs entity.
+// If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwJobsMutation) OldSuitesXMLURL(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSuitesXMLURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSuitesXMLURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSuitesXMLURL: %w", err)
+	}
+	return oldValue.SuitesXMLURL, nil
+}
+
+// ResetSuitesXMLURL resets all changes to the "suites_xml_url" field.
+func (m *ProwJobsMutation) ResetSuitesXMLURL() {
+	m.suites_xml_url = nil
+}
+
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by id.
 func (m *ProwJobsMutation) SetProwJobsID(id string) {
 	m.prow_jobs = &id
@@ -2291,7 +2365,7 @@ func (m *ProwJobsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProwJobsMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 13)
 	if m.job_id != nil {
 		fields = append(fields, prowjobs.FieldJobID)
 	}
@@ -2325,6 +2399,12 @@ func (m *ProwJobsMutation) Fields() []string {
 	if m.ci_failed != nil {
 		fields = append(fields, prowjobs.FieldCiFailed)
 	}
+	if m.e2e_failed_test_messages != nil {
+		fields = append(fields, prowjobs.FieldE2eFailedTestMessages)
+	}
+	if m.suites_xml_url != nil {
+		fields = append(fields, prowjobs.FieldSuitesXMLURL)
+	}
 	return fields
 }
 
@@ -2355,6 +2435,10 @@ func (m *ProwJobsMutation) Field(name string) (ent.Value, bool) {
 		return m.JobURL()
 	case prowjobs.FieldCiFailed:
 		return m.CiFailed()
+	case prowjobs.FieldE2eFailedTestMessages:
+		return m.E2eFailedTestMessages()
+	case prowjobs.FieldSuitesXMLURL:
+		return m.SuitesXMLURL()
 	}
 	return nil, false
 }
@@ -2386,6 +2470,10 @@ func (m *ProwJobsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldJobURL(ctx)
 	case prowjobs.FieldCiFailed:
 		return m.OldCiFailed(ctx)
+	case prowjobs.FieldE2eFailedTestMessages:
+		return m.OldE2eFailedTestMessages(ctx)
+	case prowjobs.FieldSuitesXMLURL:
+		return m.OldSuitesXMLURL(ctx)
 	}
 	return nil, fmt.Errorf("unknown ProwJobs field %s", name)
 }
@@ -2471,6 +2559,20 @@ func (m *ProwJobsMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCiFailed(v)
+		return nil
+	case prowjobs.FieldE2eFailedTestMessages:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetE2eFailedTestMessages(v)
+		return nil
+	case prowjobs.FieldSuitesXMLURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSuitesXMLURL(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ProwJobs field %s", name)
@@ -2616,6 +2718,12 @@ func (m *ProwJobsMutation) ResetField(name string) error {
 		return nil
 	case prowjobs.FieldCiFailed:
 		m.ResetCiFailed()
+		return nil
+	case prowjobs.FieldE2eFailedTestMessages:
+		m.ResetE2eFailedTestMessages()
+		return nil
+	case prowjobs.FieldSuitesXMLURL:
+		m.ResetSuitesXMLURL()
 		return nil
 	}
 	return fmt.Errorf("unknown ProwJobs field %s", name)
