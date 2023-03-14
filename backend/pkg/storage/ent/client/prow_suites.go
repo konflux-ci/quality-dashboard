@@ -8,7 +8,6 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 )
 
-// CreateProwJobResults save provided repository information in database.
 func (d *Database) CreateProwJobSuites(suites prowV1Alpha1.JobSuites, repo_id string) error {
 	c, err := d.client.ProwSuites.Create().
 		SetJobID(suites.JobID).
@@ -26,8 +25,8 @@ func (d *Database) CreateProwJobSuites(suites prowV1Alpha1.JobSuites, repo_id st
 	return nil
 }
 
-func (d *Database) GetProwJobsResults(db *db.Repository) ([]*db.ProwSuites, error) {
-	prowJobs, err := d.client.Repository.QueryProwSuites(db).Where().All(context.TODO())
+func (d *Database) GetProwJobsResults(db *db.Repository) ([]*db.ProwJobs, error) {
+	prowJobs, err := d.client.Repository.QueryProwJobs(db).Where().All(context.TODO())
 
 	if err != nil {
 		return nil, convertDBError("get repository: %w", err)

@@ -40,6 +40,7 @@ func (s *Server) ProwStaticUpdate(storageRepos []repoV1Alpha1.Repository, prowjo
 	for _, repo := range storageRepos {
 		for _, pj := range prowjobs {
 			suitesXml := prow.TestSuites{}
+			suitesXmlUrl := ""
 			prowOrg, prowRepo := ExtractOrgAndRepoFromProwJobLabels(pj.Labels)
 
 			if prowOrg == repo.Owner.Login && prowRepo == repo.Name && pj.Status.State != prow.AbortedState && pj.Status.State != prow.PendingState && !strings.Contains(pj.Status.URL, "-images") && !strings.Contains(pj.Status.URL, "-index") {
@@ -53,16 +54,17 @@ func (s *Server) ProwStaticUpdate(storageRepos []repoV1Alpha1.Repository, prowjo
 				pj.Status.URL = strings.Replace(pj.Status.URL, "https://prow.ci.openshift.org/view/gs", "https://gcsweb-ci.apps.ci.l2s4.p1.openshiftapps.com/gcs", 1)
 				matches := RegexpCompiler.FindStringSubmatch(pj.Status.URL)
 
-				if !strings.Contains(pj.Status.URL, "-main-images") && pj.Status.State != prow.ErrorState && pj.Spec.Type == "periodic" && prowOrg == "redhat-appstudio" && len(matches) > 1 {
+				if !strings.Contains(pj.Status.URL, "-main-images") && pj.Status.State != prow.ErrorState && prowOrg == "redhat-appstudio" && len(matches) > 1 {
 					// convert the url to get GCS url where are stored the artifacts for appstudio
-					suites, _ := fetchSuitesXml(pj.Status.URL + "/" + "artifacts/" + matches[2] + "/" + matches[2] + "/artifacts/e2e-report.xml")
+					suitesXmlUrl = pj.Status.URL + "/" + "artifacts/" + matches[2] + "/redhat-appstudio-e2e/artifacts/e2e-report.xml"
+					suites, _ := fetchSuitesXml(suitesXmlUrl)
 					// we unmarshal our byteArray which contains our
 					// xmlFiles content into 'suitesXml' which we defined above
 					if err := xml.Unmarshal(suites, &suitesXml); err != nil {
 						s.cfg.Logger.Sugar().Warnf("Failed convert xml file to golang bytes ", err)
 					}
 				}
-				if err := SaveProwJobsinDatabase(s.cfg.Storage, pj, suitesXml, repo.ID); err != nil {
+				if err := SaveProwJobsinDatabase(s.cfg.Storage, pj, suitesXml, repo.ID, suitesXmlUrl); err != nil {
 					s.cfg.Logger.Sugar().Error("Failed to save job database ", err)
 				}
 			}
@@ -70,21 +72,23 @@ func (s *Server) ProwStaticUpdate(storageRepos []repoV1Alpha1.Repository, prowjo
 	}
 }
 
-func SaveProwJobsinDatabase(s storage.Storage, pj prow.ProwJob, ts prow.TestSuites, repositoryId string) error {
+func SaveProwJobsinDatabase(s storage.Storage, pj prow.ProwJob, ts prow.TestSuites, repositoryId, suitesXmlUrl string) error {
 	prowJob := prowV1Alpha1.Job{}
-	duration, numTests, testFailed, testSkipped := getSuitesData(pj, ts)
+	testSuiteSummary := getSuitesData(pj, ts)
 
 	prowJob.JobID = pj.Status.BuildID
 	prowJob.CreatedAt = pj.Status.StartTime
-	prowJob.Duration = duration
-	prowJob.TestsCount = int64(numTests)
-	prowJob.FailedCount = int64(testFailed)
-	prowJob.SkippedCount = int64(testSkipped)
+	prowJob.Duration = testSuiteSummary.Duration
+	prowJob.TestsCount = int64(testSuiteSummary.NumTests)
+	prowJob.FailedCount = int64(testSuiteSummary.TestFailed)
+	prowJob.SkippedCount = int64(testSuiteSummary.TestSkipped)
 	prowJob.JobType = pj.Spec.Type
 	prowJob.JobName = pj.GetAnnotations()["prow.k8s.io/job"]
 	prowJob.State = string(pj.Status.State)
 	prowJob.JobURL = pj.Status.URL
 	prowJob.CIFailed = getCIFailed(pj, ts)
+	prowJob.E2EFailedTestMessages = testSuiteSummary.E2EFailedMessages
+	prowJob.SuitesXmlUrl = suitesXmlUrl
 
 	if err := s.CreateProwJobResults(prowJob, repositoryId); err != nil {
 		return fmt.Errorf("failed to save job to db %s", err)
@@ -114,20 +118,38 @@ func getCIFailed(p prow.ProwJob, s prow.TestSuites) int16 {
 	return 0
 }
 
-func getSuitesData(pj prow.ProwJob, ts prow.TestSuites) (float64, int, int, int) {
-	var duration float64 = 0
-	var numTests, testFailed, testSkipped = 0, 0, 0
-	if pj.Spec.Type != "periodic" {
-		return duration, numTests, testFailed, testSkipped
+func getFailureMessages(suite *prow.TestSuite) string {
+	msgs := ""
+
+	for _, testCase := range suite.TestCases {
+		if testCase.Status == "failed" {
+			msg := testCase.Name + ":\n" + testCase.FailureOutput.Message + "\n\n"
+			msgs += msg
+		}
 	}
+	return msgs
+}
+
+type TestSuiteSummary struct {
+	Duration          float64
+	NumTests          int
+	TestFailed        int
+	TestSkipped       int
+	E2EFailedMessages string
+}
+
+func getSuitesData(pj prow.ProwJob, ts prow.TestSuites) TestSuiteSummary {
+	testSuiteSummary := TestSuiteSummary{}
+
 	for _, suite := range ts.Suites {
-		duration = suite.Duration
-		numTests = int(suite.NumTests)
-		testFailed = int(suite.NumFailed)
-		testSkipped = int(suite.NumSkipped)
+		testSuiteSummary.Duration = suite.Duration
+		testSuiteSummary.NumTests = int(suite.NumTests)
+		testSuiteSummary.TestFailed = int(suite.NumFailed)
+		testSuiteSummary.TestSkipped = int(suite.NumSkipped)
+		testSuiteSummary.E2EFailedMessages = getFailureMessages(suite)
 	}
 
-	return duration, numTests, testFailed, testSkipped
+	return testSuiteSummary
 }
 
 func ExtractOrgAndRepoFromProwJobLabels(labels map[string]string) (org string, repo string) {

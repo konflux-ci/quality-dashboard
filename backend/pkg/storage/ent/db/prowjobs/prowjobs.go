@@ -29,6 +29,10 @@ const (
 	FieldJobURL = "job_url"
 	// FieldCiFailed holds the string denoting the ci_failed field in the database.
 	FieldCiFailed = "ci_failed"
+	// FieldE2eFailedTestMessages holds the string denoting the e2e_failed_test_messages field in the database.
+	FieldE2eFailedTestMessages = "e2e_failed_test_messages"
+	// FieldSuitesXMLURL holds the string denoting the suites_xml_url field in the database.
+	FieldSuitesXMLURL = "suites_xml_url"
 	// EdgeProwJobs holds the string denoting the prow_jobs edge name in mutations.
 	EdgeProwJobs = "prow_jobs"
 	// Table holds the table name of the prowjobs in the database.
@@ -56,6 +60,8 @@ var Columns = []string{
 	FieldState,
 	FieldJobURL,
 	FieldCiFailed,
+	FieldE2eFailedTestMessages,
+	FieldSuitesXMLURL,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "prow_jobs"

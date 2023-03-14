@@ -341,6 +341,7 @@ func (bc *BugsCreate) createSpec() (*Bugs, *sqlgraph.CreateSpec) {
 //			SetJiraKey(v+v).
 //		}).
 //		Exec(ctx)
+//
 func (bc *BugsCreate) OnConflict(opts ...sql.ConflictOption) *BugsUpsertOne {
 	bc.conflict = opts
 	return &BugsUpsertOne{
@@ -354,6 +355,7 @@ func (bc *BugsCreate) OnConflict(opts ...sql.ConflictOption) *BugsUpsertOne {
 //	client.Bugs.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
+//
 func (bc *BugsCreate) OnConflictColumns(columns ...string) *BugsUpsertOne {
 	bc.conflict = append(bc.conflict, sql.ConflictColumns(columns...))
 	return &BugsUpsertOne{
@@ -511,6 +513,7 @@ func (u *BugsUpsert) UpdateURL() *BugsUpsert {
 //			}),
 //		).
 //		Exec(ctx)
+//
 func (u *BugsUpsertOne) UpdateNewValues() *BugsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -524,9 +527,10 @@ func (u *BugsUpsertOne) UpdateNewValues() *BugsUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//	client.Bugs.Create().
-//	    OnConflict(sql.ResolveWithIgnore()).
-//	    Exec(ctx)
+//  client.Bugs.Create().
+//      OnConflict(sql.ResolveWithIgnore()).
+//      Exec(ctx)
+//
 func (u *BugsUpsertOne) Ignore() *BugsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -830,6 +834,7 @@ func (bcb *BugsCreateBulk) ExecX(ctx context.Context) {
 //			SetJiraKey(v+v).
 //		}).
 //		Exec(ctx)
+//
 func (bcb *BugsCreateBulk) OnConflict(opts ...sql.ConflictOption) *BugsUpsertBulk {
 	bcb.conflict = opts
 	return &BugsUpsertBulk{
@@ -843,6 +848,7 @@ func (bcb *BugsCreateBulk) OnConflict(opts ...sql.ConflictOption) *BugsUpsertBul
 //	client.Bugs.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
+//
 func (bcb *BugsCreateBulk) OnConflictColumns(columns ...string) *BugsUpsertBulk {
 	bcb.conflict = append(bcb.conflict, sql.ConflictColumns(columns...))
 	return &BugsUpsertBulk{
@@ -867,6 +873,7 @@ type BugsUpsertBulk struct {
 //			}),
 //		).
 //		Exec(ctx)
+//
 func (u *BugsUpsertBulk) UpdateNewValues() *BugsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -885,6 +892,7 @@ func (u *BugsUpsertBulk) UpdateNewValues() *BugsUpsertBulk {
 //	client.Bugs.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
+//
 func (u *BugsUpsertBulk) Ignore() *BugsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u

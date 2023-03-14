@@ -130,6 +130,18 @@ func (pju *ProwJobsUpdate) AddCiFailed(i int16) *ProwJobsUpdate {
 	return pju
 }
 
+// SetE2eFailedTestMessages sets the "e2e_failed_test_messages" field.
+func (pju *ProwJobsUpdate) SetE2eFailedTestMessages(s string) *ProwJobsUpdate {
+	pju.mutation.SetE2eFailedTestMessages(s)
+	return pju
+}
+
+// SetSuitesXMLURL sets the "suites_xml_url" field.
+func (pju *ProwJobsUpdate) SetSuitesXMLURL(s string) *ProwJobsUpdate {
+	pju.mutation.SetSuitesXMLURL(s)
+	return pju
+}
+
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
 func (pju *ProwJobsUpdate) SetProwJobsID(id string) *ProwJobsUpdate {
 	pju.mutation.SetProwJobsID(id)
@@ -252,6 +264,12 @@ func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pju.mutation.AddedCiFailed(); ok {
 		_spec.AddField(prowjobs.FieldCiFailed, field.TypeInt16, value)
+	}
+	if value, ok := pju.mutation.E2eFailedTestMessages(); ok {
+		_spec.SetField(prowjobs.FieldE2eFailedTestMessages, field.TypeString, value)
+	}
+	if value, ok := pju.mutation.SuitesXMLURL(); ok {
+		_spec.SetField(prowjobs.FieldSuitesXMLURL, field.TypeString, value)
 	}
 	if pju.mutation.ProwJobsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -409,6 +427,18 @@ func (pjuo *ProwJobsUpdateOne) AddCiFailed(i int16) *ProwJobsUpdateOne {
 	return pjuo
 }
 
+// SetE2eFailedTestMessages sets the "e2e_failed_test_messages" field.
+func (pjuo *ProwJobsUpdateOne) SetE2eFailedTestMessages(s string) *ProwJobsUpdateOne {
+	pjuo.mutation.SetE2eFailedTestMessages(s)
+	return pjuo
+}
+
+// SetSuitesXMLURL sets the "suites_xml_url" field.
+func (pjuo *ProwJobsUpdateOne) SetSuitesXMLURL(s string) *ProwJobsUpdateOne {
+	pjuo.mutation.SetSuitesXMLURL(s)
+	return pjuo
+}
+
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
 func (pjuo *ProwJobsUpdateOne) SetProwJobsID(id string) *ProwJobsUpdateOne {
 	pjuo.mutation.SetProwJobsID(id)
@@ -555,6 +585,12 @@ func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, er
 	}
 	if value, ok := pjuo.mutation.AddedCiFailed(); ok {
 		_spec.AddField(prowjobs.FieldCiFailed, field.TypeInt16, value)
+	}
+	if value, ok := pjuo.mutation.E2eFailedTestMessages(); ok {
+		_spec.SetField(prowjobs.FieldE2eFailedTestMessages, field.TypeString, value)
+	}
+	if value, ok := pjuo.mutation.SuitesXMLURL(); ok {
+		_spec.SetField(prowjobs.FieldSuitesXMLURL, field.TypeString, value)
 	}
 	if pjuo.mutation.ProwJobsCleared() {
 		edge := &sqlgraph.EdgeSpec{

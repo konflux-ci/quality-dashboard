@@ -110,6 +110,16 @@ func CiFailed(v int16) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldEQ(FieldCiFailed, v))
 }
 
+// E2eFailedTestMessages applies equality check predicate on the "e2e_failed_test_messages" field. It's identical to E2eFailedTestMessagesEQ.
+func E2eFailedTestMessages(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldEQ(FieldE2eFailedTestMessages, v))
+}
+
+// SuitesXMLURL applies equality check predicate on the "suites_xml_url" field. It's identical to SuitesXMLURLEQ.
+func SuitesXMLURL(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldEQ(FieldSuitesXMLURL, v))
+}
+
 // JobIDEQ applies the EQ predicate on the "job_id" field.
 func JobIDEQ(v string) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldEQ(FieldJobID, v))
@@ -673,6 +683,136 @@ func CiFailedLT(v int16) predicate.ProwJobs {
 // CiFailedLTE applies the LTE predicate on the "ci_failed" field.
 func CiFailedLTE(v int16) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldLTE(FieldCiFailed, v))
+}
+
+// E2eFailedTestMessagesEQ applies the EQ predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesEQ(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldEQ(FieldE2eFailedTestMessages, v))
+}
+
+// E2eFailedTestMessagesNEQ applies the NEQ predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesNEQ(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldNEQ(FieldE2eFailedTestMessages, v))
+}
+
+// E2eFailedTestMessagesIn applies the In predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesIn(vs ...string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldIn(FieldE2eFailedTestMessages, vs...))
+}
+
+// E2eFailedTestMessagesNotIn applies the NotIn predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesNotIn(vs ...string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldNotIn(FieldE2eFailedTestMessages, vs...))
+}
+
+// E2eFailedTestMessagesGT applies the GT predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesGT(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldGT(FieldE2eFailedTestMessages, v))
+}
+
+// E2eFailedTestMessagesGTE applies the GTE predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesGTE(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldGTE(FieldE2eFailedTestMessages, v))
+}
+
+// E2eFailedTestMessagesLT applies the LT predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesLT(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldLT(FieldE2eFailedTestMessages, v))
+}
+
+// E2eFailedTestMessagesLTE applies the LTE predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesLTE(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldLTE(FieldE2eFailedTestMessages, v))
+}
+
+// E2eFailedTestMessagesContains applies the Contains predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesContains(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldContains(FieldE2eFailedTestMessages, v))
+}
+
+// E2eFailedTestMessagesHasPrefix applies the HasPrefix predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesHasPrefix(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldHasPrefix(FieldE2eFailedTestMessages, v))
+}
+
+// E2eFailedTestMessagesHasSuffix applies the HasSuffix predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesHasSuffix(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldHasSuffix(FieldE2eFailedTestMessages, v))
+}
+
+// E2eFailedTestMessagesEqualFold applies the EqualFold predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesEqualFold(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldEqualFold(FieldE2eFailedTestMessages, v))
+}
+
+// E2eFailedTestMessagesContainsFold applies the ContainsFold predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesContainsFold(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldContainsFold(FieldE2eFailedTestMessages, v))
+}
+
+// SuitesXMLURLEQ applies the EQ predicate on the "suites_xml_url" field.
+func SuitesXMLURLEQ(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldEQ(FieldSuitesXMLURL, v))
+}
+
+// SuitesXMLURLNEQ applies the NEQ predicate on the "suites_xml_url" field.
+func SuitesXMLURLNEQ(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldNEQ(FieldSuitesXMLURL, v))
+}
+
+// SuitesXMLURLIn applies the In predicate on the "suites_xml_url" field.
+func SuitesXMLURLIn(vs ...string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldIn(FieldSuitesXMLURL, vs...))
+}
+
+// SuitesXMLURLNotIn applies the NotIn predicate on the "suites_xml_url" field.
+func SuitesXMLURLNotIn(vs ...string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldNotIn(FieldSuitesXMLURL, vs...))
+}
+
+// SuitesXMLURLGT applies the GT predicate on the "suites_xml_url" field.
+func SuitesXMLURLGT(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldGT(FieldSuitesXMLURL, v))
+}
+
+// SuitesXMLURLGTE applies the GTE predicate on the "suites_xml_url" field.
+func SuitesXMLURLGTE(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldGTE(FieldSuitesXMLURL, v))
+}
+
+// SuitesXMLURLLT applies the LT predicate on the "suites_xml_url" field.
+func SuitesXMLURLLT(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldLT(FieldSuitesXMLURL, v))
+}
+
+// SuitesXMLURLLTE applies the LTE predicate on the "suites_xml_url" field.
+func SuitesXMLURLLTE(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldLTE(FieldSuitesXMLURL, v))
+}
+
+// SuitesXMLURLContains applies the Contains predicate on the "suites_xml_url" field.
+func SuitesXMLURLContains(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldContains(FieldSuitesXMLURL, v))
+}
+
+// SuitesXMLURLHasPrefix applies the HasPrefix predicate on the "suites_xml_url" field.
+func SuitesXMLURLHasPrefix(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldHasPrefix(FieldSuitesXMLURL, v))
+}
+
+// SuitesXMLURLHasSuffix applies the HasSuffix predicate on the "suites_xml_url" field.
+func SuitesXMLURLHasSuffix(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldHasSuffix(FieldSuitesXMLURL, v))
+}
+
+// SuitesXMLURLEqualFold applies the EqualFold predicate on the "suites_xml_url" field.
+func SuitesXMLURLEqualFold(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldEqualFold(FieldSuitesXMLURL, v))
+}
+
+// SuitesXMLURLContainsFold applies the ContainsFold predicate on the "suites_xml_url" field.
+func SuitesXMLURLContainsFold(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldContainsFold(FieldSuitesXMLURL, v))
 }
 
 // HasProwJobs applies the HasEdge predicate on the "prow_jobs" edge.

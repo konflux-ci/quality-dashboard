@@ -16,7 +16,7 @@ import SearchIcon from '@patternfly/react-icons/dist/esm/icons/search-icon';
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
-import { getAllRepositoriesWithOrgs, getJobTypes, getLatestProwJob, getProwJobStatistics } from '@app/utils/APIService';
+import { getAllRepositoriesWithOrgs, getJobTypes, getLatestProwJob, getProwJobStatistics, getProwJobs } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
 import {
   JobsStatistics,
@@ -33,6 +33,7 @@ import { isValidTeam } from '@app/utils/utils';
 import { formatDate, getRangeDates } from './utils';
 import { DateTimeRangePicker } from '../utils/DateTimeRangePicker';
 import { Table, TableBody, TableHeader, TableProps, cellWidth, info, sortable } from '@patternfly/react-table';
+import { FailedE2ETests, Job, getFailedProwJobsInE2ETests } from './FailedE2ETests';
 
 // eslint-disable-next-line prefer-const
 let Reports = () => {
@@ -228,7 +229,7 @@ let Reports = () => {
   const [selectedJob, setSelectedJob] = useState(0)
   const [prowJobsStats, setprowJobsStats] = useState<JobsStatistics | null>(null);
   const [prowJobSuite, setProwJobSuite] = useState([])
-
+  const [prowJobs, setProwJobs] = useState<Job[] | null>(null);
 
   // Get the prow jobs from API
   const getProwJob = async () => {
@@ -245,6 +246,9 @@ let Reports = () => {
       }
       // Get statistics and metrics
       const stats = await getProwJobStatistics(repoName, repoOrg, jobType, rangeDateTime)
+      // Get jobs
+      const prowJobs = await getProwJobs(repoName, repoOrg)
+      setProwJobs(prowJobs)
       // Set UI for showing data and disable spinner
       setprowJobsStats(stats)
       setLoadingState(false)
@@ -536,9 +540,13 @@ let Reports = () => {
               <GridItem span={8} rowSpan={5}><DashboardLineChart data={beautifiedData}></DashboardLineChart></GridItem>
               <GridItem span={4} rowSpan={1}><DashboardCard cardType={'help'} title="About this dashboard" body="Set of metrics gathered from Openshift CI"></DashboardCard></GridItem>
 
-              <GridItem span={12}>
+              {prowJobs != null && <GridItem span={12}>
+                <FailedE2ETests failedProwJobs={getFailedProwJobsInE2ETests(prowJobs)}></FailedE2ETests>
+              </GridItem>}
+
+              {jobType == "periodic" && <GridItem span={12}>
                 <Card style={{ width: "100%", height: "100%", fontSize: "1rem" }}>
-                  <CardTitle>Test suites details</CardTitle>
+                  <CardTitle>Last Prow Job Test Suites Details</CardTitle>
                   <CardBody>
                     <Table
                       sortBy={{
@@ -567,6 +575,7 @@ let Reports = () => {
                   </CardBody>
                 </Card>
               </GridItem>
+              }
             </Grid>
             }
 
