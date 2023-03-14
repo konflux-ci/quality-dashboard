@@ -35,21 +35,21 @@ Different specific connectors are developed to pull data from different sources:
 
 The database will retain last 10 days of CI job executions. 
 
-##### About entgo framewrok
+##### About entgo framework
 Ent is an Object Relational Mapping (ORM) framework for modeling any database schema as Go objects. The only thing you need to do is to define a schema and Ent will handle the rest. Your schema will be validated first, then Ent will generate a well-typed and idiomatic API.
 The generated API is used to manage the data and will contain:
 * Client objects used to interact with the database
 * CRUD builders for each schema type
 * Entity object (Go struct) for each the schema type
 
-You can use such generated code to build your endopints and manipulate the database in an easy and programmatic way. 
+You can use such generated code to build your endpoints and manipulate the database in an easy and programmatic way. 
 
 The schema for Quality Dashboard data types is located [here](https://github.com/redhat-appstudio/quality-dashboard/tree/main/backend/pkg/storage/ent/schema). You can refer to entgo [documentation](https://entgo.io/docs/schema-def) for syntax details. 
 
 After adding new data types to the schema (or editing the existing ones), you have to execute the following command in `backend/pkg/storage/ent` to re-build the model:
 
 ```
-go run -mod=mod entgo.io/ent/cmd/ent generate ./schema --target ./db
+go run -mod=mod entgo.io/ent/cmd/ent generate ./schema --target ./db --feature sql/upsert
 ```
 
 The generated code will be saved into the `backend/pkg/storage/ent/db` folder.

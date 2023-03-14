@@ -20,11 +20,18 @@ export interface Job {
     job_name: string;
 }
 
+const isValid = (e2e_failed_test_messages) => {
+   if (e2e_failed_test_messages == "" || e2e_failed_test_messages == undefined) {
+       return false
+   }
+   return true
+}
+
 export const getFailedProwJobsInE2ETests = (prowJobs: Job[], jobType: string) => {
     const failedProwJobs = new Array<Job>
 
     prowJobs?.map(job => {
-        if ((job.e2e_failed_test_messages != undefined) && job.job_type == jobType) {
+        if (isValid(job.e2e_failed_test_messages) && job.job_type == jobType) {
             failedProwJobs.push(job)
         }
     })

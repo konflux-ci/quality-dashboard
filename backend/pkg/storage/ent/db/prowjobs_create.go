@@ -272,11 +272,11 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := pjc.mutation.E2eFailedTestMessages(); ok {
 		_spec.SetField(prowjobs.FieldE2eFailedTestMessages, field.TypeString, value)
-		_node.E2eFailedTestMessages = value
+		_node.E2eFailedTestMessages = &value
 	}
 	if value, ok := pjc.mutation.SuitesXMLURL(); ok {
 		_spec.SetField(prowjobs.FieldSuitesXMLURL, field.TypeString, value)
-		_node.SuitesXMLURL = value
+		_node.SuitesXMLURL = &value
 	}
 	if nodes := pjc.mutation.ProwJobsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

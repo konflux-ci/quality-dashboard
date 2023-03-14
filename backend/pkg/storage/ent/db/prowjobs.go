@@ -40,9 +40,9 @@ type ProwJobs struct {
 	// CiFailed holds the value of the "ci_failed" field.
 	CiFailed int16 `json:"ci_failed,omitempty"`
 	// E2eFailedTestMessages holds the value of the "e2e_failed_test_messages" field.
-	E2eFailedTestMessages string `json:"e2e_failed_test_messages,omitempty"`
+	E2eFailedTestMessages *string `json:"e2e_failed_test_messages,omitempty"`
 	// SuitesXMLURL holds the value of the "suites_xml_url" field.
-	SuitesXMLURL string `json:"suites_xml_url,omitempty"`
+	SuitesXMLURL *string `json:"suites_xml_url,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProwJobsQuery when eager-loading is set.
 	Edges                ProwJobsEdges `json:"edges"`
@@ -177,13 +177,15 @@ func (pj *ProwJobs) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field e2e_failed_test_messages", values[i])
 			} else if value.Valid {
-				pj.E2eFailedTestMessages = value.String
+				pj.E2eFailedTestMessages = new(string)
+				*pj.E2eFailedTestMessages = value.String
 			}
 		case prowjobs.FieldSuitesXMLURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field suites_xml_url", values[i])
 			} else if value.Valid {
-				pj.SuitesXMLURL = value.String
+				pj.SuitesXMLURL = new(string)
+				*pj.SuitesXMLURL = value.String
 			}
 		case prowjobs.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -258,11 +260,15 @@ func (pj *ProwJobs) String() string {
 	builder.WriteString("ci_failed=")
 	builder.WriteString(fmt.Sprintf("%v", pj.CiFailed))
 	builder.WriteString(", ")
-	builder.WriteString("e2e_failed_test_messages=")
-	builder.WriteString(pj.E2eFailedTestMessages)
+	if v := pj.E2eFailedTestMessages; v != nil {
+		builder.WriteString("e2e_failed_test_messages=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
-	builder.WriteString("suites_xml_url=")
-	builder.WriteString(pj.SuitesXMLURL)
+	if v := pj.SuitesXMLURL; v != nil {
+		builder.WriteString("suites_xml_url=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

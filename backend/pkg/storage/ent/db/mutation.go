@@ -2237,7 +2237,7 @@ func (m *ProwJobsMutation) E2eFailedTestMessages() (r string, exists bool) {
 // OldE2eFailedTestMessages returns the old "e2e_failed_test_messages" field's value of the ProwJobs entity.
 // If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProwJobsMutation) OldE2eFailedTestMessages(ctx context.Context) (v string, err error) {
+func (m *ProwJobsMutation) OldE2eFailedTestMessages(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldE2eFailedTestMessages is only allowed on UpdateOne operations")
 	}
@@ -2273,7 +2273,7 @@ func (m *ProwJobsMutation) SuitesXMLURL() (r string, exists bool) {
 // OldSuitesXMLURL returns the old "suites_xml_url" field's value of the ProwJobs entity.
 // If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProwJobsMutation) OldSuitesXMLURL(ctx context.Context) (v string, err error) {
+func (m *ProwJobsMutation) OldSuitesXMLURL(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSuitesXMLURL is only allowed on UpdateOne operations")
 	}
