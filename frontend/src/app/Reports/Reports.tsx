@@ -541,7 +541,7 @@ let Reports = () => {
               <GridItem span={4} rowSpan={1}><DashboardCard cardType={'help'} title="About this dashboard" body="Set of metrics gathered from Openshift CI"></DashboardCard></GridItem>
 
               {prowJobs != null && <GridItem span={12}>
-                <FailedE2ETests failedProwJobs={getFailedProwJobsInE2ETests(prowJobs)}></FailedE2ETests>
+                <FailedE2ETests failedProwJobs={getFailedProwJobsInE2ETests(prowJobs, jobType)} jobType={jobType}></FailedE2ETests>
               </GridItem>}
 
               {jobType == "periodic" && <GridItem span={12}>

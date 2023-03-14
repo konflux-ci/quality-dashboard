@@ -20,22 +20,23 @@ export interface Job {
     job_name: string;
 }
 
-export const getFailedProwJobsInE2ETests = (prowJobs: Job[]) => {
+export const getFailedProwJobsInE2ETests = (prowJobs: Job[], jobType: string) => {
     const failedProwJobs = new Array<Job>
 
     prowJobs?.map(job => {
-        if (job.e2e_failed_test_messages != undefined) {
+        if ((job.e2e_failed_test_messages != undefined) && job.job_type == jobType) {
             failedProwJobs.push(job)
         }
     })
 
-    failedProwJobs.sort((a, b) => (a.created_at < b.created_at ? -1 : 1));
+    // descending order (newest first)
+    failedProwJobs.sort((a, b) => (a.created_at > b.created_at ? -1 : 1));
 
     return failedProwJobs
 }
 
 
-export const FailedE2ETests: React.FC<{ failedProwJobs: any }> = ({ failedProwJobs }) => {
+export const FailedE2ETests: React.FC<{ failedProwJobs: any, jobType: string }> = ({ failedProwJobs, jobType }) => {
     const [failedProwJobsPage, setFailedProwJobsPage] = React.useState<Array<Job>>([]);
     const [page, setPage] = React.useState(1);
     const [perPage, setPerPage] = React.useState(4);
@@ -77,58 +78,60 @@ export const FailedE2ETests: React.FC<{ failedProwJobs: any }> = ({ failedProwJo
 
 
     return (
-        <Card style={{ width: "100%", height: "100%", fontSize: "1rem" }}>
-            <CardTitle>Total Failed Jobs In E2E Tests ({failedProwJobs.length})</CardTitle>
-            <CardBody>
-                <Pagination
-                    perPageComponent="button"
-                    itemCount={failedProwJobs.length}
-                    perPage={perPage}
-                    page={page}
-                    onSetPage={onSetPage}
-                    widgetId="top-example"
-                    onPerPageSelect={onPerPageSelect}
-                />
-                <TableComposable aria-label="Actions table">
-                    <Thead>
-                        <Tr>
-                            <Th>{columnsTests.date}</Th>
-                            <Th>{columnsTests.job_type}</Th>
-                            <Th>{columnsTests.job_name}</Th>
-                            <Th>{columnsTests.job_id}</Th>
-                            <Th>{columnsTests.e2e_failed_messages}</Th>
-                        </Tr>
-                    </Thead>
-                    <Tbody>
-                        {failedProwJobsPage?.map(job => {
-                            if (job.e2e_failed_test_messages != undefined) {
-                                return (
-                                    <Tr key={job.job_id}>
-                                        <Td>{formatDate(new Date(job.created_at))}</Td>
-                                        <Td>{job.job_type}</Td>
-                                        <Td>{job.job_name}</Td>
-                                        <Td>
-                                            <a href={job.suites_xml_url} target="blank" rel="noopener noreferrer">
-                                                {job.job_id}
-                                            </a>
-                                        </Td>
-                                        <Td style={{ whiteSpace: "pre-line" }}>{job.e2e_failed_test_messages}</Td>
-                                    </Tr>
-                                );
-                            }
-                        })}
-                    </Tbody>
-                </TableComposable>
-                <Pagination
-                    perPageComponent="button"
-                    itemCount={failedProwJobs.length}
-                    perPage={perPage}
-                    page={page}
-                    onSetPage={onSetPage}
-                    widgetId="top-example"
-                    onPerPageSelect={onPerPageSelect}
-                />
-            </CardBody>
-        </Card>
+        <React.Fragment>
+            {failedProwJobs.length > 0 && <Card style={{ width: "100%", height: "100%", fontSize: "1rem" }}>
+                <CardTitle>Failed '{jobType}' Jobs In E2E Tests ({failedProwJobs.length})</CardTitle>
+                <CardBody>
+                    <Pagination
+                        perPageComponent="button"
+                        itemCount={failedProwJobs.length}
+                        perPage={perPage}
+                        page={page}
+                        onSetPage={onSetPage}
+                        widgetId="top-example"
+                        onPerPageSelect={onPerPageSelect}
+                    />
+                    <TableComposable aria-label="Actions table">
+                        <Thead>
+                            <Tr>
+                                <Th>{columnsTests.date}</Th>
+                                <Th>{columnsTests.job_type}</Th>
+                                <Th>{columnsTests.job_name}</Th>
+                                <Th>{columnsTests.job_id}</Th>
+                                <Th>{columnsTests.e2e_failed_messages}</Th>
+                            </Tr>
+                        </Thead>
+                        <Tbody>
+                            {failedProwJobsPage?.map(job => {
+                                if (job.e2e_failed_test_messages != undefined) {
+                                    return (
+                                        <Tr key={job.job_id}>
+                                            <Td>{formatDate(new Date(job.created_at))}</Td>
+                                            <Td>{job.job_type}</Td>
+                                            <Td>{job.job_name}</Td>
+                                            <Td>
+                                                <a href={job.suites_xml_url} target="blank" rel="noopener noreferrer">
+                                                    {job.job_id}
+                                                </a>
+                                            </Td>
+                                            <Td style={{ whiteSpace: "pre-line" }}>{job.e2e_failed_test_messages}</Td>
+                                        </Tr>
+                                    );
+                                }
+                            })}
+                        </Tbody>
+                    </TableComposable>
+                    <Pagination
+                        perPageComponent="button"
+                        itemCount={failedProwJobs.length}
+                        perPage={perPage}
+                        page={page}
+                        onSetPage={onSetPage}
+                        widgetId="top-example"
+                        onPerPageSelect={onPerPageSelect}
+                    />
+                </CardBody>
+            </Card>}
+        </React.Fragment>
     );
 }
