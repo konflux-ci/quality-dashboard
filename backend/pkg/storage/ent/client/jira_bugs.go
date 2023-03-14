@@ -18,8 +18,9 @@ import (
 func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 	create := false
 	createBulk := make([]*db.BugsCreate, 0)
-	bugAlreadyExists := d.client.Bugs.Query().Where(bugs.JiraKey(team.JiraKeys)).ExistX(context.TODO())
 	for _, bug := range bugsArr {
+		bugAlreadyExists := d.client.Bugs.Query().Where(bugs.JiraKey(bug.Key)).ExistX(context.TODO())
+
 		var bugIsResolved bool
 		var diff float64
 		if bug.Fields.Status.Name == "Closed" || bug.Fields.Status.Name == "Resolved" || bug.Fields.Status.Name == "Done" {
