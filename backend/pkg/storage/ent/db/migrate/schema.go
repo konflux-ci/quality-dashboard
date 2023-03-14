@@ -74,8 +74,8 @@ var (
 		{Name: "state", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "job_url", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "ci_failed", Type: field.TypeInt16, SchemaType: map[string]string{"postgres": "numeric"}},
-		{Name: "e2e_failed_test_messages", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
-		{Name: "suites_xml_url", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "e2e_failed_test_messages", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "suites_xml_url", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "repository_prow_jobs", Type: field.TypeString, Nullable: true, Size: 25},
 	}
 	// ProwJobsTable holds the schema information for the "prow_jobs" table.

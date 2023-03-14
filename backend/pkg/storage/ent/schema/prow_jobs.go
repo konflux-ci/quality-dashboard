@@ -39,10 +39,12 @@ func (ProwJobs) Fields() []ent.Field {
 			SchemaType(intSchema),
 		field.Text("e2e_failed_test_messages").
 			SchemaType(textSchema).
+			Optional().
 			Nillable(),
 		field.Text("suites_xml_url").
-			Nillable().
-			SchemaType(textSchema),
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
 	}
 }
 

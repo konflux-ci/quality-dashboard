@@ -136,9 +136,37 @@ func (pju *ProwJobsUpdate) SetE2eFailedTestMessages(s string) *ProwJobsUpdate {
 	return pju
 }
 
+// SetNillableE2eFailedTestMessages sets the "e2e_failed_test_messages" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableE2eFailedTestMessages(s *string) *ProwJobsUpdate {
+	if s != nil {
+		pju.SetE2eFailedTestMessages(*s)
+	}
+	return pju
+}
+
+// ClearE2eFailedTestMessages clears the value of the "e2e_failed_test_messages" field.
+func (pju *ProwJobsUpdate) ClearE2eFailedTestMessages() *ProwJobsUpdate {
+	pju.mutation.ClearE2eFailedTestMessages()
+	return pju
+}
+
 // SetSuitesXMLURL sets the "suites_xml_url" field.
 func (pju *ProwJobsUpdate) SetSuitesXMLURL(s string) *ProwJobsUpdate {
 	pju.mutation.SetSuitesXMLURL(s)
+	return pju
+}
+
+// SetNillableSuitesXMLURL sets the "suites_xml_url" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableSuitesXMLURL(s *string) *ProwJobsUpdate {
+	if s != nil {
+		pju.SetSuitesXMLURL(*s)
+	}
+	return pju
+}
+
+// ClearSuitesXMLURL clears the value of the "suites_xml_url" field.
+func (pju *ProwJobsUpdate) ClearSuitesXMLURL() *ProwJobsUpdate {
+	pju.mutation.ClearSuitesXMLURL()
 	return pju
 }
 
@@ -268,8 +296,14 @@ func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pju.mutation.E2eFailedTestMessages(); ok {
 		_spec.SetField(prowjobs.FieldE2eFailedTestMessages, field.TypeString, value)
 	}
+	if pju.mutation.E2eFailedTestMessagesCleared() {
+		_spec.ClearField(prowjobs.FieldE2eFailedTestMessages, field.TypeString)
+	}
 	if value, ok := pju.mutation.SuitesXMLURL(); ok {
 		_spec.SetField(prowjobs.FieldSuitesXMLURL, field.TypeString, value)
+	}
+	if pju.mutation.SuitesXMLURLCleared() {
+		_spec.ClearField(prowjobs.FieldSuitesXMLURL, field.TypeString)
 	}
 	if pju.mutation.ProwJobsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -433,9 +467,37 @@ func (pjuo *ProwJobsUpdateOne) SetE2eFailedTestMessages(s string) *ProwJobsUpdat
 	return pjuo
 }
 
+// SetNillableE2eFailedTestMessages sets the "e2e_failed_test_messages" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableE2eFailedTestMessages(s *string) *ProwJobsUpdateOne {
+	if s != nil {
+		pjuo.SetE2eFailedTestMessages(*s)
+	}
+	return pjuo
+}
+
+// ClearE2eFailedTestMessages clears the value of the "e2e_failed_test_messages" field.
+func (pjuo *ProwJobsUpdateOne) ClearE2eFailedTestMessages() *ProwJobsUpdateOne {
+	pjuo.mutation.ClearE2eFailedTestMessages()
+	return pjuo
+}
+
 // SetSuitesXMLURL sets the "suites_xml_url" field.
 func (pjuo *ProwJobsUpdateOne) SetSuitesXMLURL(s string) *ProwJobsUpdateOne {
 	pjuo.mutation.SetSuitesXMLURL(s)
+	return pjuo
+}
+
+// SetNillableSuitesXMLURL sets the "suites_xml_url" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableSuitesXMLURL(s *string) *ProwJobsUpdateOne {
+	if s != nil {
+		pjuo.SetSuitesXMLURL(*s)
+	}
+	return pjuo
+}
+
+// ClearSuitesXMLURL clears the value of the "suites_xml_url" field.
+func (pjuo *ProwJobsUpdateOne) ClearSuitesXMLURL() *ProwJobsUpdateOne {
+	pjuo.mutation.ClearSuitesXMLURL()
 	return pjuo
 }
 
@@ -589,8 +651,14 @@ func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, er
 	if value, ok := pjuo.mutation.E2eFailedTestMessages(); ok {
 		_spec.SetField(prowjobs.FieldE2eFailedTestMessages, field.TypeString, value)
 	}
+	if pjuo.mutation.E2eFailedTestMessagesCleared() {
+		_spec.ClearField(prowjobs.FieldE2eFailedTestMessages, field.TypeString)
+	}
 	if value, ok := pjuo.mutation.SuitesXMLURL(); ok {
 		_spec.SetField(prowjobs.FieldSuitesXMLURL, field.TypeString, value)
+	}
+	if pjuo.mutation.SuitesXMLURLCleared() {
+		_spec.ClearField(prowjobs.FieldSuitesXMLURL, field.TypeString)
 	}
 	if pjuo.mutation.ProwJobsCleared() {
 		edge := &sqlgraph.EdgeSpec{

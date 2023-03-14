@@ -740,6 +740,16 @@ func E2eFailedTestMessagesHasSuffix(v string) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldHasSuffix(FieldE2eFailedTestMessages, v))
 }
 
+// E2eFailedTestMessagesIsNil applies the IsNil predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesIsNil() predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldIsNull(FieldE2eFailedTestMessages))
+}
+
+// E2eFailedTestMessagesNotNil applies the NotNil predicate on the "e2e_failed_test_messages" field.
+func E2eFailedTestMessagesNotNil() predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldNotNull(FieldE2eFailedTestMessages))
+}
+
 // E2eFailedTestMessagesEqualFold applies the EqualFold predicate on the "e2e_failed_test_messages" field.
 func E2eFailedTestMessagesEqualFold(v string) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldEqualFold(FieldE2eFailedTestMessages, v))
@@ -803,6 +813,16 @@ func SuitesXMLURLHasPrefix(v string) predicate.ProwJobs {
 // SuitesXMLURLHasSuffix applies the HasSuffix predicate on the "suites_xml_url" field.
 func SuitesXMLURLHasSuffix(v string) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldHasSuffix(FieldSuitesXMLURL, v))
+}
+
+// SuitesXMLURLIsNil applies the IsNil predicate on the "suites_xml_url" field.
+func SuitesXMLURLIsNil() predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldIsNull(FieldSuitesXMLURL))
+}
+
+// SuitesXMLURLNotNil applies the NotNil predicate on the "suites_xml_url" field.
+func SuitesXMLURLNotNil() predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldNotNull(FieldSuitesXMLURL))
 }
 
 // SuitesXMLURLEqualFold applies the EqualFold predicate on the "suites_xml_url" field.
