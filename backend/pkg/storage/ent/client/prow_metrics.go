@@ -66,14 +66,14 @@ func (d *Database) getMetricsSummaryByDay(repo *db.Repository, job, jobType, sta
 		y, m, dd := t.Date()
 
 		if i == 0 { // first day
-			metric := d.getMetric(repo, job, jobType, day, fmt.Sprintf("%d-%d-%d 23:59:59", y, m, dd))
+			metric := d.getMetric(repo, job, jobType, day, fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd))
 			metrics = append(metrics, metric)
 		} else {
 			if i == len(dayArr)-1 { // last day
-				metric := d.getMetric(repo, job, jobType, fmt.Sprintf("%d-%d-%d 00:00:00", y, m, dd), day)
+				metric := d.getMetric(repo, job, jobType, fmt.Sprintf("%04d-%02d-%02d 00:00:00", y, m, dd), day)
 				metrics = append(metrics, metric)
 			} else { // middle days
-				metric := d.getMetric(repo, job, jobType, fmt.Sprintf("%d-%d-%d 00:00:00", y, m, dd), fmt.Sprintf("%d-%d-%d 23:59:59", y, m, dd))
+				metric := d.getMetric(repo, job, jobType, fmt.Sprintf("%04d-%02d-%02d 00:00:00", y, m, dd), fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd))
 				metrics = append(metrics, metric)
 			}
 		}
