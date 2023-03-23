@@ -5,7 +5,7 @@ WORKDIR /app
 
 COPY package.json .
 COPY yarn.lock .
-COPY build/entrypoint.sh .
+COPY entrypoint.sh .
 
 RUN yarn install
 
