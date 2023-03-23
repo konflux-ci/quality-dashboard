@@ -47,7 +47,7 @@ jobs:
           tags: latest ${{ github.sha }}
           context: ./frontend
           dockerfiles: |
-            ./frontend/build/Dockerfile
+            ./frontend/Dockerfile
       - name: Push To quay.io
         id: push-to-quay
         uses: redhat-actions/push-to-registry@v2
