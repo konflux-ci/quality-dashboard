@@ -38,7 +38,7 @@ export const TeamsTable: React.FunctionComponent = () => {
         setToUpdateTeam(team)
         setNewTeamName(team.team_name)
         setNewTeamDesc(team.description)
-        setJiraProjects(team.jira_keys.split(","))
+        setJiraProjects(team.jira_keys?.split(","))
     }
 
     const deleteTeam = (team: ITeam) => {
@@ -157,7 +157,7 @@ export const TeamsTable: React.FunctionComponent = () => {
                         <TextArea value={newTeamDesc} type="text" onChange={(value) => { setNewTeamDesc(value) }} aria-label="text area example" placeholder="Update your team description" />
                     </FormGroup>
                     <FormGroup label="Jira Projects" fieldId='jira-projects' helperText="Update Jira Projects">
-                        <JiraProjects onChange={onJiraProjectsSelected}></JiraProjects>
+                        <JiraProjects onChange={onJiraProjectsSelected} teamJiraKeys={toUpdateTeam?.jira_keys}></JiraProjects>
                     </FormGroup>
                 </Form>
             </Modal>

@@ -218,14 +218,14 @@ export const TeamsWizard = () => {
 
   }
 
-  const jiraOnChange = (options:Array<string>) => {
+  const jiraOnChange = (options: Array<string>) => {
     setJiraProjects(options)
   }
 
   const steps = [
     { id: 'team', name: 'Team Name', component: TeamData, enableNext: ValidateTeam() },
     { id: 'repo', name: 'Add a repository', component: AddRepo, canJumpTo: ValidateTeam(), enableNext: ValidateRepoAndOrg() },
-    { id: 'jira', name: 'Jira Projects', component: JiraProjects({onChange:jiraOnChange}), canJumpTo: ValidateTeam(), enableNext: ValidateTeam() },
+    { id: 'jira', name: 'Jira Projects', component: JiraProjects({ onChange: jiraOnChange, teamJiraKeys: "" }), canJumpTo: ValidateTeam(), enableNext: ValidateTeam() },
     {
       id: 'review',
       name: 'Review',
@@ -283,7 +283,7 @@ export const TeamsWizard = () => {
   );
 }
 
-export const JiraProjects: React.FC<{onChange:(options:Array<string>) => void, default?:Array<string>}> = (props) => {
+export const JiraProjects: React.FC<{ onChange: (options: Array<string>) => void, default?: Array<string>, teamJiraKeys: string | undefined }> = (props) => {
   const [availableOptions, setAvailableOptions] = React.useState<React.ReactNode[]>([]);
   const [chosenOptions, setChosenOptions] = React.useState<React.ReactNode[]>([])
 
@@ -292,31 +292,42 @@ export const JiraProjects: React.FC<{onChange:(options:Array<string>) => void, d
     setChosenOptions(newChosenOptions);
   };
 
+  const chosen = new Array<React.ReactNode>;
+  
   useEffect(() => {
     listJiraProjects().then((res) => { // making the api call here
       if (res.code === 200) {
         const result = res.data;
         const r = result.map(el => {
-          return (<span key={el.project_key}>{el.project_name}</span>)
+          const option = <span key={el.project_key}>{el.project_name + " (" + el.project_key + ")"}</span>
+
+          if (chosenOptions.length == 0 &&
+            props.teamJiraKeys != undefined &&
+            props.teamJiraKeys.split(",").find(key => el.project_key == key)) {
+            chosen.push(option)
+          }
+
+          return option
         })
         setAvailableOptions(r)
+        setChosenOptions(chosen)
       }
     });
   }, []);
 
 
-  function filterOption(option: React.ReactNode, input: string){
+  function filterOption(option: React.ReactNode, input: string) {
     return (option as React.ReactElement).props.children.toLowerCase().includes(input.toLowerCase())
   }
 
   useEffect(() => {
-    props.onChange(chosenOptions.map(o => {if(o) return o["key"]}))
+    props.onChange(chosenOptions.map(o => { if (o) return o["key"] }))
   }, [chosenOptions]);
 
   return (
     <React.Fragment>
       <Title headingLevel='h4'>Select Jira Projects</Title>
-      <p style={{marginBottom: '10px'}}>The Jira Projects you select will be associated to the created Team. The projects will be used to gather and display metrics about bugs in the Jira page.</p>
+      <p style={{ marginBottom: '10px' }}>The Jira Projects you select will be associated to the created Team. The projects will be used to gather and display metrics about bugs in the Jira page.</p>
       <DualListSelector
         isSearchable
         availableOptions={availableOptions}
