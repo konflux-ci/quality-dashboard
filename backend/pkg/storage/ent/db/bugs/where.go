@@ -106,6 +106,11 @@ func URL(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldEQ(FieldURL, v))
 }
 
+// ProjectKey applies equality check predicate on the "project_key" field. It's identical to ProjectKeyEQ.
+func ProjectKey(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldProjectKey, v))
+}
+
 // JiraKeyEQ applies the EQ predicate on the "jira_key" field.
 func JiraKeyEQ(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldEQ(FieldJiraKey, v))
@@ -599,6 +604,81 @@ func URLEqualFold(v string) predicate.Bugs {
 // URLContainsFold applies the ContainsFold predicate on the "url" field.
 func URLContainsFold(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldContainsFold(FieldURL, v))
+}
+
+// ProjectKeyEQ applies the EQ predicate on the "project_key" field.
+func ProjectKeyEQ(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldProjectKey, v))
+}
+
+// ProjectKeyNEQ applies the NEQ predicate on the "project_key" field.
+func ProjectKeyNEQ(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNEQ(FieldProjectKey, v))
+}
+
+// ProjectKeyIn applies the In predicate on the "project_key" field.
+func ProjectKeyIn(vs ...string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldIn(FieldProjectKey, vs...))
+}
+
+// ProjectKeyNotIn applies the NotIn predicate on the "project_key" field.
+func ProjectKeyNotIn(vs ...string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotIn(FieldProjectKey, vs...))
+}
+
+// ProjectKeyGT applies the GT predicate on the "project_key" field.
+func ProjectKeyGT(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGT(FieldProjectKey, v))
+}
+
+// ProjectKeyGTE applies the GTE predicate on the "project_key" field.
+func ProjectKeyGTE(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGTE(FieldProjectKey, v))
+}
+
+// ProjectKeyLT applies the LT predicate on the "project_key" field.
+func ProjectKeyLT(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLT(FieldProjectKey, v))
+}
+
+// ProjectKeyLTE applies the LTE predicate on the "project_key" field.
+func ProjectKeyLTE(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLTE(FieldProjectKey, v))
+}
+
+// ProjectKeyContains applies the Contains predicate on the "project_key" field.
+func ProjectKeyContains(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldContains(FieldProjectKey, v))
+}
+
+// ProjectKeyHasPrefix applies the HasPrefix predicate on the "project_key" field.
+func ProjectKeyHasPrefix(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldHasPrefix(FieldProjectKey, v))
+}
+
+// ProjectKeyHasSuffix applies the HasSuffix predicate on the "project_key" field.
+func ProjectKeyHasSuffix(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldHasSuffix(FieldProjectKey, v))
+}
+
+// ProjectKeyIsNil applies the IsNil predicate on the "project_key" field.
+func ProjectKeyIsNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldIsNull(FieldProjectKey))
+}
+
+// ProjectKeyNotNil applies the NotNil predicate on the "project_key" field.
+func ProjectKeyNotNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotNull(FieldProjectKey))
+}
+
+// ProjectKeyEqualFold applies the EqualFold predicate on the "project_key" field.
+func ProjectKeyEqualFold(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEqualFold(FieldProjectKey, v))
+}
+
+// ProjectKeyContainsFold applies the ContainsFold predicate on the "project_key" field.
+func ProjectKeyContainsFold(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldContainsFold(FieldProjectKey, v))
 }
 
 // HasBugs applies the HasEdge predicate on the "bugs" edge.

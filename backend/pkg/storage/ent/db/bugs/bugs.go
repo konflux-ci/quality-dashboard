@@ -31,6 +31,8 @@ const (
 	FieldSummary = "summary"
 	// FieldURL holds the string denoting the url field in the database.
 	FieldURL = "url"
+	// FieldProjectKey holds the string denoting the project_key field in the database.
+	FieldProjectKey = "project_key"
 	// EdgeBugs holds the string denoting the bugs edge name in mutations.
 	EdgeBugs = "bugs"
 	// TeamsFieldID holds the string denoting the ID field of the Teams.
@@ -59,6 +61,7 @@ var Columns = []string{
 	FieldStatus,
 	FieldSummary,
 	FieldURL,
+	FieldProjectKey,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "bugs"

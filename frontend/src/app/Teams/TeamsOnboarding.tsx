@@ -12,6 +12,7 @@ import { getTeams } from '@app/utils/APIService';
 import { PlusIcon } from '@patternfly/react-icons/dist/esm/icons';
 import { ReactReduxContext } from 'react-redux';
 import { TeamsTable } from './TeamsTable';
+import { bool } from 'prop-types';
 
 interface AlertInfo {
   title: string;
@@ -283,6 +284,15 @@ export const TeamsWizard = () => {
   );
 }
 
+const exists = (teamJiraKeys: string | undefined, projectKey: string) => {
+  if (teamJiraKeys != undefined &&
+    teamJiraKeys.split(",").find(key => projectKey == key)) {
+      return true
+  }
+
+  return false
+}
+
 export const JiraProjects: React.FC<{ onChange: (options: Array<string>) => void, default?: Array<string>, teamJiraKeys: string | undefined }> = (props) => {
   const [availableOptions, setAvailableOptions] = React.useState<React.ReactNode[]>([]);
   const [chosenOptions, setChosenOptions] = React.useState<React.ReactNode[]>([])
@@ -292,24 +302,29 @@ export const JiraProjects: React.FC<{ onChange: (options: Array<string>) => void
     setChosenOptions(newChosenOptions);
   };
 
+  const available = new Array<React.ReactNode>;
   const chosen = new Array<React.ReactNode>;
   
   useEffect(() => {
     listJiraProjects().then((res) => { // making the api call here
       if (res.code === 200) {
         const result = res.data;
-        const r = result.map(el => {
+        result.map(el => {
           const option = <span key={el.project_key}>{el.project_name + " (" + el.project_key + ")"}</span>
 
+          // only display available options that are not already selected
+          if (!exists(props.teamJiraKeys, el.project_key)) {
+            available.push(option)
+          }
+
+          // display the jira keys that are already attached to the team
           if (chosenOptions.length == 0 &&
             props.teamJiraKeys != undefined &&
             props.teamJiraKeys.split(",").find(key => el.project_key == key)) {
             chosen.push(option)
           }
-
-          return option
         })
-        setAvailableOptions(r)
+        setAvailableOptions(available)
         setChosenOptions(chosen)
       }
     });

@@ -42,6 +42,10 @@ func (Bugs) Fields() []ent.Field {
 			SchemaType(textSchema),
 		field.Text("url").
 			SchemaType(textSchema),
+		field.Text("project_key").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
 	}
 }
 

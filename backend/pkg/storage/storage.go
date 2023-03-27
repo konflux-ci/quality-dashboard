@@ -59,6 +59,7 @@ type Storage interface {
 	// Delete
 	DeleteRepository(repositoryName, gitOrganizationName string) error
 	DeleteTeam(teamName string) (bool, error)
+	DeleteJiraBugsByProject(projectKey string, team *db.Teams) error
 }
 
 type RepositoryQualityInfo struct {

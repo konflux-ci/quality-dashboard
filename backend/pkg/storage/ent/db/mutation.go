@@ -60,6 +60,7 @@ type BugsMutation struct {
 	status             *string
 	summary            *string
 	url                *string
+	project_key        *string
 	clearedFields      map[string]struct{}
 	bugs               *uuid.UUID
 	clearedbugs        bool
@@ -552,6 +553,55 @@ func (m *BugsMutation) ResetURL() {
 	m.url = nil
 }
 
+// SetProjectKey sets the "project_key" field.
+func (m *BugsMutation) SetProjectKey(s string) {
+	m.project_key = &s
+}
+
+// ProjectKey returns the value of the "project_key" field in the mutation.
+func (m *BugsMutation) ProjectKey() (r string, exists bool) {
+	v := m.project_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProjectKey returns the old "project_key" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldProjectKey(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProjectKey is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProjectKey requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProjectKey: %w", err)
+	}
+	return oldValue.ProjectKey, nil
+}
+
+// ClearProjectKey clears the value of the "project_key" field.
+func (m *BugsMutation) ClearProjectKey() {
+	m.project_key = nil
+	m.clearedFields[bugs.FieldProjectKey] = struct{}{}
+}
+
+// ProjectKeyCleared returns if the "project_key" field was cleared in this mutation.
+func (m *BugsMutation) ProjectKeyCleared() bool {
+	_, ok := m.clearedFields[bugs.FieldProjectKey]
+	return ok
+}
+
+// ResetProjectKey resets all changes to the "project_key" field.
+func (m *BugsMutation) ResetProjectKey() {
+	m.project_key = nil
+	delete(m.clearedFields, bugs.FieldProjectKey)
+}
+
 // SetBugsID sets the "bugs" edge to the Teams entity by id.
 func (m *BugsMutation) SetBugsID(id uuid.UUID) {
 	m.bugs = &id
@@ -625,7 +675,7 @@ func (m *BugsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BugsMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.jira_key != nil {
 		fields = append(fields, bugs.FieldJiraKey)
 	}
@@ -656,6 +706,9 @@ func (m *BugsMutation) Fields() []string {
 	if m.url != nil {
 		fields = append(fields, bugs.FieldURL)
 	}
+	if m.project_key != nil {
+		fields = append(fields, bugs.FieldProjectKey)
+	}
 	return fields
 }
 
@@ -684,6 +737,8 @@ func (m *BugsMutation) Field(name string) (ent.Value, bool) {
 		return m.Summary()
 	case bugs.FieldURL:
 		return m.URL()
+	case bugs.FieldProjectKey:
+		return m.ProjectKey()
 	}
 	return nil, false
 }
@@ -713,6 +768,8 @@ func (m *BugsMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldSummary(ctx)
 	case bugs.FieldURL:
 		return m.OldURL(ctx)
+	case bugs.FieldProjectKey:
+		return m.OldProjectKey(ctx)
 	}
 	return nil, fmt.Errorf("unknown Bugs field %s", name)
 }
@@ -792,6 +849,13 @@ func (m *BugsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetURL(v)
 		return nil
+	case bugs.FieldProjectKey:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProjectKey(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Bugs field %s", name)
 }
@@ -836,7 +900,11 @@ func (m *BugsMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *BugsMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(bugs.FieldProjectKey) {
+		fields = append(fields, bugs.FieldProjectKey)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -849,6 +917,11 @@ func (m *BugsMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *BugsMutation) ClearField(name string) error {
+	switch name {
+	case bugs.FieldProjectKey:
+		m.ClearProjectKey()
+		return nil
+	}
 	return fmt.Errorf("unknown Bugs nullable field %s", name)
 }
 
@@ -885,6 +958,9 @@ func (m *BugsMutation) ResetField(name string) error {
 		return nil
 	case bugs.FieldURL:
 		m.ResetURL()
+		return nil
+	case bugs.FieldProjectKey:
+		m.ResetProjectKey()
 		return nil
 	}
 	return fmt.Errorf("unknown Bugs field %s", name)
