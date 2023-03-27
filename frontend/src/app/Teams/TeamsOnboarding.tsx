@@ -12,7 +12,6 @@ import { getTeams } from '@app/utils/APIService';
 import { PlusIcon } from '@patternfly/react-icons/dist/esm/icons';
 import { ReactReduxContext } from 'react-redux';
 import { TeamsTable } from './TeamsTable';
-import { bool } from 'prop-types';
 
 interface AlertInfo {
   title: string;
