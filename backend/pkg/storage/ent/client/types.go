@@ -42,13 +42,3 @@ func toStorageRepositoryAllInfo(p *db.Repository, c *db.CodeCov) storage.Reposit
 		},
 	}
 }
-
-func toStoragePrs(pr *db.PullRequests) repoV1Alpha1.PullRequest {
-	return repoV1Alpha1.PullRequest{
-		Title:     pr.Title,
-		CreatedAt: pr.CreatedAt,
-		MergedAt:  pr.MergedAt,
-		ClosedAt:  pr.ClosedAt,
-		State:     pr.State,
-	}
-}

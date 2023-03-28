@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/redhat-appstudio/quality-studio/api/types"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
@@ -133,7 +134,42 @@ func (rp *teamsRouter) updateTeamHandler(ctx context.Context, w http.ResponseWri
 		})
 	}
 
-	err := rp.Storage.UpdateTeam(
+	t, err := rp.Storage.GetTeamByName(team.TeamName)
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		})
+	}
+
+	if team.JiraKeys != "" {
+		old := strings.Split(t.JiraKeys, ",")
+		update := strings.Split(team.JiraKeys, ",")
+
+		// delete team jira keys that are not present in the update ones
+		for _, oldKey := range old {
+			if !contains(oldKey, update) {
+				if err := rp.Storage.DeleteJiraBugsByProject(oldKey, t); err != nil {
+					return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+						Message:    err.Error(),
+						StatusCode: http.StatusInternalServerError,
+					})
+				}
+			}
+		}
+
+		// create/update jira keys
+		bugs := rp.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys))
+		if err := rp.Storage.CreateJiraBug(bugs, t); err != nil {
+			return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+				Message:    err.Error(),
+				StatusCode: http.StatusInternalServerError,
+			})
+		}
+
+	}
+
+	err = rp.Storage.UpdateTeam(
 		&db.Teams{
 			TeamName:    team.TeamName,
 			Description: team.Description,
@@ -152,4 +188,14 @@ func (rp *teamsRouter) updateTeamHandler(ctx context.Context, w http.ResponseWri
 		Message:    "Team update",
 		StatusCode: 200,
 	})
+}
+
+func contains(key string, keys []string) bool {
+	for _, k := range keys {
+		if k == key {
+			return true
+		}
+	}
+
+	return false
 }

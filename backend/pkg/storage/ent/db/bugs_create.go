@@ -101,6 +101,20 @@ func (bc *BugsCreate) SetURL(s string) *BugsCreate {
 	return bc
 }
 
+// SetProjectKey sets the "project_key" field.
+func (bc *BugsCreate) SetProjectKey(s string) *BugsCreate {
+	bc.mutation.SetProjectKey(s)
+	return bc
+}
+
+// SetNillableProjectKey sets the "project_key" field if the given value is not nil.
+func (bc *BugsCreate) SetNillableProjectKey(s *string) *BugsCreate {
+	if s != nil {
+		bc.SetProjectKey(*s)
+	}
+	return bc
+}
+
 // SetID sets the "id" field.
 func (bc *BugsCreate) SetID(u uuid.UUID) *BugsCreate {
 	bc.mutation.SetID(u)
@@ -302,6 +316,10 @@ func (bc *BugsCreate) createSpec() (*Bugs, *sqlgraph.CreateSpec) {
 		_spec.SetField(bugs.FieldURL, field.TypeString, value)
 		_node.URL = value
 	}
+	if value, ok := bc.mutation.ProjectKey(); ok {
+		_spec.SetField(bugs.FieldProjectKey, field.TypeString, value)
+		_node.ProjectKey = &value
+	}
 	if nodes := bc.mutation.BugsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -502,6 +520,24 @@ func (u *BugsUpsert) UpdateURL() *BugsUpsert {
 	return u
 }
 
+// SetProjectKey sets the "project_key" field.
+func (u *BugsUpsert) SetProjectKey(v string) *BugsUpsert {
+	u.Set(bugs.FieldProjectKey, v)
+	return u
+}
+
+// UpdateProjectKey sets the "project_key" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateProjectKey() *BugsUpsert {
+	u.SetExcluded(bugs.FieldProjectKey)
+	return u
+}
+
+// ClearProjectKey clears the value of the "project_key" field.
+func (u *BugsUpsert) ClearProjectKey() *BugsUpsert {
+	u.SetNull(bugs.FieldProjectKey)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -696,6 +732,27 @@ func (u *BugsUpsertOne) SetURL(v string) *BugsUpsertOne {
 func (u *BugsUpsertOne) UpdateURL() *BugsUpsertOne {
 	return u.Update(func(s *BugsUpsert) {
 		s.UpdateURL()
+	})
+}
+
+// SetProjectKey sets the "project_key" field.
+func (u *BugsUpsertOne) SetProjectKey(v string) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetProjectKey(v)
+	})
+}
+
+// UpdateProjectKey sets the "project_key" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateProjectKey() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateProjectKey()
+	})
+}
+
+// ClearProjectKey clears the value of the "project_key" field.
+func (u *BugsUpsertOne) ClearProjectKey() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearProjectKey()
 	})
 }
 
@@ -1058,6 +1115,27 @@ func (u *BugsUpsertBulk) SetURL(v string) *BugsUpsertBulk {
 func (u *BugsUpsertBulk) UpdateURL() *BugsUpsertBulk {
 	return u.Update(func(s *BugsUpsert) {
 		s.UpdateURL()
+	})
+}
+
+// SetProjectKey sets the "project_key" field.
+func (u *BugsUpsertBulk) SetProjectKey(v string) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetProjectKey(v)
+	})
+}
+
+// UpdateProjectKey sets the "project_key" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateProjectKey() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateProjectKey()
+	})
+}
+
+// ClearProjectKey clears the value of the "project_key" field.
+func (u *BugsUpsertBulk) ClearProjectKey() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearProjectKey()
 	})
 }
 

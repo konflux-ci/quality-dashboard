@@ -38,6 +38,8 @@ type Bugs struct {
 	Summary string `json:"summary,omitempty"`
 	// URL holds the value of the "url" field.
 	URL string `json:"url,omitempty"`
+	// ProjectKey holds the value of the "project_key" field.
+	ProjectKey *string `json:"project_key,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the BugsQuery when eager-loading is set.
 	Edges      BugsEdges `json:"edges"`
@@ -75,7 +77,7 @@ func (*Bugs) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case bugs.FieldResolutionTime:
 			values[i] = new(sql.NullFloat64)
-		case bugs.FieldJiraKey, bugs.FieldPriority, bugs.FieldStatus, bugs.FieldSummary, bugs.FieldURL:
+		case bugs.FieldJiraKey, bugs.FieldPriority, bugs.FieldStatus, bugs.FieldSummary, bugs.FieldURL, bugs.FieldProjectKey:
 			values[i] = new(sql.NullString)
 		case bugs.FieldCreatedAt, bugs.FieldUpdatedAt, bugs.FieldResolvedAt:
 			values[i] = new(sql.NullTime)
@@ -165,6 +167,13 @@ func (b *Bugs) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				b.URL = value.String
 			}
+		case bugs.FieldProjectKey:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field project_key", values[i])
+			} else if value.Valid {
+				b.ProjectKey = new(string)
+				*b.ProjectKey = value.String
+			}
 		case bugs.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field teams_bugs", values[i])
@@ -236,6 +245,11 @@ func (b *Bugs) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("url=")
 	builder.WriteString(b.URL)
+	builder.WriteString(", ")
+	if v := b.ProjectKey; v != nil {
+		builder.WriteString("project_key=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -113,6 +113,26 @@ func (bu *BugsUpdate) SetURL(s string) *BugsUpdate {
 	return bu
 }
 
+// SetProjectKey sets the "project_key" field.
+func (bu *BugsUpdate) SetProjectKey(s string) *BugsUpdate {
+	bu.mutation.SetProjectKey(s)
+	return bu
+}
+
+// SetNillableProjectKey sets the "project_key" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableProjectKey(s *string) *BugsUpdate {
+	if s != nil {
+		bu.SetProjectKey(*s)
+	}
+	return bu
+}
+
+// ClearProjectKey clears the value of the "project_key" field.
+func (bu *BugsUpdate) ClearProjectKey() *BugsUpdate {
+	bu.mutation.ClearProjectKey()
+	return bu
+}
+
 // SetBugsID sets the "bugs" edge to the Teams entity by ID.
 func (bu *BugsUpdate) SetBugsID(id uuid.UUID) *BugsUpdate {
 	bu.mutation.SetBugsID(id)
@@ -233,6 +253,12 @@ func (bu *BugsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := bu.mutation.URL(); ok {
 		_spec.SetField(bugs.FieldURL, field.TypeString, value)
+	}
+	if value, ok := bu.mutation.ProjectKey(); ok {
+		_spec.SetField(bugs.FieldProjectKey, field.TypeString, value)
+	}
+	if bu.mutation.ProjectKeyCleared() {
+		_spec.ClearField(bugs.FieldProjectKey, field.TypeString)
 	}
 	if bu.mutation.BugsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -369,6 +395,26 @@ func (buo *BugsUpdateOne) SetSummary(s string) *BugsUpdateOne {
 // SetURL sets the "url" field.
 func (buo *BugsUpdateOne) SetURL(s string) *BugsUpdateOne {
 	buo.mutation.SetURL(s)
+	return buo
+}
+
+// SetProjectKey sets the "project_key" field.
+func (buo *BugsUpdateOne) SetProjectKey(s string) *BugsUpdateOne {
+	buo.mutation.SetProjectKey(s)
+	return buo
+}
+
+// SetNillableProjectKey sets the "project_key" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableProjectKey(s *string) *BugsUpdateOne {
+	if s != nil {
+		buo.SetProjectKey(*s)
+	}
+	return buo
+}
+
+// ClearProjectKey clears the value of the "project_key" field.
+func (buo *BugsUpdateOne) ClearProjectKey() *BugsUpdateOne {
+	buo.mutation.ClearProjectKey()
 	return buo
 }
 
@@ -516,6 +562,12 @@ func (buo *BugsUpdateOne) sqlSave(ctx context.Context) (_node *Bugs, err error) 
 	}
 	if value, ok := buo.mutation.URL(); ok {
 		_spec.SetField(bugs.FieldURL, field.TypeString, value)
+	}
+	if value, ok := buo.mutation.ProjectKey(); ok {
+		_spec.SetField(bugs.FieldProjectKey, field.TypeString, value)
+	}
+	if buo.mutation.ProjectKeyCleared() {
+		_spec.ClearField(bugs.FieldProjectKey, field.TypeString)
 	}
 	if buo.mutation.BugsCleared() {
 		edge := &sqlgraph.EdgeSpec{

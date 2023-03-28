@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -14,7 +15,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 )
 
-// CreateRepository save provided repository information in database.
+// CreateJiraBug saves provided jira bugs information in database.
 func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 	create := false
 	createBulk := make([]*db.BugsCreate, 0)
@@ -44,6 +45,7 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetURL(fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key)).
 				SetStatus(bug.Fields.Summary).
 				SetBugs(team).
+				SetProjectKey(getProjectKey(bug.Key)).
 				Save(context.TODO())
 			if err != nil {
 				return convertDBError("failed to create bug: %w", err)
@@ -60,7 +62,8 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetSummary(bug.Fields.Summary).
 				SetURL(fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key)).
 				SetStatus(bug.Fields.Summary).
-				SetBugs(team)
+				SetBugs(team).
+				SetProjectKey(getProjectKey(bug.Key))
 			createBulk = append(createBulk, createBulkByBug)
 			create = true
 		}
@@ -263,10 +266,30 @@ func (d *Database) GetAllJiraBugs() ([]*db.Bugs, error) {
 	return bugsAll, nil
 }
 
+func (d *Database) DeleteJiraBugsByProject(projectKey string, team *db.Teams) error {
+	_, err := d.client.Bugs.Delete().Where(predicate.Bugs(bugs.ProjectKey(projectKey))).Exec(context.TODO())
+
+	if err != nil {
+		return convertDBError("failed to delete jira bugs: %w", err)
+	}
+
+	return nil
+}
+
 func BeginningOfMonth(date time.Time) time.Time {
 	return date.AddDate(0, 0, -date.Day()+1)
 }
 
 func EndOfMonth(date time.Time) time.Time {
 	return date.AddDate(0, 1, -date.Day())
+}
+
+func getProjectKey(bugKey string) string {
+	bugKeySplit := strings.Split(bugKey, "-")
+
+	if len(bugKeySplit) > 0 {
+		return bugKeySplit[0]
+	}
+
+	return ""
 }
