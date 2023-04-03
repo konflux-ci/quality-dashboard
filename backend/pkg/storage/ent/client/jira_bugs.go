@@ -43,7 +43,7 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetPriority(bug.Fields.Priority.Name).
 				SetSummary(bug.Fields.Summary).
 				SetURL(fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key)).
-				SetStatus(bug.Fields.Summary).
+				SetStatus(bug.Fields.Status.Description).
 				SetBugs(team).
 				SetProjectKey(getProjectKey(bug.Key)).
 				Save(context.TODO())
@@ -61,7 +61,7 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetPriority(bug.Fields.Priority.Name).
 				SetSummary(bug.Fields.Summary).
 				SetURL(fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key)).
-				SetStatus(bug.Fields.Summary).
+				SetStatus(bug.Fields.Status.Description).
 				SetBugs(team).
 				SetProjectKey(getProjectKey(bug.Key))
 			createBulk = append(createBulk, createBulkByBug)
