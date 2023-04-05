@@ -56,3 +56,19 @@ export function isValidTeam() {
   }
   return false;
 }
+
+// validateRepositoryParams validates if the 'repository' and 'organization' exists in 'repos'
+export function validateRepositoryParams(repos, repository, organization) {
+  if (repos.find(r => r.organization == organization && r.repoName == repository)) {
+    return true;
+  }
+  return false;
+}
+
+// validateParam validates if 'param' exists in 'params'
+export function validateParam(params, param) {
+  if (params.find(p => p == param)) {
+    return true;
+  }
+  return false;
+}
