@@ -558,8 +558,8 @@ const ComposableTableStripedTr: React.FC<{ bugs: any }> = ({ bugs }) => {
     const sortRows = (rows) => {
         if (activeSortIndex !== null) {
             return rows.sort((a, b) => {
-                const aValue = getSortableRowValues(a)[activeSortIndex];
-                const bValue = getSortableRowValues(b)[activeSortIndex];
+                const aValue = getSortableRowValues(a)[activeSortIndex] ? getSortableRowValues(a)[activeSortIndex] : "-";
+                const bValue = getSortableRowValues(b)[activeSortIndex] ? getSortableRowValues(b)[activeSortIndex] : "-";
                 if (typeof aValue === 'number') {
                     // Numeric sort
                     if (activeSortDirection === 'asc') {
@@ -635,7 +635,7 @@ const ComposableTableStripedTr: React.FC<{ bugs: any }> = ({ bugs }) => {
                         <Tr key={bug.jira_key} {...(index % 2 === 0 && { isStriped: true })}>
                             <Td dataLabel={columnNames.jira_key}><a href={bug.url} target={bug.url}>{bug.jira_key}</a></Td>
                             <Td dataLabel={columnNames.summary}>{bug.summary}</Td>
-                            <Td dataLabel={columnNames.status}>{bug.status}</Td>
+                            <Td dataLabel={columnNames.status}>{bug.status ? bug.status : "-"}</Td>
                             <Td dataLabel={columnNames.created_at}>{bug.created_at}</Td>
                             <Td dataLabel={columnNames.updated_at}>{bug.updated_at}</Td>
                             <Td dataLabel={columnNames.resolved_at}>{bug.resolved_at}</Td>
