@@ -16,8 +16,6 @@ spec:
       value: "quay.io/redhat-appstudio/pull-request-builds:quality-dashboard-frontend-{{revision}}"
     - name: path-context
       value: "frontend"
-    - name: dockerfile
-      value: "frontend/build/Dockerfile"
   pipelineRef:
     name: docker-build
     bundle: quay.io/redhat-appstudio-tekton-catalog/pipeline-core-services-docker-build:latest
