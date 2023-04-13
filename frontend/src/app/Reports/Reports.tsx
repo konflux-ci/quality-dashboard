@@ -13,7 +13,7 @@ import {
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
-import { getAllRepositoriesWithOrgs, getJobTypes, getProwJobStatistics, getProwJobs } from '@app/utils/APIService';
+import { getAllRepositoriesWithOrgs, getJobTypes, getProwJobStatistics, getProwJobs, getTeams } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
 import {
   JobsStatistics,
@@ -26,17 +26,17 @@ import {
 } from '@app/utils/sharedComponents';
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
-import { isValidTeam } from '@app/utils/utils';
 import { formatDate, getRangeDates } from './utils';
 import { DateTimeRangePicker } from '../utils/DateTimeRangePicker';
 import { FailedE2ETests, Job, getFailedProwJobsInE2ETests } from './FailedE2ETests';
+import { validateRepositoryParams, validateParam } from '@app/utils/utils';
 
 // eslint-disable-next-line prefer-const
 let Reports = () => {
 
-  const [prowVisible, setProwVisible] = useState(false)
-  const [loadingState, setLoadingState] = useState(false)
-  const [noData, setNoData] = useState(false)
+  const [prowVisible, setProwVisible] = useState(false);
+  const [loadingState, setLoadingState] = useState(false);
+  const [noData, setNoData] = useState(false);
   const [alerts, setAlerts] = React.useState<React.ReactNode[]>([]);
 
   const { store } = React.useContext(ReactReduxContext);
@@ -57,6 +57,7 @@ let Reports = () => {
   const history = useHistory();
   const params = new URLSearchParams(window.location.search);
   const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(10));
+  const [isInvalid, setIsInvalid] = useState(false);
 
   // Called onChange of the repository dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
   const setRepoNameOnChange = (event, selection, isPlaceholder) => {
@@ -75,6 +76,8 @@ let Reports = () => {
           setJobTypes(data)
           setjobType("presubmit") // all repos in OpenShift CI have presubmit type job
           params.set("job_type", "presubmit")
+          params.set("start", formatDate(rangeDateTime[0]))
+          params.set("end", formatDate(rangeDateTime[1]))
           history.push(window.location.pathname + '?' + params.toString());
         });
     }
@@ -87,6 +90,7 @@ let Reports = () => {
     clearJobType()
     clearRepo()
     clearRangeDateTime()
+    setIsInvalid(false)
   }
 
   // Reset params
@@ -121,6 +125,7 @@ let Reports = () => {
     else {
       setjobType(selection);
       setjobTypeToggle(false);
+      setIsInvalid(false)
       params.set("job_type", selection)
       history.push(window.location.pathname + '?' + params.toString());
     }
@@ -138,28 +143,25 @@ let Reports = () => {
     }
   }
 
-  // Validates if the repository, organization, and job_type are correct
-  const validQueryParams = (repository, organization, job_type) => {
-    if (isValidTeam()) {
-      if (repositories.find(r => r.organization == organization && r.repoName == repository) &&
-        jobTypes.find(j => j == job_type)) {
-        return true;
-      }
-      if (repository == "" && organization == "" && job_type == "") {
-        return true;
-      }
-    }
-    return false;
-  }
-
   // Triggers automatic validation when state variables change
   useEffect(() => {
     validateGetProwJob();
   }, [repoOrg, repoName, jobType, rangeDateTime]);
 
   // When component is mounted, get the list of repo and orgs from API and populate the dropdowns
-
   useEffect(() => {
+    setLoadingState(true)
+    const team = params.get("team")
+
+    if ((team != null) && (team != state.teams.Team)) {
+        getTeams().then(res => {
+          if (!validateParam(res.data, team)) {
+            setLoadingState(false)
+            setIsInvalid(true)
+          }
+        })
+    }
+
     if (state.teams.Team != "") {
       setRepositories([])
       clearAll()
@@ -167,7 +169,6 @@ let Reports = () => {
       const repository = params.get("repository")
       const organization = params.get("organization")
       const job_type = params.get("job_type")
-      const team = params.get("team")
       const start = params.get("start")
       const end = params.get("end")
 
@@ -176,6 +177,7 @@ let Reports = () => {
           let dropDescr = ""
           if (data.length < 1 && (team == state.teams.Team || team == null)) {
             dropDescr = "No Repositories"
+            setLoadingState(false)
             history.push('/reports/test?team=' + currentTeam)
           }
           else { dropDescr = "Select a repository" }
@@ -198,20 +200,30 @@ let Reports = () => {
               const end_date = formatDate(rangeDateTime[1])
 
               history.push('/reports/test?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName
-                + '&job_type=presubmit' + '&start=' + start_date + ' & end=' + end_date)
+                + '&job_type=presubmit' + '&start=' + start_date + ' &end=' + end_date)
 
             } else {
-              setRepoName(repository)
-              setRepoOrg(organization)
-              setjobType(job_type)
-              setRangeDateTime([new Date(start), new Date(end)])
+              if (validateRepositoryParams(data, repository, organization)) {
+                setRepoName(repository)
+                setRepoOrg(organization)
+                setRangeDateTime([new Date(start), new Date(end)])
 
-              getJobTypes(repository, organization)
-                .then((data: any) => {
-                  setJobTypes(data)
-                  history.push('/reports/test?team=' + currentTeam + '&organization=' + organization + '&repository=' + repository +
-                    '&job_type=' + job_type + '&start=' + start + '&end=' + end)
-                });
+                getJobTypes(repository, organization)
+                  .then((data: any) => {
+                    setJobTypes(data)
+                    if (validateParam(data, job_type)) {
+                      setjobType(job_type)
+                      history.push('/reports/test?team=' + currentTeam + '&organization=' + organization + '&repository=' + repository +
+                        '&job_type=' + job_type + '&start=' + start + '&end=' + end)
+                    } else {
+                      setLoadingState(false)
+                      setIsInvalid(true)
+                    }
+                  });
+              } else {
+                setLoadingState(false)
+                setIsInvalid(true)
+              }
             }
           }
         })
@@ -395,7 +407,7 @@ let Reports = () => {
           <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />
         </div>
         }
-        {validQueryParams(repoName, repoOrg, jobType) && !prowVisible && !loadingState && !noData && <EmptyState variant={EmptyStateVariant.xl}>
+        {window.location.pathname == '/reports/test' && params.get("team") != null && params.get("organization") == null && !loadingState && <EmptyState variant={EmptyStateVariant.xl}>
           <EmptyStateIcon icon={CubesIcon} />
           <Title headingLevel="h1" size="lg">
             No job selected yet.
@@ -405,14 +417,14 @@ let Reports = () => {
           </EmptyStateBody>
         </EmptyState>
         }
-        {validQueryParams(repoName, repoOrg, jobType) && noData && <EmptyState variant={EmptyStateVariant.xl}>
+        {!isInvalid && noData && !loadingState && <EmptyState variant={EmptyStateVariant.xl}>
           <EmptyStateIcon icon={ExclamationCircleIcon} />
           <Title headingLevel="h1" size="lg">
             No jobs detected in OpenShift CI.
           </Title>
         </EmptyState>
         }
-        {!validQueryParams(repoName, repoOrg, jobType) && <EmptyState variant={EmptyStateVariant.xl}>
+        {isInvalid && !loadingState && <EmptyState variant={EmptyStateVariant.xl}>
           <EmptyStateIcon icon={ExclamationCircleIcon} />
           <Title headingLevel="h1" size="lg">
             Something went wrong. Please, check the URL.
@@ -421,7 +433,7 @@ let Reports = () => {
         }
         {/* this section will show statistics and details about job and suites */}
         <React.Fragment>
-          {validQueryParams(repoName, repoOrg, jobType) && prowVisible && <div style={{ marginTop: '20px' }}>
+          {prowVisible && <div style={{ marginTop: '20px' }}>
             {/* this section will show the job's chart over time and last execution stats */}
 
             {prowJobsStats !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
