@@ -9,6 +9,7 @@ import {
   EmptyState,
   EmptyStateIcon,
   EmptyStateVariant,
+  Spinner,
 } from '@patternfly/react-core';
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
@@ -17,6 +18,7 @@ import {
   deleteInApi,
   getAllRepositoriesWithOrgs,
   getPullRequests,
+  getTeams,
   getWorkflowByRepositoryName,
 } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
@@ -27,7 +29,7 @@ import { CodeCov } from './CodeCov';
 import { GithubActions } from './GithubActions';
 import { ActionsColumn, IAction } from '@patternfly/react-table';
 import { FormModal, ModalContext, useDefaultModalContextState, useModalContext } from './CreateRepository';
-import { isValidTeam } from '@app/utils/utils';
+import { isValidTeam, validateRepositoryParams, validateParam } from '@app/utils/utils';
 import { PrsStatistics, PullRequestCard, PullRequestsGraphic } from './PullRequests';
 import { formatDate, getRangeDates } from '@app/Reports/utils';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
@@ -51,6 +53,8 @@ let GitHub = () => {
   const currentTeam = useSelector((state: any) => state.teams.Team);
   const history = useHistory();
   const params = new URLSearchParams(window.location.search);
+  const [loadingState, setLoadingState] = useState(false);
+  const [isInvalid, setIsInvalid] = useState(false);
 
   function getWorkflows(repo) {
     getWorkflowByRepositoryName(repo).then((res) => {
@@ -110,6 +114,7 @@ let GitHub = () => {
     clearRepo();
     clearRangeDateTime();
     setNoData(false);
+    setIsInvalid(false);
   };
 
   // Reset params
@@ -141,6 +146,18 @@ let GitHub = () => {
   }, [repoOrg, repoName, rangeDateTime]);
 
   useEffect(() => {
+    setLoadingState(true)
+    const team = params.get("team")
+    
+    if ((team != null) && (team != state.teams.Team)) {
+      getTeams().then(res => {
+        if (!validateParam(res.data, team)) {
+          setLoadingState(false)
+          setIsInvalid(true)
+        }
+      })
+    }
+
     if (state.teams.Team != '') {
       setRepositories([]);
       clearAll();
@@ -155,6 +172,7 @@ let GitHub = () => {
         let dropDescr = '';
         if (data.length < 1 && (team == state.teams.Team || team == null)) {
           dropDescr = 'No Repositories';
+          setLoadingState(false)
           history.push('/home/github?team=' + currentTeam);
         } else {
           dropDescr = 'Select a repository';
@@ -173,6 +191,8 @@ let GitHub = () => {
             const start_date = formatDate(rangeDateTime[0]);
             const end_date = formatDate(rangeDateTime[1]);
 
+            setLoadingState(false)
+
             history.push(
               '/home/github?team=' +
               currentTeam +
@@ -186,23 +206,28 @@ let GitHub = () => {
               end_date
             );
           } else {
-            setRepoName(repository);
-            setRepoOrg(organization);
-            getWorkflows(repository);
-            setRangeDateTime([new Date(start), new Date(end)]);
+            if (validateRepositoryParams(data, repository, organization)) {
+              setRepoName(repository);
+              setRepoOrg(organization);
+              getWorkflows(repository);
+              setRangeDateTime([new Date(start), new Date(end)]);
 
-            history.push(
-              '/home/github?team=' +
-              currentTeam +
-              '&organization=' +
-              organization +
-              '&repository=' +
-              repository +
-              '&start=' +
-              start +
-              '&end=' +
-              end
-            );
+              history.push(
+                '/home/github?team=' +
+                currentTeam +
+                '&organization=' +
+                organization +
+                '&repository=' +
+                repository +
+                '&start=' +
+                start +
+                '&end=' +
+                end
+              );
+            } else {
+              setIsInvalid(true)
+            }
+            setLoadingState(false)
           }
         }
       });
@@ -339,7 +364,11 @@ let GitHub = () => {
           </Toolbar>
 
           {/* this section will show statistics and details about GitHub metric */}
-          {validQueryParams(repoName, repoOrg) && prs != null && prs.metrics != undefined && !noData && (
+          {loadingState && <div style={{ width: '100%', textAlign: "center" }}>
+            <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />
+          </div>
+          }
+          {!loadingState && prs != null && prs.metrics != undefined && !noData && (
             <div style={{ marginTop: '20px' }}>
               <Grid hasGutter>
                 <GridItem span={3} rowSpan={2}>
@@ -396,7 +425,7 @@ let GitHub = () => {
               </Grid>
             </div>
           )}
-          {!validQueryParams(repoName, repoOrg) && (
+          {isInvalid && !loadingState && (
             <EmptyState variant={EmptyStateVariant.xl}>
               <EmptyStateIcon icon={ExclamationCircleIcon} />
               <Title headingLevel="h1" size="lg">
@@ -404,7 +433,7 @@ let GitHub = () => {
               </Title>
             </EmptyState>
           )}
-          {validQueryParams(repoName, repoOrg) && noData && (
+          {!loadingState && noData && !isInvalid && (
             <EmptyState variant={EmptyStateVariant.xl}>
               <EmptyStateIcon icon={ExclamationCircleIcon} />
               <Title headingLevel="h1" size="lg">

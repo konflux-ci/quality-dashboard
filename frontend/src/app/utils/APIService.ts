@@ -355,6 +355,7 @@ async function updateTeam(data = {}) {
       method: 'PUT',
       url: uri,
       data: { ...data },
+      timeout: 120000,
     })
     .then((res: AxiosResponse) => {
       result.code = res.status;
