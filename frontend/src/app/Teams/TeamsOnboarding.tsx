@@ -13,7 +13,7 @@ import { PlusIcon } from '@patternfly/react-icons/dist/esm/icons';
 import { ReactReduxContext } from 'react-redux';
 import { TeamsTable } from './TeamsTable';
 
-interface AlertInfo {
+export interface AlertInfo {
   title: string;
   variant: AlertVariant;
   key: string;

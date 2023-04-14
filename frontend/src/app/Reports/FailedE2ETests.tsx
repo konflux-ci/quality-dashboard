@@ -8,7 +8,7 @@ const columnsTests = {
     job_type: 'Job Type',
     job_name: 'Job Name',
     job_id: 'Job ID',
-    e2e_failed_messages: 'Failed E2E Tests',
+    e2e_failed_messages: 'Failed E2E Test Cases',
 }
 
 export interface Job {
@@ -87,7 +87,7 @@ export const FailedE2ETests: React.FC<{ failedProwJobs: any, jobType: string }> 
     return (
         <React.Fragment>
             {failedProwJobs.length > 0 && <Card style={{ width: "100%", height: "100%", fontSize: "1rem" }}>
-                <CardTitle>Failed '{jobType}' Jobs In E2E Tests ({failedProwJobs.length})</CardTitle>
+                <CardTitle>Failed '{jobType}' Jobs In E2E Test Cases ({failedProwJobs.length})</CardTitle>
                 <CardBody>
                     <Pagination
                         perPageComponent="button"

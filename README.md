@@ -143,6 +143,28 @@ All data is organized by Teams: a team groups a set of repositories to show data
 All the teams that have been created will be listed in a table in the Teams page, where they can also be managed.
 Switching a team from the main toolbar, will update the context for the whole view in the dashboard.
 
+### Config
+The Config page provides a quick way of adding multiple teams and repositories in the DB. It presents a code editor where you can set teams and its corresponding JIRA projects and repositories, by downloading an existing config or starting from scratch.
+
+Please, note that:
+ - different teams can not have the same repository
+ - different teams can not have the same description
+
+The config should conform to the following template:
+```
+teams:
+   - name: team-example
+     description: description-example
+     jira_projects:
+        - STONE
+     repositories:
+        - name: e2e-tests
+          organization: redhat-appstudio
+        - name: quality-dashboard
+          organization: redhat-appstudio
+```
+
+
 ## Connectors
 
 ### Openshift CI and Prow Jobs

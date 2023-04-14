@@ -9,6 +9,7 @@ import { Teams } from '@app/Teams/Teams';
 import { ReactReduxContext } from 'react-redux';
 import { Jira } from './Jira/Jira';
 import { GitHub } from './Github/Github';
+import { Config } from './Config/Config';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -48,6 +49,14 @@ const routes: AppRouteConfig[] = [
         label: 'Teams',
         path: '/home/teams',
         title: 'Teams | Quality Studio',
+      },
+      {
+        component: Config,
+        exact: true,
+        isAsync: true,
+        label: 'Config',
+        path: '/home/config',
+        title: 'Config | Quality Studio',
       },
     ],
   },
