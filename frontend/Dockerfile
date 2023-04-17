@@ -7,7 +7,7 @@ COPY package.json .
 COPY yarn.lock .
 COPY entrypoint.sh .
 
-RUN yarn install
+RUN yarn install --network-timeout 1000000
 
 COPY . .
 
