@@ -5,6 +5,7 @@ go 1.18
 require (
 	entgo.io/ent v0.11.7
 	github.com/andygrunwald/go-jira v1.16.0
+	github.com/coreos/go-oidc/v3 v3.5.0
 	github.com/devfile/library v1.3.0
 	github.com/etherlabsio/healthcheck/v2 v2.0.0
 	github.com/google/go-github/v44 v44.1.0
@@ -47,6 +48,7 @@ require (
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-git/go-git/v5 v5.4.2 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-openapi/inflect v0.19.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect

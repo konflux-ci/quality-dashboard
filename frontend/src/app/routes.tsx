@@ -10,6 +10,7 @@ import { ReactReduxContext } from 'react-redux';
 import { Jira } from './Jira/Jira';
 import { GitHub } from './Github/Github';
 import { Config } from './Config/Config';
+import { Login } from './Login/Login';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -32,6 +33,18 @@ export interface IAppRouteGroup {
 export type AppRouteConfig = IAppRoute | IAppRouteGroup;
 
 const routes: AppRouteConfig[] = [
+  {
+    label: 'Login',
+    routes: [
+      {
+        component: Login,
+        exact: true,
+        label: 'Login',
+        path: '/login',
+        title: 'Login | Quality Studio',
+      },
+    ],
+  },
   {
     label: 'Home',
     routes: [
