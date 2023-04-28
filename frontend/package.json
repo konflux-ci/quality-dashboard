@@ -5,6 +5,7 @@
   "repository": "https://github.com/patternfly/patternfly-react-seed.git",
   "homepage": "https://patternfly-react-seed.surge.sh",
   "license": "MIT",
+  "proxy": "http://localhost:9898",
   "private": true,
   "scripts": {
     "prebuild": "npm run clean",

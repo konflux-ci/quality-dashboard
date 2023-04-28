@@ -49,6 +49,7 @@ func (s *loginRouter) login(ctx context.Context, w http.ResponseWriter, r *http.
 	// Configure an OpenID Connect aware OAuth2 client.
 
 	authCodeURL := gh_config.AuthCodeURL(exampleAppState)
+	fmt.Println(w.Header())
 
 	http.Redirect(w, r, authCodeURL, http.StatusSeeOther)
 	return nil

@@ -4,7 +4,7 @@ import { Button } from '@patternfly/react-core';
 
 async function callLogin(){
   const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898';
-  fetch(API_URL + "/api/quality/login")
+  window.location.href = (API_URL + "/api/quality/login")
 }
 
 // eslint-disable-next-line prefer-const
