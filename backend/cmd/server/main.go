@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/redhat-appstudio/quality-studio/api/server"
+	"github.com/redhat-appstudio/quality-studio/api/server/middleware"
 	version "github.com/redhat-appstudio/quality-studio/api/server/router/version"
 	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/connectors/github"
@@ -101,7 +102,7 @@ func main() {
 		Jira:    jiraAPI,
 		Db:      db,
 	})
-
+	server.UseMiddleware(middleware.NewAuthenticationMiddleware("http://127.0.0.1:5556/dex", "example-app"))
 	server.Accept("", listener)
 
 	wait := make(chan error)

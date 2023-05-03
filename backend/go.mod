@@ -5,6 +5,7 @@ go 1.18
 require (
 	entgo.io/ent v0.11.7
 	github.com/andygrunwald/go-jira v1.16.0
+	github.com/coreos/go-oidc v2.1.0+incompatible
 	github.com/devfile/library v1.3.0
 	github.com/etherlabsio/healthcheck/v2 v2.0.0
 	github.com/google/go-github/v44 v44.1.0
@@ -97,6 +98,7 @@ require (
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/pquerna/cachecontrol v0.0.0-20171018203845-0dec1b30a021 // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.40.0 // indirect
@@ -126,6 +128,7 @@ require (
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
+	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
