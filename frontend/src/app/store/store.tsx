@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 import { initialState } from '@app/store/initState';
 import { loadStateContext, stateContextExists } from '@app/utils/utils'
 import axios, { AxiosResponse } from 'axios';
+const { fetch: originalFetch } = window;
 
 interface IContextProps {
     state: StateContext;
@@ -33,7 +34,6 @@ const Store = ({ children }) => {
 
     React.useEffect(() => {
         
-        console.log(state)
         getTeams().then(data => {
             if (data.data.length > 0) {
                 data.data.sort((a, b) => (a.team_name < b.team_name ? -1 : 1));

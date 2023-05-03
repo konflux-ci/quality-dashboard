@@ -153,14 +153,14 @@ async function getAllRepositoriesWithOrgs(team: string, openshift: boolean) {
 
   if (!teamIsNotEmpty(team)) return repoAndOrgs;
 
-  const response = await fetch(
+  const response = await axios.get(
     API_URL + '/api/quality/repositories/list?team_name=' + team + '&openshift_ci=' + (openshift ? 'true' : 'false')
   );
 
-  if (!response.ok) {
+  if (response.status>=400) {
     throw 'Error fetching data from server';
   } else {
-    const data = await response.json();
+    const data = response.data;
     data.sort((a, b) => (a.repository_name < b.repository_name ? -1 : 1));
     repoAndOrgs = data.map((row, index) => {
       return {
@@ -220,7 +220,8 @@ async function createRepository(data = {}) {
 }
 
 async function getLatestProwJob(repoName: string, repoOrg: string, jobType: string) {
-  const response = await fetch(
+  
+  const response = await axios.get(
     API_URL +
       '/api/quality/prow/results/latest/get?repository_name=' +
       repoName +
@@ -229,10 +230,10 @@ async function getLatestProwJob(repoName: string, repoOrg: string, jobType: stri
       '&job_type=' +
       jobType
   );
-  if (!response.ok) {
+  if (!response.data) {
     throw 'Error fetching data from server. ';
   }
-  const data = await response.json();
+  const data = await response.data;
   return data;
 }
 
@@ -240,7 +241,7 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
   const start_date = formatDate(rangeDateTime[0]);
   const end_date = formatDate(rangeDateTime[1]);
 
-  const response = await fetch(
+  const response = await axios.get(
     API_URL +
       '/api/quality/prow/metrics/get?repository_name=' +
       repoName +
@@ -253,10 +254,10 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
       '&end_date=' +
       end_date
   );
-  if (!response.ok) {
+  if (response.status >= 300) {
     throw 'Error fetching data from server. ';
   }
-  const statistics: JobsStatistics = await response.json();
+  const statistics: JobsStatistics = response.data;
   if (statistics.jobs == null) {
     throw 'No jobs detected in OpenShift CI';
   }
@@ -310,17 +311,17 @@ async function createTeam(data = {}) {
 }
 
 async function getJobTypes(repoName: string, repoOrg: string) {
-  const response = await fetch(
+  const response = await axios.get(
     API_URL +
       '/api/quality/repositories/getJobTypesFromRepo?repository_name=' +
       repoName +
       '&git_organization=' +
       repoOrg
   );
-  if (!response.ok) {
+  if (response.status >= 300) {
     throw 'Error fetching data from server. ';
   }
-  const data = await response.json();
+  const data = response.data;
   return data.sort((a, b) => (a < b ? -1 : 1));
 }
 
@@ -393,7 +394,7 @@ async function getPullRequests(repoName: string, repoOrg: string, rangeDateTime:
   const start_date = formatDate(rangeDateTime[0]);
   const end_date = formatDate(rangeDateTime[1]);
 
-  const response = await fetch(
+  const response = await axios.get(
     API_URL +
       '/api/quality/prs/get?repository_name=' +
       repoName +
@@ -404,24 +405,24 @@ async function getPullRequests(repoName: string, repoOrg: string, rangeDateTime:
       '&end_date=' +
       end_date
   );
-  if (!response.ok) {
+  if (response.status >= 300) {
     throw 'Error fetching data from server. ';
   }
 
-  const data: PrsStatistics = await response.json();
+  const data: PrsStatistics = response.data;
 
   return data;
 }
 
 async function getProwJobs(repoName: string, repoOrg: string) {
-  const response = await fetch(
+  const response = await axios.get(
     API_URL + '/api/quality/prow/results/get?repository_name=' + repoName + '&git_organization=' + repoOrg
   );
-  if (!response.ok) {
+  if (response.status >= 300) {
     throw 'Error fetching data from server. ';
   }
 
-  const data: Job[] = await response.json();
+  const data: Job[] = response.data;
   return data;
 }
 
