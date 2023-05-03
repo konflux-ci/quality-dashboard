@@ -17,7 +17,7 @@ import (
 // @Router /jira/bugs/e2e [get]
 // @Success 200 {object} []jira.Issue
 func (s *jiraRouter) listE2EBugsKnown(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
-	issues := s.Jira.GetIssueByJQLQuery(`project in (STONE, DEVHAS, SRVKP, GITOPSRVCE, HACBS) AND status not in (Closed) AND labels = ci-fail`)
+	issues := s.Jira.GetIssueByJQLQuery(`project in (DEVHAS, SRVKP, GITOPSRVCE, HACBS, RHTAP, RHTAPBUGS) AND status not in (Closed) AND labels = ci-fail`)
 
 	return httputils.WriteJSON(w, http.StatusOK, issues)
 }
