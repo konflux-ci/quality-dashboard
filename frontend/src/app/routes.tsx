@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Route, RouteComponentProps, Switch } from 'react-router-dom';
+import { Route, RouteComponentProps, Switch, Redirect } from 'react-router-dom';
 import { accessibleRouteChangeHandler } from '@app/utils/utils';
 import { Overview } from '@app/Overview/Overview';
 import { Reports } from '@app/Reports/Reports';
@@ -10,7 +10,6 @@ import { ReactReduxContext } from 'react-redux';
 import { Jira } from './Jira/Jira';
 import { GitHub } from './Github/Github';
 import { Config } from './Config/Config';
-import { Login } from './Login/Login';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -22,6 +21,8 @@ export interface IAppRoute {
   path: string;
   title: string;
   isAsync?: boolean;
+  isProtected?: boolean;
+  isAuthenticated?: boolean;
   routes?: undefined;
 }
 
@@ -34,24 +35,13 @@ export type AppRouteConfig = IAppRoute | IAppRouteGroup;
 
 const routes: AppRouteConfig[] = [
   {
-    label: 'Login',
-    routes: [
-      {
-        component: Login,
-        exact: true,
-        label: 'Login',
-        path: '/login',
-        title: 'Login | Quality Studio',
-      },
-    ],
-  },
-  {
     label: 'Home',
     routes: [
       {
         component: Overview,
         exact: true,
         label: 'Overview',
+        isProtected: true,
         path: '/home/overview',
         title: 'Overview | Quality Studio',
       },
@@ -61,6 +51,7 @@ const routes: AppRouteConfig[] = [
         isAsync: true,
         label: 'Teams',
         path: '/home/teams',
+        isProtected: true,
         title: 'Teams | Quality Studio',
       },
       {
@@ -68,6 +59,7 @@ const routes: AppRouteConfig[] = [
         exact: true,
         isAsync: true,
         label: 'Config',
+        isProtected: true,
         path: '/home/config',
         title: 'Config | Quality Studio',
       },
@@ -80,6 +72,7 @@ const routes: AppRouteConfig[] = [
         component: GitHub,
         exact: true,
         isAsync: true,
+        isProtected: true,
         label: 'Github',
         path: '/home/github',
         title: 'Github | Quality Studio',
@@ -88,6 +81,7 @@ const routes: AppRouteConfig[] = [
         component: Jira,
         exact: true,
         isAsync: true,
+        isProtected: true,
         label: 'Jira',
         path: '/home/jira',
         title: 'Jira  | Quality Studio',
@@ -96,6 +90,7 @@ const routes: AppRouteConfig[] = [
         component: Reports,
         exact: true,
         isAsync: true,
+        isProtected: true,
         label: 'Openshift CI',
         path: '/reports/test',
         title: 'Openshift CI | Quality Studio',
@@ -119,14 +114,17 @@ const useA11yRouteChange = (isAsync: boolean) => {
   }, [isAsync, lastNavigation]);
 };
 
-const RouteWithTitleUpdates = ({ component: Component, isAsync = false, title, ...rest }: IAppRoute) => {
+const RouteWithTitleUpdates = ({ component: Component, isAsync = false, title, isProtected, isAuthenticated, ...rest }: IAppRoute) => {
   useA11yRouteChange(isAsync);
   useDocumentTitle(title);
 
   function routeWithTitle(routeProps: RouteComponentProps) {
     return <Component {...rest} {...routeProps} />;
   }
-  return <Route render={routeWithTitle} {...rest} />;
+
+  return <Route {...rest} render={(props) => (
+    isProtected == true && isAuthenticated == true ? routeWithTitle(props) : <Redirect to={{ pathname: '/login', state: { from: props.location } }} />
+  )} />
 };
 
 const flattenedRoutes: IAppRoute[] = routes.reduce(
@@ -139,6 +137,18 @@ const AppRoutes = (): React.ReactElement => {
   const state = store.getState();
 
   const [TeamsNotSet, setTeamsNotSet] = React.useState(false);
+  let isAuthenticated = false
+
+  const now = new Date()
+    if (state.auth.AT && state.auth.AT_expiration) {
+      if(new Date(state.auth.AT_expiration*1000) > now){
+        isAuthenticated = true
+      } else{
+        isAuthenticated = false
+      }
+    } else {
+      isAuthenticated = false
+    }
 
   React.useEffect(() => {
     if (state.teams.Team == undefined || state.teams.Team == 'Select Team' || state.teams.Team == '') {
@@ -151,7 +161,7 @@ const AppRoutes = (): React.ReactElement => {
   return (
     <LastLocationProvider>
       <Switch>
-        {flattenedRoutes.map(({ path, exact, component, title, isAsync }, idx) => (
+        {flattenedRoutes.map(({ path, exact, component, title, isAsync, isProtected }, idx) => (   
           <RouteWithTitleUpdates
             path={path}
             exact={exact}
@@ -159,6 +169,8 @@ const AppRoutes = (): React.ReactElement => {
             key={idx}
             title={title}
             isAsync={isAsync}
+            isProtected={isProtected}
+            isAuthenticated={isAuthenticated}
           />
         ))}
       </Switch>

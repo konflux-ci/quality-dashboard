@@ -85,6 +85,8 @@
     "webpack-merge": "^5.8.0"
   },
   "dependencies": {
+    "@badgateway/oauth2-client": "^2.2.0",
+    "@openid/appauth": "^1.3.1",
     "@patternfly/react-catalog-view-extension": "^4.19.8",
     "@patternfly/react-charts": "^6.77.1",
     "@patternfly/react-code-editor": "^4.82.113",
@@ -95,6 +97,7 @@
     "@reduxjs/toolkit": "^1.8.6",
     "@storybook/builder-webpack5": "^6.2.9",
     "axios": "^0.24.0",
+    "fetch-mw-oauth2": "^1.0.2",
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
     "monaco-editor": "^0.36.1",

@@ -21,10 +21,15 @@ export interface StateContext {
     teams: {
         Team: string
         TeamsAvailable: ITeam[]
-    }
+    },
+    auth : {
+        AT: string,
+        RT: string,
+        IDT: string, 
+        AT_expiration: Date,
+        Username: string,
+    }, 
 }
-
-
 
 const generalReducer = (state, action) => {
     switch (action.type) {
@@ -114,12 +119,51 @@ const teamsReducer = (state, action) => {
     }
 };
 
+const authReducer = (state, action) => {
+    switch (action.type) {
+        case 'SET_ACCESS_TOKEN':
+            // Change the persisted 'saved' team when its state has been changed
+            saveStateContext('AT', action.data)
+            return {
+                ...state,
+                AT: action.data
+            };
+        case 'SET_AREFRESH_TOKEN':
+            // Change the persisted 'saved' team when its state has been changed
+            saveStateContext('RT', action.data)
+            return {
+                ...state,
+                RT: action.data
+            };
+        case 'SET_ID_TOKEN':
+            saveStateContext('IDT', action.data)
+            return {
+                ...state,
+                IDT: action.data
+            };
+        case 'SET_AT_EXPIRATION':
+            saveStateContext('AT_EXPIRATION', action.data)
+            return {
+                ...state,
+                AT_expiration: action.data
+            };
+        case 'SET_USERNAME':
+            saveStateContext('USERNAME', action.data)
+            return {
+                ...state,
+                Username: action.data
+            };
+        default: return state || null;
+    }
+};
+
 export const rootReducer = combineReducers({
     general: generalReducer,
     jiras: jirasReducer,
     repos: repositoriesReducer,
     alerts: alertsReducer,
-    teams: teamsReducer
+    teams: teamsReducer,
+    auth: authReducer,
 });
 
 export default rootReducer;

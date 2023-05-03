@@ -5,6 +5,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { initialState } from '@app/store/initState';
 import { loadStateContext, stateContextExists } from '@app/utils/utils'
+import axios, { AxiosResponse } from 'axios';
 
 interface IContextProps {
     state: StateContext;
@@ -30,7 +31,7 @@ const Store = ({ children }) => {
     React.useEffect(() => {
         const state = store.getState()
         const dispatch = store.dispatch
-
+        console.log(state)
         getTeams().then(data => {
             if (data.data.length > 0) {
                 data.data.sort((a, b) => (a.team_name < b.team_name ? -1 : 1));
@@ -50,6 +51,9 @@ const Store = ({ children }) => {
             }
         }
         )
+
+        axios.defaults.headers.common['Authorization'] = state.auth.AT;
+
     }, []);
 
     return (
