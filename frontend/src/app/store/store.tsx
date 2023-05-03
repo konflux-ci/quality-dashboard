@@ -27,10 +27,12 @@ const loadTeamSelection = (data) => {
 
 const Store = ({ children }) => {
     const store = configureStore({ reducer: rootReducer, preloadedState: initialState });
+    const state = store.getState()
+    const dispatch = store.dispatch
+    axios.defaults.headers.common['Authorization'] = state.auth.AT;
 
     React.useEffect(() => {
-        const state = store.getState()
-        const dispatch = store.dispatch
+        
         console.log(state)
         getTeams().then(data => {
             if (data.data.length > 0) {
@@ -51,8 +53,6 @@ const Store = ({ children }) => {
             }
         }
         )
-
-        axios.defaults.headers.common['Authorization'] = state.auth.AT;
 
     }, []);
 
