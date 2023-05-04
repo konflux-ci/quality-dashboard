@@ -66,7 +66,6 @@ let Login = () => {
           setIsCallback(false)
           const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898'
           document.location.href = "/"
-          history.push("/home/teams");
         }, 3000);
       }
 
