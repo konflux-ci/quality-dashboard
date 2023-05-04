@@ -168,6 +168,7 @@ const AppRoutes = (): React.ReactElement => {
             dispatch({ type: "SET_AT_EXPIRATION", data: ""});
             localStorage.clear();
             history.push("/login")
+            window.location.reload();
           }
         })();
       }
