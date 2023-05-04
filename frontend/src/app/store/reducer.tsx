@@ -128,7 +128,7 @@ const authReducer = (state, action) => {
                 ...state,
                 AT: action.data
             };
-        case 'SET_AREFRESH_TOKEN':
+        case 'SET_REFRESH_TOKEN':
             // Change the persisted 'saved' team when its state has been changed
             saveStateContext('RT', action.data)
             return {

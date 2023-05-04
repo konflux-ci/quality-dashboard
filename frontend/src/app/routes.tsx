@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Route, RouteComponentProps, Switch, Redirect } from 'react-router-dom';
+import { Route, RouteComponentProps, Switch, Redirect, useLocation, useHistory } from 'react-router-dom';
 import { accessibleRouteChangeHandler } from '@app/utils/utils';
 import { Overview } from '@app/Overview/Overview';
 import { Reports } from '@app/Reports/Reports';
@@ -10,6 +10,7 @@ import { ReactReduxContext } from 'react-redux';
 import { Jira } from './Jira/Jira';
 import { GitHub } from './Github/Github';
 import { Config } from './Config/Config';
+import { initOauthFlow, completeOauthFlow, OauthData, refreshTokenFlow } from '@app/utils/oauth'
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -135,20 +136,43 @@ const flattenedRoutes: IAppRoute[] = routes.reduce(
 const AppRoutes = (): React.ReactElement => {
   const { store } = React.useContext(ReactReduxContext);
   const state = store.getState();
+  const dispatch = store.dispatch
 
   const [TeamsNotSet, setTeamsNotSet] = React.useState(false);
   let isAuthenticated = false
 
-  const now = new Date()
+  if (state.auth.IDT) {
+    isAuthenticated = true
+  }
+
+  const location = useLocation()
+  const history = useHistory();
+
+  React.useEffect(() => {
+    // when the route changes, check for token expired and refresh it
     if (state.auth.AT && state.auth.AT_expiration) {
-      if(new Date(state.auth.AT_expiration*1000) > now){
-        isAuthenticated = true
-      } else{
-        isAuthenticated = false
+      const now = new Date()
+      if(new Date(state.auth.AT_expiration*1000) < now){
+        (async () => {
+          try{
+            let data = await refreshTokenFlow(state.auth.RT)
+            dispatch({ type: "SET_REFRESH_TOKEN", data: data.RT });
+            dispatch({ type: "SET_ACCESS_TOKEN", data: data.AT });
+            dispatch({ type: "SET_ID_TOKEN", data: data.IDT });
+            dispatch({ type: "SET_AT_EXPIRATION", data: data.AT_EXPIRATION });
+          } catch(err) {
+            console.log("error refreshing token")
+            dispatch({ type: "SET_REFRESH_TOKEN", data: "" });
+            dispatch({ type: "SET_ACCESS_TOKEN", data: "data.AT" });
+            dispatch({ type: "SET_ID_TOKEN", data: "" });
+            dispatch({ type: "SET_AT_EXPIRATION", data: ""});
+            localStorage.clear();
+            history.push("/login")
+          }
+        })();
       }
-    } else {
-      isAuthenticated = false
-    }
+  } 
+  }, [location])
 
   React.useEffect(() => {
     if (state.teams.Team == undefined || state.teams.Team == 'Select Team' || state.teams.Team == '') {
