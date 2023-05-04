@@ -65,7 +65,7 @@ let Login = () => {
           setCallbackError("")
           setIsCallback(false)
           const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898'
-          document.location.href = "/"
+          document.location.href = "/home/overview"
         }, 3000);
       }
 

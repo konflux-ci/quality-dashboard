@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import rootReducer, { StateContext } from './reducer'
 import { getTeams } from '@app/utils/APIService';
 import { configureStore } from '@reduxjs/toolkit';
@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 import { initialState } from '@app/store/initState';
 import { loadStateContext, stateContextExists } from '@app/utils/utils'
 import axios, { AxiosResponse } from 'axios';
+import { Route, RouteComponentProps, Switch, Redirect, useLocation, useHistory } from 'react-router-dom';
 
 interface IContextProps {
     state: StateContext;
@@ -28,9 +29,11 @@ const Store = ({ children }) => {
     const store = configureStore({ reducer: rootReducer, preloadedState: initialState });
     const state = store.getState()
     const dispatch = store.dispatch
+    const history = useHistory();
+    const [myInterceptor, setInterceptor] = useState<any>(null)
 
     // Request interceptor for API calls
-    axios.interceptors.request.use(
+    const interceptor = axios.interceptors.request.use(
         async config => {
             config.headers = config.headers ?? {};
             config.headers.Authorization = state.auth.AT;
@@ -38,6 +41,17 @@ const Store = ({ children }) => {
         },
         error => {
             Promise.reject(error)
+    });
+
+    axios.interceptors.response.use(response => response, error => {
+        
+        console.log(error.response.status)
+        if (error.response.status === 500) {
+            localStorage.clear()
+            document.location.href = "/login"
+        }
+    
+        return Promise.reject(error);
     });
 
     React.useEffect(() => {
