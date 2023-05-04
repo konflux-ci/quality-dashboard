@@ -30,7 +30,6 @@ const Store = ({ children }) => {
     const state = store.getState()
     const dispatch = store.dispatch
     const history = useHistory();
-    const [myInterceptor, setInterceptor] = useState<any>(null)
 
     // Request interceptor for API calls
     const interceptor = axios.interceptors.request.use(
@@ -43,15 +42,12 @@ const Store = ({ children }) => {
             Promise.reject(error)
     });
 
-    axios.interceptors.response.use(response => response, error => {
-        
-        console.log(error.response.status)
-        if (error.response.status === 500) {
-            localStorage.clear()
-            document.location.href = "/login"
-        }
-    
-        return Promise.reject(error);
+    axios.interceptors.response.use(
+        response => response,
+        error => {
+          if (error.response.status === 500) {
+            window.location.href = '/login?session_expired=true';
+          }
     });
 
     React.useEffect(() => {

@@ -63,10 +63,13 @@ let Login = () => {
 
         setTimeout(function() { 
           setCallbackError("")
-          setIsCallback(false)
           const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898'
           document.location.href = "/home/overview"
         }, 3000);
+      }
+
+      if(document.location.href.includes('session_expired=true')){
+        setCallbackError("Your session has expired. Please login again.")
       }
 
     })();
@@ -92,7 +95,7 @@ let Login = () => {
             }
             { callbackError != ""  && 
               <div>
-                <div style={{color: "red"}}> {callbackError} </div>
+                <div style={{color: "red", margin: "5px"}}> {callbackError} </div>
                 <Button onClick={goBackToLogin}>Go Back</Button>
               </div>
             }
