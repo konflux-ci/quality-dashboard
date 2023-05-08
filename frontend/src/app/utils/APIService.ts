@@ -425,6 +425,23 @@ async function getProwJobs(repoName: string, repoOrg: string) {
   return data;
 }
 
+async function listE2EBugsKnown() {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/jira/bugs/e2e';
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
 export {
   getVersion,
   getRepositories,
@@ -445,4 +462,5 @@ export {
   getJirasOpen,
   listJiraProjects,
   getPullRequests,
+  listE2EBugsKnown,
 };

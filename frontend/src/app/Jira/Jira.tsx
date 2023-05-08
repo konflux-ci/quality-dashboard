@@ -26,8 +26,9 @@ import {
     ThProps
 } from '@patternfly/react-table';
 import { Chart, ChartAxis, ChartGroup, ChartLine, ChartBar } from '@patternfly/react-charts';
-import { getJirasResolutionTime, getJirasOpen } from '@app/utils/APIService';
+import { getJirasResolutionTime, getJirasOpen, listE2EBugsKnown } from '@app/utils/APIService';
 import { ReactReduxContext, useSelector } from 'react-redux';
+import { formatDate } from '@app/Reports/utils';
 
 interface Bugs {
     jira_key: string;
@@ -52,9 +53,35 @@ export const Jira = () => {
     const state = store.getState();
     const dispatch = store.dispatch;
     const currentTeam = useSelector((state: any) => state.teams.Team);
+    const [bugsKnown, setBugsKnown] = useState<any>({});
+    const BugsAffectingCI = "Bugs Affecting CI"
 
     useEffect(() => {
         if (currentTeam != "") {
+            listE2EBugsKnown().then(res => {
+                let bugs = new Array<Bugs>
+                res.data.forEach((bug, _) => {
+                    bugs.push({
+                        jira_key: bug.key,
+                        created_at: bug.fields.created,
+                        deleted_at: "",
+                        updated_at: bug.fields.updated,
+                        resolved_at: "",
+                        resolution_time: "",
+                        last_change_time: "",
+                        status: bug.fields.status.description,
+                        summary: bug.fields.summary,
+                        affects_versions: "",
+                        fix_versions: "",
+                        components: "",
+                        labels: "",
+                        url: "https://issues.redhat.com/browse/" + bug.key,
+                        teams_bugs: "",
+                    });
+                })
+                setBugsKnown(bugs)
+            })
+
             const ID = "Global"
             let newData = {}
 
@@ -92,6 +119,9 @@ export const Jira = () => {
     const [resolutionTimeChart, setResolutionTimeChart] = useState<any>({});
     const [bugsChart, setBugsChart] = useState<any>({});
     const [bugsTable, setBugsTable] = useState<any>({});
+    const [graphicsVisible, setGraphicsVisible] = useState(false);
+    // longVersionVisible indicates if 'resolved_at' and 'resolution_time' should be displayed in bugs table
+    const [longVersionVisible, setLongVersionVisible] = useState(false);
 
     const [isSelected, setIsSelected] = React.useState('open');
 
@@ -128,7 +158,7 @@ export const Jira = () => {
     };
 
     useEffect(() => {
-        if (apiDataCache[selected]) {
+        if (apiDataCache[selected] && selected != BugsAffectingCI) {
             let rtc = new Array(12).fill(0)
             let bc = new Array(12).fill(0)
             let rbt = new Array()
@@ -161,8 +191,22 @@ export const Jira = () => {
 
             setBugsChart([bc, obc])
             setResolutionTimeChart([rtc])
-            if (isSelected == 'resolved') { setBugsTable(rbt) }
-            if (isSelected == 'open') { setBugsTable(obt) }
+            setGraphicsVisible(true)
+            if (isSelected == 'resolved') {
+                setBugsTable(rbt)
+                setLongVersionVisible(true)
+            }
+            if (isSelected == 'open') {
+                setBugsTable(obt)
+                setLongVersionVisible(false)
+            }
+        }
+        if (selected == BugsAffectingCI) {
+            setLongVersionVisible(false)
+            setGraphicsVisible(false)
+            setBugsChart([])
+            setResolutionTimeChart([])
+            setBugsTable(bugsKnown)
         }
     }, [selected, isSelected, apiDataCache]);
 
@@ -190,7 +234,7 @@ export const Jira = () => {
             <PageSection>
                 <React.Fragment>
                     <Grid hasGutter>
-                        <GridItem order={{ default: "2" }}>
+                        {graphicsVisible && <GridItem order={{ default: "2" }}>
                             <Grid hasGutter sm={6} md={6} lg={6} xl={6}>
                                 <GridItem order={{ default: "1" }}>
                                     <Card style={{ textAlign: 'center' }}>
@@ -229,7 +273,7 @@ export const Jira = () => {
                                     </Card>
                                 </GridItem>
                             </Grid>
-                        </GridItem>
+                        </GridItem>}
                         <GridItem order={{ default: "1" }}>
                             <Grid hasGutter span={3}>
                                 <GridItem order={{ default: "1" }}>
@@ -256,18 +300,6 @@ export const Jira = () => {
                                         </CardBody>
                                     </Card>
                                 </GridItem>
-                                <GridItem order={{ default: "4" }}>
-                                    <Card isSelectable style={{ textAlign: 'center' }} onClick={onClick} isSelected={selected.includes('Major')} id="Major">
-                                        <CardTitle>Major Bugs</CardTitle>
-                                        <CardBody>
-                                            <Title headingLevel='h1' size="2xl">
-                                                {apiDataCache["Major"] ? <span>{apiDataCache["Major"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
-                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
-                                                {apiDataCache["Major"] ? <span>{apiDataCache["Major"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
-                                            </Title>
-                                        </CardBody>
-                                    </Card>
-                                </GridItem>
                                 <GridItem order={{ default: "3" }}>
                                     <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes('Critical')} id="Critical">
                                         <CardTitle>Critical Bugs</CardTitle>
@@ -276,6 +308,18 @@ export const Jira = () => {
                                                 {apiDataCache["Critical"] ? <span>{apiDataCache["Critical"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
                                                 <span style={{ marginLeft: '20px' }}>&nbsp;</span>
                                                 {apiDataCache["Critical"] ? <span>{apiDataCache["Critical"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
+                                            </Title>
+                                        </CardBody>
+                                    </Card>
+                                </GridItem>
+                                <GridItem order={{ default: "4" }}>
+                                    <Card isSelectable style={{ textAlign: 'center' }} onClick={onClick} isSelected={selected.includes('Major')} id="Major">
+                                        <CardTitle>Major Bugs</CardTitle>
+                                        <CardBody>
+                                            <Title headingLevel='h1' size="2xl">
+                                                {apiDataCache["Major"] ? <span>{apiDataCache["Major"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
+                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
+                                                {apiDataCache["Major"] ? <span>{apiDataCache["Major"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
                                             </Title>
                                         </CardBody>
                                     </Card>
@@ -304,7 +348,7 @@ export const Jira = () => {
                                         </CardBody>
                                     </Card>
                                 </GridItem>
-                                <GridItem order={{ default: "6" }}>
+                                <GridItem order={{ default: "7" }}>
                                     <Card isSelectable style={{ textAlign: 'center' }} onClick={onClick} isSelected={selected.includes('Undefined')} id="Undefined">
                                         <CardTitle>Undefined Bugs</CardTitle>
                                         <CardBody>
@@ -316,6 +360,16 @@ export const Jira = () => {
                                         </CardBody>
                                     </Card>
                                 </GridItem>
+                                <GridItem order={{ default: "8" }}>
+                                    <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes(BugsAffectingCI)} id={BugsAffectingCI}>
+                                        <CardTitle>Bugs affecting CI</CardTitle>
+                                        <CardBody>
+                                            <Title headingLevel='h1' size="2xl">
+                                                {bugsKnown ? <span>{bugsKnown.length} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
+                                            </Title>
+                                        </CardBody>
+                                    </Card>
+                                </GridItem>
                             </Grid>
                         </GridItem>
                         <GridItem order={{ default: "3" }}>
@@ -323,7 +377,7 @@ export const Jira = () => {
                                 <CardTitle>Bugs</CardTitle>
                                 <CardBody>
                                     <Grid hasGutter span={2}>
-                                        <GridItem order={{ default: "1" }}>
+                                        {(selected != BugsAffectingCI) && <GridItem order={{ default: "1" }}>
                                             <ToggleGroup aria-label="Default with single selectable">
                                                 <ToggleGroupItem
                                                     text="Open bugs"
@@ -338,7 +392,7 @@ export const Jira = () => {
                                                     onChange={handleItemClick}
                                                 />
                                             </ToggleGroup>
-                                        </GridItem>
+                                        </GridItem>}
                                         <GridItem order={{ default: "2" }}>
                                             <ChipGroup categoryName="Active filters: " numChips={5}>
                                                 <Chip key={selected} isReadOnly style={{ fontSize: '15px' }}>
@@ -347,7 +401,7 @@ export const Jira = () => {
                                             </ChipGroup>
                                         </GridItem>
                                     </Grid>
-                                    <ComposableTableStripedTr bugs={bugsTable}></ComposableTableStripedTr>
+                                    <ComposableTableStripedTr bugs={bugsTable} longVersion={longVersionVisible}></ComposableTableStripedTr>
                                 </CardBody>
                             </Card>
                         </GridItem>
@@ -424,7 +478,7 @@ const BugsChart: React.FC<{ chartType: string, data: any, onBarClick: any }> = (
     );
 }
 
-const ComposableTableStripedTr: React.FC<{ bugs: any }> = ({ bugs }) => {
+const ComposableTableStripedTr: React.FC<{ bugs: any, longVersion: boolean }> = ({ bugs, longVersion }) => {
     const [bugsPage, setBugsPage] = useState<Array<Bugs>>([]);
     const [page, setPage] = React.useState(1);
     const [perPage, setPerPage] = React.useState(10);
@@ -505,9 +559,12 @@ const ComposableTableStripedTr: React.FC<{ bugs: any }> = ({ bugs }) => {
         { column: 'status', label: 'Status' },
         { column: 'created_at', label: 'Created at' },
         { column: 'updated_at', label: 'Updated at' },
-        { column: 'resolved_at', label: 'Resolved at' },
-        { column: 'resolution_time', label: 'Resolution Time' },
     ]
+
+    if (longVersion) {
+        columns.push({ column: 'resolved_at', label: 'Resolved at' })
+        columns.push({ column: 'resolution_time', label: 'Resolution Time' })
+    }
 
     function filterRows(rows, filters) {
         if (Object.keys(filters).length === 0) return rows
@@ -636,10 +693,10 @@ const ComposableTableStripedTr: React.FC<{ bugs: any }> = ({ bugs }) => {
                             <Td dataLabel={columnNames.jira_key}><a href={bug.url} target={bug.url}>{bug.jira_key}</a></Td>
                             <Td dataLabel={columnNames.summary}>{bug.summary}</Td>
                             <Td dataLabel={columnNames.status}>{bug.status ? bug.status : "-"}</Td>
-                            <Td dataLabel={columnNames.created_at}>{bug.created_at}</Td>
-                            <Td dataLabel={columnNames.updated_at}>{bug.updated_at}</Td>
-                            <Td dataLabel={columnNames.resolved_at}>{bug.resolved_at}</Td>
-                            <Td dataLabel={columnNames.resolution_time}>{!Number.isNaN(parseFloat(bug.resolution_time)) ? parseFloat(bug.resolution_time).toFixed(2) + "h" : "-"}</Td>
+                            <Td dataLabel={columnNames.created_at}>{formatDate(new Date(bug.created_at))}</Td>
+                            <Td dataLabel={columnNames.updated_at}>{formatDate(new Date(bug.updated_at))}</Td>
+                            {longVersion && <Td dataLabel={columnNames.resolved_at}>{formatDate(new Date(bug.resolved_at))}</Td>}
+                            {longVersion && <Td dataLabel={columnNames.resolution_time}>{!Number.isNaN(parseFloat(bug.resolution_time)) ? parseFloat(bug.resolution_time).toFixed(2) + "h" : "-"}</Td>}
                         </Tr>
                     ))}
                 </Tbody>
