@@ -27,6 +27,7 @@ import {
 } from '@patternfly/react-table';
 import { Chart, ChartAxis, ChartGroup, ChartLine, ChartBar } from '@patternfly/react-charts';
 import { getJirasResolutionTime, getJirasOpen, listE2EBugsKnown } from '@app/utils/APIService';
+import { help } from '@app/Github/PullRequests';
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { formatDate } from '@app/Reports/utils';
 
@@ -362,7 +363,10 @@ export const Jira = () => {
                                 </GridItem>
                                 <GridItem order={{ default: "8" }}>
                                     <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes(BugsAffectingCI)} id={BugsAffectingCI}>
-                                        <CardTitle>Bugs affecting CI</CardTitle>
+                                        <CardTitle>
+                                            Bugs affecting CI
+                                            {help("Bugs affecting CI in the projects DEVHAS, SRVKP, GITOPSRVCE, HACBS, RHTAP, and RHTAPBUGS.")}
+                                        </CardTitle>
                                         <CardBody>
                                             <Title headingLevel='h1' size="2xl">
                                                 {bugsKnown ? <span>{bugsKnown.length} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
