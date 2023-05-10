@@ -143,7 +143,6 @@ export const PullRequestsGraphic = (props) => {
         </Title>
         <Chart
           ariaDesc="Average number of pets"
-          ariaTitle="Line chart example"
           containerComponent={
             <CursorVoronoiContainer
               cursorDimension="x"

@@ -430,7 +430,6 @@ const BugsChart: React.FC<{ chartType: string, data: any, onBarClick: any }> = (
             {data.length > 0 &&
                 <Chart
                     ariaDesc="Average number of pets"
-                    ariaTitle="Line chart example"
                     height={210}
                     legendData={legendData}
                     legendPosition='bottom'
