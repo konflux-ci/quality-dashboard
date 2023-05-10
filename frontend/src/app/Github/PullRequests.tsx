@@ -29,7 +29,7 @@ export interface Metrics {
   merged_prs_count: number;
 }
 
-const help = (desc : string) => {
+export const help = (desc : string) => {
   return (
     <Popover
       bodyContent={
@@ -143,7 +143,6 @@ export const PullRequestsGraphic = (props) => {
         </Title>
         <Chart
           ariaDesc="Average number of pets"
-          ariaTitle="Line chart example"
           containerComponent={
             <CursorVoronoiContainer
               cursorDimension="x"
