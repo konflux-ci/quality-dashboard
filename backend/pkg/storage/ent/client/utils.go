@@ -50,3 +50,26 @@ func isSameDay(startDate, endDate string) bool {
 	}
 	return false
 }
+
+// getRange gets the start and end date
+func getRange(i int, day string, dayArr []string) (string, string) {
+	t, _ := time.Parse("2006-01-02 15:04:05", day)
+	y, m, dd := t.Date()
+	start := ""
+	end := ""
+
+	if i == 0 { // first day
+		start = day
+		end = fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd)
+	} else {
+		if i == len(dayArr)-1 { // last day
+			start = fmt.Sprintf("%04d-%02d-%02d 00:00:00", y, m, dd)
+			end = day
+		} else { // middle days
+			start = fmt.Sprintf("%04d-%02d-%02d 00:00:00", y, m, dd)
+			end = fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd)
+		}
+	}
+
+	return start, end
+}

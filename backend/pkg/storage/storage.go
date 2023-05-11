@@ -27,7 +27,7 @@ type Storage interface {
 	Close() error
 
 	// GET
-	TotalBugsResolutionTime(priority string, team *db.Teams) (bugsMetrics jiraV1Alpha1.ResolvedBugsMetrics, err error)
+	TotalBugsResolutionTime(priority, startDate, endDate string, team *db.Teams) (bugsMetrics jiraV1Alpha1.ResolvedBugsMetrics, err error)
 	GetRepository(repositoryName string, gitOrganizationName string) (*db.Repository, error)
 	GetLatestProwTestExecution(r *db.Repository, jobType string) (*db.ProwJobs, error)
 	GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error)
@@ -53,7 +53,7 @@ type Storage interface {
 	UpdateCoverage(codecov coverageV1Alpha1.Coverage, repoName string) error
 	CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error
 	UpdateTeam(t *db.Teams, target string) error
-	GetOpenBugsMetricsByStatusAndPriority(priority string, team *db.Teams) (bugsMetrics jiraV1Alpha1.OpenBugsMetrics, err error)
+	GetOpenBugsMetricsByStatusAndPriority(priority, startDate, endDate string, team *db.Teams) (bugsMetrics jiraV1Alpha1.OpenBugsMetrics, err error)
 	CreatePullRequests(prs repoV1Alpha1.PullRequests, repo_id string) error
 
 	// Delete

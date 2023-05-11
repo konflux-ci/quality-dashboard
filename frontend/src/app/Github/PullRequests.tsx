@@ -11,6 +11,7 @@ import {
 } from '@patternfly/react-charts';
 import { DashboardLineChartData } from '@app/utils/sharedComponents';
 import { HelpIcon } from '@patternfly/react-icons';
+import { getLabels } from '@app/utils/utils';
 
 export interface PrsStatistics {
   metrics: Metrics[];
@@ -98,7 +99,7 @@ const getMaxY = (data: DashboardLineChartData) => {
 };
 
 export const PullRequestsGraphic = (props) => {
-  const CursorVoronoiContainer = createContainer('voronoi', 'cursor');
+  const ZoomVoronoiContainer = createContainer("zoom", "voronoi");
   const legendData = [
     { childName: 'created prs', name: 'Created PRs' },
     { childName: 'merged prs', name: 'Merged PRs' },
@@ -143,15 +144,12 @@ export const PullRequestsGraphic = (props) => {
         </Title>
         <Chart
           ariaDesc="Average number of pets"
-          ariaTitle="Line chart example"
           containerComponent={
-            <CursorVoronoiContainer
-              cursorDimension="x"
-              labels={({ datum }) => `${datum.y}`}
-              labelComponent={<ChartLegendTooltip legendData={legendData} title={(datum) => datum.x} />}
-              mouseFollowTooltips
+            <ZoomVoronoiContainer
+              labels={({ datum }) => getLabels(datum, "created_prs")}
               voronoiDimension="x"
-              voronoiPadding={50}
+              voronoiPadding={0}
+              constrainToVisibleArea
             />
           }
           legendData={legendData}

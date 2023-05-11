@@ -50,10 +50,10 @@ type ResolutionTime struct {
 
 	NumberOfTotalBugs int `json:"resolved_bugs"`
 
-	Months []MonthsResolution `json:"months"`
+	Days []DaysResolution `json:"days"`
 }
 
-type MonthsResolution struct {
+type DaysResolution struct {
 	Name string `json:"name"`
 
 	Total float64 `json:"total"`
@@ -63,7 +63,7 @@ type MonthsResolution struct {
 	Bugs []*db.Bugs `json:"bugs"`
 }
 
-// Retrive metrics for open Bugs only
+// Retrieve metrics for open Bugs only
 type OpenBugsMetrics struct {
 	TotalOpenBugs OpenBugs `json:"open"`
 }
@@ -73,10 +73,10 @@ type OpenBugs struct {
 
 	NumberOfOpenBugs int `json:"open_bugs"`
 
-	Months []MonthsOpen `json:"months"`
+	Days []DaysOpen `json:"days"`
 }
 
-type MonthsOpen struct {
+type DaysOpen struct {
 	Name string `json:"name"`
 
 	OpenBugs int `json:"open_bugs"`

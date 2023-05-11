@@ -72,3 +72,12 @@ export function validateParam(params, param) {
   }
   return false;
 }
+
+// getLabels gets the labels, considering its name prefix
+export const getLabels = (datum, prefix) => {
+  if (!datum.name.startsWith(prefix)) {
+    return `${datum.name} : ${datum.y}`;
+  }
+
+  return `${datum.x} \n ${datum.name} : ${datum.y}`;
+};
