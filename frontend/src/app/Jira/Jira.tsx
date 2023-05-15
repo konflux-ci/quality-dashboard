@@ -33,6 +33,7 @@ import { formatDate, getRangeDates } from '@app/Reports/utils';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 import { useHistory } from 'react-router-dom';
 import { getLabels } from '@app/utils/utils';
+import { help } from '@app/Github/PullRequests';
 
 interface Bugs {
     jira_key: string;
@@ -408,7 +409,10 @@ export const Jira = () => {
                                 </GridItem>
                                 <GridItem order={{ default: "8" }}>
                                     <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes(BugsAffectingCI)} id={BugsAffectingCI}>
-                                        <CardTitle>Bugs affecting CI</CardTitle>
+                                        <CardTitle>
+                                            Bugs affecting CI
+                                            {help("Bugs affecting CI in the projects DEVHAS, SRVKP, GITOPSRVCE, HACBS, RHTAP, and RHTAPBUGS.")}
+                                        </CardTitle>
                                         <CardBody>
                                             <Title headingLevel='h1' size="2xl">
                                                 {bugsKnown ? <span>{bugsKnown.length} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
