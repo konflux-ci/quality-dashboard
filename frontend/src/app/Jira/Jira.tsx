@@ -15,6 +15,7 @@ import {
     ChipGroup,
     ToggleGroup,
     ToggleGroupItem,
+    Spinner,
 } from '@patternfly/react-core';
 import {
     TableComposable,
@@ -60,33 +61,37 @@ export const Jira = () => {
     const BugsAffectingCI = "Bugs Affecting CI"
     const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(30));
     const priorities = ["Global", "Major", "Critical", "Blocker", "Normal", "Undefined", "Minor"]
+    const [loadingState, setLoadingState] = useState(false);
 
     const getJiraData = (ID) => {
+        setLoadingState(true)
         const newData = {}
 
-        const promises = new Array()
-        priorities.forEach(p => {
-            promises.push(getJirasOpen(p, state.teams.Team, rangeDateTime))
-            promises.push(getJirasResolutionTime(p, state.teams.Team, rangeDateTime))
-        })
-
-        Promise.all(promises).then(function (values) {
-            values.map(value => {
-                if (value.data.hasOwnProperty("open")) {
-                    if (!newData.hasOwnProperty(value.data.open.priority)) {
-                        newData[value.data.open.priority] = {}
-                    }
-                    newData[value.data.open.priority].open = value.data.open
-                } else if (value.data.hasOwnProperty("resolution_time")) {
-                    if (!newData.hasOwnProperty(value.data.resolution_time.priority)) {
-                        newData[value.data.open.priority] = {}
-                    }
-                    newData[value.data.resolution_time.priority].resolved = value.data.resolution_time
-                }
+        if (currentTeam != "") {
+            const promises = new Array()
+            priorities.forEach(p => {
+                promises.push(getJirasOpen(p, currentTeam, rangeDateTime))
+                promises.push(getJirasResolutionTime(p, currentTeam, rangeDateTime))
             })
-            setApiDataCache(newData)
-            setSelected(ID)
-        });
+
+            Promise.all(promises).then(function (values) {
+                values.map(value => {
+                    if (value.data.hasOwnProperty("open")) {
+                        if (!newData.hasOwnProperty(value.data.open.priority)) {
+                            newData[value.data.open.priority] = {}
+                        }
+                        newData[value.data.open.priority].open = value.data.open
+                    } else if (value.data.hasOwnProperty("resolution_time")) {
+                        if (!newData.hasOwnProperty(value.data.resolution_time.priority)) {
+                            newData[value.data.open.priority] = {}
+                        }
+                        newData[value.data.resolution_time.priority].resolved = value.data.resolution_time
+                    }
+                })
+                setApiDataCache(newData)
+                setSelected(ID)
+            });
+        }
     }
 
     useEffect(() => {
@@ -115,17 +120,18 @@ export const Jira = () => {
                 setBugsKnown(bugs)
             })
 
-            const ID = "Global"
+            const selected = params.get("selected")
+            const ID =  selected != null ? selected : "Global"
             getJiraData(ID)
 
             const start = params.get("start")
             const end = params.get("end")
 
             if (start == null || end == null) {
-                history.push('/home/jira?team=' + currentTeam + '&start=' + formatDate(rangeDateTime[0]) + '&end=' + formatDate(rangeDateTime[1]))
+                history.push('/home/jira?team=' + currentTeam + '&selected=' + ID + '&start=' + formatDate(rangeDateTime[0]) + '&end=' + formatDate(rangeDateTime[1]))
             } else {
                 setRangeDateTime([new Date(start), new Date(end)])
-                history.push('/home/jira?team=' + currentTeam + '&start=' + start + '&end=' + end)
+                history.push('/home/jira?team=' + currentTeam + '&selected=' + ID + '&start=' + start + '&end=' + end)
             }
         }
     }, [currentTeam]);
@@ -150,10 +156,9 @@ export const Jira = () => {
     };
 
     useEffect(() => {
-        if (selected != "") {
-            getJiraData(selected)
-
-        }
+        const selected = params.get("selected")
+        const target = selected != null ? selected : "Global"
+        getJiraData(target)
     }, [rangeDateTime]);
 
     const onClick = (event: React.MouseEvent) => {
@@ -171,14 +176,12 @@ export const Jira = () => {
                         ...apiDataCache,
                         ...newData
                     })
-                    setSelected(ID)
                 });
-
             }
-            setSelected(ID)
-        } else {
-            setSelected(ID)
         }
+        setSelected(ID)
+        params.set("selected", ID)
+        history.push(window.location.pathname + '?' + params.toString());
     };
 
     useEffect(() => {
@@ -231,6 +234,7 @@ export const Jira = () => {
             setResolutionTimeChart([])
             setBugsTable(bugsKnown)
         }
+        setLoadingState(false)
     }, [selected, isSelected, apiDataCache]);
 
     function onBarChartClick(event) {
@@ -262,7 +266,11 @@ export const Jira = () => {
                 </TextContent>
             </PageSection>
             <PageSection>
-                <React.Fragment>
+                {loadingState && <div style={{ width: '100%', textAlign: "center" }}>
+                    <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />
+                </div>
+                }
+                {!loadingState && <React.Fragment>
                     <Grid hasGutter>
                         <GridItem>
                             <DateTimeRangePicker
@@ -444,7 +452,7 @@ export const Jira = () => {
                             </Card>
                         </GridItem>
                     </Grid>
-                </React.Fragment>
+                </React.Fragment>}
             </PageSection>
 
         </React.Fragment>
@@ -452,7 +460,7 @@ export const Jira = () => {
 }
 const BugsChart: React.FC<{ chartTitle: string, data: any, onBarClick: any }> = ({ chartTitle, data, onBarClick }) => {
     const ZoomVoronoiContainer = createContainer("zoom", "voronoi");
-    
+
     let legendData: { name: string }[] = []
     if (data.length > 0) {
         legendData = data.map((dataset, index) => {
@@ -521,7 +529,7 @@ const BugsChart: React.FC<{ chartTitle: string, data: any, onBarClick: any }> = 
                     }
                 </Chart>
             }
-            </div>
+        </div>
     );
 }
 

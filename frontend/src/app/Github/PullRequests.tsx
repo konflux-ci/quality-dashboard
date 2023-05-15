@@ -4,7 +4,6 @@ import {
   Chart,
   ChartAxis,
   ChartGroup,
-  ChartLegendTooltip,
   ChartLine,
   ChartThemeColor,
   createContainer,
