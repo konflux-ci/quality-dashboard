@@ -11,15 +11,16 @@ export interface OauthData {
   USERNAME: string;
 }
 
-const issuer = new URL('http://127.0.0.1:5556/dex')
+const DEX_ISSUER = process.env.DEX_ISSUER || 'http://127.0.0.1:5556/dex'
+const issuer = new URL(DEX_ISSUER)
 const state = "Login to DEX server"
 
 const client: oauth2.Client = {
-  client_id: 'example-app',
+  client_id: process.env.DEX_APPLICATION_ID || 'redhat-quality-studio-app',
   token_endpoint_auth_method: 'none',
 }
 
-const redirect_uri = 'http://localhost:9000/login'
+const redirect_uri = process.env.FRONTEND_REDIRECT_URI || 'http://localhost:9000/login'
 
 export async function initOauthFlow():Promise<URL> {
   let authorizationUrl: URL
@@ -40,7 +41,7 @@ export async function initOauthFlow():Promise<URL> {
   authorizationUrl.searchParams.set('code_challenge_method', code_challenge_method)
   authorizationUrl.searchParams.set('redirect_uri', redirect_uri)
   authorizationUrl.searchParams.set('response_type', 'code')
-  authorizationUrl.searchParams.set('scope', 'openid email offline_access', )
+  authorizationUrl.searchParams.set('scope', 'openid email offline_access profile groups', )
   authorizationUrl.searchParams.set('state', state)
 
   return authorizationUrl
@@ -150,7 +151,7 @@ export async function refreshTokenFlow(rt:string):Promise<OauthData> {
   refresh_token = result.refresh_token ? result.refresh_token : ""
   expiration = claims?.exp ? claims.exp : -1
   username = ""
-  
+
   let Data:OauthData = {
     AT: access_token,
     IDT: id_token,
