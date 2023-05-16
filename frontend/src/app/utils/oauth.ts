@@ -11,7 +11,7 @@ export interface OauthData {
   USERNAME: string;
 }
 
-const DEX_ISSUER = process.env.DEX_ISSUER || 'http://127.0.0.1:5556/dex'
+const DEX_ISSUER = process.env.DEX_ISSUER || 'https://dex-qd-authenticator-uj82-flacatus-tenant.apps.stone-prd-m01.84db.p1.openshiftapps.com/dex'
 const issuer = new URL(DEX_ISSUER)
 const state = "Login to DEX server"
 
