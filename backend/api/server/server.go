@@ -122,8 +122,9 @@ func (s *Server) serveAPI() error {
 	var chErrors = make(chan error, len(s.servers))
 	c := cors.New(cors.Options{
 		AllowedOrigins:   make([]string, 0),
+		AllowedHeaders:   []string{"X-Registry-Auth", "Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
-		AllowedMethods:   []string{"POST", "GET", "DELETE", "PUT"},
+		AllowedMethods:   []string{"POST", "GET", "DELETE", "PUT", "OPTIONS"},
 		// Enable Debugging for testing, consider disabling in production
 		Debug: false,
 	})
@@ -173,7 +174,7 @@ func (s *Server) makeHTTPHandler(handler httputils.APIFunc) http.HandlerFunc {
 		if err := handlerFunc(ctx, w, r, vars); err != nil {
 			statusCode := errdefs.GetHTTPErrorStatusCode(err)
 			if statusCode >= 500 {
-				s.cfg.Logger.Error("Handler for route failed", zap.String("Path", r.URL.Path), zap.String("Method", r.Method))
+				s.cfg.Logger.Error("Handler for route failed", zap.Error(err), zap.String("Path", r.URL.Path), zap.String("Method", r.Method))
 			}
 			httputils.MakeErrorHandler(err)(w, r)
 		}
