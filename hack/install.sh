@@ -77,13 +77,26 @@ oc apply -k ${WORKSPACE}/backend/deploy/overlays/local
 
 # oc apply -k ${WORKSPACE}/frontend/deploy/openshift
 
-# export BACKEND_ROUTE=$(oc get route quality-backend-route -n appstudio-qe -o json | jq -r '.spec.host')
-echo "BACKEND_ROUTE=$(oc get route quality-backend-route -n appstudio-qe -o json | jq -r '.spec.host')" > ${WORKSPACE}/frontend/deploy/overlays/local/configmap.txt
 
+# export BACKEND_ROUTE=$(oc get route quality-backend-route -n appstudio-qe -o json | jq -r '.spec.host')
+export BACKEND_ROUTE=$(oc get route quality-backend-route -n appstudio-qe -o json | jq -r '.spec.host') > ${WORKSPACE}/frontend/deploy/overlays/local/configmap.txt
+cat <<EOF >${WORKSPACE}/frontend/deploy/overlays/local/configmap.txt
+first line
+second line
+third line
+EOF
 # FRONTEND
 echo -e "[INFO] Deploying Quality dashboard frontend"
+oc apply -f ${WORKSPACE}/frontend/deploy/base/route.yaml
 
-oc apply -k ${WORKSPACE}/frontend/deploy/overlays/local
+export FRONTEND_REDIRECT_URI=$(oc get route quality-frontend-route -n appstudio-qe -o json | jq -r '.spec.host')/login
+
+cat <<EOF > ${WORKSPACE}/frontend/deploy/overlays/local/configmap.txt
+FRONTEND_REDIRECT_URI=https://${FRONTEND_REDIRECT_URI}
+BACKEND_ROUTE=${BACKEND_ROUTE}
+EOF
+
+oc apply -k ${WORKSPACE}/frontend/deploy/overlays/local || true
 
 echo ""
 echo "Frontend is accessible from: http://"$(oc get route/quality-frontend-route -n appstudio-qe -o go-template='{{.spec.host}}{{"\n"}}')""
