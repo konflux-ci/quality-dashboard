@@ -23,6 +23,12 @@ do
         -jt|--jira-token)
             JIRA_TOKEN=$2
             ;;
+        -di|--dex-issuer)
+            DEX_ISSUER=$2
+            ;;
+        -da|--dex-application)
+            DEX_APPLICATION_ID=$2
+            ;;
         *)
             ;;
     esac
@@ -57,6 +63,8 @@ storage-password=${STORAGE_PASSWORD}
 github-token=${GITHUB_TOKEN}
 rds-endpoint=postgres-service
 jira-token=${JIRA_TOKEN}
+dex-issuer=${DEX_ISSUER}
+dex-application-id=${DEX_APPLICATION_ID}
 EOF
 
 # Namespace
