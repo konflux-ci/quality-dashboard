@@ -23,6 +23,12 @@ do
         -jt|--jira-token)
             JIRA_TOKEN=$2
             ;;
+        -di|--dex-issuer)
+            DEX_ISSUER=$2
+            ;;
+        -da|--dex-application)
+            DEX_APPLICATION_ID=$2
+            ;;
         *)
             ;;
     esac
@@ -43,6 +49,33 @@ if [[ "${GITHUB_TOKEN}" == "" ]]; then
   echo "[ERROR] Github Token flag is missing. Use '--github-token <value>' or '-g <value>' to allow quality dashboard to make request to github"
   exit 1
 fi
+
+echo "[INFO] Starting Quality dashboard..."
+echo "   Storage Password   : "${STORAGE_PASSWORD}""
+echo "   Storage Database   : "${STORAGE_USER}""
+echo "   Github Token       : "${GITHUB_TOKEN}""
+echo ""
+
+cat << EOF > ${SECRET_DASHBOARD_TMP}
+storage-database=quality
+storage-user=${STORAGE_USER}
+storage-password=${STORAGE_PASSWORD}
+github-token=${GITHUB_TOKEN}
+rds-endpoint=postgres-service
+jira-token=${JIRA_TOKEN}
+dex-issuer=${DEX_ISSUER}
+dex-application-id=${DEX_APPLICATION_ID}
+EOF
+
+# Namespace
+oc create namespace appstudio-qe || true
+
+# BACKEND
+echo -e "[INFO] Deploying Quality dashboard backend"
+
+oc apply -k ${WORKSPACE}/backend/deploy/overlays/local
+
+# oc apply -k ${WORKSPACE}/frontend/deploy/openshift
 
 
 # export BACKEND_ROUTE=$(oc get route quality-backend-route -n appstudio-qe -o json | jq -r '.spec.host')
