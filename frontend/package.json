@@ -21,9 +21,7 @@
     "ci-checks": "npm run type-check && npm run lint && npm run test:coverage",
     "build:bundle-profile": "webpack --config webpack.prod.js --profile --json > stats.json",
     "bundle-profile:analyze": "npm run build:bundle-profile && webpack-bundle-analyzer ./stats.json",
-    "clean": "rimraf dist",
-    "storybook": "start-storybook -p 6006",
-    "build:storybook": "build-storybook"
+    "clean": "rimraf dist"
   },
   "devDependencies": {
     "@storybook/addon-actions": "^6.2.9",
@@ -92,7 +90,6 @@
     "@patternfly/react-styles": "^4.12.5",
     "@patternfly/react-table": "^4.37.8",
     "@reduxjs/toolkit": "^1.8.6",
-    "@storybook/builder-webpack5": "^6.2.9",
     "axios": "^0.24.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.1",

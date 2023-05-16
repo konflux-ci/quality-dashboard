@@ -9,7 +9,7 @@ Server API solution to talk to quality dashboard.
 * Stores data in a PostreSQL database
 * Uses entgo to model and query the database
 
-# Setup
+# Build
 
 A proper setup Go workspace using **Go 1.19+ is required**.
 
@@ -19,13 +19,22 @@ Install dependencies:
 go mod tidy
 # Copy the dependencies to vendor folder
 go mod vendor
-# Create qe-dashboard-backend binary in bin folder. Please add the binary to the path or just execute ./bin/qe-dashboard-backend
+# Build the backend binary
 make build
 ```
 
-Environments used by the server:
+# Execution
+
+Setup environment variables:
+
 | Environment Name | Value | Default | Required |
 | -- | -- | -- | -- |
 | `GITHUB_TOKEN` | Github token to make requests | `` | yes |
 | `CODECOV_TOKEN` | CodeCov token to make requests | `` | no |
 | `JIRA_TOKEN` | Jira token to read jira issues | yes | --jira-token xxxxx |
+
+
+You can run the backend server binary at
+```
+./bin/server-runtime
+```
