@@ -15,6 +15,7 @@ import {
     ChipGroup,
     ToggleGroup,
     ToggleGroupItem,
+    Spinner,
 } from '@patternfly/react-core';
 import {
     TableComposable,
@@ -25,11 +26,14 @@ import {
     Td,
     ThProps
 } from '@patternfly/react-table';
-import { Chart, ChartAxis, ChartGroup, ChartLine, ChartBar } from '@patternfly/react-charts';
+import { Chart, ChartAxis, ChartGroup, ChartLine, createContainer, ChartThemeColor } from '@patternfly/react-charts';
 import { getJirasResolutionTime, getJirasOpen, listE2EBugsKnown } from '@app/utils/APIService';
-import { help } from '@app/Github/PullRequests';
 import { ReactReduxContext, useSelector } from 'react-redux';
-import { formatDate } from '@app/Reports/utils';
+import { formatDate, getRangeDates } from '@app/Reports/utils';
+import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
+import { useHistory } from 'react-router-dom';
+import { getLabels } from '@app/utils/utils';
+import { help } from '@app/Github/PullRequests';
 
 interface Bugs {
     jira_key: string;
@@ -56,11 +60,45 @@ export const Jira = () => {
     const currentTeam = useSelector((state: any) => state.teams.Team);
     const [bugsKnown, setBugsKnown] = useState<any>({});
     const BugsAffectingCI = "Bugs Affecting CI"
+    const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(30));
+    const priorities = ["Global", "Major", "Critical", "Blocker", "Normal", "Undefined", "Minor"]
+    const [loadingState, setLoadingState] = useState(false);
+
+    const getJiraData = (ID) => {
+        setLoadingState(true)
+        const newData = {}
+
+        if (currentTeam != "") {
+            const promises = new Array()
+            priorities.forEach(p => {
+                promises.push(getJirasOpen(p, currentTeam, rangeDateTime))
+                promises.push(getJirasResolutionTime(p, currentTeam, rangeDateTime))
+            })
+
+            Promise.all(promises).then(function (values) {
+                values.map(value => {
+                    if (value.data.hasOwnProperty("open")) {
+                        if (!newData.hasOwnProperty(value.data.open.priority)) {
+                            newData[value.data.open.priority] = {}
+                        }
+                        newData[value.data.open.priority].open = value.data.open
+                    } else if (value.data.hasOwnProperty("resolution_time")) {
+                        if (!newData.hasOwnProperty(value.data.resolution_time.priority)) {
+                            newData[value.data.open.priority] = {}
+                        }
+                        newData[value.data.resolution_time.priority].resolved = value.data.resolution_time
+                    }
+                })
+                setApiDataCache(newData)
+                setSelected(ID)
+            });
+        }
+    }
 
     useEffect(() => {
         if (currentTeam != "") {
             listE2EBugsKnown().then(res => {
-                let bugs = new Array<Bugs>
+                const bugs = new Array<Bugs>
                 res.data.forEach((bug, _) => {
                     bugs.push({
                         jira_key: bug.key,
@@ -83,35 +121,19 @@ export const Jira = () => {
                 setBugsKnown(bugs)
             })
 
-            const ID = "Global"
-            let newData = {}
+            const selected = params.get("selected")
+            const ID =  selected != null ? selected : "Global"
+            getJiraData(ID)
 
-            const promises = new Array()
-            const priorities = ["Global", "Major", "Critical", "Blocker", "Normal", "Undefined", "Minor"]
-            priorities.forEach(p => {
-                promises.push(getJirasOpen(p, state.teams.Team))
-                promises.push(getJirasResolutionTime(p, state.teams.Team))
-            })
+            const start = params.get("start")
+            const end = params.get("end")
 
-            Promise.all(promises).then(function (values) {
-
-                values.map(value => {
-                    if (value.data.hasOwnProperty("open")) {
-                        if (!newData.hasOwnProperty(value.data.open.priority)) {
-                            newData[value.data.open.priority] = {}
-                        }
-                        newData[value.data.open.priority].open = value.data.open
-                    } else if (value.data.hasOwnProperty("resolution_time")) {
-                        if (!newData.hasOwnProperty(value.data.resolution_time.priority)) {
-                            newData[value.data.open.priority] = {}
-                        }
-                        newData[value.data.resolution_time.priority].resolved = value.data.resolution_time
-                    }
-                })
-                setApiDataCache(newData)
-                setSelected(ID)
-
-            });
+            if (start == null || end == null) {
+                history.push('/home/jira?team=' + currentTeam + '&selected=' + ID + '&start=' + formatDate(rangeDateTime[0]) + '&end=' + formatDate(rangeDateTime[1]))
+            } else {
+                setRangeDateTime([new Date(start), new Date(end)])
+                history.push('/home/jira?team=' + currentTeam + '&selected=' + ID + '&start=' + start + '&end=' + end)
+            }
         }
     }, [currentTeam]);
 
@@ -123,6 +145,8 @@ export const Jira = () => {
     const [graphicsVisible, setGraphicsVisible] = useState(false);
     // longVersionVisible indicates if 'resolved_at' and 'resolution_time' should be displayed in bugs table
     const [longVersionVisible, setLongVersionVisible] = useState(false);
+    const history = useHistory();
+    const params = new URLSearchParams(window.location.search);
 
     const [isSelected, setIsSelected] = React.useState('open');
 
@@ -132,13 +156,18 @@ export const Jira = () => {
         setIsSelected(id);
     };
 
+    useEffect(() => {
+        const selected = params.get("selected")
+        const target = selected != null ? selected : "Global"
+        getJiraData(target)
+    }, [rangeDateTime]);
+
     const onClick = (event: React.MouseEvent) => {
-        let ID = event.currentTarget.id
+        const ID = event.currentTarget.id
         if (selected != ID) {
             if (!apiDataCache.hasOwnProperty(ID)) {
-                const promise0 = getJirasOpen(ID, state.teams.Team)
-                const promise1 = getJirasResolutionTime(ID, state.teams.Team)
-
+                const promise0 = getJirasOpen(ID, state.teams.Team, rangeDateTime)
+                const promise1 = getJirasResolutionTime(ID, state.teams.Team, rangeDateTime)
                 Promise.all([promise0, promise1]).then(function (values) {
                     let newData = {}
                     newData[ID] = {}
@@ -148,45 +177,42 @@ export const Jira = () => {
                         ...apiDataCache,
                         ...newData
                     })
-                    setSelected(ID)
                 });
-
             }
-            setSelected(ID)
-        } else {
-            setSelected(ID)
         }
+        setSelected(ID)
+        params.set("selected", ID)
+        history.push(window.location.pathname + '?' + params.toString());
     };
 
     useEffect(() => {
         if (apiDataCache[selected] && selected != BugsAffectingCI) {
-            let rtc = new Array(12).fill(0)
-            let bc = new Array(12).fill(0)
+            let rtc = new Array()
+            let bc = new Array()
             let rbt = new Array()
             let obt = new Array()
-            let obc = new Array(12).fill(0)
+            let obc = new Array()
 
-            apiDataCache[selected].resolved.months.map((item, index) => {
-                let date = item.name.match(/([^_]+)/g)
-                rtc[11 - index] = {
+            apiDataCache[selected].resolved.days.map((item, index) => {
+                rtc.push({
                     name: "Resolution Time (" + selected + ")",
-                    x: date[0].slice(0, 3) + "\n" + date[1],
+                    x: new Date(item.name).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: '2-digit' }),
                     y: item.total
-                }
-                bc[11 - index] = {
+                })
+                bc.push({
                     name: "Resolved Bugs (" + selected + ")",
-                    x: date[0].slice(0, 3) + "\n" + date[1],
+                    x: new Date(item.name).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: '2-digit' }),
                     y: item.resolved_bugs
-                }
+                })
                 rbt = [...rbt, ...item.bugs]
             })
-            apiDataCache[selected].open.months.map((item, index) => {
+            apiDataCache[selected].open.days.map((item, index) => {
                 let date = item.name.match(/([^_]+)/g)
-                obc[11 - index] = {
+                obc.push({
                     name: "Open Bugs (" + selected + ")",
-                    x: date[0].slice(0, 3) + "\n" + date[1],
+                    x: new Date(item.name).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: '2-digit' }),
                     y: item.open_bugs
-                }
+                })
                 obt = [...obt, ...item.bugs]
             })
 
@@ -209,10 +235,18 @@ export const Jira = () => {
             setResolutionTimeChart([])
             setBugsTable(bugsKnown)
         }
+        setLoadingState(false)
     }, [selected, isSelected, apiDataCache]);
 
     function onBarChartClick(event) {
         console.log("clicked", event)
+    }
+
+    function handleChange(event, from, to) {
+        setRangeDateTime([from, to])
+        params.set("start", formatDate(from))
+        params.set("end", formatDate(to))
+        history.push(window.location.pathname + '?' + params.toString());
     }
 
     return (
@@ -233,30 +267,42 @@ export const Jira = () => {
                 </TextContent>
             </PageSection>
             <PageSection>
-                <React.Fragment>
+                {loadingState && <div style={{ width: '100%', textAlign: "center" }}>
+                    <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />
+                </div>
+                }
+                {!loadingState && <React.Fragment>
                     <Grid hasGutter>
+                        <GridItem>
+                            <DateTimeRangePicker
+                                startDate={rangeDateTime[0]}
+                                endDate={rangeDateTime[1]}
+                                handleChange={(event, from, to) => handleChange(event, from, to)}
+                            >
+                            </DateTimeRangePicker>
+                        </GridItem>
                         {graphicsVisible && <GridItem order={{ default: "2" }}>
                             <Grid hasGutter sm={6} md={6} lg={6} xl={6}>
                                 <GridItem order={{ default: "1" }}>
                                     <Card style={{ textAlign: 'center' }}>
-                                        <CardTitle style={{ textAlign: 'center' }}>Average Resolution Time (for past 12 months)</CardTitle>
+                                        <CardTitle style={{ textAlign: 'center' }}>Average Resolution Time</CardTitle>
                                         <CardBody>
                                             <Title headingLevel='h1' size="2xl">
                                                 {apiDataCache[selected] &&
                                                     <span>
-                                                        <span>{parseFloat(apiDataCache[selected].resolved.total).toFixed(2) || "-"}</span>
-                                                        <span style={{ paddingLeft: '5px', fontSize: '15px', fontWeight: 'normal' }}>hours</span>
+                                                        <span>{parseFloat(apiDataCache[selected].resolved.total) || "-"}</span>
+                                                        <span style={{ paddingLeft: '5px', fontSize: '15px', fontWeight: 'normal' }}>day(s)</span>
                                                     </span>
                                                 }
                                                 {!apiDataCache[selected] && "-"}
                                             </Title>
-                                            <BugsChart chartType="line" data={resolutionTimeChart} onBarClick={onBarChartClick}></BugsChart>
+                                            <BugsChart chartTitle="Average Resolution Time" data={resolutionTimeChart} onBarClick={onBarChartClick}></BugsChart>
                                         </CardBody>
                                     </Card>
                                 </GridItem>
                                 <GridItem order={{ default: "2" }}>
                                     <Card style={{ textAlign: 'center' }}>
-                                        <CardTitle>Bugs (past 12 months)</CardTitle>
+                                        <CardTitle>Bugs</CardTitle>
                                         <CardBody>
                                             <Title headingLevel='h1' size="2xl">
                                                 {apiDataCache[selected] &&
@@ -269,7 +315,7 @@ export const Jira = () => {
                                                 }
                                                 {!apiDataCache[selected] && "-"}
                                             </Title>
-                                            <BugsChart chartType="bar" data={bugsChart} onBarClick={onBarChartClick}></BugsChart>
+                                            <BugsChart chartTitle="Bugs" data={bugsChart} onBarClick={onBarChartClick}></BugsChart>
                                         </CardBody>
                                     </Card>
                                 </GridItem>
@@ -410,14 +456,15 @@ export const Jira = () => {
                             </Card>
                         </GridItem>
                     </Grid>
-                </React.Fragment>
+                </React.Fragment>}
             </PageSection>
 
         </React.Fragment>
     )
 }
+const BugsChart: React.FC<{ chartTitle: string, data: any, onBarClick: any }> = ({ chartTitle, data, onBarClick }) => {
+    const ZoomVoronoiContainer = createContainer("zoom", "voronoi");
 
-const BugsChart: React.FC<{ chartType: string, data: any, onBarClick: any }> = ({ chartType, data, onBarClick }) => {
     let legendData: { name: string }[] = []
     if (data.length > 0) {
         legendData = data.map((dataset, index) => {
@@ -425,52 +472,61 @@ const BugsChart: React.FC<{ chartType: string, data: any, onBarClick: any }> = (
         })
     }
 
+    const getMaxY = (data) => {
+        let maxY = 0;
+        data.map((dataset, idx) => {
+            dataset.forEach((data) => {
+                if (data.y > maxY) {
+                    maxY = data.y;
+                }
+            })
+        })
+
+        return maxY
+    };
+
+    const maxY = getMaxY(data);
+
     return (
         <div style={{ margin: '0 auto', height: '60%', width: '90%', marginTop: '15px' }}>
             {data.length > 0 &&
                 <Chart
-                    ariaDesc="Average number of pets"
                     height={210}
+                    containerComponent={
+                        <ZoomVoronoiContainer
+                            labels={({ datum }) => chartTitle == "Bugs" ? getLabels(datum, "Resolved Bugs") : getLabels(datum, "Resolution Time")}
+                            voronoiDimension="x"
+                            voronoiPadding={0}
+                            constrainToVisibleArea
+                        />
+                    }
                     legendData={legendData}
                     legendPosition='bottom'
                     padding={{
                         bottom: 70,
                         left: 40,
-                        right: 14,
+                        right: 40,
                         top: 20
                     }}
+                    name="chart"
+                    themeColor={ChartThemeColor.blue}
+                    maxDomain={{ y: maxY + 1 }}
+                    minDomain={{ y: 0 }}
                 >
-                    <ChartAxis style={{ axisLabel: { fontSize: 8, padding: 30 }, tickLabels: { fontSize: 7 } }} />
-                    <ChartAxis dependentAxis={true} showGrid style={{ axisLabel: { fontSize: 8, padding: 30 }, tickLabels: { fontSize: 8 } }} />
-                    {chartType == 'bar' && data.length > 0 &&
-                        <ChartGroup offset={11}>
-                            {data.map((dataset, index) => (
-                                <ChartBar
-                                    name={"bar_" + index}
-                                    key={index}
-                                    style={{
-                                        data: { strokeWidth: 1 },
-                                        parent: { border: "1px solid #ccc" },
-                                        labels: { fill: "grey", fontSize: '7px' }
-                                    }}
-                                    data={dataset}
-                                    labels={({ datum }) => datum.y != 0 ? `${datum.y}` : ``}
-                                />
-                            ))}
-                        </ChartGroup>
-                    }
-                    {chartType == 'line' && data.length > 0 &&
-                        <ChartGroup offset={11}>
+
+                    <ChartAxis fixLabelOverlap={true} style={{ axisLabel: { fontSize: 8, padding: 30 }, tickLabels: { fontSize: 7 } }} />
+                    <ChartAxis fixLabelOverlap={true} dependentAxis={true} showGrid style={{ axisLabel: { fontSize: 8, padding: 30 }, tickLabels: { fontSize: 8 } }} />
+                    {data.length > 0 &&
+                        <ChartGroup>
                             {data.map((dataset, index) => (
                                 <ChartLine
                                     key={index}
                                     style={{
                                         data: { strokeWidth: 2 },
                                         parent: { border: "1px solid #ccc" },
-                                        labels: { fill: "grey", fontSize: '7px' }
+                                        labels: { fontSize: '10px' }
                                     }}
                                     data={dataset}
-                                    labels={({ datum }) => `${parseInt(datum.y)}`}
                                 />
                             ))}
                         </ChartGroup>
@@ -699,7 +755,7 @@ const ComposableTableStripedTr: React.FC<{ bugs: any, longVersion: boolean }> = 
                             <Td dataLabel={columnNames.created_at}>{formatDate(new Date(bug.created_at))}</Td>
                             <Td dataLabel={columnNames.updated_at}>{formatDate(new Date(bug.updated_at))}</Td>
                             {longVersion && <Td dataLabel={columnNames.resolved_at}>{formatDate(new Date(bug.resolved_at))}</Td>}
-                            {longVersion && <Td dataLabel={columnNames.resolution_time}>{!Number.isNaN(parseFloat(bug.resolution_time)) ? parseFloat(bug.resolution_time).toFixed(2) + "h" : "-"}</Td>}
+                            {longVersion && <Td dataLabel={columnNames.resolution_time}>{!Number.isNaN(parseFloat(bug.resolution_time)) ? parseFloat(bug.resolution_time) + " day(s)" : "-"}</Td>}
                         </Tr>
                     ))}
                 </Tbody>
