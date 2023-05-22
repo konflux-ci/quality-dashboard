@@ -5,6 +5,7 @@ export const getRangeDates = (days: number) => {
     const endDate = new Date();
     const startDate = new Date(new Date().setDate(endDate.getDate() - days))
     startDate.setHours(0, 0, 0)
+    endDate.setSeconds(0)
 
     return [startDate, endDate]
 }
