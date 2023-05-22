@@ -226,11 +226,7 @@ func (s *Server) createMux() *mux.Router {
 	})
 
 	m.HandleFunc("/demo", func(w http.ResponseWriter, r *http.Request) {
-		doc, err := swag.ReadDoc()
-		if err != nil {
-			s.cfg.Logger.Error("/api/quality/"+"swagger error", zap.Error(err), zap.String("path", "/swagger.json"))
-		}
-		w.Write([]byte(doc))
+		w.Write([]byte("demooooo"))
 	})
 
 	notFoundHandler := httputils.MakeErrorHandler(pageNotFoundError{})
