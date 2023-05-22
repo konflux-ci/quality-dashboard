@@ -33,6 +33,10 @@ func NewAuthenticationMiddleware(url string, clientId string) Authentication {
 // WrapHandler returns a new handler function wrapping the previous one in the request chain.
 func (c Authentication) WrapHandler(handler func(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error) func(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+		if r.URL.Path == "/demo" {
+			return handler(ctx, w, r, vars)
+		}
+
 		token := ExtractBearerToken(r.Header.Get("Authorization"))
 		if token == "" {
 			return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{

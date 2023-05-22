@@ -10,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/etherlabsio/healthcheck/v2"
-	"github.com/etherlabsio/healthcheck/v2/checkers"
 	"github.com/gorilla/mux"
 	"github.com/redhat-appstudio/quality-studio/api/server/middleware"
 	"github.com/redhat-appstudio/quality-studio/api/server/router"
@@ -227,15 +225,13 @@ func (s *Server) createMux() *mux.Router {
 		w.Write([]byte(doc))
 	})
 
-	m.Handle("/api/quality/healtz", healthcheck.Handler(
-		// WithTimeout allows you to set a max overall timeout.
-		healthcheck.WithTimeout(5*time.Second),
-
-		// Checkers fail the status in case of any error.
-		healthcheck.WithChecker(
-			"heartbeat", checkers.Heartbeat(""),
-		),
-	))
+	m.HandleFunc("/demo", func(w http.ResponseWriter, r *http.Request) {
+		doc, err := swag.ReadDoc()
+		if err != nil {
+			s.cfg.Logger.Error("/api/quality/"+"swagger error", zap.Error(err), zap.String("path", "/swagger.json"))
+		}
+		w.Write([]byte(doc))
+	})
 
 	notFoundHandler := httputils.MakeErrorHandler(pageNotFoundError{})
 	m.NotFoundHandler = notFoundHandler
