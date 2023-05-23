@@ -226,7 +226,7 @@ func (s *Server) createMux() *mux.Router {
 	})
 
 	m.HandleFunc("/demo", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("demo flavius"))
+		w.Write([]byte("Hello RHTAP QE"))
 	})
 
 	notFoundHandler := httputils.MakeErrorHandler(pageNotFoundError{})
