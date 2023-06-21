@@ -28,7 +28,7 @@ type QueryListPullRequests struct {
 		Nodes []struct {
 			PullRequest githubV1Alhpa1.PullRequest `graphql:"... on PullRequest"`
 		}
-		PageInfo PageInfo
+		PageInfo githubV1Alhpa1.PageInfo
 	} `graphql:"search(query: $query, type: ISSUE, first: 100, after: $cursor)"`
 }
 

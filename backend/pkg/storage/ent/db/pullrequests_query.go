@@ -304,7 +304,6 @@ func (prq *PullRequestsQuery) WithPrs(opts ...func(*RepositoryQuery)) *PullReque
 //		GroupBy(pullrequests.FieldPrID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
-//
 func (prq *PullRequestsQuery) GroupBy(field string, fields ...string) *PullRequestsGroupBy {
 	prq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &PullRequestsGroupBy{build: prq}
@@ -326,7 +325,6 @@ func (prq *PullRequestsQuery) GroupBy(field string, fields ...string) *PullReque
 //	client.PullRequests.Query().
 //		Select(pullrequests.FieldPrID).
 //		Scan(ctx, &v)
-//
 func (prq *PullRequestsQuery) Select(fields ...string) *PullRequestsSelect {
 	prq.ctx.Fields = append(prq.ctx.Fields, fields...)
 	sbuild := &PullRequestsSelect{PullRequestsQuery: prq}

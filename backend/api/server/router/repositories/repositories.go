@@ -28,10 +28,22 @@ var repository GitRepositoryRequest
 // @Failure 400 {object} types.ErrorResponse
 func (rp *repositoryRouter) listAllRepositoriesQuality(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	teamName := r.URL.Query()["team_name"]
+	startDate := r.URL.Query()["start_date"]
+	endDate := r.URL.Query()["end_date"]
 
 	if len(teamName) == 0 {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "team_name value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(startDate) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "start_date value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(endDate) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "end_date value not present in query",
 			StatusCode: 400,
 		})
 	}
@@ -45,7 +57,7 @@ func (rp *repositoryRouter) listAllRepositoriesQuality(ctx context.Context, w ht
 			StatusCode: http.StatusBadRequest,
 		})
 	}
-	repos, err := rp.Storage.ListRepositoriesQualityInfo(team)
+	repos, err := rp.Storage.ListRepositoriesQualityInfo(team, startDate[0], endDate[0])
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
@@ -127,7 +139,7 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 		})
 	}
 
-	coverage, err := rp.CodeCov.GetCodeCovInfo(githubRepo.Owner.GetLogin(), githubRepo.GetName())
+	coverage, covTrend, err := rp.CodeCov.GetCodeCovInfo(githubRepo.Owner.GetLogin(), githubRepo.GetName())
 	if err != nil {
 		rp.Logger.Error("Failed to fetch repository info from codecov", zap.String("repository", repository.GitRepository), zap.String("git_organization", repository.GitOrganization), zap.Error(err))
 
@@ -137,20 +149,11 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 		})
 	}
 
-	totalRetestRepoAvg, err := rp.Github.RetestsToMerge(fmt.Sprintf("%s/%s", githubRepo.Owner.GetLogin(), githubRepo.GetName()))
-	if err != nil {
-		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-			Message:    err.Error(),
-			StatusCode: http.StatusBadRequest,
-		})
-	}
-
-	totalCoverageConverted, _ := coverage.Totals.Coverage.Float64()
 	err = rp.Storage.CreateCoverage(coverageV1Alpha1.Coverage{
-		GitOrganization:            githubRepo.Owner.GetLogin(),
-		RepositoryName:             githubRepo.GetName(),
-		CoveragePercentage:         totalCoverageConverted,
-		AverageToRetestPullRequest: totalRetestRepoAvg,
+		GitOrganization:    githubRepo.Owner.GetLogin(),
+		RepositoryName:     githubRepo.GetName(),
+		CoveragePercentage: coverage,
+		CoverageTrend:      covTrend,
 	}, createdRepo.ID)
 
 	if err != nil {

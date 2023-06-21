@@ -327,7 +327,6 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 //			SetJobID(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (pjc *ProwJobsCreate) OnConflict(opts ...sql.ConflictOption) *ProwJobsUpsertOne {
 	pjc.conflict = opts
 	return &ProwJobsUpsertOne{
@@ -341,7 +340,6 @@ func (pjc *ProwJobsCreate) OnConflict(opts ...sql.ConflictOption) *ProwJobsUpser
 //	client.ProwJobs.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (pjc *ProwJobsCreate) OnConflictColumns(columns ...string) *ProwJobsUpsertOne {
 	pjc.conflict = append(pjc.conflict, sql.ConflictColumns(columns...))
 	return &ProwJobsUpsertOne{
@@ -568,7 +566,6 @@ func (u *ProwJobsUpsert) ClearSuitesXMLURL() *ProwJobsUpsert {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
-//
 func (u *ProwJobsUpsertOne) UpdateNewValues() *ProwJobsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	return u
@@ -577,10 +574,9 @@ func (u *ProwJobsUpsertOne) UpdateNewValues() *ProwJobsUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//  client.ProwJobs.Create().
-//      OnConflict(sql.ResolveWithIgnore()).
-//      Exec(ctx)
-//
+//	client.ProwJobs.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
 func (u *ProwJobsUpsertOne) Ignore() *ProwJobsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -966,7 +962,6 @@ func (pjcb *ProwJobsCreateBulk) ExecX(ctx context.Context) {
 //			SetJobID(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (pjcb *ProwJobsCreateBulk) OnConflict(opts ...sql.ConflictOption) *ProwJobsUpsertBulk {
 	pjcb.conflict = opts
 	return &ProwJobsUpsertBulk{
@@ -980,7 +975,6 @@ func (pjcb *ProwJobsCreateBulk) OnConflict(opts ...sql.ConflictOption) *ProwJobs
 //	client.ProwJobs.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (pjcb *ProwJobsCreateBulk) OnConflictColumns(columns ...string) *ProwJobsUpsertBulk {
 	pjcb.conflict = append(pjcb.conflict, sql.ConflictColumns(columns...))
 	return &ProwJobsUpsertBulk{
@@ -1002,7 +996,6 @@ type ProwJobsUpsertBulk struct {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
-//
 func (u *ProwJobsUpsertBulk) UpdateNewValues() *ProwJobsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	return u
@@ -1014,7 +1007,6 @@ func (u *ProwJobsUpsertBulk) UpdateNewValues() *ProwJobsUpsertBulk {
 //	client.ProwJobs.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
-//
 func (u *ProwJobsUpsertBulk) Ignore() *ProwJobsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u

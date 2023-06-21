@@ -58,7 +58,7 @@ func (d *Database) GetRepository(repositoryName string, gitOrganizationName stri
 }
 
 // ListRepositoriesQualityInfo extracts an array of repositories from the database.
-func (d *Database) ListRepositoriesQualityInfo(team *db.Teams) ([]storage.RepositoryQualityInfo, error) {
+func (d *Database) ListRepositoriesQualityInfo(team *db.Teams, startDate, endDate string) ([]storage.RepositoryQualityInfo, error) {
 	repositories, err := d.client.Teams.QueryRepositories(team).All(context.TODO())
 	if err != nil {
 		return nil, convertDBError("list repositories: %w", err)
@@ -70,7 +70,21 @@ func (d *Database) ListRepositoriesQualityInfo(team *db.Teams) ([]storage.Reposi
 		if err != nil {
 			return nil, convertDBError("list coverage failed: %w", err)
 		}
-		storageRepositories = append(storageRepositories, toStorageRepositoryAllInfo(p, c))
+
+		var prs repoV1Alpha1.PullRequestsInfo
+		var workflows []repoV1Alpha1.Workflow
+
+		prs, err = d.GetPullRequestsByRepository(p.RepositoryName, p.GitOrganization, startDate, endDate)
+		if err != nil {
+			return nil, convertDBError("list pull requests failed: %w", err)
+		}
+
+		workflows, err = d.ListWorkflowsByRepository(p.RepositoryName)
+		if err != nil {
+			return nil, convertDBError("list workflows failed: %w", err)
+		}
+
+		storageRepositories = append(storageRepositories, toStorageRepositoryAllInfo(p, c, prs, workflows))
 	}
 	return storageRepositories, nil
 }

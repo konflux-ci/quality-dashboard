@@ -2,6 +2,7 @@ package client
 
 import (
 	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
+	"github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
@@ -28,17 +29,24 @@ func toStorageWorkflows(p *db.Workflows) repoV1Alpha1.Workflow {
 	}
 }
 
-func toStorageRepositoryAllInfo(p *db.Repository, c *db.CodeCov) storage.RepositoryQualityInfo {
+func toStorageRepositoryAllInfo(p *db.Repository, c *db.CodeCov, prs repoV1Alpha1.PullRequestsInfo, workflows []v1alpha1.Workflow) storage.RepositoryQualityInfo {
+	covTrend := "n/a"
+	if c.CoverageTrend != nil {
+		covTrend = *c.CoverageTrend
+	}
+
 	return storage.RepositoryQualityInfo{
 		GitOrganization: p.GitOrganization,
 		RepositoryName:  p.RepositoryName,
 		GitURL:          p.GitURL,
 		Description:     p.Description,
 		CodeCoverage: coverageV1Alpha1.Coverage{
-			RepositoryName:             p.RepositoryName,
-			GitOrganization:            p.GitOrganization,
-			CoveragePercentage:         c.CoveragePercentage,
-			AverageToRetestPullRequest: c.AverageRetestsToMerge,
+			RepositoryName:     p.RepositoryName,
+			GitOrganization:    p.GitOrganization,
+			CoveragePercentage: c.CoveragePercentage,
+			CoverageTrend:      covTrend,
 		},
+		PullRequests: prs,
+		Workflows:    workflows,
 	}
 }
