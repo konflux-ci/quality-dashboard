@@ -305,7 +305,6 @@ func (ccq *CodeCovQuery) WithCodecov(opts ...func(*RepositoryQuery)) *CodeCovQue
 //		GroupBy(codecov.FieldRepositoryName).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
-//
 func (ccq *CodeCovQuery) GroupBy(field string, fields ...string) *CodeCovGroupBy {
 	ccq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &CodeCovGroupBy{build: ccq}
@@ -327,7 +326,6 @@ func (ccq *CodeCovQuery) GroupBy(field string, fields ...string) *CodeCovGroupBy
 //	client.CodeCov.Query().
 //		Select(codecov.FieldRepositoryName).
 //		Scan(ctx, &v)
-//
 func (ccq *CodeCovQuery) Select(fields ...string) *CodeCovSelect {
 	ccq.ctx.Fields = append(ccq.ctx.Fields, fields...)
 	sbuild := &CodeCovSelect{CodeCovQuery: ccq}

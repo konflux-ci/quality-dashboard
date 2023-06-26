@@ -90,6 +90,53 @@ func (pru *PullRequestsUpdate) SetTitle(s string) *PullRequestsUpdate {
 	return pru
 }
 
+// SetMergeCommit sets the "merge_commit" field.
+func (pru *PullRequestsUpdate) SetMergeCommit(s string) *PullRequestsUpdate {
+	pru.mutation.SetMergeCommit(s)
+	return pru
+}
+
+// SetNillableMergeCommit sets the "merge_commit" field if the given value is not nil.
+func (pru *PullRequestsUpdate) SetNillableMergeCommit(s *string) *PullRequestsUpdate {
+	if s != nil {
+		pru.SetMergeCommit(*s)
+	}
+	return pru
+}
+
+// ClearMergeCommit clears the value of the "merge_commit" field.
+func (pru *PullRequestsUpdate) ClearMergeCommit() *PullRequestsUpdate {
+	pru.mutation.ClearMergeCommit()
+	return pru
+}
+
+// SetRetestBeforeMergeCount sets the "retest_before_merge_count" field.
+func (pru *PullRequestsUpdate) SetRetestBeforeMergeCount(f float64) *PullRequestsUpdate {
+	pru.mutation.ResetRetestBeforeMergeCount()
+	pru.mutation.SetRetestBeforeMergeCount(f)
+	return pru
+}
+
+// SetNillableRetestBeforeMergeCount sets the "retest_before_merge_count" field if the given value is not nil.
+func (pru *PullRequestsUpdate) SetNillableRetestBeforeMergeCount(f *float64) *PullRequestsUpdate {
+	if f != nil {
+		pru.SetRetestBeforeMergeCount(*f)
+	}
+	return pru
+}
+
+// AddRetestBeforeMergeCount adds f to the "retest_before_merge_count" field.
+func (pru *PullRequestsUpdate) AddRetestBeforeMergeCount(f float64) *PullRequestsUpdate {
+	pru.mutation.AddRetestBeforeMergeCount(f)
+	return pru
+}
+
+// ClearRetestBeforeMergeCount clears the value of the "retest_before_merge_count" field.
+func (pru *PullRequestsUpdate) ClearRetestBeforeMergeCount() *PullRequestsUpdate {
+	pru.mutation.ClearRetestBeforeMergeCount()
+	return pru
+}
+
 // SetPrsID sets the "prs" edge to the Repository entity by ID.
 func (pru *PullRequestsUpdate) SetPrsID(id string) *PullRequestsUpdate {
 	pru.mutation.SetPrsID(id)
@@ -194,6 +241,21 @@ func (pru *PullRequestsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pru.mutation.Title(); ok {
 		_spec.SetField(pullrequests.FieldTitle, field.TypeString, value)
+	}
+	if value, ok := pru.mutation.MergeCommit(); ok {
+		_spec.SetField(pullrequests.FieldMergeCommit, field.TypeString, value)
+	}
+	if pru.mutation.MergeCommitCleared() {
+		_spec.ClearField(pullrequests.FieldMergeCommit, field.TypeString)
+	}
+	if value, ok := pru.mutation.RetestBeforeMergeCount(); ok {
+		_spec.SetField(pullrequests.FieldRetestBeforeMergeCount, field.TypeFloat64, value)
+	}
+	if value, ok := pru.mutation.AddedRetestBeforeMergeCount(); ok {
+		_spec.AddField(pullrequests.FieldRetestBeforeMergeCount, field.TypeFloat64, value)
+	}
+	if pru.mutation.RetestBeforeMergeCountCleared() {
+		_spec.ClearField(pullrequests.FieldRetestBeforeMergeCount, field.TypeFloat64)
 	}
 	if pru.mutation.PrsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -308,6 +370,53 @@ func (pruo *PullRequestsUpdateOne) SetAuthor(s string) *PullRequestsUpdateOne {
 // SetTitle sets the "title" field.
 func (pruo *PullRequestsUpdateOne) SetTitle(s string) *PullRequestsUpdateOne {
 	pruo.mutation.SetTitle(s)
+	return pruo
+}
+
+// SetMergeCommit sets the "merge_commit" field.
+func (pruo *PullRequestsUpdateOne) SetMergeCommit(s string) *PullRequestsUpdateOne {
+	pruo.mutation.SetMergeCommit(s)
+	return pruo
+}
+
+// SetNillableMergeCommit sets the "merge_commit" field if the given value is not nil.
+func (pruo *PullRequestsUpdateOne) SetNillableMergeCommit(s *string) *PullRequestsUpdateOne {
+	if s != nil {
+		pruo.SetMergeCommit(*s)
+	}
+	return pruo
+}
+
+// ClearMergeCommit clears the value of the "merge_commit" field.
+func (pruo *PullRequestsUpdateOne) ClearMergeCommit() *PullRequestsUpdateOne {
+	pruo.mutation.ClearMergeCommit()
+	return pruo
+}
+
+// SetRetestBeforeMergeCount sets the "retest_before_merge_count" field.
+func (pruo *PullRequestsUpdateOne) SetRetestBeforeMergeCount(f float64) *PullRequestsUpdateOne {
+	pruo.mutation.ResetRetestBeforeMergeCount()
+	pruo.mutation.SetRetestBeforeMergeCount(f)
+	return pruo
+}
+
+// SetNillableRetestBeforeMergeCount sets the "retest_before_merge_count" field if the given value is not nil.
+func (pruo *PullRequestsUpdateOne) SetNillableRetestBeforeMergeCount(f *float64) *PullRequestsUpdateOne {
+	if f != nil {
+		pruo.SetRetestBeforeMergeCount(*f)
+	}
+	return pruo
+}
+
+// AddRetestBeforeMergeCount adds f to the "retest_before_merge_count" field.
+func (pruo *PullRequestsUpdateOne) AddRetestBeforeMergeCount(f float64) *PullRequestsUpdateOne {
+	pruo.mutation.AddRetestBeforeMergeCount(f)
+	return pruo
+}
+
+// ClearRetestBeforeMergeCount clears the value of the "retest_before_merge_count" field.
+func (pruo *PullRequestsUpdateOne) ClearRetestBeforeMergeCount() *PullRequestsUpdateOne {
+	pruo.mutation.ClearRetestBeforeMergeCount()
 	return pruo
 }
 
@@ -439,6 +548,21 @@ func (pruo *PullRequestsUpdateOne) sqlSave(ctx context.Context) (_node *PullRequ
 	}
 	if value, ok := pruo.mutation.Title(); ok {
 		_spec.SetField(pullrequests.FieldTitle, field.TypeString, value)
+	}
+	if value, ok := pruo.mutation.MergeCommit(); ok {
+		_spec.SetField(pullrequests.FieldMergeCommit, field.TypeString, value)
+	}
+	if pruo.mutation.MergeCommitCleared() {
+		_spec.ClearField(pullrequests.FieldMergeCommit, field.TypeString)
+	}
+	if value, ok := pruo.mutation.RetestBeforeMergeCount(); ok {
+		_spec.SetField(pullrequests.FieldRetestBeforeMergeCount, field.TypeFloat64, value)
+	}
+	if value, ok := pruo.mutation.AddedRetestBeforeMergeCount(); ok {
+		_spec.AddField(pullrequests.FieldRetestBeforeMergeCount, field.TypeFloat64, value)
+	}
+	if pruo.mutation.RetestBeforeMergeCountCleared() {
+		_spec.ClearField(pullrequests.FieldRetestBeforeMergeCount, field.TypeFloat64)
 	}
 	if pruo.mutation.PrsCleared() {
 		edge := &sqlgraph.EdgeSpec{

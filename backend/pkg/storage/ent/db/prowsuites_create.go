@@ -199,7 +199,6 @@ func (psc *ProwSuitesCreate) createSpec() (*ProwSuites, *sqlgraph.CreateSpec) {
 //			SetJobID(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (psc *ProwSuitesCreate) OnConflict(opts ...sql.ConflictOption) *ProwSuitesUpsertOne {
 	psc.conflict = opts
 	return &ProwSuitesUpsertOne{
@@ -213,7 +212,6 @@ func (psc *ProwSuitesCreate) OnConflict(opts ...sql.ConflictOption) *ProwSuitesU
 //	client.ProwSuites.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (psc *ProwSuitesCreate) OnConflictColumns(columns ...string) *ProwSuitesUpsertOne {
 	psc.conflict = append(psc.conflict, sql.ConflictColumns(columns...))
 	return &ProwSuitesUpsertOne{
@@ -296,7 +294,6 @@ func (u *ProwSuitesUpsert) AddTime(v float64) *ProwSuitesUpsert {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
-//
 func (u *ProwSuitesUpsertOne) UpdateNewValues() *ProwSuitesUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	return u
@@ -305,10 +302,9 @@ func (u *ProwSuitesUpsertOne) UpdateNewValues() *ProwSuitesUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//  client.ProwSuites.Create().
-//      OnConflict(sql.ResolveWithIgnore()).
-//      Exec(ctx)
-//
+//	client.ProwSuites.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
 func (u *ProwSuitesUpsertOne) Ignore() *ProwSuitesUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -526,7 +522,6 @@ func (pscb *ProwSuitesCreateBulk) ExecX(ctx context.Context) {
 //			SetJobID(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (pscb *ProwSuitesCreateBulk) OnConflict(opts ...sql.ConflictOption) *ProwSuitesUpsertBulk {
 	pscb.conflict = opts
 	return &ProwSuitesUpsertBulk{
@@ -540,7 +535,6 @@ func (pscb *ProwSuitesCreateBulk) OnConflict(opts ...sql.ConflictOption) *ProwSu
 //	client.ProwSuites.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (pscb *ProwSuitesCreateBulk) OnConflictColumns(columns ...string) *ProwSuitesUpsertBulk {
 	pscb.conflict = append(pscb.conflict, sql.ConflictColumns(columns...))
 	return &ProwSuitesUpsertBulk{
@@ -562,7 +556,6 @@ type ProwSuitesUpsertBulk struct {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
-//
 func (u *ProwSuitesUpsertBulk) UpdateNewValues() *ProwSuitesUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	return u
@@ -574,7 +567,6 @@ func (u *ProwSuitesUpsertBulk) UpdateNewValues() *ProwSuitesUpsertBulk {
 //	client.ProwSuites.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
-//
 func (u *ProwSuitesUpsertBulk) Ignore() *ProwSuitesUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u

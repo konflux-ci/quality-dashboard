@@ -168,7 +168,7 @@ let GitHub = () => {
       const start = params.get('start');
       const end = params.get('end');
 
-      getAllRepositoriesWithOrgs(state.teams.Team, false).then((data: any) => {
+      getAllRepositoriesWithOrgs(state.teams.Team, false, rangeDateTime).then((data: any) => {
         let dropDescr = '';
         if (data.length < 1 && (team == state.teams.Team || team == null)) {
           dropDescr = 'No Repositories';

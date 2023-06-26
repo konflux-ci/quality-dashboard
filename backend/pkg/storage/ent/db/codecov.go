@@ -24,7 +24,9 @@ type CodeCov struct {
 	// CoveragePercentage holds the value of the "coverage_percentage" field.
 	CoveragePercentage float64 `json:"coverage_percentage,omitempty"`
 	// AverageRetestsToMerge holds the value of the "average_retests_to_merge" field.
-	AverageRetestsToMerge float64 `json:"average_retests_to_merge,omitempty"`
+	AverageRetestsToMerge *float64 `json:"average_retests_to_merge,omitempty"`
+	// CoverageTrend holds the value of the "coverage_trend" field.
+	CoverageTrend *string `json:"coverage_trend,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CodeCovQuery when eager-loading is set.
 	Edges              CodeCovEdges `json:"edges"`
@@ -60,7 +62,7 @@ func (*CodeCov) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case codecov.FieldCoveragePercentage, codecov.FieldAverageRetestsToMerge:
 			values[i] = new(sql.NullFloat64)
-		case codecov.FieldRepositoryName, codecov.FieldGitOrganization:
+		case codecov.FieldRepositoryName, codecov.FieldGitOrganization, codecov.FieldCoverageTrend:
 			values[i] = new(sql.NullString)
 		case codecov.FieldID:
 			values[i] = new(uuid.UUID)
@@ -109,7 +111,15 @@ func (cc *CodeCov) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field average_retests_to_merge", values[i])
 			} else if value.Valid {
-				cc.AverageRetestsToMerge = value.Float64
+				cc.AverageRetestsToMerge = new(float64)
+				*cc.AverageRetestsToMerge = value.Float64
+			}
+		case codecov.FieldCoverageTrend:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field coverage_trend", values[i])
+			} else if value.Valid {
+				cc.CoverageTrend = new(string)
+				*cc.CoverageTrend = value.String
 			}
 		case codecov.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -160,8 +170,15 @@ func (cc *CodeCov) String() string {
 	builder.WriteString("coverage_percentage=")
 	builder.WriteString(fmt.Sprintf("%v", cc.CoveragePercentage))
 	builder.WriteString(", ")
-	builder.WriteString("average_retests_to_merge=")
-	builder.WriteString(fmt.Sprintf("%v", cc.AverageRetestsToMerge))
+	if v := cc.AverageRetestsToMerge; v != nil {
+		builder.WriteString("average_retests_to_merge=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := cc.CoverageTrend; v != nil {
+		builder.WriteString("coverage_trend=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

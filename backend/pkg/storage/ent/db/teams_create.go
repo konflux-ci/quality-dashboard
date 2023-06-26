@@ -250,7 +250,6 @@ func (tc *TeamsCreate) createSpec() (*Teams, *sqlgraph.CreateSpec) {
 //			SetTeamName(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (tc *TeamsCreate) OnConflict(opts ...sql.ConflictOption) *TeamsUpsertOne {
 	tc.conflict = opts
 	return &TeamsUpsertOne{
@@ -264,7 +263,6 @@ func (tc *TeamsCreate) OnConflict(opts ...sql.ConflictOption) *TeamsUpsertOne {
 //	client.Teams.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (tc *TeamsCreate) OnConflictColumns(columns ...string) *TeamsUpsertOne {
 	tc.conflict = append(tc.conflict, sql.ConflictColumns(columns...))
 	return &TeamsUpsertOne{
@@ -332,7 +330,6 @@ func (u *TeamsUpsert) UpdateJiraKeys() *TeamsUpsert {
 //			}),
 //		).
 //		Exec(ctx)
-//
 func (u *TeamsUpsertOne) UpdateNewValues() *TeamsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -346,10 +343,9 @@ func (u *TeamsUpsertOne) UpdateNewValues() *TeamsUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//  client.Teams.Create().
-//      OnConflict(sql.ResolveWithIgnore()).
-//      Exec(ctx)
-//
+//	client.Teams.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
 func (u *TeamsUpsertOne) Ignore() *TeamsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -548,7 +544,6 @@ func (tcb *TeamsCreateBulk) ExecX(ctx context.Context) {
 //			SetTeamName(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (tcb *TeamsCreateBulk) OnConflict(opts ...sql.ConflictOption) *TeamsUpsertBulk {
 	tcb.conflict = opts
 	return &TeamsUpsertBulk{
@@ -562,7 +557,6 @@ func (tcb *TeamsCreateBulk) OnConflict(opts ...sql.ConflictOption) *TeamsUpsertB
 //	client.Teams.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (tcb *TeamsCreateBulk) OnConflictColumns(columns ...string) *TeamsUpsertBulk {
 	tcb.conflict = append(tcb.conflict, sql.ConflictColumns(columns...))
 	return &TeamsUpsertBulk{
@@ -587,7 +581,6 @@ type TeamsUpsertBulk struct {
 //			}),
 //		).
 //		Exec(ctx)
-//
 func (u *TeamsUpsertBulk) UpdateNewValues() *TeamsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -606,7 +599,6 @@ func (u *TeamsUpsertBulk) UpdateNewValues() *TeamsUpsertBulk {
 //	client.Teams.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
-//
 func (u *TeamsUpsertBulk) Ignore() *TeamsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u

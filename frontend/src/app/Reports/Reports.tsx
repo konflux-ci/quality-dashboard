@@ -172,7 +172,7 @@ let Reports = () => {
       const start = params.get("start")
       const end = params.get("end")
 
-      getAllRepositoriesWithOrgs(state.teams.Team, true)
+      getAllRepositoriesWithOrgs(state.teams.Team, true, rangeDateTime)
         .then((data: any) => {
           let dropDescr = ""
           if (data.length < 1 && (team == state.teams.Team || team == null)) {

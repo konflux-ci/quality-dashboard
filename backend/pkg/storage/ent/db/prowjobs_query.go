@@ -304,7 +304,6 @@ func (pjq *ProwJobsQuery) WithProwJobs(opts ...func(*RepositoryQuery)) *ProwJobs
 //		GroupBy(prowjobs.FieldJobID).
 //		Aggregate(db.Count()).
 //		Scan(ctx, &v)
-//
 func (pjq *ProwJobsQuery) GroupBy(field string, fields ...string) *ProwJobsGroupBy {
 	pjq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &ProwJobsGroupBy{build: pjq}
@@ -326,7 +325,6 @@ func (pjq *ProwJobsQuery) GroupBy(field string, fields ...string) *ProwJobsGroup
 //	client.ProwJobs.Query().
 //		Select(prowjobs.FieldJobID).
 //		Scan(ctx, &v)
-//
 func (pjq *ProwJobsQuery) Select(fields ...string) *ProwJobsSelect {
 	pjq.ctx.Fields = append(pjq.ctx.Fields, fields...)
 	sbuild := &ProwJobsSelect{ProwJobsQuery: pjq}

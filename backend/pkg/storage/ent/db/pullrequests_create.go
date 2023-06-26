@@ -92,6 +92,34 @@ func (prc *PullRequestsCreate) SetTitle(s string) *PullRequestsCreate {
 	return prc
 }
 
+// SetMergeCommit sets the "merge_commit" field.
+func (prc *PullRequestsCreate) SetMergeCommit(s string) *PullRequestsCreate {
+	prc.mutation.SetMergeCommit(s)
+	return prc
+}
+
+// SetNillableMergeCommit sets the "merge_commit" field if the given value is not nil.
+func (prc *PullRequestsCreate) SetNillableMergeCommit(s *string) *PullRequestsCreate {
+	if s != nil {
+		prc.SetMergeCommit(*s)
+	}
+	return prc
+}
+
+// SetRetestBeforeMergeCount sets the "retest_before_merge_count" field.
+func (prc *PullRequestsCreate) SetRetestBeforeMergeCount(f float64) *PullRequestsCreate {
+	prc.mutation.SetRetestBeforeMergeCount(f)
+	return prc
+}
+
+// SetNillableRetestBeforeMergeCount sets the "retest_before_merge_count" field if the given value is not nil.
+func (prc *PullRequestsCreate) SetNillableRetestBeforeMergeCount(f *float64) *PullRequestsCreate {
+	if f != nil {
+		prc.SetRetestBeforeMergeCount(*f)
+	}
+	return prc
+}
+
 // SetPrsID sets the "prs" edge to the Repository entity by ID.
 func (prc *PullRequestsCreate) SetPrsID(id string) *PullRequestsCreate {
 	prc.mutation.SetPrsID(id)
@@ -257,6 +285,14 @@ func (prc *PullRequestsCreate) createSpec() (*PullRequests, *sqlgraph.CreateSpec
 		_spec.SetField(pullrequests.FieldTitle, field.TypeString, value)
 		_node.Title = value
 	}
+	if value, ok := prc.mutation.MergeCommit(); ok {
+		_spec.SetField(pullrequests.FieldMergeCommit, field.TypeString, value)
+		_node.MergeCommit = &value
+	}
+	if value, ok := prc.mutation.RetestBeforeMergeCount(); ok {
+		_spec.SetField(pullrequests.FieldRetestBeforeMergeCount, field.TypeFloat64, value)
+		_node.RetestBeforeMergeCount = &value
+	}
 	if nodes := prc.mutation.PrsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -296,7 +332,6 @@ func (prc *PullRequestsCreate) createSpec() (*PullRequests, *sqlgraph.CreateSpec
 //			SetPrID(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (prc *PullRequestsCreate) OnConflict(opts ...sql.ConflictOption) *PullRequestsUpsertOne {
 	prc.conflict = opts
 	return &PullRequestsUpsertOne{
@@ -310,7 +345,6 @@ func (prc *PullRequestsCreate) OnConflict(opts ...sql.ConflictOption) *PullReque
 //	client.PullRequests.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (prc *PullRequestsCreate) OnConflictColumns(columns ...string) *PullRequestsUpsertOne {
 	prc.conflict = append(prc.conflict, sql.ConflictColumns(columns...))
 	return &PullRequestsUpsertOne{
@@ -445,6 +479,48 @@ func (u *PullRequestsUpsert) UpdateTitle() *PullRequestsUpsert {
 	return u
 }
 
+// SetMergeCommit sets the "merge_commit" field.
+func (u *PullRequestsUpsert) SetMergeCommit(v string) *PullRequestsUpsert {
+	u.Set(pullrequests.FieldMergeCommit, v)
+	return u
+}
+
+// UpdateMergeCommit sets the "merge_commit" field to the value that was provided on create.
+func (u *PullRequestsUpsert) UpdateMergeCommit() *PullRequestsUpsert {
+	u.SetExcluded(pullrequests.FieldMergeCommit)
+	return u
+}
+
+// ClearMergeCommit clears the value of the "merge_commit" field.
+func (u *PullRequestsUpsert) ClearMergeCommit() *PullRequestsUpsert {
+	u.SetNull(pullrequests.FieldMergeCommit)
+	return u
+}
+
+// SetRetestBeforeMergeCount sets the "retest_before_merge_count" field.
+func (u *PullRequestsUpsert) SetRetestBeforeMergeCount(v float64) *PullRequestsUpsert {
+	u.Set(pullrequests.FieldRetestBeforeMergeCount, v)
+	return u
+}
+
+// UpdateRetestBeforeMergeCount sets the "retest_before_merge_count" field to the value that was provided on create.
+func (u *PullRequestsUpsert) UpdateRetestBeforeMergeCount() *PullRequestsUpsert {
+	u.SetExcluded(pullrequests.FieldRetestBeforeMergeCount)
+	return u
+}
+
+// AddRetestBeforeMergeCount adds v to the "retest_before_merge_count" field.
+func (u *PullRequestsUpsert) AddRetestBeforeMergeCount(v float64) *PullRequestsUpsert {
+	u.Add(pullrequests.FieldRetestBeforeMergeCount, v)
+	return u
+}
+
+// ClearRetestBeforeMergeCount clears the value of the "retest_before_merge_count" field.
+func (u *PullRequestsUpsert) ClearRetestBeforeMergeCount() *PullRequestsUpsert {
+	u.SetNull(pullrequests.FieldRetestBeforeMergeCount)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -453,7 +529,6 @@ func (u *PullRequestsUpsert) UpdateTitle() *PullRequestsUpsert {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
-//
 func (u *PullRequestsUpsertOne) UpdateNewValues() *PullRequestsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -467,10 +542,9 @@ func (u *PullRequestsUpsertOne) UpdateNewValues() *PullRequestsUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//  client.PullRequests.Create().
-//      OnConflict(sql.ResolveWithIgnore()).
-//      Exec(ctx)
-//
+//	client.PullRequests.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
 func (u *PullRequestsUpsertOne) Ignore() *PullRequestsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -625,6 +699,55 @@ func (u *PullRequestsUpsertOne) UpdateTitle() *PullRequestsUpsertOne {
 	})
 }
 
+// SetMergeCommit sets the "merge_commit" field.
+func (u *PullRequestsUpsertOne) SetMergeCommit(v string) *PullRequestsUpsertOne {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.SetMergeCommit(v)
+	})
+}
+
+// UpdateMergeCommit sets the "merge_commit" field to the value that was provided on create.
+func (u *PullRequestsUpsertOne) UpdateMergeCommit() *PullRequestsUpsertOne {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.UpdateMergeCommit()
+	})
+}
+
+// ClearMergeCommit clears the value of the "merge_commit" field.
+func (u *PullRequestsUpsertOne) ClearMergeCommit() *PullRequestsUpsertOne {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.ClearMergeCommit()
+	})
+}
+
+// SetRetestBeforeMergeCount sets the "retest_before_merge_count" field.
+func (u *PullRequestsUpsertOne) SetRetestBeforeMergeCount(v float64) *PullRequestsUpsertOne {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.SetRetestBeforeMergeCount(v)
+	})
+}
+
+// AddRetestBeforeMergeCount adds v to the "retest_before_merge_count" field.
+func (u *PullRequestsUpsertOne) AddRetestBeforeMergeCount(v float64) *PullRequestsUpsertOne {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.AddRetestBeforeMergeCount(v)
+	})
+}
+
+// UpdateRetestBeforeMergeCount sets the "retest_before_merge_count" field to the value that was provided on create.
+func (u *PullRequestsUpsertOne) UpdateRetestBeforeMergeCount() *PullRequestsUpsertOne {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.UpdateRetestBeforeMergeCount()
+	})
+}
+
+// ClearRetestBeforeMergeCount clears the value of the "retest_before_merge_count" field.
+func (u *PullRequestsUpsertOne) ClearRetestBeforeMergeCount() *PullRequestsUpsertOne {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.ClearRetestBeforeMergeCount()
+	})
+}
+
 // Exec executes the query.
 func (u *PullRequestsUpsertOne) Exec(ctx context.Context) error {
 	if len(u.create.conflict) == 0 {
@@ -759,7 +882,6 @@ func (prcb *PullRequestsCreateBulk) ExecX(ctx context.Context) {
 //			SetPrID(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (prcb *PullRequestsCreateBulk) OnConflict(opts ...sql.ConflictOption) *PullRequestsUpsertBulk {
 	prcb.conflict = opts
 	return &PullRequestsUpsertBulk{
@@ -773,7 +895,6 @@ func (prcb *PullRequestsCreateBulk) OnConflict(opts ...sql.ConflictOption) *Pull
 //	client.PullRequests.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (prcb *PullRequestsCreateBulk) OnConflictColumns(columns ...string) *PullRequestsUpsertBulk {
 	prcb.conflict = append(prcb.conflict, sql.ConflictColumns(columns...))
 	return &PullRequestsUpsertBulk{
@@ -795,7 +916,6 @@ type PullRequestsUpsertBulk struct {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
-//
 func (u *PullRequestsUpsertBulk) UpdateNewValues() *PullRequestsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -814,7 +934,6 @@ func (u *PullRequestsUpsertBulk) UpdateNewValues() *PullRequestsUpsertBulk {
 //	client.PullRequests.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
-//
 func (u *PullRequestsUpsertBulk) Ignore() *PullRequestsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -966,6 +1085,55 @@ func (u *PullRequestsUpsertBulk) SetTitle(v string) *PullRequestsUpsertBulk {
 func (u *PullRequestsUpsertBulk) UpdateTitle() *PullRequestsUpsertBulk {
 	return u.Update(func(s *PullRequestsUpsert) {
 		s.UpdateTitle()
+	})
+}
+
+// SetMergeCommit sets the "merge_commit" field.
+func (u *PullRequestsUpsertBulk) SetMergeCommit(v string) *PullRequestsUpsertBulk {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.SetMergeCommit(v)
+	})
+}
+
+// UpdateMergeCommit sets the "merge_commit" field to the value that was provided on create.
+func (u *PullRequestsUpsertBulk) UpdateMergeCommit() *PullRequestsUpsertBulk {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.UpdateMergeCommit()
+	})
+}
+
+// ClearMergeCommit clears the value of the "merge_commit" field.
+func (u *PullRequestsUpsertBulk) ClearMergeCommit() *PullRequestsUpsertBulk {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.ClearMergeCommit()
+	})
+}
+
+// SetRetestBeforeMergeCount sets the "retest_before_merge_count" field.
+func (u *PullRequestsUpsertBulk) SetRetestBeforeMergeCount(v float64) *PullRequestsUpsertBulk {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.SetRetestBeforeMergeCount(v)
+	})
+}
+
+// AddRetestBeforeMergeCount adds v to the "retest_before_merge_count" field.
+func (u *PullRequestsUpsertBulk) AddRetestBeforeMergeCount(v float64) *PullRequestsUpsertBulk {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.AddRetestBeforeMergeCount(v)
+	})
+}
+
+// UpdateRetestBeforeMergeCount sets the "retest_before_merge_count" field to the value that was provided on create.
+func (u *PullRequestsUpsertBulk) UpdateRetestBeforeMergeCount() *PullRequestsUpsertBulk {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.UpdateRetestBeforeMergeCount()
+	})
+}
+
+// ClearRetestBeforeMergeCount clears the value of the "retest_before_merge_count" field.
+func (u *PullRequestsUpsertBulk) ClearRetestBeforeMergeCount() *PullRequestsUpsertBulk {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.ClearRetestBeforeMergeCount()
 	})
 }
 

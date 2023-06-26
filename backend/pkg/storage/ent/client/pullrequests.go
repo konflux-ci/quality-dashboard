@@ -7,6 +7,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	prV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
+	"github.com/redhat-appstudio/quality-studio/pkg/connectors/github"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
@@ -35,6 +36,8 @@ func (d *Database) CreatePullRequests(prs prV1Alpha1.PullRequests, repo_id strin
 				SetClosedAt(p.ClosedAt).
 				SetState(p.State).
 				SetAuthor(p.Author.User.Login).
+				SetMergeCommit(p.MergeCommit.OID).
+				SetRetestBeforeMergeCount(github.RetestComments(&p.TimelineItems)).
 				Save(context.TODO())
 			if err != nil {
 				return convertDBError("failed to update pull request: %w", err)
@@ -51,7 +54,9 @@ func (d *Database) CreatePullRequests(prs prV1Alpha1.PullRequests, repo_id strin
 			SetState(p.State).
 			SetAuthor(p.Author.User.Login).
 			SetRepositoryName(p.Repository.Name).
-			SetRepositoryOrganization(p.Repository.Owner.Login)
+			SetRepositoryOrganization(p.Repository.Owner.Login).
+			SetMergeCommit(p.MergeCommit.OID).
+			SetRetestBeforeMergeCount(github.RetestComments(&p.TimelineItems))
 		bulkPullRequests = append(bulkPullRequests, bulkPullRequest)
 		create = true
 	}
@@ -76,7 +81,7 @@ func (d *Database) CreatePullRequests(prs prV1Alpha1.PullRequests, repo_id strin
 // GetPullRequestsByRepository gets the summary and the metrics of the open and merged pull requests.
 func (d *Database) GetPullRequestsByRepository(repositoryName, organization, startDate, endDate string) (info prV1Alpha1.PullRequestsInfo, err error) {
 	totalMergedPrs := 0
-	var totalMergeTime float64
+	var totalMergeTime, totalRetestBeforeMerge, retestBeforeMergeAvg float64
 	info = prV1Alpha1.PullRequestsInfo{}
 
 	repo := d.client.Repository.Query().Where(predicate.Repository(repository.RepositoryName(repositoryName))).FirstX(context.TODO())
@@ -107,20 +112,28 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 
 	for _, merged := range mergedPullRequestsInTimeRange {
 		mergeTime := merged.MergedAt.Sub(merged.CreatedAt).Hours() / 24
+		var retestBeforeMergeCount float64 = 0
+		if merged.RetestBeforeMergeCount != nil {
+			retestBeforeMergeCount = *merged.RetestBeforeMergeCount
+		}
+
 		if mergeTime > 0 {
 			totalMergeTime += mergeTime
 			totalMergedPrs++
+			totalRetestBeforeMerge += retestBeforeMergeCount
 		}
 	}
 
 	if totalMergedPrs != 0 {
 		totalMergeTime = totalMergeTime / float64(len(mergedPullRequestsInTimeRange))
+		retestBeforeMergeAvg = totalRetestBeforeMerge / float64(len(mergedPullRequestsInTimeRange))
 	}
 
 	info.Summary = prV1Alpha1.Summary{
-		MergedPrsCount: len(totalPullRequestsMerged),
-		OpenPrsCount:   len(totalOpenPullRequests),
-		MergeAvg:       math.Round(totalMergeTime*100) / 100,
+		MergedPrsCount:       len(totalPullRequestsMerged),
+		OpenPrsCount:         len(totalOpenPullRequests),
+		MergeAvg:             math.Round(totalMergeTime*100) / 100,
+		RetestBeforeMergeAvg: math.Round(retestBeforeMergeAvg*100) / 100,
 	}
 	info.Metrics = d.getMetrics(repo, startDate, endDate)
 

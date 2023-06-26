@@ -248,7 +248,6 @@ func (wc *WorkflowsCreate) createSpec() (*Workflows, *sqlgraph.CreateSpec) {
 //			SetWorkflowID(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (wc *WorkflowsCreate) OnConflict(opts ...sql.ConflictOption) *WorkflowsUpsertOne {
 	wc.conflict = opts
 	return &WorkflowsUpsertOne{
@@ -262,7 +261,6 @@ func (wc *WorkflowsCreate) OnConflict(opts ...sql.ConflictOption) *WorkflowsUpse
 //	client.Workflows.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (wc *WorkflowsCreate) OnConflictColumns(columns ...string) *WorkflowsUpsertOne {
 	wc.conflict = append(wc.conflict, sql.ConflictColumns(columns...))
 	return &WorkflowsUpsertOne{
@@ -363,7 +361,6 @@ func (u *WorkflowsUpsert) UpdateState() *WorkflowsUpsert {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
-//
 func (u *WorkflowsUpsertOne) UpdateNewValues() *WorkflowsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	return u
@@ -372,10 +369,9 @@ func (u *WorkflowsUpsertOne) UpdateNewValues() *WorkflowsUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//  client.Workflows.Create().
-//      OnConflict(sql.ResolveWithIgnore()).
-//      Exec(ctx)
-//
+//	client.Workflows.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
 func (u *WorkflowsUpsertOne) Ignore() *WorkflowsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -615,7 +611,6 @@ func (wcb *WorkflowsCreateBulk) ExecX(ctx context.Context) {
 //			SetWorkflowID(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (wcb *WorkflowsCreateBulk) OnConflict(opts ...sql.ConflictOption) *WorkflowsUpsertBulk {
 	wcb.conflict = opts
 	return &WorkflowsUpsertBulk{
@@ -629,7 +624,6 @@ func (wcb *WorkflowsCreateBulk) OnConflict(opts ...sql.ConflictOption) *Workflow
 //	client.Workflows.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (wcb *WorkflowsCreateBulk) OnConflictColumns(columns ...string) *WorkflowsUpsertBulk {
 	wcb.conflict = append(wcb.conflict, sql.ConflictColumns(columns...))
 	return &WorkflowsUpsertBulk{
@@ -651,7 +645,6 @@ type WorkflowsUpsertBulk struct {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
-//
 func (u *WorkflowsUpsertBulk) UpdateNewValues() *WorkflowsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	return u
@@ -663,7 +656,6 @@ func (u *WorkflowsUpsertBulk) UpdateNewValues() *WorkflowsUpsertBulk {
 //	client.Workflows.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
-//
 func (u *WorkflowsUpsertBulk) Ignore() *WorkflowsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
