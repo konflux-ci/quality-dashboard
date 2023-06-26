@@ -154,8 +154,8 @@ export const FormModal = () => {
 
   useEffect(() => {
     if (modalContext.isEditRepo.value) {
-      setGitRepositoryValue(modalContext.data.value.repoName);
-      setGitOrganizationValue(modalContext.data.value.organization);
+      setGitRepositoryValue(modalContext.data.value.repository_name);
+      setGitOrganizationValue(modalContext.data.value.git_organization);
     }
   });
 

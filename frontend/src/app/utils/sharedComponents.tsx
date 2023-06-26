@@ -1,6 +1,6 @@
 import React, { useState, useLayoutEffect, useRef } from 'react';
-import { ExclamationCircleIcon, OkIcon, HelpIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
-import { Card, CardTitle, CardBody, Badge } from '@patternfly/react-core';
+import { ExclamationCircleIcon, OkIcon, HelpIcon, ExternalLinkAltIcon, GithubIcon } from '@patternfly/react-icons';
+import { Card, CardTitle, CardBody, Badge, Icon } from '@patternfly/react-core';
 import { Chart, ChartAxis, ChartLine, ChartGroup, ChartLegend, createContainer } from '@patternfly/react-charts';
 import { SimpleList, SimpleListItem } from '@patternfly/react-core';
 import { getLabels } from './utils';
@@ -189,10 +189,17 @@ export type InfoCardProp = {
   value: string;
 }
 
-export const InfoCard = ({ data }: { data: InfoCardProp[] }) => {
+export const GitHubInfoCard = ({ data, org, repoName }: { data: InfoCardProp[], org: string, repoName: string }) => {
   return (
     <Card style={{ width: "100%", height: "100%", fontSize: "1rem" }}>
       <CardBody>
+        <div style={{ textAlign: 'center' }}>
+          <Icon size="xl" iconSize="xl">
+            <a href={"https://github.com/" + org + "/" + repoName} target="blank" rel="noopener noreferrer">
+              <GithubIcon/>
+            </a>
+          </Icon>
+        </div>
         {
           data.map(function (value, index) {
             return (<div style={{ marginTop: "5px" }} key={index}>

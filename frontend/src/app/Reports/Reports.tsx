@@ -18,7 +18,7 @@ import { Grid, GridItem } from '@patternfly/react-core';
 import {
   JobsStatistics,
   DashboardCard,
-  InfoCard,
+  GitHubInfoCard,
   DashboardLineChart,
   DashboardSimpleList,
   SimpleListData,
@@ -437,7 +437,7 @@ let Reports = () => {
             {/* this section will show the job's chart over time and last execution stats */}
 
             {prowJobsStats !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
-              <GridItem span={3}><InfoCard data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_organization }]}></InfoCard></GridItem>
+              <GridItem span={3}><GitHubInfoCard repoName={prowJobsStats.repository_name} org={prowJobsStats.git_organization} data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_organization }]}></GitHubInfoCard></GridItem>
               <GridItem span={2}><DashboardCard cardType={'danger'} title="CI Failures Avg" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.ci_failed_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
               <GridItem span={2}><DashboardCard cardType={'danger'} title="Failures Avg" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.failure_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
               <GridItem span={2}><DashboardCard cardType={'success'} title="Passed Tests Avg" body={prowJobsStats?.jobs != null ? parseFloat(prowJobsStats.jobs[selectedJob].summary.success_rate_avg).toFixed(2) + "%" : "-"}></DashboardCard></GridItem>
