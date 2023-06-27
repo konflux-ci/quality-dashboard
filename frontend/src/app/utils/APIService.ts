@@ -166,10 +166,15 @@ async function getAllRepositoriesWithOrgs(team: string, openshift: boolean, rang
   if (!teamIsNotEmpty(team)) return repoAndOrgs;
 
   const response = await fetch(
-    API_URL + '/api/quality/repositories/list?team_name=' + team +
-    '&openshift_ci=' +(openshift ? 'true' : 'false') +
-    '&start_date=' + start_date +
-    '&end_date=' + end_date
+    API_URL +
+      '/api/quality/repositories/list?team_name=' +
+      team +
+      '&openshift_ci=' +
+      (openshift ? 'true' : 'false') +
+      '&start_date=' +
+      start_date +
+      '&end_date=' +
+      end_date
   );
 
   if (!response.ok) {

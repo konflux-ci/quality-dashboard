@@ -115,6 +115,7 @@ export const DateTimeRangePicker = (props) => {
                 shouldClose={() => setIsVisible(false)}
                 flipBehavior={["bottom"]}
                 headerContent={<div>Select date time range</div>}
+                position="auto"
                 bodyContent={
                     <Flex style={{ minHeight: 300, display: 'flex' }} direction={{ default: 'row' }}>
                         <Flex direction={{ default: 'column' }}>

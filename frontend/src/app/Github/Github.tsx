@@ -71,26 +71,26 @@ let GitHub = () => {
   useEffect(() => {
     getAllRepositoriesWithOrgs(state.teams.Team, false, rangeDateTime).then((data: any) => {
       let rps = new Array<RepositoryInfo>
-        data.forEach((repository, _) => {
-            rps.push({
-              repository_name: repository.repoName,
-              git_organization: repository.organization,
-              description: repository.description,
-              git_url: repository.url,
-              code_coverage: repository.coverage,
-              prs: repository.prs,
-              workflows: repository.workflows,
-              code_cov: repository.coverage.coverage_percentage == 0 ? 'N/A' : repository.coverage.coverage_percentage,
-              coverage_trend: repository.coverage.coverage_trend,
-              // edge case of service-provider-integration-operator
-              // https://github.com/redhat-appstudio/service-provider-integration-operator/pull/548#issuecomment-1494149514
-              retest_before_merge_avg: repository.prs?.summary.retest_before_merge_avg == 0 || repository.prs?.summary.retest_before_merge_avg == 0.01 ? 'N/A' : repository.prs?.summary.retest_before_merge_avg,
-              open_prs: repository.prs?.summary?.open_prs,
-              merged_prs: repository.prs?.summary?.merged_prs,
-              time_to_merge_pr_avg_days: repository.prs?.summary?.merge_avg + ' day(s)',
-          });
-        })
-        setRepos(rps)
+      data.forEach((repository, _) => {
+        rps.push({
+          repository_name: repository.repoName,
+          git_organization: repository.organization,
+          description: repository.description,
+          git_url: repository.url,
+          code_coverage: repository.coverage,
+          prs: repository.prs,
+          workflows: repository.workflows,
+          code_cov: repository.coverage.coverage_percentage == 0 ? 'N/A' : repository.coverage.coverage_percentage,
+          coverage_trend: repository.coverage.coverage_trend,
+          // edge case of service-provider-integration-operator
+          // https://github.com/redhat-appstudio/service-provider-integration-operator/pull/548#issuecomment-1494149514
+          retest_before_merge_avg: repository.prs?.summary.retest_before_merge_avg == 0 || repository.prs?.summary.retest_before_merge_avg == 0.01 ? 'N/A' : repository.prs?.summary.retest_before_merge_avg,
+          open_prs: repository.prs?.summary?.open_prs,
+          merged_prs: repository.prs?.summary?.merged_prs,
+          time_to_merge_pr_avg_days: repository.prs?.summary?.merge_avg + ' day(s)',
+        });
+      })
+      setRepos(rps)
     });
   }, [rangeDateTime]);
 
@@ -126,23 +126,23 @@ let GitHub = () => {
         if (data.length > 0 && (team == state.teams.Team || team == null)) {
           let rps = new Array<RepositoryInfo>
           data.forEach((repository, _) => {
-              rps.push({
-                repository_name: repository.repoName,
-                git_organization: repository.organization,
-                description: repository.description,
-                git_url: repository.url,
-                code_coverage: repository.coverage,
-                prs: repository.prs,
-                workflows: repository.workflows,
-                code_cov: repository.coverage.coverage_percentage == 0 ? 'N/A' : repository.coverage.coverage_percentage,
-                coverage_trend: repository.coverage.coverage_trend,
-                // edge case of service-provider-integration-operator
-                // https://github.com/redhat-appstudio/service-provider-integration-operator/pull/548#issuecomment-1494149514
-                retest_before_merge_avg: repository.prs?.summary.retest_before_merge_avg == 0 || repository.prs?.summary.retest_before_merge_avg == 0.01 ? 'N/A' : repository.prs?.summary.retest_before_merge_avg,
-                open_prs: repository.prs?.summary?.open_prs,
-                merged_prs: repository.prs?.summary?.merged_prs,
-                time_to_merge_pr_avg_days: repository.prs?.summary?.merge_avg + ' day(s)',
-              });
+            rps.push({
+              repository_name: repository.repoName,
+              git_organization: repository.organization,
+              description: repository.description,
+              git_url: repository.url,
+              code_coverage: repository.coverage,
+              prs: repository.prs,
+              workflows: repository.workflows,
+              code_cov: repository.coverage.coverage_percentage == 0 ? 'N/A' : repository.coverage.coverage_percentage,
+              coverage_trend: repository.coverage.coverage_trend,
+              // edge case of service-provider-integration-operator
+              // https://github.com/redhat-appstudio/service-provider-integration-operator/pull/548#issuecomment-1494149514
+              retest_before_merge_avg: repository.prs?.summary.retest_before_merge_avg == 0 || repository.prs?.summary.retest_before_merge_avg == 0.01 ? 'N/A' : repository.prs?.summary.retest_before_merge_avg,
+              open_prs: repository.prs?.summary?.open_prs,
+              merged_prs: repository.prs?.summary?.merged_prs,
+              time_to_merge_pr_avg_days: repository.prs?.summary?.merge_avg + ' day(s)',
+            });
           })
           setRepos(rps)
 
@@ -214,13 +214,6 @@ let GitHub = () => {
         <PageSection>
           {/* the following toolbar will contain the form (dropdowns and button) to request data to the server */}
           <Grid hasGutter>
-            <GridItem>
-              <DateTimeRangePicker
-                startDate={start}
-                endDate={end}
-                handleChange={(event, from, to) => handleChange(event, from, to)}
-              ></DateTimeRangePicker>
-            </GridItem>
             <FormModal></FormModal>
 
 
@@ -233,7 +226,16 @@ let GitHub = () => {
               (
                 <GridItem>
                   <Card style={{ fontSize: "12px" }}>
-                    <CardTitle>Repositories Overview</CardTitle>
+                    <CardTitle>
+                      Repositories Overview
+                      <div style={{ float: 'right' }}>
+                        <DateTimeRangePicker
+                          startDate={start}
+                          endDate={end}
+                          handleChange={(event, from, to) => handleChange(event, from, to)}
+                        ></DateTimeRangePicker>
+                      </div>
+                    </CardTitle>
                     <CardBody>
                       <ComposableTable repos={repos} modal={modalContext}></ComposableTable>
                     </CardBody>
