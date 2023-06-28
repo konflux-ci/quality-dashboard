@@ -6,149 +6,102 @@ import {
   Title,
   TitleSizes,
   ButtonVariant,
+  Spinner,
+  Card,
+  CardTitle,
+  CardBody,
   EmptyState,
   EmptyStateIcon,
   EmptyStateVariant,
-  Spinner,
+  Flex,
+  FlexItem,
 } from '@patternfly/react-core';
-import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
-import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
 import {
-  deleteInApi,
   getAllRepositoriesWithOrgs,
-  getPullRequests,
   getTeams,
-  getWorkflowByRepositoryName,
 } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
-import { InfoCard } from '@app/utils/sharedComponents';
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
-import { CodeCov } from './CodeCov';
-import { GithubActions } from './GithubActions';
-import { ActionsColumn, IAction } from '@patternfly/react-table';
+import { Workflows } from './GithubActions';
 import { FormModal, ModalContext, useDefaultModalContextState, useModalContext } from './CreateRepository';
-import { isValidTeam, validateRepositoryParams, validateParam } from '@app/utils/utils';
-import { PrsStatistics, PullRequestCard, PullRequestsGraphic } from './PullRequests';
+import { validateParam } from '@app/utils/utils';
+import { PrsStatistics } from './PullRequests';
 import { formatDate, getRangeDates } from '@app/Reports/utils';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
+import { ComposableTable } from './Table';
+import { Coverage } from './CodeCov';
+
+export interface RepositoryInfo {
+  repository_name: string;
+  git_organization: string;
+  description: string;
+  git_url: string;
+  code_coverage: Coverage;
+  prs: PrsStatistics;
+  workflows: Workflows[];
+  code_cov: string;
+  coverage_trend: string,
+  retest_before_merge_avg: string;
+  open_prs: string;
+  merged_prs: string;
+  time_to_merge_pr_avg_days: string;
+}
 
 // eslint-disable-next-line prefer-const
 let GitHub = () => {
   const { store } = React.useContext(ReactReduxContext);
   const state = store.getState();
-  const [repositories, setRepositories] = useState<
-    { repoName: string; organization: string; description: string; codeCoverage: any; isPlaceholder?: boolean }[]
-  >([]);
-  const [repoName, setRepoName] = useState('');
-  const [repoOrg, setRepoOrg] = useState('');
-  const [repoNameToggle, setRepoNameToggle] = useState(false);
-  const [workflows, setWorkflows] = useState([]);
-  const [prs, setPrs] = useState<PrsStatistics | null>(null);
   const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(90));
-  const [noData, setNoData] = useState(false);
   const defaultModalContext = useDefaultModalContextState();
   const modalContext = useModalContext();
   const currentTeam = useSelector((state: any) => state.teams.Team);
   const history = useHistory();
   const params = new URLSearchParams(window.location.search);
   const [loadingState, setLoadingState] = useState(false);
+  const [repos, setRepos] = useState<any>({});
   const [isInvalid, setIsInvalid] = useState(false);
 
-  function getWorkflows(repo) {
-    getWorkflowByRepositoryName(repo).then((res) => {
-      if (res.code === 200) {
-        const result = res.data.sort((a, b) => (a.workflow_name < b.workflow_name ? -1 : 1));
-        setWorkflows(result);
-      }
-    });
-  }
-
-  const getDescription = (repoName, repoOrg) => {
-    const repo = getRepository(repoName, repoOrg);
-
-    if (repo != undefined) {
-      return repo.description;
-    }
-
-    return '';
-  };
-
-  const getRepository = (repoName, repoOrg) => {
-    const repo = repositories.find((r) => r.organization == repoOrg && r.repoName == repoName);
-
-    return repo;
-  };
-
-  // Reset the repository dropdown
-  const clearRepo = () => {
-    setRepoName('');
-    setRepoOrg('');
-    setRepoNameToggle(false);
-    setWorkflows([]);
-  };
-
-  // Called onChange of the repository dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
-  const setRepoNameOnChange = (event, selection, isPlaceholder) => {
-    if (isPlaceholder) {
-      clearRepo();
-    } else {
-      setRepoName(repositories[selection].repoName);
-      setRepoOrg(repositories[selection].organization);
-      setRepoNameToggle(false);
-      getWorkflows(repositories[selection].repoName);
-      params.set('repository', repositories[selection].repoName);
-      params.set('organization', repositories[selection].organization);
-      history.push(window.location.pathname + '?' + params.toString());
-    }
-  };
 
   // Reset rangeDateTime
   const clearRangeDateTime = () => {
     setRangeDateTime(getRangeDates(90));
   };
 
-  // Reset all dropdowns and state variables
-  const clearAll = () => {
-    clearRepo();
-    clearRangeDateTime();
-    setNoData(false);
-    setIsInvalid(false);
-  };
-
-  // Reset params
-  const clearParams = () => {
-    clearAll();
-    setNoData(true);
-    history.push(window.location.pathname + '?' + 'team=' + params.get('team'));
-  };
-
-  const validatePullRequests = () => {
-    setNoData(false);
-    if (repositories.find((r) => r.organization == repoOrg && r.repoName == repoName)) {
-      try {
-        getPullRequests(repoName, repoOrg, rangeDateTime).then((data: any) => {
-          setPrs(data);
-        });
-      } catch (error) {
-        console.log(error);
-        setNoData(true);
-      }
-    } else {
-      setNoData(true);
-    }
-  };
-
   // Triggers automatic validation when state variables change
   useEffect(() => {
-    validatePullRequests();
-  }, [repoOrg, repoName, rangeDateTime]);
+    getAllRepositoriesWithOrgs(state.teams.Team, false, rangeDateTime).then((data: any) => {
+      let rps = new Array<RepositoryInfo>
+      data.forEach((repository, _) => {
+        rps.push({
+          repository_name: repository.repoName,
+          git_organization: repository.organization,
+          description: repository.description,
+          git_url: repository.url,
+          code_coverage: repository.coverage,
+          prs: repository.prs,
+          workflows: repository.workflows,
+          code_cov: repository.coverage.coverage_percentage == 0 ? 'N/A' : repository.coverage.coverage_percentage,
+          coverage_trend: repository.coverage.coverage_trend,
+          // edge case of service-provider-integration-operator
+          // https://github.com/redhat-appstudio/service-provider-integration-operator/pull/548#issuecomment-1494149514
+          retest_before_merge_avg: repository.prs?.summary.retest_before_merge_avg == 0 || repository.prs?.summary.retest_before_merge_avg == 0.01 ? 'N/A' : repository.prs?.summary.retest_before_merge_avg,
+          open_prs: repository.prs?.summary?.open_prs,
+          merged_prs: repository.prs?.summary?.merged_prs,
+          time_to_merge_pr_avg_days: repository.prs?.summary?.merge_avg + ' day(s)',
+        });
+      })
+      setRepos(rps)
+    });
+  }, [rangeDateTime]);
+
 
   useEffect(() => {
     setLoadingState(true)
+    setIsInvalid(false);
+
     const team = params.get("team")
-    
     if ((team != null) && (team != state.teams.Team)) {
       getTeams().then(res => {
         if (!validateParam(res.data, team)) {
@@ -159,35 +112,44 @@ let GitHub = () => {
     }
 
     if (state.teams.Team != '') {
-      setRepositories([]);
-      clearAll();
+      setRepos([]);
+      clearRangeDateTime();
 
-      const repository = params.get('repository');
-      const organization = params.get('organization');
       const team = params.get('team');
       const start = params.get('start');
       const end = params.get('end');
 
       getAllRepositoriesWithOrgs(state.teams.Team, false, rangeDateTime).then((data: any) => {
-        let dropDescr = '';
         if (data.length < 1 && (team == state.teams.Team || team == null)) {
-          dropDescr = 'No Repositories';
           setLoadingState(false)
           history.push('/home/github?team=' + currentTeam);
-        } else {
-          dropDescr = 'Select a repository';
         }
 
         if (data.length > 0 && (team == state.teams.Team || team == null)) {
-          data.unshift({ repoName: dropDescr, organization: '', isPlaceholder: true }); // Adds placeholder at the beginning of the array, so it will be shown first
-          setRepositories(data);
+          let rps = new Array<RepositoryInfo>
+          data.forEach((repository, _) => {
+            rps.push({
+              repository_name: repository.repoName,
+              git_organization: repository.organization,
+              description: repository.description,
+              git_url: repository.url,
+              code_coverage: repository.coverage,
+              prs: repository.prs,
+              workflows: repository.workflows,
+              code_cov: repository.coverage.coverage_percentage == 0 ? 'N/A' : repository.coverage.coverage_percentage,
+              coverage_trend: repository.coverage.coverage_trend,
+              // edge case of service-provider-integration-operator
+              // https://github.com/redhat-appstudio/service-provider-integration-operator/pull/548#issuecomment-1494149514
+              retest_before_merge_avg: repository.prs?.summary.retest_before_merge_avg == 0 || repository.prs?.summary.retest_before_merge_avg == 0.01 ? 'N/A' : repository.prs?.summary.retest_before_merge_avg,
+              open_prs: repository.prs?.summary?.open_prs,
+              merged_prs: repository.prs?.summary?.merged_prs,
+              time_to_merge_pr_avg_days: repository.prs?.summary?.merge_avg + ' day(s)',
+            });
+          })
+          setRepos(rps)
 
-          if (repository == null || organization == null || start == null || end == null) {
+          if (start == null || end == null) {
             // first click on page or team
-            setRepoName(data[1].repoName);
-            setRepoOrg(data[1].organization);
-            getWorkflows(data[1].repoName);
-
             const start_date = formatDate(rangeDateTime[0]);
             const end_date = formatDate(rangeDateTime[1]);
 
@@ -196,89 +158,25 @@ let GitHub = () => {
             history.push(
               '/home/github?team=' +
               currentTeam +
-              '&organization=' +
-              data[1].organization +
-              '&repository=' +
-              data[1].repoName +
               '&start=' +
               start_date +
               '&end=' +
               end_date
             );
           } else {
-            if (validateRepositoryParams(data, repository, organization)) {
-              setRepoName(repository);
-              setRepoOrg(organization);
-              getWorkflows(repository);
-              setRangeDateTime([new Date(start), new Date(end)]);
+            setRangeDateTime([new Date(start), new Date(end)]);
 
-              history.push(
-                '/home/github?team=' +
-                currentTeam +
-                '&organization=' +
-                organization +
-                '&repository=' +
-                repository +
-                '&start=' +
-                start +
-                '&end=' +
-                end
-              );
-            } else {
-              setIsInvalid(true)
-            }
-            setLoadingState(false)
+            history.push(
+              '/home/github?team=' + currentTeam +
+              '&start=' + start +
+              '&end=' + end
+            );
           }
+          setLoadingState(false)
         }
       });
     }
-  }, [setRepositories, currentTeam]);
-
-  async function deleteRepository(gitOrg: string, repoName: string) {
-    const data = {
-      git_organization: gitOrg,
-      repository_name: repoName,
-    };
-    try {
-      await deleteInApi(data, '/api/quality/repositories/delete');
-      history.push(window.location.pathname + '?' + 'team=' + params.get('team'));
-      window.location.reload();
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  async function editRepository(repo) {
-    try {
-      modalContext.handleModalToggle(true, repo);
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  const defaultActions = (repo): IAction[] => [
-    {
-      title: 'Delete Repository',
-      onClick: () => deleteRepository(repo.organization, repo.repoName),
-    },
-    {
-      title: 'Edit Repository',
-      onClick: () => editRepository(repo),
-    },
-  ];
-
-  // Validates if the repository and  organization are correct
-  const validQueryParams = (repository, organization) => {
-    if (isValidTeam()) {
-      if (repositories.find((r) => r.organization == organization && r.repoName == repository)) {
-        return true;
-      }
-      if (repository == '' && organization == '') {
-        return true;
-      }
-    }
-    return false;
-  };
+  }, [setRepos, currentTeam]);
 
   function handleChange(event, from, to) {
     setRangeDateTime([from, to]);
@@ -317,114 +215,41 @@ let GitHub = () => {
         {/* main content  */}
         <PageSection>
           {/* the following toolbar will contain the form (dropdowns and button) to request data to the server */}
-          <Toolbar style={{ width: '100%', margin: 'auto' }}>
-            <ToolbarContent style={{ textAlign: 'center' }}>
-              <ToolbarItem style={{ minWidth: '20%', maxWidth: '40%' }}>
-                <span id="typeahead-select" hidden>
-                  Select a state
-                </span>
-                <Select
-                  variant={SelectVariant.typeahead}
-                  typeAheadAriaLabel="Select a repository"
-                  isOpen={repoNameToggle}
-                  onToggle={setRepoNameToggle}
-                  selections={repoName}
-                  onSelect={setRepoNameOnChange}
-                  onClear={clearRepo}
-                  aria-labelledby="typeahead-select"
-                  placeholderText="Select a repository"
-                >
-                  {repositories.map((value, index) => (
-                    <SelectOption
-                      key={index}
-                      value={index}
-                      description={value.organization}
-                      isDisabled={value.isPlaceholder}
-                    >
-                      {value.repoName}
-                    </SelectOption>
-                  ))}
-                </Select>
-              </ToolbarItem>
-              <ToolbarItem style={{ minWidth: 'fitContent', maxWidth: 'fitContent' }}>
-                <DateTimeRangePicker
-                  startDate={start}
-                  endDate={end}
-                  handleChange={(event, from, to) => handleChange(event, from, to)}
-                ></DateTimeRangePicker>
-              </ToolbarItem>
-              <ToolbarItem style={{ minWidth: 'fitContent', maxWidth: 'fitContent' }}>
-                <Button variant="link" onClick={clearParams}>
-                  Clear
-                </Button>
-              </ToolbarItem>
-              {validQueryParams(repoName, repoOrg) && !noData && <ActionsColumn items={defaultActions(getRepository(repoName, repoOrg))} />}
-              <FormModal></FormModal>
-            </ToolbarContent>
-          </Toolbar>
+          <Grid hasGutter>
+            <FormModal></FormModal>
 
-          {/* this section will show statistics and details about GitHub metric */}
-          {loadingState && <div style={{ width: '100%', textAlign: "center" }}>
-            <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />
-          </div>
-          }
-          {!loadingState && prs != null && prs.metrics != undefined && !noData && (
-            <div style={{ marginTop: '20px' }}>
-              <Grid hasGutter>
-                <GridItem span={3} rowSpan={2}>
-                  <InfoCard
-                    data={[
-                      { title: 'Repository', value: repoName },
-                      { title: 'Organization', value: repoOrg },
-                      { title: 'Description', value: getDescription(repoName, repoOrg) },
-                    ]}
-                  ></InfoCard>
-                </GridItem>
 
-                <GridItem span={7} rowSpan={4}>
-                  <PullRequestsGraphic metrics={prs?.metrics}></PullRequestsGraphic>
-                </GridItem>
-
-                <GridItem span={2} rowSpan={1}>
-                  <PullRequestCard title="Open PRs" subtitle="Total" total={prs?.summary?.open_prs}></PullRequestCard>
-                </GridItem>
-
-                <GridItem span={2} rowSpan={1}>
-                  <PullRequestCard
-                    title="Merged PRs"
-                    subtitle="Total"
-                    total={prs?.summary?.merged_prs}
-                  ></PullRequestCard>
-                </GridItem>
-
-                <GridItem span={1} rowSpan={2}>
-                  <CodeCov repo={getRepository(repoName, repoOrg)}></CodeCov>
-                </GridItem>
-
-                <GridItem span={2} rowSpan={2}>
-                  <PullRequestCard
-                    title="Retest Before Merge Avg"
-                    subtitle="Last 2 Weeks"
-                    repo={getRepository(repoName, repoOrg)}
-                  ></PullRequestCard>
-                </GridItem>
-
-                <GridItem span={2} rowSpan={2}>
-                  <PullRequestCard
-                    title="Time To Merge PR Avg Days"
-                    subtitle="Selected Time Range"
-                    total={prs?.summary?.merge_avg}
-                  ></PullRequestCard>
-                </GridItem>
-
-                {workflows.length > 0 && (
-                  <GridItem span={12}>
-                    <GithubActions repoName={repoName} workflows={workflows}></GithubActions>
-                  </GridItem>
-                )}
-              </Grid>
+            {/* this section will show statistics and details about GitHub metric */}
+            {loadingState && <div style={{ width: '100%', textAlign: "center" }}>
+              <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />
             </div>
-          )}
+            }
+            {!loadingState &&
+              (
+                <GridItem>
+                  <Card>
+                    <Flex>
+                      <FlexItem>
+                        <CardTitle>
+                          Repositories Overview
+                        </CardTitle>
+                      </FlexItem>
+                      <FlexItem align={{ default: 'alignRight' }} style={{ marginRight: "25px" }}>
+                        <DateTimeRangePicker
+                          startDate={start}
+                          endDate={end}
+                          handleChange={(event, from, to) => handleChange(event, from, to)}
+                        ></DateTimeRangePicker>
+                      </FlexItem>
+                    </Flex>
+                    <CardBody>
+                      <ComposableTable repos={repos} modal={modalContext}></ComposableTable>
+                    </CardBody>
+                  </Card>
+                </GridItem>
+              )
+            }
+          </Grid>
           {isInvalid && !loadingState && (
             <EmptyState variant={EmptyStateVariant.xl}>
               <EmptyStateIcon icon={ExclamationCircleIcon} />
@@ -433,14 +258,7 @@ let GitHub = () => {
               </Title>
             </EmptyState>
           )}
-          {!loadingState && noData && !isInvalid && (
-            <EmptyState variant={EmptyStateVariant.xl}>
-              <EmptyStateIcon icon={ExclamationCircleIcon} />
-              <Title headingLevel="h1" size="lg">
-                {repositories.length == 0 ? "No repository detected." : "No repository selected."}
-              </Title>
-            </EmptyState>
-          )}
+
         </PageSection>
       </React.Fragment>
     </ModalContext.Provider>
