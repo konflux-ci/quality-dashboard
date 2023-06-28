@@ -13,6 +13,8 @@ import {
   EmptyState,
   EmptyStateIcon,
   EmptyStateVariant,
+  Flex,
+  FlexItem,
 } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
 import {
@@ -225,17 +227,21 @@ let GitHub = () => {
             {!loadingState &&
               (
                 <GridItem>
-                  <Card style={{ fontSize: "12px" }}>
-                    <CardTitle>
-                      Repositories Overview
-                      <div style={{ float: 'right' }}>
+                  <Card>
+                    <Flex>
+                      <FlexItem>
+                        <CardTitle>
+                          Repositories Overview
+                        </CardTitle>
+                      </FlexItem>
+                      <FlexItem align={{ default: 'alignRight' }} style={{ marginRight: "25px" }}>
                         <DateTimeRangePicker
                           startDate={start}
                           endDate={end}
                           handleChange={(event, from, to) => handleChange(event, from, to)}
                         ></DateTimeRangePicker>
-                      </div>
-                    </CardTitle>
+                      </FlexItem>
+                    </Flex>
                     <CardBody>
                       <ComposableTable repos={repos} modal={modalContext}></ComposableTable>
                     </CardBody>
