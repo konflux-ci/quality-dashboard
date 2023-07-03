@@ -14,28 +14,36 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
-func (d *Database) GetMetrics(gitOrganization, repoName, jobType, startDate, endDate string) prowV1Alpha1.JobsMetrics {
+func (d *Database) GetMetrics(gitOrganization, repoName, jobType, startDate, endDate string) (prowV1Alpha1.JobsMetrics, error) {
 	var metrics prowV1Alpha1.JobsMetrics
 	metrics.GitOrganization = gitOrganization
 	metrics.JobType = jobType
 	metrics.RepositoryName = repoName
 
-	repo, _ := d.client.Repository.Query().Where(repository.GitOrganization(gitOrganization)).Where(repository.RepositoryName(repoName)).First(context.Background())
+	repo, err := d.client.Repository.Query().Where(repository.GitOrganization(gitOrganization)).Where(repository.RepositoryName(repoName)).First(context.Background())
+	if err != nil {
+		return metrics, err
+	}
 
-	dbJobs, _ := d.client.Repository.QueryProwJobs(repo).Where(prowjobs.JobType(jobType)).All(context.Background())
+	dbJobs, err := d.client.Repository.QueryProwJobs(repo).Where(prowjobs.JobType(jobType)).All(context.Background())
+	if err != nil {
+		return metrics, err
+	}
 
 	for _, job := range ReturnJobNames(dbJobs) {
-		jMetric, _ := d.client.Repository.QueryProwJobs(repo).Select().
+		jMetric, err := d.client.Repository.QueryProwJobs(repo).Select().
 			Where(prowjobs.JobName(job)).
 			Where(prowjobs.JobType(jobType)).
 			Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 				s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 			}).All(context.TODO())
-
+		if err != nil {
+			return metrics, err
+		}
 		metrics.Jobs = append(metrics.Jobs, d.getProwJobSummary(jMetric, repo, job, jobType, startDate, endDate))
 	}
 
-	return metrics
+	return metrics, nil
 }
 
 func (d *Database) getMetric(repo *db.Repository, job, jobType, startDate, endDate string) prowV1Alpha1.Metrics {
