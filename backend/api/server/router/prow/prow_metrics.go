@@ -2,6 +2,7 @@ package prow
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/redhat-appstudio/quality-studio/api/types"
@@ -54,6 +55,8 @@ func (s *jobRouter) getProwMetrics(ctx context.Context, w http.ResponseWriter, r
 	}
 
 	metrics, err := s.Storage.GetMetrics(gitOrganization[0], repositoryName[0], jobType[0], startDate[0], endDate[0])
+	s.Logger.Info(fmt.Sprintf("metrics: %v", metrics))
+	s.Logger.Info(fmt.Sprintf("err: %v", err))
 	if err != nil {
 		// temporary
 		s.Logger.Sugar().Error("Failed to get metrics by repository:", err)
@@ -63,5 +66,8 @@ func (s *jobRouter) getProwMetrics(ctx context.Context, w http.ResponseWriter, r
 		})
 	}
 
-	return httputils.WriteJSON(w, http.StatusOK, metrics)
+	err = httputils.WriteJSON(w, http.StatusOK, metrics)
+	s.Logger.Info(fmt.Sprintf("err: %v", err))
+
+	return err
 }
