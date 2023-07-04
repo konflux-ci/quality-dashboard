@@ -68,6 +68,5 @@ func (s *jobRouter) getProwMetrics(ctx context.Context, w http.ResponseWriter, r
 
 	err = httputils.WriteJSON(w, http.StatusOK, metrics)
 	s.Logger.Info(fmt.Sprintf("err: %v", err))
-
 	return err
 }
