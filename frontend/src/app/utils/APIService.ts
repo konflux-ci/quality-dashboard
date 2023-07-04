@@ -276,6 +276,8 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
       '&end_date=' +
       end_date
   );
+
+  console.log(response)
   if (!response.ok) {
     throw 'Error fetching data from server. ';
   }

@@ -171,6 +171,7 @@ func (s *Server) makeHTTPHandler(handler httputils.APIFunc) http.HandlerFunc {
 		}
 
 		if err := handlerFunc(ctx, w, r, vars); err != nil {
+			s.cfg.Logger.Info(fmt.Sprintf("err: %v", err))
 			statusCode := errdefs.GetHTTPErrorStatusCode(err)
 			if statusCode >= 500 {
 				s.cfg.Logger.Error("Handler for route failed", zap.String("Path", r.URL.Path), zap.String("Method", r.Method))
