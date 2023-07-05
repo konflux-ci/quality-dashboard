@@ -248,7 +248,6 @@ let Reports = () => {
     try {
       // Get statistics and metrics
       const stats = await getProwJobStatistics(repoName, repoOrg, jobType, rangeDateTime)
-      console.log("stats:", stats)
       // Get jobs
       const prowJobs = await getProwJobs(repoName, repoOrg)
       setProwJobs(prowJobs)
@@ -258,7 +257,6 @@ let Reports = () => {
       setProwVisible(true)
     }
     catch (e) {
-      console.log("err:", e)
       // Set UI to empty page
       setProwVisible(false);
       setLoadingState(false);
