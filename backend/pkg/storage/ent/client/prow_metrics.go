@@ -168,7 +168,11 @@ func ReturnJobNames(j []*db.ProwJobs) []string {
 	var jobsArr []string
 
 	for _, jobs := range j {
-		jobsArr = append(jobsArr, jobs.JobName)
+		// periodic-ci-redhat-appstudio-infra-deployments-main-hacbs-e2e-periodic does not exist anymore
+		// stopped to be collected from 14/06/2023
+		if jobs.JobName != "periodic-ci-redhat-appstudio-infra-deployments-main-hacbs-e2e-periodic" {
+			jobsArr = append(jobsArr, jobs.JobName)
+		}
 	}
 
 	return removeDuplicateStr(jobsArr)
