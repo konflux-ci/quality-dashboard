@@ -156,9 +156,9 @@ func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, j
 		Summary: prowV1Alpha1.Summary{
 			DateFrom:       startDate,
 			DateTo:         endDate,
-			SuccessRateAvg: success_rate_total / job_nums * 100,
-			JobFailedAvg:   failed_rate_total / job_nums * 100,
-			CIFailedAvg:    ci_failed_total / job_nums * 100,
+			SuccessRateAvg: handleNaN(success_rate_total / job_nums * 100),
+			JobFailedAvg:   handleNaN(failed_rate_total / job_nums * 100),
+			CIFailedAvg:    handleNaN(ci_failed_total / job_nums * 100),
 			TotalJobs:      int(success_rate_total + failed_rate_total + ci_failed_total),
 		},
 	}
@@ -168,7 +168,11 @@ func ReturnJobNames(j []*db.ProwJobs) []string {
 	var jobsArr []string
 
 	for _, jobs := range j {
-		jobsArr = append(jobsArr, jobs.JobName)
+		// periodic-ci-redhat-appstudio-infra-deployments-main-hacbs-e2e-periodic does not exist anymore
+		// stopped to be collected from 14/06/2023
+		if jobs.JobName != "periodic-ci-redhat-appstudio-infra-deployments-main-hacbs-e2e-periodic" {
+			jobsArr = append(jobsArr, jobs.JobName)
+		}
 	}
 
 	return removeDuplicateStr(jobsArr)

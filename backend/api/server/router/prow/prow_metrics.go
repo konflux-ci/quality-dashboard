@@ -58,8 +58,6 @@ func (s *jobRouter) getProwMetrics(ctx context.Context, w http.ResponseWriter, r
 	s.Logger.Info(fmt.Sprintf("metrics: %v", metrics))
 	s.Logger.Info(fmt.Sprintf("err: %v", err))
 	if err != nil {
-		// temporary
-		s.Logger.Sugar().Error("Failed to get metrics by repository:", err)
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "Failed to get metrics by repository.",
 			StatusCode: 400,
