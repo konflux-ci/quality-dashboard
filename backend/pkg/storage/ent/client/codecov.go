@@ -14,7 +14,7 @@ func (d *Database) CreateCoverage(codecoverage coverageV1Alpha1.Coverage, repo_i
 		SetRepositoryName(codecoverage.RepositoryName).
 		SetGitOrganization(codecoverage.GitOrganization).
 		SetCoveragePercentage(codecoverage.CoveragePercentage).
-		SetAverageRetestsToMerge(codecoverage.AverageToRetestPullRequest).
+		SetCoverageTrend(codecoverage.CoverageTrend).
 		Save(context.TODO())
 	if err != nil {
 		return convertDBError("create coverage: %w", err)
@@ -36,7 +36,7 @@ func (d *Database) UpdateCoverage(codecoverage coverageV1Alpha1.Coverage, repoNa
 		SetRepositoryName(codecoverage.RepositoryName).
 		SetGitOrganization(codecoverage.GitOrganization).
 		SetCoveragePercentage(codecoverage.CoveragePercentage).
-		SetAverageRetestsToMerge(codecoverage.AverageToRetestPullRequest).
+		SetCoverageTrend(codecoverage.CoverageTrend).
 		Save(context.TODO())
 	if err != nil {
 		return convertDBError("create coverage: %w", err)

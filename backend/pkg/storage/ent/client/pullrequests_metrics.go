@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"math"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -21,10 +22,24 @@ func (d *Database) getMetricByDay(repo *db.Repository, startDate, endDate string
 			s.Where(sql.ExprP(fmt.Sprintf("merged_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 		}).All(context.TODO())
 
+	var totalRetestBeforeMerge, retestBeforeMergeAvg float64
+	for _, mergedPr := range mergedPrs {
+		var retestBeforeMergeCount float64 = 0
+		if mergedPr.RetestBeforeMergeCount != nil {
+			retestBeforeMergeCount = *mergedPr.RetestBeforeMergeCount
+		}
+		totalRetestBeforeMerge += retestBeforeMergeCount
+	}
+
+	if len(mergedPrs) != 0 {
+		retestBeforeMergeAvg = totalRetestBeforeMerge / float64(len(mergedPrs))
+	}
+
 	return prV1Alpha1.Metrics{
 		Date:                     startDate,
 		CreatedPullRequestsCount: len(createdPrs),
 		MergedPullRequestsCount:  len(mergedPrs),
+		RetestBeforeMergeAvg:     math.Round(retestBeforeMergeAvg*100) / 100,
 	}
 }
 

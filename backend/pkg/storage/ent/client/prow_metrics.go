@@ -14,28 +14,36 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 )
 
-func (d *Database) GetMetrics(gitOrganization, repoName, jobType, startDate, endDate string) prowV1Alpha1.JobsMetrics {
+func (d *Database) GetMetrics(gitOrganization, repoName, jobType, startDate, endDate string) (prowV1Alpha1.JobsMetrics, error) {
 	var metrics prowV1Alpha1.JobsMetrics
 	metrics.GitOrganization = gitOrganization
 	metrics.JobType = jobType
 	metrics.RepositoryName = repoName
 
-	repo, _ := d.client.Repository.Query().Where(repository.GitOrganization(gitOrganization)).Where(repository.RepositoryName(repoName)).First(context.Background())
+	repo, err := d.client.Repository.Query().Where(repository.GitOrganization(gitOrganization)).Where(repository.RepositoryName(repoName)).First(context.Background())
+	if err != nil {
+		return metrics, err
+	}
 
-	dbJobs, _ := d.client.Repository.QueryProwJobs(repo).Where(prowjobs.JobType(jobType)).All(context.Background())
+	dbJobs, err := d.client.Repository.QueryProwJobs(repo).Where(prowjobs.JobType(jobType)).All(context.Background())
+	if err != nil {
+		return metrics, err
+	}
 
 	for _, job := range ReturnJobNames(dbJobs) {
-		jMetric, _ := d.client.Repository.QueryProwJobs(repo).Select().
+		jMetric, err := d.client.Repository.QueryProwJobs(repo).Select().
 			Where(prowjobs.JobName(job)).
 			Where(prowjobs.JobType(jobType)).
 			Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 				s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 			}).All(context.TODO())
-
+		if err != nil {
+			return metrics, err
+		}
 		metrics.Jobs = append(metrics.Jobs, d.getProwJobSummary(jMetric, repo, job, jobType, startDate, endDate))
 	}
 
-	return metrics
+	return metrics, nil
 }
 
 func (d *Database) getMetric(repo *db.Repository, job, jobType, startDate, endDate string) prowV1Alpha1.Metrics {
@@ -148,9 +156,9 @@ func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, j
 		Summary: prowV1Alpha1.Summary{
 			DateFrom:       startDate,
 			DateTo:         endDate,
-			SuccessRateAvg: success_rate_total / job_nums * 100,
-			JobFailedAvg:   failed_rate_total / job_nums * 100,
-			CIFailedAvg:    ci_failed_total / job_nums * 100,
+			SuccessRateAvg: handleNaN(success_rate_total / job_nums * 100),
+			JobFailedAvg:   handleNaN(failed_rate_total / job_nums * 100),
+			CIFailedAvg:    handleNaN(ci_failed_total / job_nums * 100),
 			TotalJobs:      int(success_rate_total + failed_rate_total + ci_failed_total),
 		},
 	}
@@ -160,7 +168,11 @@ func ReturnJobNames(j []*db.ProwJobs) []string {
 	var jobsArr []string
 
 	for _, jobs := range j {
-		jobsArr = append(jobsArr, jobs.JobName)
+		// periodic-ci-redhat-appstudio-infra-deployments-main-hacbs-e2e-periodic does not exist anymore
+		// stopped to be collected from 14/06/2023
+		if jobs.JobName != "periodic-ci-redhat-appstudio-infra-deployments-main-hacbs-e2e-periodic" {
+			jobsArr = append(jobsArr, jobs.JobName)
+		}
 	}
 
 	return removeDuplicateStr(jobsArr)

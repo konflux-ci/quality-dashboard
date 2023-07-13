@@ -52,5 +52,15 @@ func (s *jobRouter) getProwMetrics(ctx context.Context, w http.ResponseWriter, r
 			StatusCode: 400,
 		})
 	}
-	return httputils.WriteJSON(w, http.StatusOK, s.Storage.GetMetrics(gitOrganization[0], repositoryName[0], jobType[0], startDate[0], endDate[0]))
+
+	metrics, err := s.Storage.GetMetrics(gitOrganization[0], repositoryName[0], jobType[0], startDate[0], endDate[0])
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "Failed to get metrics by repository.",
+			StatusCode: 400,
+		})
+	}
+
+	err = httputils.WriteJSON(w, http.StatusOK, metrics)
+	return err
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { Caption, TableComposable, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 
-interface Workflows {
+export interface Workflows {
   workflow_name: string;
   badge_url: string;
   job: string;

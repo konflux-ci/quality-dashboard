@@ -60,9 +60,43 @@ func (ccu *CodeCovUpdate) SetAverageRetestsToMerge(f float64) *CodeCovUpdate {
 	return ccu
 }
 
+// SetNillableAverageRetestsToMerge sets the "average_retests_to_merge" field if the given value is not nil.
+func (ccu *CodeCovUpdate) SetNillableAverageRetestsToMerge(f *float64) *CodeCovUpdate {
+	if f != nil {
+		ccu.SetAverageRetestsToMerge(*f)
+	}
+	return ccu
+}
+
 // AddAverageRetestsToMerge adds f to the "average_retests_to_merge" field.
 func (ccu *CodeCovUpdate) AddAverageRetestsToMerge(f float64) *CodeCovUpdate {
 	ccu.mutation.AddAverageRetestsToMerge(f)
+	return ccu
+}
+
+// ClearAverageRetestsToMerge clears the value of the "average_retests_to_merge" field.
+func (ccu *CodeCovUpdate) ClearAverageRetestsToMerge() *CodeCovUpdate {
+	ccu.mutation.ClearAverageRetestsToMerge()
+	return ccu
+}
+
+// SetCoverageTrend sets the "coverage_trend" field.
+func (ccu *CodeCovUpdate) SetCoverageTrend(s string) *CodeCovUpdate {
+	ccu.mutation.SetCoverageTrend(s)
+	return ccu
+}
+
+// SetNillableCoverageTrend sets the "coverage_trend" field if the given value is not nil.
+func (ccu *CodeCovUpdate) SetNillableCoverageTrend(s *string) *CodeCovUpdate {
+	if s != nil {
+		ccu.SetCoverageTrend(*s)
+	}
+	return ccu
+}
+
+// ClearCoverageTrend clears the value of the "coverage_trend" field.
+func (ccu *CodeCovUpdate) ClearCoverageTrend() *CodeCovUpdate {
+	ccu.mutation.ClearCoverageTrend()
 	return ccu
 }
 
@@ -172,6 +206,15 @@ func (ccu *CodeCovUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ccu.mutation.AddedAverageRetestsToMerge(); ok {
 		_spec.AddField(codecov.FieldAverageRetestsToMerge, field.TypeFloat64, value)
 	}
+	if ccu.mutation.AverageRetestsToMergeCleared() {
+		_spec.ClearField(codecov.FieldAverageRetestsToMerge, field.TypeFloat64)
+	}
+	if value, ok := ccu.mutation.CoverageTrend(); ok {
+		_spec.SetField(codecov.FieldCoverageTrend, field.TypeString, value)
+	}
+	if ccu.mutation.CoverageTrendCleared() {
+		_spec.ClearField(codecov.FieldCoverageTrend, field.TypeString)
+	}
 	if ccu.mutation.CodecovCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -259,9 +302,43 @@ func (ccuo *CodeCovUpdateOne) SetAverageRetestsToMerge(f float64) *CodeCovUpdate
 	return ccuo
 }
 
+// SetNillableAverageRetestsToMerge sets the "average_retests_to_merge" field if the given value is not nil.
+func (ccuo *CodeCovUpdateOne) SetNillableAverageRetestsToMerge(f *float64) *CodeCovUpdateOne {
+	if f != nil {
+		ccuo.SetAverageRetestsToMerge(*f)
+	}
+	return ccuo
+}
+
 // AddAverageRetestsToMerge adds f to the "average_retests_to_merge" field.
 func (ccuo *CodeCovUpdateOne) AddAverageRetestsToMerge(f float64) *CodeCovUpdateOne {
 	ccuo.mutation.AddAverageRetestsToMerge(f)
+	return ccuo
+}
+
+// ClearAverageRetestsToMerge clears the value of the "average_retests_to_merge" field.
+func (ccuo *CodeCovUpdateOne) ClearAverageRetestsToMerge() *CodeCovUpdateOne {
+	ccuo.mutation.ClearAverageRetestsToMerge()
+	return ccuo
+}
+
+// SetCoverageTrend sets the "coverage_trend" field.
+func (ccuo *CodeCovUpdateOne) SetCoverageTrend(s string) *CodeCovUpdateOne {
+	ccuo.mutation.SetCoverageTrend(s)
+	return ccuo
+}
+
+// SetNillableCoverageTrend sets the "coverage_trend" field if the given value is not nil.
+func (ccuo *CodeCovUpdateOne) SetNillableCoverageTrend(s *string) *CodeCovUpdateOne {
+	if s != nil {
+		ccuo.SetCoverageTrend(*s)
+	}
+	return ccuo
+}
+
+// ClearCoverageTrend clears the value of the "coverage_trend" field.
+func (ccuo *CodeCovUpdateOne) ClearCoverageTrend() *CodeCovUpdateOne {
+	ccuo.mutation.ClearCoverageTrend()
 	return ccuo
 }
 
@@ -394,6 +471,15 @@ func (ccuo *CodeCovUpdateOne) sqlSave(ctx context.Context) (_node *CodeCov, err 
 	}
 	if value, ok := ccuo.mutation.AddedAverageRetestsToMerge(); ok {
 		_spec.AddField(codecov.FieldAverageRetestsToMerge, field.TypeFloat64, value)
+	}
+	if ccuo.mutation.AverageRetestsToMergeCleared() {
+		_spec.ClearField(codecov.FieldAverageRetestsToMerge, field.TypeFloat64)
+	}
+	if value, ok := ccuo.mutation.CoverageTrend(); ok {
+		_spec.SetField(codecov.FieldCoverageTrend, field.TypeString, value)
+	}
+	if ccuo.mutation.CoverageTrendCleared() {
+		_spec.ClearField(codecov.FieldCoverageTrend, field.TypeString)
 	}
 	if ccuo.mutation.CodecovCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -158,13 +158,23 @@ async function getRepositories(perPage = 5, team: string) {
   return result;
 }
 
-async function getAllRepositoriesWithOrgs(team: string, openshift: boolean) {
+async function getAllRepositoriesWithOrgs(team: string, openshift: boolean, rangeDateTime: Date[]) {
   let repoAndOrgs = [];
+  const start_date = formatDate(rangeDateTime[0]);
+  const end_date = formatDate(rangeDateTime[1]);
 
   if (!teamIsNotEmpty(team)) return repoAndOrgs;
 
-  const response = await axios.get(
-    API_URL + '/api/quality/repositories/list?team_name=' + team + '&openshift_ci=' + (openshift ? 'true' : 'false')
+  const response = await fetch(
+    API_URL +
+      '/api/quality/repositories/list?team_name=' +
+      team +
+      '&openshift_ci=' +
+      (openshift ? 'true' : 'false') +
+      '&start_date=' +
+      start_date +
+      '&end_date=' +
+      end_date
   );
 
   if (response.status>=400) {
@@ -177,7 +187,10 @@ async function getAllRepositoriesWithOrgs(team: string, openshift: boolean) {
         repoName: row.repository_name,
         organization: row.git_organization,
         description: row.description,
+        url: row.git_url,
         coverage: row.code_coverage,
+        prs: row.prs,
+        workflows: row.workflows,
       };
     });
   }
@@ -230,7 +243,7 @@ async function createRepository(data = {}) {
 }
 
 async function getLatestProwJob(repoName: string, repoOrg: string, jobType: string) {
-  
+
   const response = await axios.get(
     API_URL +
       '/api/quality/prow/results/latest/get?repository_name=' +

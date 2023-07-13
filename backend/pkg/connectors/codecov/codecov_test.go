@@ -47,32 +47,32 @@ func TestGetCodeCovInfo(t *testing.T) {
 		WantError       bool
 		RepositoryName  string
 		GitOrganization string
-		ExpectedCov     string
+		ExpectedCov     float64
 	}{
 		{
 			Name:            "get codecov info successfully",
 			WantError:       false,
 			RepositoryName:  repo.RepositoryName,
 			GitOrganization: repo.GitOrganization,
-			ExpectedCov:     "10",
+			ExpectedCov:     10,
 		},
 		{
 			Name:            "get codecov info unsuccessfully",
-			WantError:       false, // GetCodeCovInfo is returning no error after the change codecov api to use v2
+			WantError:       false,
 			RepositoryName:  "",
 			GitOrganization: "",
-			ExpectedCov:     "",
+			ExpectedCov:     0,
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			got, err := api.GetCodeCovInfo(c.GitOrganization, c.RepositoryName)
+			currentCov, _, err := api.GetCodeCovInfo(c.GitOrganization, c.RepositoryName)
 			if c.WantError != (err != nil) {
 				t.Errorf("GetCodeCovInfo(%s, %s) got error = %v, want error %v", c.GitOrganization, c.RepositoryName, err, c.WantError)
 				return
 			}
-			assert.GreaterOrEqual(t, got.Totals.Coverage.String(), c.ExpectedCov)
+			assert.GreaterOrEqual(t, currentCov, c.ExpectedCov)
 		})
 	}
 }

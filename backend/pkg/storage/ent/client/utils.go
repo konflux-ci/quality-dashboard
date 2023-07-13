@@ -73,3 +73,11 @@ func getRange(i int, day string, dayArr []string) (string, string) {
 
 	return start, end
 }
+
+// handleNaN returns 0 in case of a NaN float
+func handleNaN(nr float64) float64 {
+	if math.IsNaN(nr) {
+		return 0
+	}
+	return nr
+}

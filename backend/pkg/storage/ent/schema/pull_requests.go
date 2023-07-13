@@ -37,6 +37,14 @@ func (PullRequests) Fields() []ent.Field {
 			SchemaType(textSchema),
 		field.Text("title").
 			SchemaType(textSchema),
+		field.Text("merge_commit").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
+		field.Float("retest_before_merge_count").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
 	}
 }
 

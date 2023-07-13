@@ -106,6 +106,16 @@ func Title(v string) predicate.PullRequests {
 	return predicate.PullRequests(sql.FieldEQ(FieldTitle, v))
 }
 
+// MergeCommit applies equality check predicate on the "merge_commit" field. It's identical to MergeCommitEQ.
+func MergeCommit(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEQ(FieldMergeCommit, v))
+}
+
+// RetestBeforeMergeCount applies equality check predicate on the "retest_before_merge_count" field. It's identical to RetestBeforeMergeCountEQ.
+func RetestBeforeMergeCount(v float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEQ(FieldRetestBeforeMergeCount, v))
+}
+
 // PrIDEQ applies the EQ predicate on the "pr_id" field.
 func PrIDEQ(v uuid.UUID) predicate.PullRequests {
 	return predicate.PullRequests(sql.FieldEQ(FieldPrID, v))
@@ -629,6 +639,131 @@ func TitleEqualFold(v string) predicate.PullRequests {
 // TitleContainsFold applies the ContainsFold predicate on the "title" field.
 func TitleContainsFold(v string) predicate.PullRequests {
 	return predicate.PullRequests(sql.FieldContainsFold(FieldTitle, v))
+}
+
+// MergeCommitEQ applies the EQ predicate on the "merge_commit" field.
+func MergeCommitEQ(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEQ(FieldMergeCommit, v))
+}
+
+// MergeCommitNEQ applies the NEQ predicate on the "merge_commit" field.
+func MergeCommitNEQ(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNEQ(FieldMergeCommit, v))
+}
+
+// MergeCommitIn applies the In predicate on the "merge_commit" field.
+func MergeCommitIn(vs ...string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldIn(FieldMergeCommit, vs...))
+}
+
+// MergeCommitNotIn applies the NotIn predicate on the "merge_commit" field.
+func MergeCommitNotIn(vs ...string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNotIn(FieldMergeCommit, vs...))
+}
+
+// MergeCommitGT applies the GT predicate on the "merge_commit" field.
+func MergeCommitGT(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldGT(FieldMergeCommit, v))
+}
+
+// MergeCommitGTE applies the GTE predicate on the "merge_commit" field.
+func MergeCommitGTE(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldGTE(FieldMergeCommit, v))
+}
+
+// MergeCommitLT applies the LT predicate on the "merge_commit" field.
+func MergeCommitLT(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldLT(FieldMergeCommit, v))
+}
+
+// MergeCommitLTE applies the LTE predicate on the "merge_commit" field.
+func MergeCommitLTE(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldLTE(FieldMergeCommit, v))
+}
+
+// MergeCommitContains applies the Contains predicate on the "merge_commit" field.
+func MergeCommitContains(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldContains(FieldMergeCommit, v))
+}
+
+// MergeCommitHasPrefix applies the HasPrefix predicate on the "merge_commit" field.
+func MergeCommitHasPrefix(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldHasPrefix(FieldMergeCommit, v))
+}
+
+// MergeCommitHasSuffix applies the HasSuffix predicate on the "merge_commit" field.
+func MergeCommitHasSuffix(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldHasSuffix(FieldMergeCommit, v))
+}
+
+// MergeCommitIsNil applies the IsNil predicate on the "merge_commit" field.
+func MergeCommitIsNil() predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldIsNull(FieldMergeCommit))
+}
+
+// MergeCommitNotNil applies the NotNil predicate on the "merge_commit" field.
+func MergeCommitNotNil() predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNotNull(FieldMergeCommit))
+}
+
+// MergeCommitEqualFold applies the EqualFold predicate on the "merge_commit" field.
+func MergeCommitEqualFold(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEqualFold(FieldMergeCommit, v))
+}
+
+// MergeCommitContainsFold applies the ContainsFold predicate on the "merge_commit" field.
+func MergeCommitContainsFold(v string) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldContainsFold(FieldMergeCommit, v))
+}
+
+// RetestBeforeMergeCountEQ applies the EQ predicate on the "retest_before_merge_count" field.
+func RetestBeforeMergeCountEQ(v float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEQ(FieldRetestBeforeMergeCount, v))
+}
+
+// RetestBeforeMergeCountNEQ applies the NEQ predicate on the "retest_before_merge_count" field.
+func RetestBeforeMergeCountNEQ(v float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNEQ(FieldRetestBeforeMergeCount, v))
+}
+
+// RetestBeforeMergeCountIn applies the In predicate on the "retest_before_merge_count" field.
+func RetestBeforeMergeCountIn(vs ...float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldIn(FieldRetestBeforeMergeCount, vs...))
+}
+
+// RetestBeforeMergeCountNotIn applies the NotIn predicate on the "retest_before_merge_count" field.
+func RetestBeforeMergeCountNotIn(vs ...float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNotIn(FieldRetestBeforeMergeCount, vs...))
+}
+
+// RetestBeforeMergeCountGT applies the GT predicate on the "retest_before_merge_count" field.
+func RetestBeforeMergeCountGT(v float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldGT(FieldRetestBeforeMergeCount, v))
+}
+
+// RetestBeforeMergeCountGTE applies the GTE predicate on the "retest_before_merge_count" field.
+func RetestBeforeMergeCountGTE(v float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldGTE(FieldRetestBeforeMergeCount, v))
+}
+
+// RetestBeforeMergeCountLT applies the LT predicate on the "retest_before_merge_count" field.
+func RetestBeforeMergeCountLT(v float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldLT(FieldRetestBeforeMergeCount, v))
+}
+
+// RetestBeforeMergeCountLTE applies the LTE predicate on the "retest_before_merge_count" field.
+func RetestBeforeMergeCountLTE(v float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldLTE(FieldRetestBeforeMergeCount, v))
+}
+
+// RetestBeforeMergeCountIsNil applies the IsNil predicate on the "retest_before_merge_count" field.
+func RetestBeforeMergeCountIsNil() predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldIsNull(FieldRetestBeforeMergeCount))
+}
+
+// RetestBeforeMergeCountNotNil applies the NotNil predicate on the "retest_before_merge_count" field.
+func RetestBeforeMergeCountNotNil() predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNotNull(FieldRetestBeforeMergeCount))
 }
 
 // HasPrs applies the HasEdge predicate on the "prs" edge.
