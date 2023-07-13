@@ -6,45 +6,47 @@ Quality Dashboard Frontend is based on Patternfly Seed (an open source build sca
 
 ## Quick-start
 
+Prerequisites:
+* Node.js 16+ & NPM 9+ (you can use [nvm](https://github.com/nvm-sh/nvm))
+* Yarn (`npm install -g yarn`)
+
+In case you are running on a macOS, it is recommended to have Python 3.11+ installed (you can use [Homebrew](https://brew.sh) and pyenv).
+
+
 ```bash
 git clone git@github.com:redhat-appstudio/quality-dashboard.git
 cd quality-dashboard/frontend
-npm install && npm run start:dev
+yarn install && yarn run start:dev
 ```
+
 ## Development scripts
 ```sh
 # Install development/build dependencies
-npm install
+yarn install
 
 # Start the development server
-npm run start:dev
+yarn run start:dev
 
 # Run a production build (outputs to "dist" dir)
-npm run build
+yarn run build
 
 # Run the test suite
-npm run test
+yarn run test
 
 # Run the test suite with coverage
-npm run test:coverage
+yarn run test:coverage
 
 # Run the linter
-npm run lint
+yarn run lint
 
 # Run the code formatter
-npm run format
+yarn run format
 
 # Launch a tool to inspect the bundle size
-npm run bundle-profile:analyze
+yarn run bundle-profile:analyze
 
 # Start the express server (run a production build first)
-npm run start
-
-# Start storybook component explorer
-npm run storybook
-
-# Build storybook component explorer as standalone app (outputs to "storybook-static" dir)
-npm run build:storybook
+yarn run start
 ```
 
 ## Configurations

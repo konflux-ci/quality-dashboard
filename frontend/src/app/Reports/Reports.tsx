@@ -200,7 +200,7 @@ let Reports = () => {
               const end_date = formatDate(rangeDateTime[1])
 
               history.push('/reports/test?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName
-                + '&job_type=presubmit' + '&start=' + start_date + ' &end=' + end_date)
+                + '&job_type=presubmit' + '&start=' + start_date + '&end=' + end_date)
 
             } else {
               if (validateRepositoryParams(data, repository, organization)) {

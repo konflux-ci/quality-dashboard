@@ -54,6 +54,10 @@ export const BasicMasthead = () => {
     if (history.location.pathname == "/home/github" && team != null && team != event.target.dataset.value) {
       history.push('/home/github?team=' + event.target.dataset.value)
     }
+
+    if (history.location.pathname == "/home/jira" && team != null && team != event.target.dataset.value) {
+      history.push('/home/jira?team=' + event.target.dataset.value)
+    }
   }
 
   function Log_out() {

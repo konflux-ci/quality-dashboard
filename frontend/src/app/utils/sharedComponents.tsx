@@ -1,8 +1,9 @@
 import React, { useState, useLayoutEffect, useRef } from 'react';
 import { ExclamationCircleIcon, OkIcon, HelpIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
 import { Card, CardTitle, CardBody, Badge } from '@patternfly/react-core';
-import { Chart, ChartAxis, ChartLine, ChartGroup, ChartVoronoiContainer, ChartLegend } from '@patternfly/react-charts';
+import { Chart, ChartAxis, ChartLine, ChartGroup, ChartLegend, createContainer } from '@patternfly/react-charts';
 import { SimpleList, SimpleListItem } from '@patternfly/react-core';
+import { getLabels } from './utils';
 
 /* 
 Some common useful types definition
@@ -109,6 +110,7 @@ export const DashboardLineChart = ({ data, colorScale }: { data: DashboardLineCh
   let beautifiedData = data
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
+  const ZoomVoronoiContainer = createContainer("zoom", "voronoi");
 
   useLayoutEffect(() => {
     if (ref.current) {
@@ -142,8 +144,14 @@ export const DashboardLineChart = ({ data, colorScale }: { data: DashboardLineCh
       <div style={{ height: height + 'px', width: width + 'px', background: "white" }}>
         <Chart
           ariaDesc="Average number of pets"
-          ariaTitle="Bar chart example"
-          containerComponent={<ChartVoronoiContainer labels={({ datum }) => `${datum.name}: ${datum.y}`} constrainToVisibleArea />}
+          containerComponent={
+            <ZoomVoronoiContainer
+              labels={({ datum }) => getLabels(datum, "success_rate")}
+              voronoiDimension="x"
+              voronoiPadding={0}
+              constrainToVisibleArea
+            />
+          }
           legendOrientation="horizontal"
           legendPosition="bottom"
           legendComponent={getLegend(legendData)}

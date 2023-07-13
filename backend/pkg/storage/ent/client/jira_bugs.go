@@ -28,7 +28,13 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 			resolvedTime := time.Time(bug.Fields.Resolutiondate).UTC()
 			createdTime := time.Time(bug.Fields.Created).UTC()
 
+			// diff in hours
 			diff = resolvedTime.Sub(createdTime).Hours()
+			// diff in days
+			diff = diff / 24
+			// round diff to 2 decimal places
+			diff = math.Round(diff*100) / 100
+
 			bugIsResolved = true
 		}
 
@@ -86,45 +92,71 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 	return nil
 }
 
-func (d *Database) TotalBugsResolutionTime(priority string, team *db.Teams) (bugsMetrics jiraV1Alpha1.ResolvedBugsMetrics, err error) {
+func (d *Database) TotalBugsResolutionTime(priority, startDate, endDate string, team *db.Teams) (bugsMetrics jiraV1Alpha1.ResolvedBugsMetrics, err error) {
 	var totalBugs int
 	var totalAverage float64
-	currentTime := time.Now()
+	dayArr := getDatesBetweenRange(startDate, endDate)
 
-	for month := 0; month < 12; month++ {
-		firstDayOfMonth := BeginningOfMonth(currentTime.AddDate(0, -month, 0))
-		lastDayOfMonth := EndOfMonth(currentTime.AddDate(0, -month, 0))
+	// range between one day (same day)
+	if len(dayArr) == 2 && isSameDay(startDate, endDate) {
+		t, _ := time.Parse("2006-01-02 15:04:05", startDate)
+		y, m, dd := t.Date()
 
-		totalMonthResolution, err := d.ResolutionBugByDate(team, priority, firstDayOfMonth.Format("2006-01-02"), lastDayOfMonth.Format("2006-01-02"))
-
+		totalDayResolution, err := d.ResolutionBugByDate(team, priority, startDate, endDate)
 		if err != nil {
 			return jiraV1Alpha1.ResolvedBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
 		}
 
-		bugsAll, err := d.GetResolvedBugsByPriorityAndStatus(priority, team, true, firstDayOfMonth.Format("2006-01-02"), lastDayOfMonth.Format("2006-01-02"))
+		bugsAll, err := d.GetResolvedBugsByPriorityAndStatus(priority, team, true, startDate, endDate)
 		if err != nil {
 			return jiraV1Alpha1.ResolvedBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
 		}
 
-		bugsMetrics.ResolutionTimeTotal.Months = append(bugsMetrics.ResolutionTimeTotal.Months, jiraV1Alpha1.MonthsResolution{
-			Name:                 fmt.Sprintf("%s_%v", firstDayOfMonth.Month().String(), firstDayOfMonth.Year()),
-			Total:                totalMonthResolution,
+		bugsMetrics.ResolutionTimeTotal.Days = append(bugsMetrics.ResolutionTimeTotal.Days, jiraV1Alpha1.DaysResolution{
+			Name:                 fmt.Sprintf("%04d-%02d-%02d", y, m, dd),
+			Total:                totalDayResolution,
+			NumberOfResolvedBugs: len(bugsAll),
+			Bugs:                 bugsAll,
+		})
+
+		return bugsMetrics, nil
+	}
+
+	// range between more than one day
+	for i, day := range dayArr {
+		start, end := getRange(i, day, dayArr)
+
+		totalDayResolution, err := d.ResolutionBugByDate(team, priority, start, end)
+		if err != nil {
+			return jiraV1Alpha1.ResolvedBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
+		}
+
+		bugsAll, err := d.GetResolvedBugsByPriorityAndStatus(priority, team, true, start, end)
+		if err != nil {
+			return jiraV1Alpha1.ResolvedBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
+		}
+
+		bugsMetrics.ResolutionTimeTotal.Days = append(bugsMetrics.ResolutionTimeTotal.Days, jiraV1Alpha1.DaysResolution{
+			Name:                 day,
+			Total:                totalDayResolution,
 			NumberOfResolvedBugs: len(bugsAll),
 			Bugs:                 bugsAll,
 		})
 	}
 
-	for _, r := range bugsMetrics.ResolutionTimeTotal.Months {
+	for _, r := range bugsMetrics.ResolutionTimeTotal.Days {
 		totalBugs = totalBugs + r.NumberOfResolvedBugs
 		totalAverage = (totalAverage + r.Total)
 	}
 
+	totalResolutionTime := totalAverage / float64(len(bugsMetrics.ResolutionTimeTotal.Days))
+
 	return jiraV1Alpha1.ResolvedBugsMetrics{
 		ResolutionTimeTotal: jiraV1Alpha1.ResolutionTime{
-			Total:             totalAverage / 12,
+			Total:             math.Round(totalResolutionTime*100) / 100,
 			Priority:          priority,
 			NumberOfTotalBugs: totalBugs,
-			Months:            bugsMetrics.ResolutionTimeTotal.Months,
+			Days:              bugsMetrics.ResolutionTimeTotal.Days,
 		},
 	}, nil
 }
@@ -167,13 +199,13 @@ func (d *Database) ResolutionBugByDate(team *db.Teams, priority, dateFrom string
 		}
 	}
 
-	totalMonthResolution := resolution[0].Sum / resolution[0].Count
+	totalResolution := resolution[0].Sum / resolution[0].Count
 
-	if math.IsNaN(totalMonthResolution) {
-		totalMonthResolution = 0
+	if math.IsNaN(totalResolution) {
+		totalResolution = 0
 	}
 
-	return totalMonthResolution, nil
+	return math.Round(totalResolution*100) / 100, nil
 }
 
 func (d *Database) GetResolvedBugsByPriorityAndStatus(priority string, t *db.Teams, IsResolved bool, dateFrom string, dateTo string) (bugsArray []*db.Bugs, err error) {
@@ -224,26 +256,42 @@ func (d *Database) GetOpenBugsByPriorityAndStatus(priority string, t *db.Teams, 
 	return bugsArray, nil
 }
 
-func (d *Database) GetOpenBugsMetricsByStatusAndPriority(priority string, team *db.Teams) (bugsMetrics jiraV1Alpha1.OpenBugsMetrics, err error) {
+func (d *Database) GetOpenBugsMetricsByStatusAndPriority(priority, startDate, endDate string, team *db.Teams) (bugsMetrics jiraV1Alpha1.OpenBugsMetrics, err error) {
 	var totalBugs int
-	currentTime := time.Now()
+	dayArr := getDatesBetweenRange(startDate, endDate)
 
-	for month := 0; month < 12; month++ {
-		firstDayOfMonth := BeginningOfMonth(currentTime.AddDate(0, -month, 0))
-		lastDayOfMonth := EndOfMonth(currentTime.AddDate(0, -month, 0))
-		bugsAll, err := d.GetOpenBugsByPriorityAndStatus(priority, team, false, firstDayOfMonth.Format("2006-01-02"), lastDayOfMonth.Format("2006-01-02"))
+	// range between one day (same day)
+	if len(dayArr) == 2 && isSameDay(startDate, endDate) {
+		t, _ := time.Parse("2006-01-02 15:04:05", startDate)
+		y, m, dd := t.Date()
+		bugsAll, err := d.GetOpenBugsByPriorityAndStatus(priority, team, false, startDate, endDate)
 		if err != nil {
 			return jiraV1Alpha1.OpenBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
 		}
+		bugsMetrics.TotalOpenBugs.Days = append(bugsMetrics.TotalOpenBugs.Days, jiraV1Alpha1.DaysOpen{
+			Name:     fmt.Sprintf("%04d-%02d-%02d", y, m, dd),
+			OpenBugs: len(bugsAll),
+			Bugs:     bugsAll,
+		})
+		return bugsMetrics, nil
+	}
 
-		bugsMetrics.TotalOpenBugs.Months = append(bugsMetrics.TotalOpenBugs.Months, jiraV1Alpha1.MonthsOpen{
-			Name:     fmt.Sprintf("%s_%v", firstDayOfMonth.Month().String(), firstDayOfMonth.Year()),
+	// range between more than one day
+	for i, day := range dayArr {
+		start, end := getRange(i, day, dayArr)
+
+		bugsAll, err := d.GetOpenBugsByPriorityAndStatus(priority, team, false, start, end)
+		if err != nil {
+			return jiraV1Alpha1.OpenBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
+		}
+		bugsMetrics.TotalOpenBugs.Days = append(bugsMetrics.TotalOpenBugs.Days, jiraV1Alpha1.DaysOpen{
+			Name:     day,
 			OpenBugs: len(bugsAll),
 			Bugs:     bugsAll,
 		})
 	}
 
-	for _, r := range bugsMetrics.TotalOpenBugs.Months {
+	for _, r := range bugsMetrics.TotalOpenBugs.Days {
 		totalBugs = totalBugs + r.OpenBugs
 	}
 
@@ -251,7 +299,7 @@ func (d *Database) GetOpenBugsMetricsByStatusAndPriority(priority string, team *
 		TotalOpenBugs: jiraV1Alpha1.OpenBugs{
 			Priority:         priority,
 			NumberOfOpenBugs: totalBugs,
-			Months:           bugsMetrics.TotalOpenBugs.Months,
+			Days:             bugsMetrics.TotalOpenBugs.Days,
 		},
 	}, nil
 

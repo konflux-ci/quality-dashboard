@@ -54,21 +54,18 @@ export const DateTimeRangePicker = (props) => {
     const onFromDateChange = (inputDate, newFromDate) => {
         clearQuickRange()
         if (isValidDate(from) && isValidDate(newFromDate) && inputDate === yyyyMMddFormat(newFromDate)) {
-            newFromDate.setHours(from.getHours());
-            newFromDate.setMinutes(from.getMinutes());
+            newFromDate.setHours(from.getHours(), to.getMinutes());
         }
         if (isValidDate(newFromDate) && inputDate === yyyyMMddFormat(newFromDate)) {
             setFrom(new Date(newFromDate));
         }
     };
 
-    const onFromTimeChange = (_event, time, hour, minute, seconds) => {
+    const onFromTimeChange = (_event, time, hour, minute) => {
         clearQuickRange()
-        if (isValidDate(from)) {
+        if (isValidDate(from) && time.length == 5) {
             const updatedFromDate = new Date(from);
-            updatedFromDate.setHours(hour);
-            updatedFromDate.setMinutes(minute);
-            updatedFromDate.setSeconds(seconds);
+            updatedFromDate.setHours(hour, minute);
             setFrom(updatedFromDate);
         }
     };
@@ -76,22 +73,18 @@ export const DateTimeRangePicker = (props) => {
     const onToDateChange = (inputDate, newToDate) => {
         clearQuickRange()
         if (isValidDate(to) && isValidDate(newToDate) && inputDate === yyyyMMddFormat(newToDate)) {
-            newToDate.setHours(to.getHours());
-            newToDate.setMinutes(to.getMinutes());
-            newToDate.setSeconds(to.getSeconds());
+            newToDate.setHours(to.getHours(), to.getMinutes());
         }
         if (isValidDate(newToDate) && inputDate === yyyyMMddFormat(newToDate)) {
             setTo(newToDate);
         }
     };
 
-    const onToTimeChange = (_event, time, hour, minute, seconds) => {
+    const onToTimeChange = (_event, time, hour, minute) => {
         clearQuickRange()
-        if (isValidDate(to)) {
+        if (isValidDate(to) && time.length == 5) {
             const updatedToDate = new Date(to);
-            updatedToDate.setHours(hour);
-            updatedToDate.setMinutes(minute);
-            updatedToDate.setSeconds(seconds);
+            updatedToDate.setHours(hour, minute);
             setTo(updatedToDate);
         }
     };
@@ -139,6 +132,7 @@ export const DateTimeRangePicker = (props) => {
                                             time={from}
                                             aria-label="Start time"
                                             style={{ width: '150px' }}
+                                            is24Hour
                                             onChange={onFromTimeChange}
                                         />
                                     </InputGroup>
@@ -155,7 +149,9 @@ export const DateTimeRangePicker = (props) => {
                                         />
                                         <TimePicker
                                             time={to}
+                                            aria-label="End time"
                                             style={{ width: '150px' }}
+                                            is24Hour
                                             onChange={onToTimeChange}
                                             isDisabled={!isValidDate(from)}
                                         />

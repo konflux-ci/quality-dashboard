@@ -44,8 +44,10 @@ func (s *jiraRouter) listAllBugs(ctx context.Context, w http.ResponseWriter, r *
 }
 
 type ResolutionRequest struct {
-	TeamName string `json:"team_name"`
-	Priority string `json:"priority"`
+	TeamName  string `json:"team_name"`
+	Priority  string `json:"priority"`
+	StartDate string `json:"start"`
+	EndDate   string `json:"end"`
 }
 
 // Jira godoc
@@ -77,7 +79,7 @@ func (s *jiraRouter) calculateRates(ctx context.Context, w http.ResponseWriter, 
 			StatusCode: http.StatusBadRequest,
 		})
 	}
-	totalAvg, err := s.Storage.TotalBugsResolutionTime(resolution.Priority, team)
+	totalAvg, err := s.Storage.TotalBugsResolutionTime(resolution.Priority, resolution.StartDate, resolution.EndDate, team)
 
 	if err != nil {
 		s.Logger.Error("Failed to fetch bugs")
@@ -121,7 +123,7 @@ func (s *jiraRouter) openBugsMetrics(ctx context.Context, w http.ResponseWriter,
 		})
 	}
 
-	openBugMetrics, err := s.Storage.GetOpenBugsMetricsByStatusAndPriority(resolution.Priority, team)
+	openBugMetrics, err := s.Storage.GetOpenBugsMetricsByStatusAndPriority(resolution.Priority, resolution.StartDate, resolution.EndDate, team)
 
 	if err != nil {
 		s.Logger.Error("Failed to fetch bugs")
@@ -148,12 +150,31 @@ type BugCategoriesMetrics struct {
 // @Produce json
 // @Router /jira/bugs/metrics/priorities [get]
 // @Success 200 {object} v1alpha1.BugsMetrics
-func (s *jiraRouter) getCountBugsForAlCategories(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+func (s *jiraRouter) getCountBugsForAllCategories(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	teamName := r.URL.Query()["team_name"]
+	startDate := r.URL.Query()["start_date"]
+	endDate := r.URL.Query()["end_date"]
 	bugByCategory := []BugCategoriesMetrics{}
 	priorities := []string{"Global", "Blocker", "Critical", "Major", "Normal", "Minor", "Undefined"}
 
-	team, err := s.Storage.GetTeamByName("red_team")
+	if len(teamName) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "team_name value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(startDate) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "start_date value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(endDate) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "end_date value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	team, err := s.Storage.GetTeamByName(teamName[0])
 	if err != nil {
 		s.Logger.Error("Failed to fetch bugs")
 
@@ -164,7 +185,7 @@ func (s *jiraRouter) getCountBugsForAlCategories(ctx context.Context, w http.Res
 	}
 
 	for _, priority := range priorities {
-		totalAvg, err := s.Storage.TotalBugsResolutionTime(priority, team)
+		totalAvg, err := s.Storage.TotalBugsResolutionTime(priority, startDate[0], endDate[0], team)
 		if err != nil {
 			s.Logger.Error("Failed to fetch bugs")
 
@@ -174,17 +195,7 @@ func (s *jiraRouter) getCountBugsForAlCategories(ctx context.Context, w http.Res
 			})
 		}
 
-		team, err := s.Storage.GetTeamByName(teamName[0])
-		if err != nil {
-			s.Logger.Error("Failed to fetch bugs")
-
-			return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-				Message:    err.Error(),
-				StatusCode: http.StatusBadRequest,
-			})
-		}
-
-		openBugMetrics, err := s.Storage.GetOpenBugsMetricsByStatusAndPriority(priority, team)
+		openBugMetrics, err := s.Storage.GetOpenBugsMetricsByStatusAndPriority(priority, startDate[0], endDate[0], team)
 
 		if err != nil {
 			s.Logger.Error("Failed to fetch bugs")

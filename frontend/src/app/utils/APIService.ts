@@ -60,14 +60,19 @@ async function getJiras() {
   return result;
 }
 
-async function getJirasResolutionTime(priority: string, team: string) {
+async function getJirasResolutionTime(priority: string, team: string, rangeDateTime: Date[]) {
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/jira/bugs/metrics/resolution';
   const uri = API_URL + subPath;
+  const start_date = formatDate(rangeDateTime[0]);
+  const end_date = formatDate(rangeDateTime[1]);
+
   await axios
     .post(uri, {
       priority: priority,
       team_name: team,
+      start: start_date,
+      end: end_date,
     })
     .then((res: AxiosResponse) => {
       result.code = res.status;
@@ -97,7 +102,10 @@ async function listJiraProjects() {
   return result;
 }
 
-async function getJirasOpen(priority: string, team: string) {
+async function getJirasOpen(priority: string, team: string, rangeDateTime: Date[]) {
+  const start_date = formatDate(rangeDateTime[0]);
+  const end_date = formatDate(rangeDateTime[1]);
+
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/jira/bugs/metrics/open';
   const uri = API_URL + subPath;
@@ -105,6 +113,8 @@ async function getJirasOpen(priority: string, team: string) {
     .post(uri, {
       priority: priority,
       team_name: team,
+      start: start_date,
+      end: end_date,
     })
     .then((res: AxiosResponse) => {
       result.code = res.status;
@@ -426,6 +436,23 @@ async function getProwJobs(repoName: string, repoOrg: string) {
   return data;
 }
 
+async function listE2EBugsKnown() {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/jira/bugs/e2e';
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
 export {
   getVersion,
   getRepositories,
@@ -446,4 +473,5 @@ export {
   getJirasOpen,
   listJiraProjects,
   getPullRequests,
+  listE2EBugsKnown,
 };
