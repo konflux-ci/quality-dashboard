@@ -20,7 +20,7 @@ const client: oauth2.Client = {
   token_endpoint_auth_method: 'none',
 }
 
-const redirect_uri = process.env.FRONTEND_REDIRECT_URI || 'http://localhost:9000/login'
+const redirect_uri = process.env.FRONTEND_REDIRECT_URI || 'https://frontend-quality-dashboar0esw-rhtap-qe-shared-tenant.apps.stone-prd-m01.84db.p1.openshiftapps.com/login'
 
 export async function initOauthFlow():Promise<URL> {
   let authorizationUrl: URL

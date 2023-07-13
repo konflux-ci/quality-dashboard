@@ -18,7 +18,7 @@ type RepositoriesApiResponse = {
   all: any;
 };
 
-const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898';
+const API_URL = process.env.REACT_APP_API_SERVER_URL || 'https://backend-quality-dashboardvmre-rhtap-qe-shared-tenant.apps.stone-prd-m01.84db.p1.openshiftapps.com';
 
 async function getVersion() {
   const result: ApiResponse = { code: 0, data: {} };
