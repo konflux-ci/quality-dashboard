@@ -25,31 +25,37 @@ spec:
         app.kubernetes.io/name: quality-dashboard
         component: quality-frontend
     spec:
-      serviceAccountName: dashboard-proxy
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       containers:
-        - name: quality-frontend-dashboard
+        - resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 200m
+              memory: 512Mi
+          name: quality-frontend-dashboard
           env:
             - name: REACT_APP_API_SERVER_URL
               valueFrom:
-                configMapKeyRef:
-                  name: quality-dashboard-configmap
-                  key: BACKEND_ROUTE
+                secretKeyRef:
+                  name: frontend-secrets
+                  key: backend-route
             - name: FRONTEND_REDIRECT_URI
               valueFrom:
-                configMapKeyRef:
-                  name: quality-dashboard-configmap
-                  key: FRONTEND_REDIRECT_URI
+                secretKeyRef:
+                  name: frontend-secrets
+                  key: frontend-route
             - name: DEX_ISSUER
               valueFrom:
                 secretKeyRef:
-                  name: quality-dashboard-secrets-c5984t4th2
+                  name: quality-dashboard-secrets
                   key: dex-issuer
             - name: DEX_APPLICATION_ID
               valueFrom:
                 secretKeyRef:
-                  name: quality-dashboard-secrets-c5984t4th2
+                  name: quality-dashboard-secrets
                   key: dex-application-id
           ports:
             - name: http
