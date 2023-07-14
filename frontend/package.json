@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@storybook/addon-actions": "^7.0.27",
-    "@storybook/addon-info": "^5.3.21",
+    "@storybook/addon-info": "^4.1.18",
     "@storybook/addon-knobs": "^7.0.2",
     "@storybook/addon-links": "^7.0.27",
     "@storybook/addons": "^7.0.27",
@@ -76,11 +76,11 @@
     "tslib": "^2.6.0",
     "typescript": "^5.1.6",
     "url-loader": "^4.1.1",
-    "webpack": "^5.88.1",
-    "webpack-bundle-analyzer": "^4.9.0",
-    "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1",
-    "webpack-merge": "^5.9.0"
+    "webpack": "^5.38.1",
+    "webpack-bundle-analyzer": "^4.4.2",
+    "webpack-cli": "^4.7.2",
+    "webpack-dev-server": "^3.11.2",
+    "webpack-merge": "^5.8.0"
   },
   "dependencies": {
     "@badgateway/oauth2-client": "^2.2.1",
