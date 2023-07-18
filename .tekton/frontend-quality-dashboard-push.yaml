@@ -347,7 +347,7 @@ spec:
       - input: $(params.skip-checks)
         operator: in
         values:
-        - "true"
+        - "false"
     - name: sast-snyk-check
       params:
       - name: SNYK_SECRET
@@ -396,7 +396,7 @@ spec:
       - input: $(params.skip-checks)
         operator: in
         values:
-        - "true"
+        - "false"
     - name: sbom-json-check
       params:
       - name: IMAGE_URL
