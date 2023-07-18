@@ -1,0 +1,36 @@
+schemaVersion: 2.2.0
+metadata:
+  name: mydevfile
+components:
+  - name: dex-build
+    image:
+      imageName: quality-dashboard-dex:latest
+      dockerfile:
+        uri: Dockerfile
+        buildContext: .
+        rootRequired: false
+  - name: dex-deploy
+    attributes:
+      deployment/replicas: 1
+      deployment/cpuLimit: '500m'
+      deployment/cpuRequest: 200m
+      deployment/memoryLimit: 256Mi
+      deployment/memoryRequest: 128Mi
+      deployment/container-port: 5556
+    kubernetes:
+      uri: dex/base/deploy.yaml
+commands:
+  - id: dex-build
+    apply:
+      component: dex-build
+  - id: dex-deploy
+    apply:
+      component: dex-deploy
+  - id: deploy
+    composite:
+      commands:
+        - dex-build
+        - dex-deploy
+      group:
+        kind: deploy
+        isDefault: true
