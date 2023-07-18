@@ -12,10 +12,10 @@ RUN yarn install --network-timeout 1000000
 COPY . .
 
 RUN chmod +x entrypoint.sh
-RUN chgrp -R 0 /app && \
-    chmod -R g=u /app
 
 RUN yarn build
+RUN chgrp -R 0 /app && \
+    chmod -R g=u /app
 
 EXPOSE 8080
 
