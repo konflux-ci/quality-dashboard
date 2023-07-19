@@ -3,7 +3,7 @@ package client
 import (
 	"testing"
 
-	"github.com/devfile/library/pkg/util"
+	"github.com/devfile/library/v2/pkg/util"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
