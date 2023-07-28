@@ -62,6 +62,28 @@ var (
 			},
 		},
 	}
+	// FailuresColumns holds the columns for the "failures" table.
+	FailuresColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "jira_key", Type: field.TypeString, Unique: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "jira_status", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "error_message", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "teams_failures", Type: field.TypeUUID, Nullable: true},
+	}
+	// FailuresTable holds the schema information for the "failures" table.
+	FailuresTable = &schema.Table{
+		Name:       "failures",
+		Columns:    FailuresColumns,
+		PrimaryKey: []*schema.Column{FailuresColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "failures_teams_failures",
+				Columns:    []*schema.Column{FailuresColumns[4]},
+				RefColumns: []*schema.Column{TeamsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// ProwJobsColumns holds the columns for the "prow_jobs" table.
 	ProwJobsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -78,6 +100,7 @@ var (
 		{Name: "ci_failed", Type: field.TypeInt16, SchemaType: map[string]string{"postgres": "numeric"}},
 		{Name: "e2e_failed_test_messages", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "suites_xml_url", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "build_error_logs", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "repository_prow_jobs", Type: field.TypeString, Nullable: true, Size: 25},
 	}
 	// ProwJobsTable holds the schema information for the "prow_jobs" table.
@@ -88,7 +111,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "prow_jobs_repositories_prow_jobs",
-				Columns:    []*schema.Column{ProwJobsColumns[14]},
+				Columns:    []*schema.Column{ProwJobsColumns[15]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -213,6 +236,7 @@ var (
 	Tables = []*schema.Table{
 		BugsTable,
 		CodeCovsTable,
+		FailuresTable,
 		ProwJobsTable,
 		ProwSuitesTable,
 		PullRequestsTable,
@@ -225,6 +249,7 @@ var (
 func init() {
 	BugsTable.ForeignKeys[0].RefTable = TeamsTable
 	CodeCovsTable.ForeignKeys[0].RefTable = RepositoriesTable
+	FailuresTable.ForeignKeys[0].RefTable = TeamsTable
 	ProwJobsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	ProwSuitesTable.ForeignKeys[0].RefTable = RepositoriesTable
 	PullRequestsTable.ForeignKeys[0].RefTable = RepositoriesTable

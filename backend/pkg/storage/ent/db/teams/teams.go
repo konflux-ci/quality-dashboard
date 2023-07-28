@@ -21,10 +21,14 @@ const (
 	EdgeRepositories = "repositories"
 	// EdgeBugs holds the string denoting the bugs edge name in mutations.
 	EdgeBugs = "bugs"
+	// EdgeFailures holds the string denoting the failures edge name in mutations.
+	EdgeFailures = "failures"
 	// RepositoryFieldID holds the string denoting the ID field of the Repository.
 	RepositoryFieldID = "id"
 	// BugsFieldID holds the string denoting the ID field of the Bugs.
 	BugsFieldID = "id"
+	// FailureFieldID holds the string denoting the ID field of the Failure.
+	FailureFieldID = "id"
 	// Table holds the table name of the teams in the database.
 	Table = "teams"
 	// RepositoriesTable is the table that holds the repositories relation/edge.
@@ -41,6 +45,13 @@ const (
 	BugsInverseTable = "bugs"
 	// BugsColumn is the table column denoting the bugs relation/edge.
 	BugsColumn = "teams_bugs"
+	// FailuresTable is the table that holds the failures relation/edge.
+	FailuresTable = "failures"
+	// FailuresInverseTable is the table name for the Failure entity.
+	// It exists in this package in order to avoid circular dependency with the "failure" package.
+	FailuresInverseTable = "failures"
+	// FailuresColumn is the table column denoting the failures relation/edge.
+	FailuresColumn = "teams_failures"
 )
 
 // Columns holds all SQL columns for teams fields.

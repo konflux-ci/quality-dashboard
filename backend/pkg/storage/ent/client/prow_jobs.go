@@ -2,7 +2,9 @@ package client
 
 import (
 	"context"
+	"fmt"
 
+	"entgo.io/ent/dialect/sql"
 	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
@@ -23,6 +25,7 @@ func (d *Database) CreateProwJobResults(job prowV1Alpha1.Job, repo_id string) er
 		SetCiFailed(job.CIFailed).
 		SetE2eFailedTestMessages(job.E2EFailedTestMessages).
 		SetSuitesXMLURL(job.SuitesXmlUrl).
+		SetBuildErrorLogs(job.BuildErrorLogs).
 		Save(context.TODO())
 	if err != nil {
 		return convertDBError("create prow status: %w", err)
@@ -57,4 +60,36 @@ func (d *Database) GetProwJobsResultsByJobID(jobID string) ([]*db.ProwJobs, erro
 	}
 
 	return prowSuites, nil
+}
+
+func (d *Database) UpdateBuildLogErrors(jobID, buildErrorLogs string) error {
+	alreadyExists := d.client.ProwJobs.Query().
+		Where(prowjobs.JobID(jobID)).
+		ExistX(context.TODO())
+
+	if !alreadyExists {
+		return fmt.Errorf("jobID '%s' not found", jobID)
+	}
+	_, err := d.client.ProwJobs.Update().
+		Where(prowjobs.JobID(jobID)).
+		SetBuildErrorLogs(buildErrorLogs).
+		Save(context.TODO())
+	if err != nil {
+		return convertDBError("failed to update failure: %w", err)
+	}
+
+	return nil
+}
+
+func (d *Database) GetAllProwJobs(startDate, endDate string) ([]*db.ProwJobs, error) {
+	prowJobs, err := d.client.ProwJobs.Query().
+		Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
+			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
+		}).All(context.TODO())
+
+	if err != nil {
+		return nil, convertDBError("failed to get all prow jobs: %w", err)
+	}
+
+	return prowJobs, nil
 }

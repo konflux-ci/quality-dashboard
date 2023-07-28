@@ -113,7 +113,6 @@ let GitHub = () => {
 
     if (state.teams.Team != '') {
       setRepos([]);
-      clearRangeDateTime();
 
       const team = params.get('team');
       const start = params.get('start');

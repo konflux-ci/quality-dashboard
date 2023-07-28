@@ -117,6 +117,20 @@ func (pjc *ProwJobsCreate) SetNillableSuitesXMLURL(s *string) *ProwJobsCreate {
 	return pjc
 }
 
+// SetBuildErrorLogs sets the "build_error_logs" field.
+func (pjc *ProwJobsCreate) SetBuildErrorLogs(s string) *ProwJobsCreate {
+	pjc.mutation.SetBuildErrorLogs(s)
+	return pjc
+}
+
+// SetNillableBuildErrorLogs sets the "build_error_logs" field if the given value is not nil.
+func (pjc *ProwJobsCreate) SetNillableBuildErrorLogs(s *string) *ProwJobsCreate {
+	if s != nil {
+		pjc.SetBuildErrorLogs(*s)
+	}
+	return pjc
+}
+
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
 func (pjc *ProwJobsCreate) SetProwJobsID(id string) *ProwJobsCreate {
 	pjc.mutation.SetProwJobsID(id)
@@ -287,6 +301,10 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 	if value, ok := pjc.mutation.SuitesXMLURL(); ok {
 		_spec.SetField(prowjobs.FieldSuitesXMLURL, field.TypeString, value)
 		_node.SuitesXMLURL = &value
+	}
+	if value, ok := pjc.mutation.BuildErrorLogs(); ok {
+		_spec.SetField(prowjobs.FieldBuildErrorLogs, field.TypeString, value)
+		_node.BuildErrorLogs = &value
 	}
 	if nodes := pjc.mutation.ProwJobsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -558,6 +576,24 @@ func (u *ProwJobsUpsert) ClearSuitesXMLURL() *ProwJobsUpsert {
 	return u
 }
 
+// SetBuildErrorLogs sets the "build_error_logs" field.
+func (u *ProwJobsUpsert) SetBuildErrorLogs(v string) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldBuildErrorLogs, v)
+	return u
+}
+
+// UpdateBuildErrorLogs sets the "build_error_logs" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateBuildErrorLogs() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldBuildErrorLogs)
+	return u
+}
+
+// ClearBuildErrorLogs clears the value of the "build_error_logs" field.
+func (u *ProwJobsUpsert) ClearBuildErrorLogs() *ProwJobsUpsert {
+	u.SetNull(prowjobs.FieldBuildErrorLogs)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -826,6 +862,27 @@ func (u *ProwJobsUpsertOne) UpdateSuitesXMLURL() *ProwJobsUpsertOne {
 func (u *ProwJobsUpsertOne) ClearSuitesXMLURL() *ProwJobsUpsertOne {
 	return u.Update(func(s *ProwJobsUpsert) {
 		s.ClearSuitesXMLURL()
+	})
+}
+
+// SetBuildErrorLogs sets the "build_error_logs" field.
+func (u *ProwJobsUpsertOne) SetBuildErrorLogs(v string) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetBuildErrorLogs(v)
+	})
+}
+
+// UpdateBuildErrorLogs sets the "build_error_logs" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateBuildErrorLogs() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateBuildErrorLogs()
+	})
+}
+
+// ClearBuildErrorLogs clears the value of the "build_error_logs" field.
+func (u *ProwJobsUpsertOne) ClearBuildErrorLogs() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearBuildErrorLogs()
 	})
 }
 
@@ -1256,6 +1313,27 @@ func (u *ProwJobsUpsertBulk) UpdateSuitesXMLURL() *ProwJobsUpsertBulk {
 func (u *ProwJobsUpsertBulk) ClearSuitesXMLURL() *ProwJobsUpsertBulk {
 	return u.Update(func(s *ProwJobsUpsert) {
 		s.ClearSuitesXMLURL()
+	})
+}
+
+// SetBuildErrorLogs sets the "build_error_logs" field.
+func (u *ProwJobsUpsertBulk) SetBuildErrorLogs(v string) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetBuildErrorLogs(v)
+	})
+}
+
+// UpdateBuildErrorLogs sets the "build_error_logs" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateBuildErrorLogs() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateBuildErrorLogs()
+	})
+}
+
+// ClearBuildErrorLogs clears the value of the "build_error_logs" field.
+func (u *ProwJobsUpsertBulk) ClearBuildErrorLogs() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearBuildErrorLogs()
 	})
 }
 

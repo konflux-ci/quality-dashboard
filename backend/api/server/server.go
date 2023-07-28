@@ -16,6 +16,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/api/server/middleware"
 	"github.com/redhat-appstudio/quality-studio/api/server/router"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/database"
+	"github.com/redhat-appstudio/quality-studio/api/server/router/failure"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/jira"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/repositories"
@@ -171,7 +172,6 @@ func (s *Server) makeHTTPHandler(handler httputils.APIFunc) http.HandlerFunc {
 		}
 
 		if err := handlerFunc(ctx, w, r, vars); err != nil {
-			s.cfg.Logger.Info(fmt.Sprintf("err: %v", err))
 			statusCode := errdefs.GetHTTPErrorStatusCode(err)
 			if statusCode >= 500 {
 				s.cfg.Logger.Error("Handler for route failed", zap.String("Path", r.URL.Path), zap.String("Method", r.Method))
@@ -190,7 +190,8 @@ func (s *Server) InitRouter() {
 		prow.NewRouter(s.cfg.Storage),
 		teams.NewRouter(s.cfg.Storage),
 		jira.NewRouter(s.cfg.Storage),
-		database.NewRouter(s.cfg.Db))
+		database.NewRouter(s.cfg.Db),
+		failure.NewRouter(s.cfg.Storage))
 }
 
 type pageNotFoundError struct{}
