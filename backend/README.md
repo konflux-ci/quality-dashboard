@@ -6,7 +6,7 @@ Server API solution to talk to quality dashboard.
 * Structured logging with zap.
 * Use go-cache to save quality repositories in cache.
 * Use swaggo to create a specific swagger for all server served endpoints
-* Stores data in a PostreSQL database
+* Stores data in a PostgreSQL database
 * Uses entgo to model and query the database
 
 # Build
