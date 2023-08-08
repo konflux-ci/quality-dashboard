@@ -118,7 +118,7 @@ export const FormModal = () => {
             setIsPrimaryLoading(!isPrimaryLoading);
             modalContext.handleModalToggle();
 
-            const rangeDateTime = getRangeDates(90);
+            const rangeDateTime = getRangeDates(15);
             const start_date = formatDate(rangeDateTime[0]);
             const end_date = formatDate(rangeDateTime[1]);
 
