@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/failure"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
@@ -45,6 +46,16 @@ func init() {
 	codecovDescID := codecovFields[0].Descriptor()
 	// codecov.DefaultID holds the default value on creation for the id field.
 	codecov.DefaultID = codecovDescID.Default.(func() uuid.UUID)
+	failureFields := schema.Failure{}.Fields()
+	_ = failureFields
+	// failureDescJiraKey is the schema descriptor for jira_key field.
+	failureDescJiraKey := failureFields[1].Descriptor()
+	// failure.JiraKeyValidator is a validator for the "jira_key" field. It is called by the builders before save.
+	failure.JiraKeyValidator = failureDescJiraKey.Validators[0].(func(string) error)
+	// failureDescID is the schema descriptor for id field.
+	failureDescID := failureFields[0].Descriptor()
+	// failure.DefaultID holds the default value on creation for the id field.
+	failure.DefaultID = failureDescID.Default.(func() uuid.UUID)
 	pullrequestsFields := schema.PullRequests{}.Fields()
 	_ = pullrequestsFields
 	// pullrequestsDescPrID is the schema descriptor for pr_id field.

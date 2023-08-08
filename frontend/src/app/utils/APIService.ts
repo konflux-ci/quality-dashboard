@@ -165,24 +165,31 @@ async function getAllRepositoriesWithOrgs(team: string, openshift: boolean, rang
 
   if (!teamIsNotEmpty(team)) return repoAndOrgs;
 
-  const response = await fetch(
-    API_URL +
-      '/api/quality/repositories/list?team_name=' +
-      team +
-      '&openshift_ci=' +
-      (openshift ? 'true' : 'false') +
-      '&start_date=' +
-      start_date +
-      '&end_date=' +
-      end_date
-  );
-
-  if (!response.ok) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/repositories/list?team_name=' +
+    team +
+    '&openshift_ci=' +
+    (openshift ? 'true' : 'false') +
+    '&start_date=' +
+    start_date +
+    '&end_date=' +
+    end_date
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  if (result.code != 200) {
     throw 'Error fetching data from server';
   } else {
-    const data = await response.json();
-    data.sort((a, b) => (a.repository_name < b.repository_name ? -1 : 1));
-    repoAndOrgs = data.map((row, index) => {
+    result.data.sort((a, b) => (a.repository_name < b.repository_name ? -1 : 1));
+    repoAndOrgs = result.data.map((row, index) => {
       return {
         repoName: row.repository_name,
         organization: row.git_organization,
@@ -243,20 +250,31 @@ async function createRepository(data = {}) {
 }
 
 async function getLatestProwJob(repoName: string, repoOrg: string, jobType: string) {
-  const response = await fetch(
-    API_URL +
-      '/api/quality/prow/results/latest/get?repository_name=' +
-      repoName +
-      '&git_organization=' +
-      repoOrg +
-      '&job_type=' +
-      jobType
-  );
-  if (!response.ok) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/prow/results/latest/get?repository_name=' +
+    repoName +
+    '&git_organization=' +
+    repoOrg +
+    '&job_type=' +
+    jobType
+
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  if (result.code != 200) {
     throw 'Error fetching data from server. ';
   }
-  const data = await response.json();
-  return data;
+
+  return result.data;
 }
 
 async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: string, rangeDateTime: Date[]) {
@@ -265,16 +283,16 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
 
   const response = await fetch(
     API_URL +
-      '/api/quality/prow/metrics/get?repository_name=' +
-      repoName +
-      '&git_organization=' +
-      repoOrg +
-      '&job_type=' +
-      jobType +
-      '&start_date=' +
-      start_date +
-      '&end_date=' +
-      end_date
+    '/api/quality/prow/metrics/get?repository_name=' +
+    repoName +
+    '&git_organization=' +
+    repoOrg +
+    '&job_type=' +
+    jobType +
+    '&start_date=' +
+    start_date +
+    '&end_date=' +
+    end_date
   );
   if (!response.ok) {
     throw 'Error fetching data from server. ';
@@ -333,18 +351,27 @@ async function createTeam(data = {}) {
 }
 
 async function getJobTypes(repoName: string, repoOrg: string) {
-  const response = await fetch(
-    API_URL +
-      '/api/quality/repositories/getJobTypesFromRepo?repository_name=' +
-      repoName +
-      '&git_organization=' +
-      repoOrg
-  );
-  if (!response.ok) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/repositories/getJobTypesFromRepo?repository_name=' +
+    repoName +
+    '&git_organization=' +
+    repoOrg
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  if (result.code != 200) {
     throw 'Error fetching data from server. ';
   }
-  const data = await response.json();
-  return data.sort((a, b) => (a < b ? -1 : 1));
+
+  return result.data.sort((a, b) => (a < b ? -1 : 1));
 }
 
 // deleteInApi deletes data in the given subPath
@@ -416,36 +443,54 @@ async function getPullRequests(repoName: string, repoOrg: string, rangeDateTime:
   const start_date = formatDate(rangeDateTime[0]);
   const end_date = formatDate(rangeDateTime[1]);
 
-  const response = await fetch(
-    API_URL +
-      '/api/quality/prs/get?repository_name=' +
-      repoName +
-      '&git_organization=' +
-      repoOrg +
-      '&start_date=' +
-      start_date +
-      '&end_date=' +
-      end_date
-  );
-  if (!response.ok) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/prs/get?repository_name=' +
+    repoName +
+    '&git_organization=' +
+    repoOrg +
+    '&start_date=' +
+    start_date +
+    '&end_date=' +
+    end_date
+
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  if (result.code != 200) {
     throw 'Error fetching data from server. ';
   }
 
-  const data: PrsStatistics = await response.json();
-
-  return data;
+  return result.data;
 }
 
 async function getProwJobs(repoName: string, repoOrg: string) {
-  const response = await fetch(
-    API_URL + '/api/quality/prow/results/get?repository_name=' + repoName + '&git_organization=' + repoOrg
-  );
-  if (!response.ok) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/prow/results/get?repository_name=' + repoName + '&git_organization=' + repoOrg
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  if (result.code != 200) {
     throw 'Error fetching data from server. ';
   }
 
-  const data: Job[] = await response.json();
-  return data;
+  return result.data
 }
 
 async function listE2EBugsKnown() {
@@ -463,6 +508,74 @@ async function listE2EBugsKnown() {
       result.data = err.response.data;
     });
   return result;
+}
+
+async function getFailures(team: string, rangeDateTime: Date[]) {
+  const start_date = formatDate(rangeDateTime[0]);
+  const end_date = formatDate(rangeDateTime[1]);
+
+  const response = await fetch(
+    API_URL +
+    '/api/quality/failures/get?team_name=' + team +
+    '&start_date=' +
+    start_date +
+    '&end_date=' +
+    end_date
+  );
+  if (!response.ok) {
+    throw 'Error fetching data from server. ';
+  }
+  const data = await response.json();
+  return data;
+}
+
+async function createFailure(team: string, jiraKey: string, errorMessage: string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/failures/create';
+  const uri = API_URL + subPath;
+  await axios
+    .post(uri, {
+      team: team,
+      jira_key: jiraKey,
+      error_message: errorMessage,
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  return result;
+}
+
+async function deleteFailureByJiraKey(jiraKey: string) {
+  const response = await fetch(
+    API_URL +
+    '/api/quality/failures/delete?jira_key=' + jiraKey
+  );
+  if (!response.ok) {
+    throw 'Error fetching data from server.';
+  }
+  const data = await response.json();
+  return data;
+}
+
+async function bugExists(jiraKey: string, teamName: string) {
+  const response = await fetch(
+    API_URL +
+    '/api/quality/jira/bugs/exist?team_name=' + teamName +
+    '&jira_key=' + jiraKey
+  );
+  if (!response.ok) {
+    throw 'Error fetching data from server.';
+  }
+  const data = await response.json();
+
+  console.log("data", response)
+  return data;
 }
 
 export {
@@ -486,4 +599,8 @@ export {
   listJiraProjects,
   getPullRequests,
   listE2EBugsKnown,
+  getFailures,
+  createFailure,
+  deleteFailureByJiraKey,
+  bugExists
 };

@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/failure"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
@@ -48,6 +49,7 @@ func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
 		bugs.Table:         bugs.ValidColumn,
 		codecov.Table:      codecov.ValidColumn,
+		failure.Table:      failure.ValidColumn,
 		prowjobs.Table:     prowjobs.ValidColumn,
 		prowsuites.Table:   prowsuites.ValidColumn,
 		pullrequests.Table: pullrequests.ValidColumn,

@@ -7,10 +7,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
+	"github.com/redhat-appstudio/quality-studio/pkg/constants"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 )
 
@@ -34,6 +36,31 @@ func (s *Server) UpdateProwStatusByTeam() {
 		repo, _ := s.cfg.Storage.ListRepositories(team)
 		s.ProwStaticUpdate(repo, prowjobs)
 	}
+
+	s.BuildLogErrorsUpdate()
+}
+
+// temporary func to update build log error messages from last 2 months saved prow jobs
+func (s *Server) BuildLogErrorsUpdate() {
+	startDate := time.Now().AddDate(0, -2, 0).Format(constants.DateFormat)
+	endDate := time.Now().Format(constants.DateFormat)
+
+	prowJobs, err := s.cfg.Storage.GetAllProwJobs(startDate, endDate)
+	if err != nil {
+		s.cfg.Logger.Sugar().Error("Failed to get all prow jobs ", err)
+	}
+
+	for _, pj := range prowJobs {
+		if *pj.E2eFailedTestMessages == "" &&
+			pj.State == string(prow.FailureState) &&
+			pj.BuildErrorLogs == nil {
+			buildErrors := getBuildLogErrors(pj.JobURL)
+			if buildErrors != "" {
+				s.cfg.Storage.UpdateBuildLogErrors(pj.JobID, buildErrors)
+			}
+		}
+	}
+
 }
 
 func (s *Server) ProwStaticUpdate(storageRepos []repoV1Alpha1.Repository, prowjobs []prow.ProwJob) {
@@ -46,8 +73,9 @@ func (s *Server) ProwStaticUpdate(storageRepos []repoV1Alpha1.Repository, prowjo
 			if prowOrg == repo.Owner.Login && prowRepo == repo.Name && pj.Status.State != prow.AbortedState && pj.Status.State != prow.PendingState && !strings.Contains(pj.Status.URL, "-images") && !strings.Contains(pj.Status.URL, "-index") {
 				// check if job already in database
 				prowJobsInDatabase, _ := s.cfg.Storage.GetProwJobsResultsByJobID(pj.Status.BuildID)
+
 				if len(prowJobsInDatabase) > 0 {
-					s.cfg.Logger.Sugar().Debugf("Data already exist in database about jobID %v, %v", pj.Status.BuildID)
+					s.cfg.Logger.Sugar().Debugf("Data already exists in database about jobID %v, %v", pj.Status.BuildID)
 					continue
 				}
 
@@ -64,6 +92,7 @@ func (s *Server) ProwStaticUpdate(storageRepos []repoV1Alpha1.Repository, prowjo
 						s.cfg.Logger.Sugar().Warnf("Failed convert xml file to golang bytes ", err)
 					}
 				}
+
 				if err := SaveProwJobsinDatabase(s.cfg.Storage, pj, suitesXml, repo.ID, suitesXmlUrl); err != nil {
 					s.cfg.Logger.Sugar().Error("Failed to save job database ", err)
 				}
@@ -72,9 +101,31 @@ func (s *Server) ProwStaticUpdate(storageRepos []repoV1Alpha1.Repository, prowjo
 	}
 }
 
+func getBuildLogErrors(url string) string {
+	buildErrorLogs := ""
+	buildFileUrl := url + "/" + "build-log.txt"
+	buildContent, _ := fetchSuitesXml(buildFileUrl)
+	buildErrorLogs = string(buildContent)
+
+	// keep last 50 lines
+	lines := strings.Split(buildErrorLogs, "\n")
+	if len(lines) > 50 {
+		lastIdx := len(lines) - 1
+		firstIdx := lastIdx - 50
+		lines = lines[firstIdx:lastIdx]
+		buildErrorLogs = strings.Join(lines, "\n")
+	}
+	return buildErrorLogs
+}
+
 func SaveProwJobsinDatabase(s storage.Storage, pj prow.ProwJob, ts prow.TestSuites, repositoryId, suitesXmlUrl string) error {
 	prowJob := prowV1Alpha1.Job{}
 	testSuiteSummary := getSuitesData(pj, ts)
+	buildErrorLogs := ""
+
+	if testSuiteSummary.E2EFailedMessages == "" && pj.Status.State == prow.FailureState {
+		buildErrorLogs = getBuildLogErrors(pj.Status.URL)
+	}
 
 	prowJob.JobID = pj.Status.BuildID
 	prowJob.CreatedAt = pj.Status.StartTime
@@ -89,6 +140,7 @@ func SaveProwJobsinDatabase(s storage.Storage, pj prow.ProwJob, ts prow.TestSuit
 	prowJob.CIFailed = getCIFailed(pj, ts)
 	prowJob.E2EFailedTestMessages = testSuiteSummary.E2EFailedMessages
 	prowJob.SuitesXmlUrl = suitesXmlUrl
+	prowJob.BuildErrorLogs = buildErrorLogs
 
 	if err := s.CreateProwJobResults(prowJob, repositoryId); err != nil {
 		return fmt.Errorf("failed to save job to db %s", err)

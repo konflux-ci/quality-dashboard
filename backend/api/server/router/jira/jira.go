@@ -251,3 +251,40 @@ func (s *jiraRouter) getJiraProjects(ctx context.Context, w http.ResponseWriter,
 
 	return httputils.WriteJSON(w, http.StatusOK, projects)
 }
+
+func (s *jiraRouter) bugExists(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	teamName := r.URL.Query()["team_name"]
+	key := r.URL.Query()["jira_key"]
+
+	if len(teamName) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "team_name value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(key) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "jira_key value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	team, err := s.Storage.GetTeamByName(teamName[0])
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	exists, err := s.Storage.BugExists(key[0], team)
+	if err != nil {
+		s.Logger.Error("Failed to check if jira key exists")
+
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, exists)
+}
