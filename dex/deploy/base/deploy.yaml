@@ -23,7 +23,7 @@ spec:
         command: ["/usr/local/bin/dex", "serve", "/etc/dex/cfg/config.yaml"]
         resources:
           requests:
-            cpu: "200m"
+            cpu: "10"
             memory: "128Mi"
           limits:
             cpu: "500m"
