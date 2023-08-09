@@ -1,6 +1,6 @@
 schemaVersion: 2.2.0
 metadata:
-  name: mydevfile
+  name: dex-devfile
 components:
   - name: dex-build
     image:
@@ -18,7 +18,7 @@ components:
       deployment/memoryRequest: 128Mi
       deployment/container-port: 5556
     kubernetes:
-      uri: dex/base/deploy.yaml
+      uri: deploy/base/deploy.yaml
 commands:
   - id: dex-build
     apply:

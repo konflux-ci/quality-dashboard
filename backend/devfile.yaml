@@ -1,18 +1,6 @@
 schemaVersion: 2.2.0
 metadata:
-  name: go
-  language: go
-  projectType: go
-  tags:
-    - Go
-  version: 1.0.0
-  provider: Red Hat
-  supportUrl: https://github.com/devfile-samples/devfile-support#support-information
-  attributes:
-    alpha.dockerimage-port: 8000
-parent:
-  id: go
-  registryUrl: "https://registry.devfile.io"
+  name: backend
 components:
   - name: backend-build
     image:
