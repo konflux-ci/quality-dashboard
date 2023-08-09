@@ -15,7 +15,7 @@ metadata:
     appstudio.openshift.io/component: frontend-quality-dashboard
     pipelines.appstudio.openshift.io/type: build
   name: frontend-quality-dashboard-on-pull-request
-  namespace: rhtap-qe-shared-tenant
+  namespace: flacatus-tenant
 spec:
   params:
   - name: dockerfile
@@ -25,7 +25,7 @@ spec:
   - name: image-expires-after
     value: 5d
   - name: output-image
-    value: quay.io/redhat-user-workloads/rhtap-qe-shared-tenant/quality-dashboard/frontend-quality-dashboard:on-pr-{{revision}}
+    value: quay.io/redhat-user-workloads/flacatus-tenant/quality-dashboard/frontend-quality-dashboard:on-pr-{{revision}}
   - name: path-context
     value: frontend
   - name: revision
@@ -106,10 +106,6 @@ spec:
     - default: "false"
       description: Java build
       name: java
-      type: string
-    - default: ""
-      description: Snyk Token Secret Name
-      name: snyk-secret
       type: string
     - default: ""
       description: Image tag expiration time, time values could be something like
@@ -265,49 +261,6 @@ spec:
       workspaces:
       - name: source
         workspace: workspace
-    - name: label-check
-      runAfter:
-      - inspect-image
-      taskRef:
-        params:
-        - name: name
-          value: label-check
-        - name: bundle
-          value: quay.io/redhat-appstudio-tekton-catalog/task-label-check:0.1@sha256:0c0739fdda24cd1e3587bbab9b07d4493efc21884baac7723f4b446e95bf1fd3
-        - name: kind
-          value: task
-        resolver: bundles
-      when:
-      - input: $(params.skip-checks)
-        operator: in
-        values:
-        - "false"
-      workspaces:
-      - name: workspace
-        workspace: workspace
-    - name: optional-label-check
-      params:
-      - name: POLICY_NAMESPACE
-        value: optional_checks
-      runAfter:
-      - inspect-image
-      taskRef:
-        params:
-        - name: name
-          value: label-check
-        - name: bundle
-          value: quay.io/redhat-appstudio-tekton-catalog/task-label-check:0.1@sha256:0c0739fdda24cd1e3587bbab9b07d4493efc21884baac7723f4b446e95bf1fd3
-        - name: kind
-          value: task
-        resolver: bundles
-      when:
-      - input: $(params.skip-optional)
-        operator: in
-        values:
-        - "false"
-      workspaces:
-      - name: workspace
-        workspace: workspace
     - name: deprecated-base-image-check
       params:
       - name: BASE_IMAGES_DIGESTS
@@ -352,9 +305,6 @@ spec:
         values:
         - "false"
     - name: sast-snyk-check
-      params:
-      - name: SNYK_SECRET
-        value: $(params.snyk-secret)
       runAfter:
       - clone-repository
       taskRef:
@@ -371,10 +321,6 @@ spec:
         operator: in
         values:
         - "false"
-      - input: $(params.snyk-secret)
-        operator: notin
-        values:
-        - ""
       workspaces:
       - name: workspace
         workspace: workspace
