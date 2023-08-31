@@ -76,6 +76,7 @@ spec:
             capabilities:
               drop:
                 - ALL
+            readOnlyRootFilesystem: true
           ports:
             - name: http
               containerPort: 8000
@@ -83,3 +84,5 @@ spec:
           imagePullPolicy: Always
           image: >-
             quay.io/redhat-appstudio/quality-dashboard-backend:latest
+      securityContext:
+        runAsNonRoot: true

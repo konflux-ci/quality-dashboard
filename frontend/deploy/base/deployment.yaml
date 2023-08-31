@@ -58,6 +58,8 @@ spec:
             requests:
               cpu: 100m
               memory: 100Mi
+          securityContext:
+            readOnlyRootFilesystem: true
         - resources:
             limits:
               cpu: 500m
@@ -79,6 +81,8 @@ spec:
           imagePullPolicy: Always
           image: >-
             quay.io/redhat-appstudio/quality-dashboard-frontend:latest
+          securityContext:
+            readOnlyRootFilesystem: true
       volumes:
         - name: proxy-tls
           secret:
@@ -87,3 +91,5 @@ spec:
           secret:
             secretName: quality-dashboard-auth
             defaultMode: 420
+      securityContext:
+        runAsNonRoot: true
