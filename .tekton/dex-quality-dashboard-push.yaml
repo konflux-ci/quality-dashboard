@@ -14,7 +14,7 @@ metadata:
     appstudio.openshift.io/component: dex-quality-dashboard
     pipelines.appstudio.openshift.io/type: build
   name: dex-quality-dashboard-on-push
-  namespace: flacatus-tenant
+  namespace: rhtap-qe-shared-tenant
 spec:
   params:
   - name: dockerfile
@@ -22,7 +22,7 @@ spec:
   - name: git-url
     value: '{{repo_url}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/flacatus-tenant/quality-dashboard/dex-quality-dashboard:{{revision}}
+    value: quay.io/redhat-user-workloads/rhtap-qe-shared-tenant/quality-dashboard/dex-quality-dashboard:{{revision}}
   - name: path-context
     value: dex
   - name: revision
