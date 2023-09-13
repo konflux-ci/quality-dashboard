@@ -33,6 +33,8 @@ const (
 	FieldE2eFailedTestMessages = "e2e_failed_test_messages"
 	// FieldSuitesXMLURL holds the string denoting the suites_xml_url field in the database.
 	FieldSuitesXMLURL = "suites_xml_url"
+	// FieldBuildErrorLogs holds the string denoting the build_error_logs field in the database.
+	FieldBuildErrorLogs = "build_error_logs"
 	// EdgeProwJobs holds the string denoting the prow_jobs edge name in mutations.
 	EdgeProwJobs = "prow_jobs"
 	// Table holds the table name of the prowjobs in the database.
@@ -62,6 +64,7 @@ var Columns = []string{
 	FieldCiFailed,
 	FieldE2eFailedTestMessages,
 	FieldSuitesXMLURL,
+	FieldBuildErrorLogs,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "prow_jobs"

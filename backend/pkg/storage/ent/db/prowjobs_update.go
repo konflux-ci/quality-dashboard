@@ -170,6 +170,26 @@ func (pju *ProwJobsUpdate) ClearSuitesXMLURL() *ProwJobsUpdate {
 	return pju
 }
 
+// SetBuildErrorLogs sets the "build_error_logs" field.
+func (pju *ProwJobsUpdate) SetBuildErrorLogs(s string) *ProwJobsUpdate {
+	pju.mutation.SetBuildErrorLogs(s)
+	return pju
+}
+
+// SetNillableBuildErrorLogs sets the "build_error_logs" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableBuildErrorLogs(s *string) *ProwJobsUpdate {
+	if s != nil {
+		pju.SetBuildErrorLogs(*s)
+	}
+	return pju
+}
+
+// ClearBuildErrorLogs clears the value of the "build_error_logs" field.
+func (pju *ProwJobsUpdate) ClearBuildErrorLogs() *ProwJobsUpdate {
+	pju.mutation.ClearBuildErrorLogs()
+	return pju
+}
+
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
 func (pju *ProwJobsUpdate) SetProwJobsID(id string) *ProwJobsUpdate {
 	pju.mutation.SetProwJobsID(id)
@@ -304,6 +324,12 @@ func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if pju.mutation.SuitesXMLURLCleared() {
 		_spec.ClearField(prowjobs.FieldSuitesXMLURL, field.TypeString)
+	}
+	if value, ok := pju.mutation.BuildErrorLogs(); ok {
+		_spec.SetField(prowjobs.FieldBuildErrorLogs, field.TypeString, value)
+	}
+	if pju.mutation.BuildErrorLogsCleared() {
+		_spec.ClearField(prowjobs.FieldBuildErrorLogs, field.TypeString)
 	}
 	if pju.mutation.ProwJobsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -501,6 +527,26 @@ func (pjuo *ProwJobsUpdateOne) ClearSuitesXMLURL() *ProwJobsUpdateOne {
 	return pjuo
 }
 
+// SetBuildErrorLogs sets the "build_error_logs" field.
+func (pjuo *ProwJobsUpdateOne) SetBuildErrorLogs(s string) *ProwJobsUpdateOne {
+	pjuo.mutation.SetBuildErrorLogs(s)
+	return pjuo
+}
+
+// SetNillableBuildErrorLogs sets the "build_error_logs" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableBuildErrorLogs(s *string) *ProwJobsUpdateOne {
+	if s != nil {
+		pjuo.SetBuildErrorLogs(*s)
+	}
+	return pjuo
+}
+
+// ClearBuildErrorLogs clears the value of the "build_error_logs" field.
+func (pjuo *ProwJobsUpdateOne) ClearBuildErrorLogs() *ProwJobsUpdateOne {
+	pjuo.mutation.ClearBuildErrorLogs()
+	return pjuo
+}
+
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
 func (pjuo *ProwJobsUpdateOne) SetProwJobsID(id string) *ProwJobsUpdateOne {
 	pjuo.mutation.SetProwJobsID(id)
@@ -659,6 +705,12 @@ func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, er
 	}
 	if pjuo.mutation.SuitesXMLURLCleared() {
 		_spec.ClearField(prowjobs.FieldSuitesXMLURL, field.TypeString)
+	}
+	if value, ok := pjuo.mutation.BuildErrorLogs(); ok {
+		_spec.SetField(prowjobs.FieldBuildErrorLogs, field.TypeString, value)
+	}
+	if pjuo.mutation.BuildErrorLogsCleared() {
+		_spec.ClearField(prowjobs.FieldBuildErrorLogs, field.TypeString)
 	}
 	if pjuo.mutation.ProwJobsCleared() {
 		edge := &sqlgraph.EdgeSpec{

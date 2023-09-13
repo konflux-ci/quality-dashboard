@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/failure"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
@@ -78,6 +79,21 @@ func (tu *TeamsUpdate) AddBugs(b ...*Bugs) *TeamsUpdate {
 	return tu.AddBugIDs(ids...)
 }
 
+// AddFailureIDs adds the "failures" edge to the Failure entity by IDs.
+func (tu *TeamsUpdate) AddFailureIDs(ids ...uuid.UUID) *TeamsUpdate {
+	tu.mutation.AddFailureIDs(ids...)
+	return tu
+}
+
+// AddFailures adds the "failures" edges to the Failure entity.
+func (tu *TeamsUpdate) AddFailures(f ...*Failure) *TeamsUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return tu.AddFailureIDs(ids...)
+}
+
 // Mutation returns the TeamsMutation object of the builder.
 func (tu *TeamsUpdate) Mutation() *TeamsMutation {
 	return tu.mutation
@@ -123,6 +139,27 @@ func (tu *TeamsUpdate) RemoveBugs(b ...*Bugs) *TeamsUpdate {
 		ids[i] = b[i].ID
 	}
 	return tu.RemoveBugIDs(ids...)
+}
+
+// ClearFailures clears all "failures" edges to the Failure entity.
+func (tu *TeamsUpdate) ClearFailures() *TeamsUpdate {
+	tu.mutation.ClearFailures()
+	return tu
+}
+
+// RemoveFailureIDs removes the "failures" edge to Failure entities by IDs.
+func (tu *TeamsUpdate) RemoveFailureIDs(ids ...uuid.UUID) *TeamsUpdate {
+	tu.mutation.RemoveFailureIDs(ids...)
+	return tu
+}
+
+// RemoveFailures removes "failures" edges to Failure entities.
+func (tu *TeamsUpdate) RemoveFailures(f ...*Failure) *TeamsUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return tu.RemoveFailureIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -287,6 +324,60 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if tu.mutation.FailuresCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.FailuresTable,
+			Columns: []string{teams.FailuresColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: failure.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.RemovedFailuresIDs(); len(nodes) > 0 && !tu.mutation.FailuresCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.FailuresTable,
+			Columns: []string{teams.FailuresColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: failure.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.FailuresIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.FailuresTable,
+			Columns: []string{teams.FailuresColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: failure.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{teams.Label}
@@ -355,6 +446,21 @@ func (tuo *TeamsUpdateOne) AddBugs(b ...*Bugs) *TeamsUpdateOne {
 	return tuo.AddBugIDs(ids...)
 }
 
+// AddFailureIDs adds the "failures" edge to the Failure entity by IDs.
+func (tuo *TeamsUpdateOne) AddFailureIDs(ids ...uuid.UUID) *TeamsUpdateOne {
+	tuo.mutation.AddFailureIDs(ids...)
+	return tuo
+}
+
+// AddFailures adds the "failures" edges to the Failure entity.
+func (tuo *TeamsUpdateOne) AddFailures(f ...*Failure) *TeamsUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return tuo.AddFailureIDs(ids...)
+}
+
 // Mutation returns the TeamsMutation object of the builder.
 func (tuo *TeamsUpdateOne) Mutation() *TeamsMutation {
 	return tuo.mutation
@@ -400,6 +506,27 @@ func (tuo *TeamsUpdateOne) RemoveBugs(b ...*Bugs) *TeamsUpdateOne {
 		ids[i] = b[i].ID
 	}
 	return tuo.RemoveBugIDs(ids...)
+}
+
+// ClearFailures clears all "failures" edges to the Failure entity.
+func (tuo *TeamsUpdateOne) ClearFailures() *TeamsUpdateOne {
+	tuo.mutation.ClearFailures()
+	return tuo
+}
+
+// RemoveFailureIDs removes the "failures" edge to Failure entities by IDs.
+func (tuo *TeamsUpdateOne) RemoveFailureIDs(ids ...uuid.UUID) *TeamsUpdateOne {
+	tuo.mutation.RemoveFailureIDs(ids...)
+	return tuo
+}
+
+// RemoveFailures removes "failures" edges to Failure entities.
+func (tuo *TeamsUpdateOne) RemoveFailures(f ...*Failure) *TeamsUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return tuo.RemoveFailureIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -580,6 +707,60 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: bugs.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if tuo.mutation.FailuresCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.FailuresTable,
+			Columns: []string{teams.FailuresColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: failure.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.RemovedFailuresIDs(); len(nodes) > 0 && !tuo.mutation.FailuresCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.FailuresTable,
+			Columns: []string{teams.FailuresColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: failure.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.FailuresIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.FailuresTable,
+			Columns: []string{teams.FailuresColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: failure.FieldID,
 				},
 			},
 		}

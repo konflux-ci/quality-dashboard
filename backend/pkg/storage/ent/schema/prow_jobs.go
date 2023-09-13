@@ -45,6 +45,10 @@ func (ProwJobs) Fields() []ent.Field {
 			SchemaType(textSchema).
 			Optional().
 			Nillable(),
+		field.Text("build_error_logs").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
 	}
 }
 

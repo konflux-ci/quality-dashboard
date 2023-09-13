@@ -29,6 +29,7 @@ type (
 	hooks struct {
 		Bugs         []ent.Hook
 		CodeCov      []ent.Hook
+		Failure      []ent.Hook
 		ProwJobs     []ent.Hook
 		ProwSuites   []ent.Hook
 		PullRequests []ent.Hook
@@ -39,6 +40,7 @@ type (
 	inters struct {
 		Bugs         []ent.Interceptor
 		CodeCov      []ent.Interceptor
+		Failure      []ent.Interceptor
 		ProwJobs     []ent.Interceptor
 		ProwSuites   []ent.Interceptor
 		PullRequests []ent.Interceptor

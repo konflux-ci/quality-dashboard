@@ -42,4 +42,7 @@ type Job struct {
 
 	// URL to the e2e-report.xml of the job
 	SuitesXmlUrl string `json:"suites_xml_url"`
+
+	// Set of error logs from build-log.txt
+	BuildErrorLogs string `json:"build_error_logs"`
 }

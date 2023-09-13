@@ -120,6 +120,11 @@ func SuitesXMLURL(v string) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldEQ(FieldSuitesXMLURL, v))
 }
 
+// BuildErrorLogs applies equality check predicate on the "build_error_logs" field. It's identical to BuildErrorLogsEQ.
+func BuildErrorLogs(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldEQ(FieldBuildErrorLogs, v))
+}
+
 // JobIDEQ applies the EQ predicate on the "job_id" field.
 func JobIDEQ(v string) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldEQ(FieldJobID, v))
@@ -833,6 +838,81 @@ func SuitesXMLURLEqualFold(v string) predicate.ProwJobs {
 // SuitesXMLURLContainsFold applies the ContainsFold predicate on the "suites_xml_url" field.
 func SuitesXMLURLContainsFold(v string) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldContainsFold(FieldSuitesXMLURL, v))
+}
+
+// BuildErrorLogsEQ applies the EQ predicate on the "build_error_logs" field.
+func BuildErrorLogsEQ(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldEQ(FieldBuildErrorLogs, v))
+}
+
+// BuildErrorLogsNEQ applies the NEQ predicate on the "build_error_logs" field.
+func BuildErrorLogsNEQ(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldNEQ(FieldBuildErrorLogs, v))
+}
+
+// BuildErrorLogsIn applies the In predicate on the "build_error_logs" field.
+func BuildErrorLogsIn(vs ...string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldIn(FieldBuildErrorLogs, vs...))
+}
+
+// BuildErrorLogsNotIn applies the NotIn predicate on the "build_error_logs" field.
+func BuildErrorLogsNotIn(vs ...string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldNotIn(FieldBuildErrorLogs, vs...))
+}
+
+// BuildErrorLogsGT applies the GT predicate on the "build_error_logs" field.
+func BuildErrorLogsGT(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldGT(FieldBuildErrorLogs, v))
+}
+
+// BuildErrorLogsGTE applies the GTE predicate on the "build_error_logs" field.
+func BuildErrorLogsGTE(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldGTE(FieldBuildErrorLogs, v))
+}
+
+// BuildErrorLogsLT applies the LT predicate on the "build_error_logs" field.
+func BuildErrorLogsLT(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldLT(FieldBuildErrorLogs, v))
+}
+
+// BuildErrorLogsLTE applies the LTE predicate on the "build_error_logs" field.
+func BuildErrorLogsLTE(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldLTE(FieldBuildErrorLogs, v))
+}
+
+// BuildErrorLogsContains applies the Contains predicate on the "build_error_logs" field.
+func BuildErrorLogsContains(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldContains(FieldBuildErrorLogs, v))
+}
+
+// BuildErrorLogsHasPrefix applies the HasPrefix predicate on the "build_error_logs" field.
+func BuildErrorLogsHasPrefix(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldHasPrefix(FieldBuildErrorLogs, v))
+}
+
+// BuildErrorLogsHasSuffix applies the HasSuffix predicate on the "build_error_logs" field.
+func BuildErrorLogsHasSuffix(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldHasSuffix(FieldBuildErrorLogs, v))
+}
+
+// BuildErrorLogsIsNil applies the IsNil predicate on the "build_error_logs" field.
+func BuildErrorLogsIsNil() predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldIsNull(FieldBuildErrorLogs))
+}
+
+// BuildErrorLogsNotNil applies the NotNil predicate on the "build_error_logs" field.
+func BuildErrorLogsNotNil() predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldNotNull(FieldBuildErrorLogs))
+}
+
+// BuildErrorLogsEqualFold applies the EqualFold predicate on the "build_error_logs" field.
+func BuildErrorLogsEqualFold(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldEqualFold(FieldBuildErrorLogs, v))
+}
+
+// BuildErrorLogsContainsFold applies the ContainsFold predicate on the "build_error_logs" field.
+func BuildErrorLogsContainsFold(v string) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldContainsFold(FieldBuildErrorLogs, v))
 }
 
 // HasProwJobs applies the HasEdge predicate on the "prow_jobs" edge.

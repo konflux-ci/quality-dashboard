@@ -11,6 +11,7 @@ import { Jira } from './Jira/Jira';
 import { GitHub } from './Github/Github';
 import { Config } from './Config/Config';
 import { initOauthFlow, completeOauthFlow, OauthData, refreshTokenFlow } from '@app/utils/oauth'
+import { CiFailures } from './CiFailures/CiFailures';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -96,6 +97,14 @@ const routes: AppRouteConfig[] = [
         path: '/reports/test',
         title: 'Openshift CI | Quality Studio',
       },
+      {
+        component: CiFailures,
+        exact: true,
+        isAsync: true,
+        label: 'RHTAPBUGS Impact on CI',
+        path: '/home/rhtapbugs-impact',
+        title: 'RHTAPBUGS Impact on CI | Quality Studio',
+      },
     ],
   },
 ];
@@ -172,7 +181,7 @@ const AppRoutes = (): React.ReactElement => {
           }
         })();
       }
-  } 
+  }
   }, [location])
 
   React.useEffect(() => {
@@ -186,7 +195,7 @@ const AppRoutes = (): React.ReactElement => {
   return (
     <LastLocationProvider>
       <Switch>
-        {flattenedRoutes.map(({ path, exact, component, title, isAsync, isProtected }, idx) => (   
+        {flattenedRoutes.map(({ path, exact, component, title, isAsync, isProtected }, idx) => (
           <RouteWithTitleUpdates
             path={path}
             exact={exact}

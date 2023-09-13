@@ -36,6 +36,8 @@ spec:
               cpu: 200m
               memory: 512Mi
           name: quality-frontend-dashboard
+          securityContext:
+            readOnlyRootFilesystem: true
           env:
             - name: REACT_APP_API_SERVER_URL
               valueFrom:

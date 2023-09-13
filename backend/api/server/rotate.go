@@ -56,6 +56,7 @@ func (s *Server) rotate() error {
 	}
 
 	s.UpdateProwStatusByTeam()
+	s.UpdateFailuresByTeam()
 	err = s.UpdateDataBaseRepoByTeam()
 	if err != nil {
 		s.cfg.Logger.Sugar().Errorf("Failed to update cache", zap.Error(err))
@@ -66,7 +67,7 @@ func (s *Server) rotate() error {
 }
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
-		rotationFrequency: time.Minute * 15,
+		rotationFrequency: time.Minute * 2,
 	}
 }
 

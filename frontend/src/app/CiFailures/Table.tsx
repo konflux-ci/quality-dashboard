@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Pagination } from '@patternfly/react-core';
+import { Pagination } from '@patternfly/react-core';
 import {
     TableComposable,
     Thead,
@@ -11,99 +11,90 @@ import {
     ActionsColumn,
     IAction,
 } from '@patternfly/react-table';
-import { GetCodeCovInfo } from './CodeCov';
-import { deleteInApi } from '@app/utils/APIService';
 import { useHistory } from 'react-router-dom';
-import { RepositoryInfo } from './Github';
-import { GetMetrics, MetricsModalContext, useMetricsModalContext, useMetricsModalContextState } from './Metrics';
+import { deleteInApi } from '@app/utils/APIService';
+import { FailureInfo } from './CiFailures';
 
 
-export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, modal }) => {
-    const [reposPage, setReposPage] = useState<Array<RepositoryInfo>>([]);
+export const ComposableTable: React.FC<{ failures: any, modal: any }> = ({ failures, modal }) => {
+    const [failuresPage, setFailuresPage] = useState<Array<FailureInfo>>([]);
     const [page, setPage] = React.useState(1);
     const [perPage, setPerPage] = React.useState(10);
-    const [count, setCount] = useState(repos.length);
+    const [count, setCount] = useState(failures.length);
     const [filters, setFilters] = useState({});
     const [activeSortIndex, setActiveSortIndex] = React.useState<number | null>(null);
     const [activeSortDirection, setActiveSortDirection] = React.useState<'asc' | 'desc' | null>(null);
     const history = useHistory();
     const params = new URLSearchParams(window.location.search);
-    const defaultModalContext = useMetricsModalContextState();
-    const modalContext = useMetricsModalContext();
 
-    async function deleteRepository(gitOrg: string, repoName: string) {
-        const data = {
-            git_organization: gitOrg,
-            repository_name: repoName,
-        };
-        try {
-            await deleteInApi(data, '/api/quality/repositories/delete');
-            history.push(window.location.pathname + '?' + 'team=' + params.get('team'));
+
+    // const defaultModalContext = useMetricsModalContextState();
+    // const modalContext = useMetricsModalContext();
+
+    async function deleteFailure(failure) {
+       try {
+            await deleteInApi(failure, '/api/quality/failures/delete');
             window.location.reload();
         } catch (error) {
             console.log(error);
         }
     }
 
-    async function editRepository(repo) {
+    async function updateFailure(failure) {
         try {
-            modal.handleModalToggle(true, repo);
+            modal.handleModalToggle(true, failure);
         } catch (error) {
             console.log(error);
         }
     }
 
-    const defaultActions = (repo): IAction[] => [
+    const defaultActions = (failure): IAction[] => [
         {
-            title: 'Delete Repository',
-            onClick: () => deleteRepository(repo.git_organization, repo.repository_name),
+            title: 'Delete',
+            onClick: () => deleteFailure(failure),
         },
         {
-            title: 'Edit Repository',
-            onClick: () => editRepository(repo),
+            title: 'Update',
+            onClick: () => updateFailure(failure),
         },
     ];
 
     useEffect(() => {
-        if (repos.length == 0) {
+        if (failures.length == 0) {
             setPage(1)
-            setReposPage([])
+            setFailuresPage([])
         }
-        if (repos.length > 0) {
-            setReposPage(repos.slice(0, perPage))
+        if (failures.length > 0) {
+            setFailuresPage(failures.slice(0, perPage))
             setPage(1)
         }
-    }, [repos]);
+    }, [failures]);
 
     const columnNames = {
-        repository_name: "Repository",
-        git_organization: "Organization",
-        description: "Description",
-        code_cov: "CodeCov",
-        retest_before_merge_avg: "Retest Before Merge Avg",
-        open_prs: "Open PRs",
-        merged_prs: "Merged PRs",
-        time_to_merge_pr_avg_days: "Time To Merge PR Avg Days",
+        jira_key: "Jira Key",
+        jira_status: "Jira Status",
+        error_message: "Error Message",
+        frequency: "Frequency",
     };
 
     useEffect(
         () => {
-            setCount(repos.length);
+            setCount(failures.length);
         },
-        [repos],
+        [failures],
     );
 
     useEffect(() => {
-        setCount(repos.length)
-        if (repos.length > 0) {
-            const filteredRows = filterRows(repos, filters)
+        setCount(failures.length)
+        if (failures.length > 0) {
+            const filteredRows = filterRows(failures, filters)
             const sortedRows = sortRows(filteredRows)
             setCount(sortedRows.length)
 
             const from = (page - 1) * perPage
             const to = (page - 1) * perPage + perPage >= sortedRows.length ? sortedRows.length : (page - 1) * perPage + perPage;
 
-            setReposPage(sortedRows.slice(from, to))
+            setFailuresPage(sortedRows.slice(from, to))
         }
     }, [page, perPage, filters, activeSortIndex, activeSortDirection]);
 
@@ -124,14 +115,10 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
 
     // Filters helpers
     const columns = [
-        { column: 'repository_name', label: 'Repository' },
-        { column: 'git_organization', label: 'Organization' },
-        { column: 'description', label: 'Description' },
-        { column: 'code_cov', label: 'Code Cov' },
-        { column: 'retest_before_merge_avg', label: 'Retest Before Merge Avg' },
-        { column: 'open_prs', label: 'Total Open PRs' },
-        { column: 'merged_prs', label: 'Total Merged PRs' },
-        { column: 'time_to_merge_pr_avg_days', label: 'Time To Merge PR Avg Days' },
+        { column: 'jira_key', label: 'Jira Key' },
+        { column: 'jira_status', label: 'Jira Status' },
+        { column: 'error_message', label: 'Error Message' },
+        { column: 'frequency', label: 'Frequency' },
     ]
 
     function filterRows(rows, filters) {
@@ -147,7 +134,6 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
                     return value == searchValue
                 }
 
-                // handle ID, Summary, Created at, Updated at, and Resolved at filters
                 if (typeof value === 'string') {
                     return value.toLocaleLowerCase().includes(searchValue.toLocaleLowerCase())
                 }
@@ -175,24 +161,16 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
 
 
     // Sort helpers
-    const getSortableRowValues = (repo: RepositoryInfo): (string | number)[] => {
-        const { repository_name, git_organization, description, code_cov, retest_before_merge_avg, open_prs, merged_prs, time_to_merge_pr_avg_days } = repo;
-        return [repository_name, git_organization, description, code_cov, retest_before_merge_avg, open_prs, merged_prs, time_to_merge_pr_avg_days];
+    const getSortableRowValues = (failure: FailureInfo): (string | number)[] => {
+        const { jira_key, jira_status, error_message, frequency } = failure;
+        return [jira_key, jira_status, error_message, frequency];
     };
 
     const sortRows = (rows) => {
         if (activeSortIndex !== null) {
             return rows.sort((a, b) => {
-                const aValue = getSortableRowValues(a)[activeSortIndex] ? getSortableRowValues(a)[activeSortIndex] : "-";
-                const bValue = getSortableRowValues(b)[activeSortIndex] ? getSortableRowValues(b)[activeSortIndex] : "-";
-
-                if (aValue == 'N/A') {
-                    return 1
-                }
-
-                if (bValue == 'N/A') {
-                    return -1
-                }
+                const aValue = getSortableRowValues(a)[activeSortIndex] || a.frequency == 0  ? getSortableRowValues(a)[activeSortIndex] : "-";
+                const bValue = getSortableRowValues(b)[activeSortIndex] || b.frequency == 0 ? getSortableRowValues(b)[activeSortIndex] : "-";
 
                 if (typeof aValue === 'number') {
                     // Numeric sort
@@ -225,33 +203,7 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
     });
     // End of sort helpers
 
-
-    const fillPopOver = (title, description) => {
-        return {
-            popover: (description),
-            ariaLabel: 'More information on' + title,
-            popoverProps: {
-                headerContent: title,
-            }
-
-        }
-    }
-
-    const getInfo = (label) => {
-        if (label == "Retest Before Merge Avg") {
-            return fillPopOver("Retest Before Merge Avg", "Calculates an average how many /test and /retest comments were issued after the last code push (in the selected time range)")
-        }
-        if (label == "Time To Merge PR Avg Days") {
-            return fillPopOver("Time To Merge PR Avg Days", "Calculates an average of how many days were needed to merge a PR (difference between creation and merged date in the selected time range)")
-        }
-        if (label == "Code Cov") {
-            return fillPopOver("Code Cov", "The coverage trend is calculated through the two last commits. No trend arrow means that the coverage trend is stable")
-        }
-       return
-    }
-
     return (
-        <MetricsModalContext.Provider value={defaultModalContext}>
             <div>
                 <Pagination
                     perPageComponent="button"
@@ -263,7 +215,7 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
                     onPerPageSelect={onPerPageSelect}
                 />
 
-                <GetMetrics></GetMetrics>
+                {/* <GetMetrics></GetMetrics> */}
 
                 <TableComposable aria-label="Simple table" >
                     <Thead>
@@ -275,7 +227,6 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
                                         width={10}
                                         sort={getSortParams(idx)}
                                         key={idx}
-                                        info={getInfo(column.label)}
                                     >
                                         <div>
                                             {column.label}
@@ -301,26 +252,19 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
                         </Tr>
                     </Thead>
                     <Tbody>
-                        {reposPage.map((repo, index) => {
-                            const rowActions: IAction[] | null = defaultActions(repo);
+                        {failuresPage.map((failure, index) => {
+                            const rowActions: IAction[] | null = defaultActions(failure);
 
                             return (
                                 <Tr key={index} {...(index % 2 === 0 && { isStriped: true })}>
-                                    <Td dataLabel={columnNames.repository_name}>
+                                    <Td dataLabel={columnNames.jira_key}>
                                         <div>
-                                            <a href={repo.git_url} target={repo.git_url}>{repo.repository_name}</a>
-                                        </div>
-                                        <div style={{ marginTop: 2 }}>
-                                            <Button style={{ fontSize: 14 }} variant="link" onClick={() => modalContext.handleModalToggle(repo)}>{"> Show detailed metrics"}</Button>
+                                            <a href={"https://issues.redhat.com/browse/"+failure.jira_key} target="blank" rel="noopener noreferrer">{failure.jira_key}</a>
                                         </div>
                                     </Td>
-                                    <Td dataLabel={columnNames.git_organization}>{repo.git_organization}</Td>
-                                    <Td dataLabel={columnNames.description}>{repo.description}</Td>
-                                    <Td dataLabel={columnNames.code_cov}>{repo.code_cov == 'N/A' ? "N/A" : GetCodeCovInfo(repo, 'left')}</Td>
-                                    <Td dataLabel={columnNames.retest_before_merge_avg}>{repo.retest_before_merge_avg}</Td>
-                                    <Td dataLabel={columnNames.open_prs}>{repo.open_prs}</Td>
-                                    <Td dataLabel={columnNames.merged_prs}>{repo.merged_prs}</Td>
-                                    <Td dataLabel={columnNames.time_to_merge_pr_avg_days}>{repo.time_to_merge_pr_avg_days}</Td>
+                                    <Td dataLabel={columnNames.jira_status}>{failure.jira_status}</Td>
+                                    <Td dataLabel={columnNames.error_message}>{failure.error_message}</Td>
+                                    <Td dataLabel={columnNames.frequency}>{failure.frequency+"%"}</Td>
                                     <Td isActionCell>
                                         {rowActions ? (
                                             <ActionsColumn
@@ -344,6 +288,5 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
                     onPerPageSelect={onPerPageSelect}
                 />
             </div>
-        </MetricsModalContext.Provider >
     );
 };

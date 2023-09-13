@@ -341,3 +341,30 @@ func getProjectKey(bugKey string) string {
 
 	return ""
 }
+
+func (d *Database) GetJiraStatus(key string) (string, error) {
+	bug, err := d.client.Bugs.Query().
+		Where(bugs.JiraKey(key)).
+		First(context.Background())
+	if err != nil {
+		return "", err
+	}
+
+	return bug.Status, nil
+}
+
+func (d *Database) BugExists(projectKey string, t *db.Teams) (bool, error) {
+	jiraKeys, err := d.client.Teams.QueryBugs(t).
+		Where(predicate.Bugs(bugs.JiraKey(projectKey))).
+		All(context.TODO())
+
+	if err != nil {
+		return false, err
+	}
+
+	if len(jiraKeys) == 0 {
+		return false, fmt.Errorf("no jira key '%s' found", projectKey)
+	}
+
+	return true, nil
+}

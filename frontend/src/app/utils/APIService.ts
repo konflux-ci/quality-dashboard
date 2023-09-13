@@ -185,7 +185,7 @@ async function getAllRepositoriesWithOrgs(team: string, openshift: boolean, rang
       result.code = err.response.status;
       result.data = err.response.data;
     });
-  if (result.code >= 300) {
+  if (result.code != 200) {
     throw 'Error fetching data from server';
   } else {
     result.data.sort((a, b) => (a.repository_name < b.repository_name ? -1 : 1));
@@ -270,7 +270,7 @@ async function getLatestProwJob(repoName: string, repoOrg: string, jobType: stri
       result.data = err.response.data;
     });
 
-  if (result.code >= 300) {
+  if (result.code != 200) {
     throw 'Error fetching data from server. ';
   }
 
@@ -367,7 +367,7 @@ async function getJobTypes(repoName: string, repoOrg: string) {
       result.code = err.response.status;
       result.data = err.response.data;
     });
-  if (result.code >= 300) {
+  if (result.code != 200) {
     throw 'Error fetching data from server. ';
   }
 
@@ -465,7 +465,7 @@ async function getPullRequests(repoName: string, repoOrg: string, rangeDateTime:
       result.data = err.response.data;
     });
 
-  if (result.code >= 300) {
+  if (result.code != 200) {
     throw 'Error fetching data from server. ';
   }
 
@@ -486,7 +486,7 @@ async function getProwJobs(repoName: string, repoOrg: string) {
       result.code = err.response.status;
       result.data = err.response.data;
     });
-  if (result.code >= 300) {
+  if (result.code != 200) {
     throw 'Error fetching data from server. ';
   }
 
@@ -510,6 +510,74 @@ async function listE2EBugsKnown() {
   return result;
 }
 
+async function getFailures(team: string, rangeDateTime: Date[]) {
+  const start_date = formatDate(rangeDateTime[0]);
+  const end_date = formatDate(rangeDateTime[1]);
+
+  const response = await fetch(
+    API_URL +
+    '/api/quality/failures/get?team_name=' + team +
+    '&start_date=' +
+    start_date +
+    '&end_date=' +
+    end_date
+  );
+  if (!response.ok) {
+    throw 'Error fetching data from server. ';
+  }
+  const data = await response.json();
+  return data;
+}
+
+async function createFailure(team: string, jiraKey: string, errorMessage: string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/failures/create';
+  const uri = API_URL + subPath;
+  await axios
+    .post(uri, {
+      team: team,
+      jira_key: jiraKey,
+      error_message: errorMessage,
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  return result;
+}
+
+async function deleteFailureByJiraKey(jiraKey: string) {
+  const response = await fetch(
+    API_URL +
+    '/api/quality/failures/delete?jira_key=' + jiraKey
+  );
+  if (!response.ok) {
+    throw 'Error fetching data from server.';
+  }
+  const data = await response.json();
+  return data;
+}
+
+async function bugExists(jiraKey: string, teamName: string) {
+  const response = await fetch(
+    API_URL +
+    '/api/quality/jira/bugs/exist?team_name=' + teamName +
+    '&jira_key=' + jiraKey
+  );
+  if (!response.ok) {
+    throw 'Error fetching data from server.';
+  }
+  const data = await response.json();
+
+  console.log("data", response)
+  return data;
+}
+
 export {
   getVersion,
   getRepositories,
@@ -531,4 +599,8 @@ export {
   listJiraProjects,
   getPullRequests,
   listE2EBugsKnown,
+  getFailures,
+  createFailure,
+  deleteFailureByJiraKey,
+  bugExists
 };
