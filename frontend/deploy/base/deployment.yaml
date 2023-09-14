@@ -25,71 +25,44 @@ spec:
         app.kubernetes.io/name: quality-dashboard
         component: quality-frontend
     spec:
-      serviceAccountName: dashboard-proxy
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       containers:
-        - name: dashboard-proxy
-          image: quay.io/redhat-appstudio-qe/dashboard-oauth-proxy:f8a6c9973cb9c08a03cb227b65a75a0e80cea340
-          imagePullPolicy: Always
-          ports:
-          - containerPort: 8443
-            name: public
-          args:
-          - --https-address=:8443
-          - --provider=openshift
-          - --openshift-service-account=dashboard-proxy
-          - --upstream=http://localhost:8080
-          - --tls-cert=/etc/tls/private/tls.crt
-          - --tls-key=/etc/tls/private/tls.key
-          - --cookie-secret=SECRET
-          - --cookie-refresh=0
-          - --custom-templates-dir=/usr/templates
-          - --htpasswd-file=/tmp/auth/users.htpasswd
-          volumeMounts:
-          - mountPath: /etc/tls/private
-            name: proxy-tls
-          - name: quality-dashboard-auth
-            mountPath: /tmp/auth
-          resources:
-            limits:
-              cpu: 500m
-              memory: 256Mi
-            requests:
-              cpu: 100m
-              memory: 100Mi
-          securityContext:
-            readOnlyRootFilesystem: true
         - resources:
             limits:
               cpu: 500m
-              memory: 256Mi
+              memory: 1Gi
             requests:
-              cpu: 100m
-              memory: 32Mi
+              cpu: 200m
+              memory: 512Mi
           name: quality-frontend-dashboard
+          securityContext:
+            readOnlyRootFilesystem: true
           env:
             - name: REACT_APP_API_SERVER_URL
               valueFrom:
-                configMapKeyRef:
-                  name: quality-dashboard-configmap 
-                  key: BACKEND_ROUTE 
+                secretKeyRef:
+                  name: frontend-secrets
+                  key: backend-route
+            - name: FRONTEND_REDIRECT_URI
+              valueFrom:
+                secretKeyRef:
+                  name: frontend-secrets
+                  key: frontend-route
+            - name: DEX_ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: quality-dashboard-secrets
+                  key: dex-issuer
+            - name: DEX_APPLICATION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: quality-dashboard-secrets
+                  key: dex-application-id
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 9000
               protocol: TCP
           imagePullPolicy: Always
           image: >-
-            quay.io/redhat-appstudio/quality-dashboard-frontend:latest
-          securityContext:
-            readOnlyRootFilesystem: true
-      volumes:
-        - name: proxy-tls
-          secret:
-            secretName: proxy-tls
-        - name: quality-dashboard-auth
-          secret:
-            secretName: quality-dashboard-auth
-            defaultMode: 420
-      securityContext:
-        runAsNonRoot: true
+            quay.io/flacatus/qs-frontend:latest

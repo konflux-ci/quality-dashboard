@@ -18,7 +18,7 @@ type RepositoriesApiResponse = {
   all: any;
 };
 
-const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898';
+const API_URL = process.env.REACT_APP_API_SERVER_URL || 'https://backend-quality-dashboardvmre-rhtap-qe-shared-tenant.apps.stone-prd-m01.84db.p1.openshiftapps.com';
 
 async function getVersion() {
   const result: ApiResponse = { code: 0, data: {} };
@@ -281,7 +281,7 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
   const start_date = formatDate(rangeDateTime[0]);
   const end_date = formatDate(rangeDateTime[1]);
 
-  const response = await fetch(
+  const response = await axios.get(
     API_URL +
     '/api/quality/prow/metrics/get?repository_name=' +
     repoName +
@@ -294,10 +294,10 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
     '&end_date=' +
     end_date
   );
-  if (!response.ok) {
+  if (response.status >= 300) {
     throw 'Error fetching data from server. ';
   }
-  const statistics: JobsStatistics = await response.json();
+  const statistics: JobsStatistics = response.data;
   if (statistics.jobs == null) {
     throw 'No jobs detected in OpenShift CI';
   }

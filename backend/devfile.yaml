@@ -1,0 +1,36 @@
+schemaVersion: 2.2.0
+metadata:
+  name: backend
+components:
+  - name: backend-build
+    image:
+      imageName: quality-dashboard-backend:latest
+      dockerfile:
+        uri: Dockerfile
+        buildContext: .
+        rootRequired: false
+  - name: backend-deploy
+    attributes:
+      deployment/replicas: 1
+      deployment/cpuLimit: '500m'
+      deployment/cpuRequest: 200m
+      deployment/memoryLimit: 1Gi
+      deployment/memoryRequest: 512Mi
+      deployment/container-port: 8000
+    kubernetes:
+      uri: deploy/base/deployment.yaml
+commands:
+  - id: build-image
+    apply:
+      component: backend-build
+  - id: deploy-backend
+    apply:
+      component: backend-deploy
+  - id: deploy
+    composite:
+      commands:
+        - build-image
+        - deploy-backend
+      group:
+        kind: deploy
+        isDefault: true
