@@ -262,7 +262,7 @@ export const Jira = () => {
                 <TextContent style={{ color: "white", display: "inline" }}>
                     <div style={{ float: "left", }}>
                         <Text component="h2">Get Started with Red Hat Quality Studio</Text>
-                        <Text component="p">Observe which Jira Issues are affecting CI pass rate.</Text>
+                        <Text component="p">Observe which Jira Issues are affecting the CI pass rate.</Text>
                     </div>
                 </TextContent>
             </PageSection>
