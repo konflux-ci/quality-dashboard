@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	GENERIC_ERROR_GIT_RESPONSE = errors.New("unable to parse repository. Please verify your token")
+	GENERIC_ERROR_GIT_RESPONSE = errors.New("unable to parse repository. Please verify your token!")
 )
 
 var (
