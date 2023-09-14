@@ -5,13 +5,18 @@ import { AppLayout } from '@app/AppLayout/AppLayout';
 import { AppRoutes } from '@app/routes';
 import Store from './store/store';
 import '@app/app.css';
+import { Login } from './Login/Login'
+import { Route, Switch } from 'react-router-dom';
 
 const App: React.FunctionComponent = () => (
   <Store>
     <Router>
-      <AppLayout>
-        <AppRoutes />
-      </AppLayout>
+      <Switch>
+        <Route path="/login" component={Login}/>
+        <AppLayout>
+          <AppRoutes />
+        </AppLayout>
+      </Switch>
     </Router>
   </Store>
 );

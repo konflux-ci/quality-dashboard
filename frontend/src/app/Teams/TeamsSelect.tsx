@@ -65,7 +65,8 @@ export const BasicMasthead = () => {
   }
 
   function Log_out() {
-    history.push('/oauth/sign_out');
+    localStorage.clear()
+    history.push('/login');
     window.location.reload();
   }
 

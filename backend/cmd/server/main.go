@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/redhat-appstudio/quality-studio/api/server"
+	"github.com/redhat-appstudio/quality-studio/api/server/middleware"
 	version "github.com/redhat-appstudio/quality-studio/api/server/router/version"
 	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/connectors/github"
@@ -22,12 +23,9 @@ import (
 )
 
 const (
-	PostgresEntHostEnv     = "POSTGRES_ENT_HOST"
-	PostgresEntPortEnv     = "POSTGRES_ENT_PORT"
-	PostgresEntDatabaseEnv = "POSTGRES_ENT_DATABASE"
-	PostgresEntUserEnv     = "POSTGRES_ENT_USER"
-	PostgresEntPasswordEnv = "POSTGRES_ENT_PASSWORD"
-	DefaultGithubTokenEnv  = "GITHUB_TOKEN"
+	DefaultGithubTokenEnv = "GITHUB_TOKEN"
+	DexIssuerUrl          = "DEX_ISSUER"
+	DexApplicationId      = "DEX_APPLICATION_ID"
 )
 
 const DEFAULT_SERVER_PORT = 9898
@@ -102,6 +100,17 @@ func main() {
 		Db:      db,
 	})
 
+	dexIssuer := os.Getenv("DEX_ISSUER")
+	if dexIssuer == "" {
+		panic("Dex issuer url is not defined. Use DEX_ISSUER env to define the issuer")
+	}
+
+	dexApplication := os.Getenv("DEX_APPLICATION_ID")
+	if dexApplication == "" {
+		panic("Dex Application is not defined. Use DEX_APPLICATION_ID env to define the appid")
+	}
+
+	server.UseMiddleware(middleware.NewAuthenticationMiddleware(dexIssuer, dexApplication))
 	server.Accept("", listener)
 
 	wait := make(chan error)

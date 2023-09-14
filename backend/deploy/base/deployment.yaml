@@ -70,6 +70,16 @@ spec:
                 secretKeyRef:
                   name: quality-dashboard-secrets
                   key: jira-token
+            - name: DEX_ISSUER
+              valueFrom:
+                secretKeyRef:
+                  name: quality-dashboard-secrets
+                  key: dex-issuer
+            - name: DEX_APPLICATION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: quality-dashboard-secrets
+                  key: dex-application-id
           args:
             - "--port=8000"
           securityContext:

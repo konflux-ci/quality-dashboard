@@ -1,0 +1,40 @@
+schemaVersion: 2.2.0
+metadata:
+  name: frontend-devfile
+  provider: Red Hat
+  supportUrl: https://github.com/devfile-samples/devfile-support#support-information
+  attributes:
+    alpha.dockerimage-port: 8080
+components:
+  - name: frontend-build
+    image:
+      imageName: quality-dashboard-backend:latest
+      dockerfile:
+        uri: Dockerfile
+        buildContext: .
+        rootRequired: false
+  - name: frontend-deploy
+    attributes:
+      deployment/replicas: 1
+      deployment/cpuLimit: '500m'
+      deployment/cpuRequest: 200m
+      deployment/memoryLimit: 1Gi
+      deployment/memoryRequest: 512Mi
+      deployment/container-port: 8080
+    kubernetes:
+      uri: deploy/base/deployment.yaml
+commands:
+  - id: build-image
+    apply:
+      component: frontend-build
+  - id: deploy-frontend
+    apply:
+      component: frontend-deploy
+  - id: deploy
+    composite:
+      commands:
+        - build-image
+        - deploy-frontend
+      group:
+        kind: deploy
+        isDefault: true

@@ -40,7 +40,6 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
   };
 
   useEffect(() => {
-    console.log(locationHistory.pathname);
     if (locationHistory.pathname === '/') {
       history.push('/home/overview');
     }
@@ -61,6 +60,7 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
   const [serverUnavailable, setServerUnavailable] = React.useState(false);
   const [dbUnavailable, setDbUnavailable] = React.useState(false);
   const [alerts, setAlerts] = React.useState<React.ReactNode[]>([]);
+  const [Navigation, setNavigation] = React.useState<JSX.Element>();
 
   const Header = (
     <PageHeader
@@ -121,6 +121,7 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
     </NavExpandable>
   );
 
+
   const toRender = (label) => {
     if (label == "Plugins") {
       getVersion().then(res => {
@@ -153,15 +154,20 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
     return true
   }
 
-  const Navigation = (
-    <Nav id="nav-primary-simple" theme="dark">
-      <NavList id="nav-list-simple">
-        {routes.map(
-          (route, idx) => route.label && toRender(route.label) && (!route.routes ? renderNavItem(route, idx) : renderNavGroup(route, idx))
-        )}
-      </NavList>
-    </Nav>
-  );
+  React.useEffect(() => {
+    const N = (
+      <Nav id="nav-primary-simple" theme="dark">
+        <NavList id="nav-list-simple">
+          {routes.map(
+            (route, idx) => route.label && toRender(route.label) && (!route.routes ? renderNavItem(route, idx) : renderNavGroup(route, idx))
+          )}
+        </NavList>
+      </Nav>
+    );
+    setNavigation(N)
+  }, []);
+
+
 
   const Sidebar = <PageSidebar theme="dark" nav={Navigation} isNavOpen={isMobileView ? isNavOpenMobile : isNavOpen} />;
 
