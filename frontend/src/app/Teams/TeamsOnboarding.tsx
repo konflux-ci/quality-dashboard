@@ -173,11 +173,11 @@ export const TeamsWizard = () => {
       <div style={{ marginTop: '2em' }}>
         <DescriptionList isHorizontal>
           <DescriptionListGroup>
-            <DescriptionListTerm>Team Name</DescriptionListTerm>
+            <DescriptionListTerm>Name</DescriptionListTerm>
             <DescriptionListDescription>{newTeamName}</DescriptionListDescription>
           </DescriptionListGroup>
           <DescriptionListGroup>
-            <DescriptionListTerm>Team Description</DescriptionListTerm>
+            <DescriptionListTerm>Description</DescriptionListTerm>
             <DescriptionListDescription>{newTeamDesc}</DescriptionListDescription>
           </DescriptionListGroup>
           <DescriptionListGroup>
@@ -303,7 +303,7 @@ export const JiraProjects: React.FC<{ onChange: (options: Array<string>) => void
 
   const available = new Array<React.ReactNode>;
   const chosen = new Array<React.ReactNode>;
-  
+
   useEffect(() => {
     listJiraProjects().then((res) => { // making the api call here
       if (res.code === 200) {
