@@ -81,8 +81,6 @@ spec:
           imagePullPolicy: Always
           image: >-
             quay.io/redhat-appstudio/quality-dashboard-frontend:latest
-          securityContext:
-            readOnlyRootFilesystem: true
       volumes:
         - name: proxy-tls
           secret:
