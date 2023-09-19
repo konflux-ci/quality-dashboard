@@ -10,6 +10,7 @@ import { ReactReduxContext } from 'react-redux';
 import { Jira } from './Jira/Jira';
 import { GitHub } from './Github/Github';
 import { Config } from './Config/Config';
+import { CiFailures } from './CiFailures/CiFailures';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -86,6 +87,14 @@ const routes: AppRouteConfig[] = [
         label: 'Openshift CI',
         path: '/reports/test',
         title: 'Openshift CI | Quality Studio',
+      },
+      {
+        component: CiFailures,
+        exact: true,
+        isAsync: true,
+        label: 'RHTAPBUGS Impact on CI',
+        path: '/home/rhtapbugs-impact',
+        title: 'RHTAPBUGS Impact on CI | Quality Studio',
       },
     ],
   },

@@ -8,7 +8,6 @@ import (
 
 	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"go.uber.org/zap"
 )
@@ -57,6 +56,7 @@ func (s *Server) rotate() error {
 	}
 
 	s.UpdateProwStatusByTeam()
+	s.UpdateFailuresByTeam()
 	err = s.UpdateDataBaseRepoByTeam()
 	if err != nil {
 		s.cfg.Logger.Sugar().Errorf("Failed to update cache", zap.Error(err))
@@ -67,7 +67,7 @@ func (s *Server) rotate() error {
 }
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
-		rotationFrequency: time.Minute * 15,
+		rotationFrequency: time.Minute * 2,
 	}
 }
 
@@ -126,22 +126,17 @@ func (s *Server) CacheRepositoriesInformation(storageRepos []repoV1Alpha1.Reposi
 			return err
 		}
 
-		totalRetestRepoAvg, err := s.cfg.Github.RetestsToMerge(fmt.Sprintf("%s/%s", repo.Owner.Login, repo.Name))
-		if err != nil {
-			return err
-		}
 		//update coverage info
-		coverage, err := s.getCodeCoverage(repo.Owner.Login, repo.Name)
-
+		coverage, covTrend, err := s.getCodeCoverage(repo.Owner.Login, repo.Name)
 		if err != nil {
 			return err
 		}
-		totalCoverageConverted, _ := coverage.Totals.Coverage.Float64()
+
 		err = s.cfg.Storage.UpdateCoverage(coverageV1Alpha1.Coverage{
-			GitOrganization:            repo.Owner.Login,
-			RepositoryName:             repo.Name,
-			CoveragePercentage:         totalCoverageConverted,
-			AverageToRetestPullRequest: totalRetestRepoAvg,
+			GitOrganization:    repo.Owner.Login,
+			RepositoryName:     repo.Name,
+			CoveragePercentage: coverage,
+			CoverageTrend:      covTrend,
 		}, repo.Name)
 		if err != nil {
 			return err
@@ -152,6 +147,6 @@ func (s *Server) CacheRepositoriesInformation(storageRepos []repoV1Alpha1.Reposi
 	return nil
 }
 
-func (s *Server) getCodeCoverage(gitOrganization string, repoName string) (codecov.CoverageSpec, error) {
+func (s *Server) getCodeCoverage(gitOrganization string, repoName string) (float64, string, error) {
 	return s.cfg.CodeCov.GetCodeCovInfo(gitOrganization, repoName)
 }

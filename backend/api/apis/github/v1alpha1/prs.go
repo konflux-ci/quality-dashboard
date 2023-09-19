@@ -2,6 +2,8 @@ package v1alpha1
 
 import (
 	"time"
+
+	"github.com/shurcooL/githubv4"
 )
 
 const (
@@ -17,22 +19,24 @@ const (
 
 // PullRequest is a GitHub pull request
 type PullRequest struct {
-	Number     int
-	Title      string
-	URL        string
-	State      string
-	Author     PullRequestAuthor
-	Closed     bool
-	IsDraft    bool
-	Locked     bool
-	Merged     bool
-	ClosedAt   time.Time
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	MergedAt   time.Time
-	Mergeable  string
-	MergedBy   *PullRequestAuthor
-	Repository Repository
+	Number        int
+	Title         string
+	URL           string
+	State         string
+	Author        PullRequestAuthor
+	Closed        bool
+	IsDraft       bool
+	Locked        bool
+	Merged        bool
+	ClosedAt      time.Time
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	MergedAt      time.Time
+	Mergeable     string
+	MergedBy      *PullRequestAuthor
+	Repository    Repository
+	MergeCommit   Commit
+	TimelineItems `graphql:"timelineItems(first:100, itemTypes:[ISSUE_COMMENT])"`
 }
 
 // PullRequests is a list of GitHub Pull Requests
@@ -71,6 +75,9 @@ type Summary struct {
 
 	// Average time to merge a pull request.
 	MergeAvg float64 `json:"merge_avg"`
+
+	// Average time of how many /test and /retest comments were issued after the last code push.
+	RetestBeforeMergeAvg float64 `json:"retest_before_merge_avg"`
 }
 
 // PullRequestsInfo represents the metrics by day and the summary of the pull requests.
@@ -92,6 +99,9 @@ type Metrics struct {
 
 	// Number of pull requests merged on the target day.
 	MergedPullRequestsCount int `json:"merged_prs_count"`
+
+	// Average of /test and /retest comments were issued after the last code push.
+	RetestBeforeMergeAvg float64 `json:"retest_before_merge_avg"`
 }
 
 // PullRequestOptionsWithRepo adds the Owner and Repository options to a ListPullRequestsOptions type
@@ -106,4 +116,21 @@ func PullRequestOptionsWithRepo(opt ListPullRequestsOptions, owner string, repo 
 
 func (d PullRequestTimeField) String() string {
 	return [...]string{"closed", "created", "merged", "opened"}[d]
+}
+
+type ChatopsPRList []struct {
+	ChatopsPullRequestFragment `graphql:"... on PullRequest"`
+}
+
+type PageInfo struct {
+	StartCursor githubv4.String
+	EndCursor   githubv4.String
+	HasNextPage bool
+}
+
+type ChatopsPullRequestFragment struct {
+	Number        int
+	CreatedAt     time.Time
+	MergedAt      time.Time
+	TimelineItems `graphql:"timelineItems(first:100, itemTypes:[ISSUE_COMMENT])"`
 }

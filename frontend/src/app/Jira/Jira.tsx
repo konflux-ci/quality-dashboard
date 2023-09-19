@@ -734,7 +734,7 @@ const ComposableTableStripedTr: React.FC<{ bugs: any, longVersion: boolean }> = 
                         {columns.map(c => {
                             return (
                                 <Th key={c.column}>
-                                    <input
+                                    <input style={{ width: '100%' }}
                                         key={`${c.column}-search`}
                                         type="search"
                                         placeholder={`Search`}

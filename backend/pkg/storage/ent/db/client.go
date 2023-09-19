@@ -13,6 +13,7 @@ import (
 
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/failure"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
@@ -34,6 +35,8 @@ type Client struct {
 	Bugs *BugsClient
 	// CodeCov is the client for interacting with the CodeCov builders.
 	CodeCov *CodeCovClient
+	// Failure is the client for interacting with the Failure builders.
+	Failure *FailureClient
 	// ProwJobs is the client for interacting with the ProwJobs builders.
 	ProwJobs *ProwJobsClient
 	// ProwSuites is the client for interacting with the ProwSuites builders.
@@ -61,6 +64,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Bugs = NewBugsClient(c.config)
 	c.CodeCov = NewCodeCovClient(c.config)
+	c.Failure = NewFailureClient(c.config)
 	c.ProwJobs = NewProwJobsClient(c.config)
 	c.ProwSuites = NewProwSuitesClient(c.config)
 	c.PullRequests = NewPullRequestsClient(c.config)
@@ -102,6 +106,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:       cfg,
 		Bugs:         NewBugsClient(cfg),
 		CodeCov:      NewCodeCovClient(cfg),
+		Failure:      NewFailureClient(cfg),
 		ProwJobs:     NewProwJobsClient(cfg),
 		ProwSuites:   NewProwSuitesClient(cfg),
 		PullRequests: NewPullRequestsClient(cfg),
@@ -129,6 +134,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		config:       cfg,
 		Bugs:         NewBugsClient(cfg),
 		CodeCov:      NewCodeCovClient(cfg),
+		Failure:      NewFailureClient(cfg),
 		ProwJobs:     NewProwJobsClient(cfg),
 		ProwSuites:   NewProwSuitesClient(cfg),
 		PullRequests: NewPullRequestsClient(cfg),
@@ -144,7 +150,6 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 //		Bugs.
 //		Query().
 //		Count(ctx)
-//
 func (c *Client) Debug() *Client {
 	if c.debug {
 		return c
@@ -166,6 +171,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.Bugs.Use(hooks...)
 	c.CodeCov.Use(hooks...)
+	c.Failure.Use(hooks...)
 	c.ProwJobs.Use(hooks...)
 	c.ProwSuites.Use(hooks...)
 	c.PullRequests.Use(hooks...)
@@ -179,6 +185,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Bugs.Intercept(interceptors...)
 	c.CodeCov.Intercept(interceptors...)
+	c.Failure.Intercept(interceptors...)
 	c.ProwJobs.Intercept(interceptors...)
 	c.ProwSuites.Intercept(interceptors...)
 	c.PullRequests.Intercept(interceptors...)
@@ -194,6 +201,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Bugs.mutate(ctx, m)
 	case *CodeCovMutation:
 		return c.CodeCov.mutate(ctx, m)
+	case *FailureMutation:
+		return c.Failure.mutate(ctx, m)
 	case *ProwJobsMutation:
 		return c.ProwJobs.mutate(ctx, m)
 	case *ProwSuitesMutation:
@@ -476,6 +485,140 @@ func (c *CodeCovClient) mutate(ctx context.Context, m *CodeCovMutation) (Value, 
 		return (&CodeCovDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown CodeCov mutation op: %q", m.Op())
+	}
+}
+
+// FailureClient is a client for the Failure schema.
+type FailureClient struct {
+	config
+}
+
+// NewFailureClient returns a client for the Failure from the given config.
+func NewFailureClient(c config) *FailureClient {
+	return &FailureClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `failure.Hooks(f(g(h())))`.
+func (c *FailureClient) Use(hooks ...Hook) {
+	c.hooks.Failure = append(c.hooks.Failure, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `failure.Intercept(f(g(h())))`.
+func (c *FailureClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Failure = append(c.inters.Failure, interceptors...)
+}
+
+// Create returns a builder for creating a Failure entity.
+func (c *FailureClient) Create() *FailureCreate {
+	mutation := newFailureMutation(c.config, OpCreate)
+	return &FailureCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Failure entities.
+func (c *FailureClient) CreateBulk(builders ...*FailureCreate) *FailureCreateBulk {
+	return &FailureCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Failure.
+func (c *FailureClient) Update() *FailureUpdate {
+	mutation := newFailureMutation(c.config, OpUpdate)
+	return &FailureUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *FailureClient) UpdateOne(f *Failure) *FailureUpdateOne {
+	mutation := newFailureMutation(c.config, OpUpdateOne, withFailure(f))
+	return &FailureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *FailureClient) UpdateOneID(id uuid.UUID) *FailureUpdateOne {
+	mutation := newFailureMutation(c.config, OpUpdateOne, withFailureID(id))
+	return &FailureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Failure.
+func (c *FailureClient) Delete() *FailureDelete {
+	mutation := newFailureMutation(c.config, OpDelete)
+	return &FailureDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *FailureClient) DeleteOne(f *Failure) *FailureDeleteOne {
+	return c.DeleteOneID(f.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *FailureClient) DeleteOneID(id uuid.UUID) *FailureDeleteOne {
+	builder := c.Delete().Where(failure.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &FailureDeleteOne{builder}
+}
+
+// Query returns a query builder for Failure.
+func (c *FailureClient) Query() *FailureQuery {
+	return &FailureQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeFailure},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Failure entity by its id.
+func (c *FailureClient) Get(ctx context.Context, id uuid.UUID) (*Failure, error) {
+	return c.Query().Where(failure.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *FailureClient) GetX(ctx context.Context, id uuid.UUID) *Failure {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryFailures queries the failures edge of a Failure.
+func (c *FailureClient) QueryFailures(f *Failure) *TeamsQuery {
+	query := (&TeamsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(failure.Table, failure.FieldID, id),
+			sqlgraph.To(teams.Table, teams.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, failure.FailuresTable, failure.FailuresColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *FailureClient) Hooks() []Hook {
+	return c.hooks.Failure
+}
+
+// Interceptors returns the client interceptors.
+func (c *FailureClient) Interceptors() []Interceptor {
+	return c.inters.Failure
+}
+
+func (c *FailureClient) mutate(ctx context.Context, m *FailureMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&FailureCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&FailureUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&FailureUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&FailureDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Failure mutation op: %q", m.Op())
 	}
 }
 
@@ -1213,6 +1356,22 @@ func (c *TeamsClient) QueryBugs(t *Teams) *BugsQuery {
 			sqlgraph.From(teams.Table, teams.FieldID, id),
 			sqlgraph.To(bugs.Table, bugs.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, teams.BugsTable, teams.BugsColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFailures queries the failures edge of a Teams.
+func (c *TeamsClient) QueryFailures(t *Teams) *FailureQuery {
+	query := (&FailureClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(teams.Table, teams.FieldID, id),
+			sqlgraph.To(failure.Table, failure.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, teams.FailuresTable, teams.FailuresColumn),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil

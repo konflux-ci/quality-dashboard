@@ -33,6 +33,18 @@ func (f CodeCovFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CodeCovMutation", m)
 }
 
+// The FailureFunc type is an adapter to allow the use of ordinary
+// function as Failure mutator.
+type FailureFunc func(context.Context, *db.FailureMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FailureFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.FailureMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.FailureMutation", m)
+}
+
 // The ProwJobsFunc type is an adapter to allow the use of ordinary
 // function as ProwJobs mutator.
 type ProwJobsFunc func(context.Context, *db.ProwJobsMutation) (db.Value, error)
@@ -200,7 +212,6 @@ func HasFields(field string, fields ...string) Condition {
 // If executes the given hook under condition.
 //
 //	hook.If(ComputeAverage, And(HasFields(...), HasAddedFields(...)))
-//
 func If(hk db.Hook, cond Condition) db.Hook {
 	return func(next db.Mutator) db.Mutator {
 		return db.MutateFunc(func(ctx context.Context, m db.Mutation) (db.Value, error) {
@@ -215,7 +226,6 @@ func If(hk db.Hook, cond Condition) db.Hook {
 // On executes the given hook only for the given operation.
 //
 //	hook.On(Log, db.Delete|db.Create)
-//
 func On(hk db.Hook, op db.Op) db.Hook {
 	return If(hk, HasOp(op))
 }
@@ -223,7 +233,6 @@ func On(hk db.Hook, op db.Op) db.Hook {
 // Unless skips the given hook only for the given operation.
 //
 //	hook.Unless(Log, db.Update|db.UpdateOne)
-//
 func Unless(hk db.Hook, op db.Op) db.Hook {
 	return If(hk, Not(HasOp(op)))
 }
@@ -244,7 +253,6 @@ func FixedError(err error) db.Hook {
 //			Reject(db.Delete|db.Update),
 //		}
 //	}
-//
 func Reject(op db.Op) db.Hook {
 	hk := FixedError(fmt.Errorf("%s operation is not allowed", op))
 	return On(hk, op)

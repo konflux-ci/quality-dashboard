@@ -51,7 +51,7 @@ export const DateTimeRangePicker = (props) => {
         return isValidDate(from) && yyyyMMddFormat(date) >= yyyyMMddFormat(from) ? '' : 'To date must after from date';
     };
 
-    const onFromDateChange = (inputDate, newFromDate) => {
+    const onFromDateChange = (_event, inputDate, newFromDate) => {
         clearQuickRange()
         if (isValidDate(from) && isValidDate(newFromDate) && inputDate === yyyyMMddFormat(newFromDate)) {
             newFromDate.setHours(from.getHours(), to.getMinutes());
@@ -70,7 +70,7 @@ export const DateTimeRangePicker = (props) => {
         }
     };
 
-    const onToDateChange = (inputDate, newToDate) => {
+    const onToDateChange = (_event, inputDate, newToDate) => {
         clearQuickRange()
         if (isValidDate(to) && isValidDate(newToDate) && inputDate === yyyyMMddFormat(newToDate)) {
             newToDate.setHours(to.getHours(), to.getMinutes());
@@ -115,6 +115,7 @@ export const DateTimeRangePicker = (props) => {
                 shouldClose={() => setIsVisible(false)}
                 flipBehavior={["bottom"]}
                 headerContent={<div>Select date time range</div>}
+                position="auto"
                 bodyContent={
                     <Flex style={{ minHeight: 300, display: 'flex' }} direction={{ default: 'row' }}>
                         <Flex direction={{ default: 'column' }}>

@@ -117,6 +117,20 @@ func (pjc *ProwJobsCreate) SetNillableSuitesXMLURL(s *string) *ProwJobsCreate {
 	return pjc
 }
 
+// SetBuildErrorLogs sets the "build_error_logs" field.
+func (pjc *ProwJobsCreate) SetBuildErrorLogs(s string) *ProwJobsCreate {
+	pjc.mutation.SetBuildErrorLogs(s)
+	return pjc
+}
+
+// SetNillableBuildErrorLogs sets the "build_error_logs" field if the given value is not nil.
+func (pjc *ProwJobsCreate) SetNillableBuildErrorLogs(s *string) *ProwJobsCreate {
+	if s != nil {
+		pjc.SetBuildErrorLogs(*s)
+	}
+	return pjc
+}
+
 // SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
 func (pjc *ProwJobsCreate) SetProwJobsID(id string) *ProwJobsCreate {
 	pjc.mutation.SetProwJobsID(id)
@@ -288,6 +302,10 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 		_spec.SetField(prowjobs.FieldSuitesXMLURL, field.TypeString, value)
 		_node.SuitesXMLURL = &value
 	}
+	if value, ok := pjc.mutation.BuildErrorLogs(); ok {
+		_spec.SetField(prowjobs.FieldBuildErrorLogs, field.TypeString, value)
+		_node.BuildErrorLogs = &value
+	}
 	if nodes := pjc.mutation.ProwJobsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -327,7 +345,6 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 //			SetJobID(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (pjc *ProwJobsCreate) OnConflict(opts ...sql.ConflictOption) *ProwJobsUpsertOne {
 	pjc.conflict = opts
 	return &ProwJobsUpsertOne{
@@ -341,7 +358,6 @@ func (pjc *ProwJobsCreate) OnConflict(opts ...sql.ConflictOption) *ProwJobsUpser
 //	client.ProwJobs.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (pjc *ProwJobsCreate) OnConflictColumns(columns ...string) *ProwJobsUpsertOne {
 	pjc.conflict = append(pjc.conflict, sql.ConflictColumns(columns...))
 	return &ProwJobsUpsertOne{
@@ -560,6 +576,24 @@ func (u *ProwJobsUpsert) ClearSuitesXMLURL() *ProwJobsUpsert {
 	return u
 }
 
+// SetBuildErrorLogs sets the "build_error_logs" field.
+func (u *ProwJobsUpsert) SetBuildErrorLogs(v string) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldBuildErrorLogs, v)
+	return u
+}
+
+// UpdateBuildErrorLogs sets the "build_error_logs" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateBuildErrorLogs() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldBuildErrorLogs)
+	return u
+}
+
+// ClearBuildErrorLogs clears the value of the "build_error_logs" field.
+func (u *ProwJobsUpsert) ClearBuildErrorLogs() *ProwJobsUpsert {
+	u.SetNull(prowjobs.FieldBuildErrorLogs)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create.
 // Using this option is equivalent to using:
 //
@@ -568,7 +602,6 @@ func (u *ProwJobsUpsert) ClearSuitesXMLURL() *ProwJobsUpsert {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
-//
 func (u *ProwJobsUpsertOne) UpdateNewValues() *ProwJobsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	return u
@@ -577,10 +610,9 @@ func (u *ProwJobsUpsertOne) UpdateNewValues() *ProwJobsUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//  client.ProwJobs.Create().
-//      OnConflict(sql.ResolveWithIgnore()).
-//      Exec(ctx)
-//
+//	client.ProwJobs.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
 func (u *ProwJobsUpsertOne) Ignore() *ProwJobsUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -833,6 +865,27 @@ func (u *ProwJobsUpsertOne) ClearSuitesXMLURL() *ProwJobsUpsertOne {
 	})
 }
 
+// SetBuildErrorLogs sets the "build_error_logs" field.
+func (u *ProwJobsUpsertOne) SetBuildErrorLogs(v string) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetBuildErrorLogs(v)
+	})
+}
+
+// UpdateBuildErrorLogs sets the "build_error_logs" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateBuildErrorLogs() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateBuildErrorLogs()
+	})
+}
+
+// ClearBuildErrorLogs clears the value of the "build_error_logs" field.
+func (u *ProwJobsUpsertOne) ClearBuildErrorLogs() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearBuildErrorLogs()
+	})
+}
+
 // Exec executes the query.
 func (u *ProwJobsUpsertOne) Exec(ctx context.Context) error {
 	if len(u.create.conflict) == 0 {
@@ -966,7 +1019,6 @@ func (pjcb *ProwJobsCreateBulk) ExecX(ctx context.Context) {
 //			SetJobID(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (pjcb *ProwJobsCreateBulk) OnConflict(opts ...sql.ConflictOption) *ProwJobsUpsertBulk {
 	pjcb.conflict = opts
 	return &ProwJobsUpsertBulk{
@@ -980,7 +1032,6 @@ func (pjcb *ProwJobsCreateBulk) OnConflict(opts ...sql.ConflictOption) *ProwJobs
 //	client.ProwJobs.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (pjcb *ProwJobsCreateBulk) OnConflictColumns(columns ...string) *ProwJobsUpsertBulk {
 	pjcb.conflict = append(pjcb.conflict, sql.ConflictColumns(columns...))
 	return &ProwJobsUpsertBulk{
@@ -1002,7 +1053,6 @@ type ProwJobsUpsertBulk struct {
 //			sql.ResolveWithNewValues(),
 //		).
 //		Exec(ctx)
-//
 func (u *ProwJobsUpsertBulk) UpdateNewValues() *ProwJobsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	return u
@@ -1014,7 +1064,6 @@ func (u *ProwJobsUpsertBulk) UpdateNewValues() *ProwJobsUpsertBulk {
 //	client.ProwJobs.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
-//
 func (u *ProwJobsUpsertBulk) Ignore() *ProwJobsUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -1264,6 +1313,27 @@ func (u *ProwJobsUpsertBulk) UpdateSuitesXMLURL() *ProwJobsUpsertBulk {
 func (u *ProwJobsUpsertBulk) ClearSuitesXMLURL() *ProwJobsUpsertBulk {
 	return u.Update(func(s *ProwJobsUpsert) {
 		s.ClearSuitesXMLURL()
+	})
+}
+
+// SetBuildErrorLogs sets the "build_error_logs" field.
+func (u *ProwJobsUpsertBulk) SetBuildErrorLogs(v string) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetBuildErrorLogs(v)
+	})
+}
+
+// UpdateBuildErrorLogs sets the "build_error_logs" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateBuildErrorLogs() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateBuildErrorLogs()
+	})
+}
+
+// ClearBuildErrorLogs clears the value of the "build_error_logs" field.
+func (u *ProwJobsUpsertBulk) ClearBuildErrorLogs() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearBuildErrorLogs()
 	})
 }
 

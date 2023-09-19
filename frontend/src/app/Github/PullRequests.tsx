@@ -21,6 +21,7 @@ export interface Summary {
   open_prs: number;
   merged_prs: number;
   merge_avg: string;
+  retest_before_merge_avg: number;
 }
 
 export interface Metrics {
@@ -29,7 +30,7 @@ export interface Metrics {
   merged_prs_count: number;
 }
 
-export const help = (desc : string) => {
+export const help = (desc: string) => {
   return (
     <Popover
       bodyContent={
@@ -102,6 +103,7 @@ export const PullRequestsGraphic = (props) => {
   const legendData = [
     { childName: 'created prs', name: 'Created PRs' },
     { childName: 'merged prs', name: 'Merged PRs' },
+    { childName: 'retest before merge avg', name: 'Retest Before Merge Avg' },
   ];
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -118,6 +120,7 @@ export const PullRequestsGraphic = (props) => {
   let beautifiedData: DashboardLineChartData = {
     CREATED_PRS: { data: [] },
     MERGED_PRS: { data: [] },
+    RETEST_BEFORE_MERGE_AVG: { data: [] },
   };
 
   props.metrics.forEach((metric) => {
@@ -130,6 +133,11 @@ export const PullRequestsGraphic = (props) => {
       name: 'merged_prs',
       x: new Date(metric.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: '2-digit' }),
       y: metric.merged_prs_count,
+    });
+    beautifiedData['RETEST_BEFORE_MERGE_AVG'].data.push({
+      name: 'retest_before_merge_avg',
+      x: new Date(metric.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: '2-digit' }),
+      y: props.summary.retest_before_merge_avg > 0.01 ? metric.retest_before_merge_avg : 0,
     });
   });
 

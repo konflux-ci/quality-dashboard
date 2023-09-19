@@ -48,6 +48,28 @@ func (ccc *CodeCovCreate) SetAverageRetestsToMerge(f float64) *CodeCovCreate {
 	return ccc
 }
 
+// SetNillableAverageRetestsToMerge sets the "average_retests_to_merge" field if the given value is not nil.
+func (ccc *CodeCovCreate) SetNillableAverageRetestsToMerge(f *float64) *CodeCovCreate {
+	if f != nil {
+		ccc.SetAverageRetestsToMerge(*f)
+	}
+	return ccc
+}
+
+// SetCoverageTrend sets the "coverage_trend" field.
+func (ccc *CodeCovCreate) SetCoverageTrend(s string) *CodeCovCreate {
+	ccc.mutation.SetCoverageTrend(s)
+	return ccc
+}
+
+// SetNillableCoverageTrend sets the "coverage_trend" field if the given value is not nil.
+func (ccc *CodeCovCreate) SetNillableCoverageTrend(s *string) *CodeCovCreate {
+	if s != nil {
+		ccc.SetCoverageTrend(*s)
+	}
+	return ccc
+}
+
 // SetID sets the "id" field.
 func (ccc *CodeCovCreate) SetID(u uuid.UUID) *CodeCovCreate {
 	ccc.mutation.SetID(u)
@@ -138,9 +160,6 @@ func (ccc *CodeCovCreate) check() error {
 	if _, ok := ccc.mutation.CoveragePercentage(); !ok {
 		return &ValidationError{Name: "coverage_percentage", err: errors.New(`db: missing required field "CodeCov.coverage_percentage"`)}
 	}
-	if _, ok := ccc.mutation.AverageRetestsToMerge(); !ok {
-		return &ValidationError{Name: "average_retests_to_merge", err: errors.New(`db: missing required field "CodeCov.average_retests_to_merge"`)}
-	}
 	return nil
 }
 
@@ -197,7 +216,11 @@ func (ccc *CodeCovCreate) createSpec() (*CodeCov, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := ccc.mutation.AverageRetestsToMerge(); ok {
 		_spec.SetField(codecov.FieldAverageRetestsToMerge, field.TypeFloat64, value)
-		_node.AverageRetestsToMerge = value
+		_node.AverageRetestsToMerge = &value
+	}
+	if value, ok := ccc.mutation.CoverageTrend(); ok {
+		_spec.SetField(codecov.FieldCoverageTrend, field.TypeString, value)
+		_node.CoverageTrend = &value
 	}
 	if nodes := ccc.mutation.CodecovIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -238,7 +261,6 @@ func (ccc *CodeCovCreate) createSpec() (*CodeCov, *sqlgraph.CreateSpec) {
 //			SetRepositoryName(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (ccc *CodeCovCreate) OnConflict(opts ...sql.ConflictOption) *CodeCovUpsertOne {
 	ccc.conflict = opts
 	return &CodeCovUpsertOne{
@@ -252,7 +274,6 @@ func (ccc *CodeCovCreate) OnConflict(opts ...sql.ConflictOption) *CodeCovUpsertO
 //	client.CodeCov.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (ccc *CodeCovCreate) OnConflictColumns(columns ...string) *CodeCovUpsertOne {
 	ccc.conflict = append(ccc.conflict, sql.ConflictColumns(columns...))
 	return &CodeCovUpsertOne{
@@ -333,6 +354,30 @@ func (u *CodeCovUpsert) AddAverageRetestsToMerge(v float64) *CodeCovUpsert {
 	return u
 }
 
+// ClearAverageRetestsToMerge clears the value of the "average_retests_to_merge" field.
+func (u *CodeCovUpsert) ClearAverageRetestsToMerge() *CodeCovUpsert {
+	u.SetNull(codecov.FieldAverageRetestsToMerge)
+	return u
+}
+
+// SetCoverageTrend sets the "coverage_trend" field.
+func (u *CodeCovUpsert) SetCoverageTrend(v string) *CodeCovUpsert {
+	u.Set(codecov.FieldCoverageTrend, v)
+	return u
+}
+
+// UpdateCoverageTrend sets the "coverage_trend" field to the value that was provided on create.
+func (u *CodeCovUpsert) UpdateCoverageTrend() *CodeCovUpsert {
+	u.SetExcluded(codecov.FieldCoverageTrend)
+	return u
+}
+
+// ClearCoverageTrend clears the value of the "coverage_trend" field.
+func (u *CodeCovUpsert) ClearCoverageTrend() *CodeCovUpsert {
+	u.SetNull(codecov.FieldCoverageTrend)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -344,7 +389,6 @@ func (u *CodeCovUpsert) AddAverageRetestsToMerge(v float64) *CodeCovUpsert {
 //			}),
 //		).
 //		Exec(ctx)
-//
 func (u *CodeCovUpsertOne) UpdateNewValues() *CodeCovUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -358,10 +402,9 @@ func (u *CodeCovUpsertOne) UpdateNewValues() *CodeCovUpsertOne {
 // Ignore sets each column to itself in case of conflict.
 // Using this option is equivalent to using:
 //
-//  client.CodeCov.Create().
-//      OnConflict(sql.ResolveWithIgnore()).
-//      Exec(ctx)
-//
+//	client.CodeCov.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
 func (u *CodeCovUpsertOne) Ignore() *CodeCovUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -450,6 +493,34 @@ func (u *CodeCovUpsertOne) AddAverageRetestsToMerge(v float64) *CodeCovUpsertOne
 func (u *CodeCovUpsertOne) UpdateAverageRetestsToMerge() *CodeCovUpsertOne {
 	return u.Update(func(s *CodeCovUpsert) {
 		s.UpdateAverageRetestsToMerge()
+	})
+}
+
+// ClearAverageRetestsToMerge clears the value of the "average_retests_to_merge" field.
+func (u *CodeCovUpsertOne) ClearAverageRetestsToMerge() *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.ClearAverageRetestsToMerge()
+	})
+}
+
+// SetCoverageTrend sets the "coverage_trend" field.
+func (u *CodeCovUpsertOne) SetCoverageTrend(v string) *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.SetCoverageTrend(v)
+	})
+}
+
+// UpdateCoverageTrend sets the "coverage_trend" field to the value that was provided on create.
+func (u *CodeCovUpsertOne) UpdateCoverageTrend() *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.UpdateCoverageTrend()
+	})
+}
+
+// ClearCoverageTrend clears the value of the "coverage_trend" field.
+func (u *CodeCovUpsertOne) ClearCoverageTrend() *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.ClearCoverageTrend()
 	})
 }
 
@@ -588,7 +659,6 @@ func (cccb *CodeCovCreateBulk) ExecX(ctx context.Context) {
 //			SetRepositoryName(v+v).
 //		}).
 //		Exec(ctx)
-//
 func (cccb *CodeCovCreateBulk) OnConflict(opts ...sql.ConflictOption) *CodeCovUpsertBulk {
 	cccb.conflict = opts
 	return &CodeCovUpsertBulk{
@@ -602,7 +672,6 @@ func (cccb *CodeCovCreateBulk) OnConflict(opts ...sql.ConflictOption) *CodeCovUp
 //	client.CodeCov.Create().
 //		OnConflict(sql.ConflictColumns(columns...)).
 //		Exec(ctx)
-//
 func (cccb *CodeCovCreateBulk) OnConflictColumns(columns ...string) *CodeCovUpsertBulk {
 	cccb.conflict = append(cccb.conflict, sql.ConflictColumns(columns...))
 	return &CodeCovUpsertBulk{
@@ -627,7 +696,6 @@ type CodeCovUpsertBulk struct {
 //			}),
 //		).
 //		Exec(ctx)
-//
 func (u *CodeCovUpsertBulk) UpdateNewValues() *CodeCovUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
 	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
@@ -646,7 +714,6 @@ func (u *CodeCovUpsertBulk) UpdateNewValues() *CodeCovUpsertBulk {
 //	client.CodeCov.Create().
 //		OnConflict(sql.ResolveWithIgnore()).
 //		Exec(ctx)
-//
 func (u *CodeCovUpsertBulk) Ignore() *CodeCovUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
 	return u
@@ -735,6 +802,34 @@ func (u *CodeCovUpsertBulk) AddAverageRetestsToMerge(v float64) *CodeCovUpsertBu
 func (u *CodeCovUpsertBulk) UpdateAverageRetestsToMerge() *CodeCovUpsertBulk {
 	return u.Update(func(s *CodeCovUpsert) {
 		s.UpdateAverageRetestsToMerge()
+	})
+}
+
+// ClearAverageRetestsToMerge clears the value of the "average_retests_to_merge" field.
+func (u *CodeCovUpsertBulk) ClearAverageRetestsToMerge() *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.ClearAverageRetestsToMerge()
+	})
+}
+
+// SetCoverageTrend sets the "coverage_trend" field.
+func (u *CodeCovUpsertBulk) SetCoverageTrend(v string) *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.SetCoverageTrend(v)
+	})
+}
+
+// UpdateCoverageTrend sets the "coverage_trend" field to the value that was provided on create.
+func (u *CodeCovUpsertBulk) UpdateCoverageTrend() *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.UpdateCoverageTrend()
+	})
+}
+
+// ClearCoverageTrend clears the value of the "coverage_trend" field.
+func (u *CodeCovUpsertBulk) ClearCoverageTrend() *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.ClearCoverageTrend()
 	})
 }
 

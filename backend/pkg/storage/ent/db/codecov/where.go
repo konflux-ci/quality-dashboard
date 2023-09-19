@@ -74,6 +74,11 @@ func AverageRetestsToMerge(v float64) predicate.CodeCov {
 	return predicate.CodeCov(sql.FieldEQ(FieldAverageRetestsToMerge, v))
 }
 
+// CoverageTrend applies equality check predicate on the "coverage_trend" field. It's identical to CoverageTrendEQ.
+func CoverageTrend(v string) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldEQ(FieldCoverageTrend, v))
+}
+
 // RepositoryNameEQ applies the EQ predicate on the "repository_name" field.
 func RepositoryNameEQ(v string) predicate.CodeCov {
 	return predicate.CodeCov(sql.FieldEQ(FieldRepositoryName, v))
@@ -282,6 +287,91 @@ func AverageRetestsToMergeLT(v float64) predicate.CodeCov {
 // AverageRetestsToMergeLTE applies the LTE predicate on the "average_retests_to_merge" field.
 func AverageRetestsToMergeLTE(v float64) predicate.CodeCov {
 	return predicate.CodeCov(sql.FieldLTE(FieldAverageRetestsToMerge, v))
+}
+
+// AverageRetestsToMergeIsNil applies the IsNil predicate on the "average_retests_to_merge" field.
+func AverageRetestsToMergeIsNil() predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldIsNull(FieldAverageRetestsToMerge))
+}
+
+// AverageRetestsToMergeNotNil applies the NotNil predicate on the "average_retests_to_merge" field.
+func AverageRetestsToMergeNotNil() predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldNotNull(FieldAverageRetestsToMerge))
+}
+
+// CoverageTrendEQ applies the EQ predicate on the "coverage_trend" field.
+func CoverageTrendEQ(v string) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldEQ(FieldCoverageTrend, v))
+}
+
+// CoverageTrendNEQ applies the NEQ predicate on the "coverage_trend" field.
+func CoverageTrendNEQ(v string) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldNEQ(FieldCoverageTrend, v))
+}
+
+// CoverageTrendIn applies the In predicate on the "coverage_trend" field.
+func CoverageTrendIn(vs ...string) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldIn(FieldCoverageTrend, vs...))
+}
+
+// CoverageTrendNotIn applies the NotIn predicate on the "coverage_trend" field.
+func CoverageTrendNotIn(vs ...string) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldNotIn(FieldCoverageTrend, vs...))
+}
+
+// CoverageTrendGT applies the GT predicate on the "coverage_trend" field.
+func CoverageTrendGT(v string) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldGT(FieldCoverageTrend, v))
+}
+
+// CoverageTrendGTE applies the GTE predicate on the "coverage_trend" field.
+func CoverageTrendGTE(v string) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldGTE(FieldCoverageTrend, v))
+}
+
+// CoverageTrendLT applies the LT predicate on the "coverage_trend" field.
+func CoverageTrendLT(v string) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldLT(FieldCoverageTrend, v))
+}
+
+// CoverageTrendLTE applies the LTE predicate on the "coverage_trend" field.
+func CoverageTrendLTE(v string) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldLTE(FieldCoverageTrend, v))
+}
+
+// CoverageTrendContains applies the Contains predicate on the "coverage_trend" field.
+func CoverageTrendContains(v string) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldContains(FieldCoverageTrend, v))
+}
+
+// CoverageTrendHasPrefix applies the HasPrefix predicate on the "coverage_trend" field.
+func CoverageTrendHasPrefix(v string) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldHasPrefix(FieldCoverageTrend, v))
+}
+
+// CoverageTrendHasSuffix applies the HasSuffix predicate on the "coverage_trend" field.
+func CoverageTrendHasSuffix(v string) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldHasSuffix(FieldCoverageTrend, v))
+}
+
+// CoverageTrendIsNil applies the IsNil predicate on the "coverage_trend" field.
+func CoverageTrendIsNil() predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldIsNull(FieldCoverageTrend))
+}
+
+// CoverageTrendNotNil applies the NotNil predicate on the "coverage_trend" field.
+func CoverageTrendNotNil() predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldNotNull(FieldCoverageTrend))
+}
+
+// CoverageTrendEqualFold applies the EqualFold predicate on the "coverage_trend" field.
+func CoverageTrendEqualFold(v string) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldEqualFold(FieldCoverageTrend, v))
+}
+
+// CoverageTrendContainsFold applies the ContainsFold predicate on the "coverage_trend" field.
+func CoverageTrendContainsFold(v string) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldContainsFold(FieldCoverageTrend, v))
 }
 
 // HasCodecov applies the HasEdge predicate on the "codecov" edge.

@@ -44,7 +44,8 @@ var (
 		{Name: "repository_name", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "git_organization", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "coverage_percentage", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "numeric"}},
-		{Name: "average_retests_to_merge", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "average_retests_to_merge", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "coverage_trend", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "repository_codecov", Type: field.TypeString, Nullable: true, Size: 25},
 	}
 	// CodeCovsTable holds the schema information for the "code_covs" table.
@@ -55,8 +56,30 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "code_covs_repositories_codecov",
-				Columns:    []*schema.Column{CodeCovsColumns[5]},
+				Columns:    []*schema.Column{CodeCovsColumns[6]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// FailuresColumns holds the columns for the "failures" table.
+	FailuresColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "jira_key", Type: field.TypeString, Unique: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "jira_status", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "error_message", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "teams_failures", Type: field.TypeUUID, Nullable: true},
+	}
+	// FailuresTable holds the schema information for the "failures" table.
+	FailuresTable = &schema.Table{
+		Name:       "failures",
+		Columns:    FailuresColumns,
+		PrimaryKey: []*schema.Column{FailuresColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "failures_teams_failures",
+				Columns:    []*schema.Column{FailuresColumns[4]},
+				RefColumns: []*schema.Column{TeamsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 		},
@@ -77,6 +100,7 @@ var (
 		{Name: "ci_failed", Type: field.TypeInt16, SchemaType: map[string]string{"postgres": "numeric"}},
 		{Name: "e2e_failed_test_messages", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "suites_xml_url", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "build_error_logs", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "repository_prow_jobs", Type: field.TypeString, Nullable: true, Size: 25},
 	}
 	// ProwJobsTable holds the schema information for the "prow_jobs" table.
@@ -87,7 +111,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "prow_jobs_repositories_prow_jobs",
-				Columns:    []*schema.Column{ProwJobsColumns[14]},
+				Columns:    []*schema.Column{ProwJobsColumns[15]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -129,6 +153,8 @@ var (
 		{Name: "state", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "author", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "title", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "merge_commit", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "retest_before_merge_count", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "repository_prs", Type: field.TypeString, Nullable: true, Size: 25},
 	}
 	// PullRequestsTable holds the schema information for the "pull_requests" table.
@@ -139,7 +165,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "pull_requests_repositories_prs",
-				Columns:    []*schema.Column{PullRequestsColumns[11]},
+				Columns:    []*schema.Column{PullRequestsColumns[13]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -210,6 +236,7 @@ var (
 	Tables = []*schema.Table{
 		BugsTable,
 		CodeCovsTable,
+		FailuresTable,
 		ProwJobsTable,
 		ProwSuitesTable,
 		PullRequestsTable,
@@ -222,6 +249,7 @@ var (
 func init() {
 	BugsTable.ForeignKeys[0].RefTable = TeamsTable
 	CodeCovsTable.ForeignKeys[0].RefTable = RepositoriesTable
+	FailuresTable.ForeignKeys[0].RefTable = TeamsTable
 	ProwJobsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	ProwSuitesTable.ForeignKeys[0].RefTable = RepositoriesTable
 	PullRequestsTable.ForeignKeys[0].RefTable = RepositoriesTable

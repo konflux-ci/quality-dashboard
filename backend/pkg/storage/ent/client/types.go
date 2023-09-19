@@ -28,17 +28,24 @@ func toStorageWorkflows(p *db.Workflows) repoV1Alpha1.Workflow {
 	}
 }
 
-func toStorageRepositoryAllInfo(p *db.Repository, c *db.CodeCov) storage.RepositoryQualityInfo {
+func toStorageRepositoryAllInfo(p *db.Repository, c *db.CodeCov, prs repoV1Alpha1.PullRequestsInfo, workflows []repoV1Alpha1.Workflow) storage.RepositoryQualityInfo {
+	covTrend := "n/a"
+	if c.CoverageTrend != nil {
+		covTrend = *c.CoverageTrend
+	}
+
 	return storage.RepositoryQualityInfo{
 		GitOrganization: p.GitOrganization,
 		RepositoryName:  p.RepositoryName,
 		GitURL:          p.GitURL,
 		Description:     p.Description,
 		CodeCoverage: coverageV1Alpha1.Coverage{
-			RepositoryName:             p.RepositoryName,
-			GitOrganization:            p.GitOrganization,
-			CoveragePercentage:         c.CoveragePercentage,
-			AverageToRetestPullRequest: c.AverageRetestsToMerge,
+			RepositoryName:     p.RepositoryName,
+			GitOrganization:    p.GitOrganization,
+			CoveragePercentage: c.CoveragePercentage,
+			CoverageTrend:      covTrend,
 		},
+		PullRequests: prs,
+		Workflows:    workflows,
 	}
 }

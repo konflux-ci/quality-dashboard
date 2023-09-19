@@ -31,6 +31,10 @@ const (
 	FieldAuthor = "author"
 	// FieldTitle holds the string denoting the title field in the database.
 	FieldTitle = "title"
+	// FieldMergeCommit holds the string denoting the merge_commit field in the database.
+	FieldMergeCommit = "merge_commit"
+	// FieldRetestBeforeMergeCount holds the string denoting the retest_before_merge_count field in the database.
+	FieldRetestBeforeMergeCount = "retest_before_merge_count"
 	// EdgePrs holds the string denoting the prs edge name in mutations.
 	EdgePrs = "prs"
 	// Table holds the table name of the pullrequests in the database.
@@ -57,6 +61,8 @@ var Columns = []string{
 	FieldState,
 	FieldAuthor,
 	FieldTitle,
+	FieldMergeCommit,
+	FieldRetestBeforeMergeCount,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "pull_requests"

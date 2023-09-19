@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	githubV1Alhpa1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/constants"
 	"github.com/shurcooL/githubv4"
 )
@@ -14,7 +15,7 @@ import (
 // ChatopsMergedPRsBetween returns a slice of PRs that were merged in the time
 // frame defined by source as parameter with data
 // required by chatops tools. EG of source: redhat-appstudio/e2e-tests
-func (gc *Github) ChatopsMergedPRsBetween(source string) (ChatopsPRList, error) {
+func (gc *Github) ChatopsMergedPRsBetween(source string) (githubV1Alhpa1.ChatopsPRList, error) {
 	currentTime := time.Now()
 	mergedQueryString := fmt.Sprintf("repo:%s type:pr merged:%s..%s",
 		source,
@@ -59,7 +60,7 @@ func (gc *Github) ChatopsMergedPRsBetween(source string) (ChatopsPRList, error) 
 }
 */
 
-func (c *Github) chatopsPRQuery(query string) (ChatopsPRList, error) {
+func (c *Github) chatopsPRQuery(query string) (githubV1Alhpa1.ChatopsPRList, error) {
 	variables := map[string]interface{}{
 		"querystring": githubv4.String(query),
 	}
@@ -67,8 +68,8 @@ func (c *Github) chatopsPRQuery(query string) (ChatopsPRList, error) {
 	var mergedQuery struct {
 		Search struct {
 			IssueCount int
-			PageInfo   PageInfo
-			Nodes      ChatopsPRList
+			PageInfo   githubV1Alhpa1.PageInfo
+			Nodes      githubV1Alhpa1.ChatopsPRList
 		} `graphql:"search(query: $querystring, type: ISSUE, first:100)"`
 	}
 
@@ -87,7 +88,7 @@ func (gc *Github) RetestsToMerge(source string) (float64, error) {
 	}
 
 	for _, prItem := range items {
-		totalRetests += RetestComments(&prItem.ChatopsPullRequestFragment)
+		totalRetests += RetestComments(&prItem.ChatopsPullRequestFragment.TimelineItems)
 	}
 
 	average = totalRetests / float64(len(items))
@@ -103,11 +104,11 @@ func (gc *Github) RetestsToMerge(source string) (float64, error) {
 
 // RetestComments returns the number of /retest or /test comments a PR received
 // after the last commit or force push.
-func RetestComments(pr *ChatopsPullRequestFragment) float64 {
-	var total float64
-	lastPush := determineLastPush(pr)
+func RetestComments(items *githubV1Alhpa1.TimelineItems) float64 {
+	var total float64 = 0
+	lastPush := determineLastPush(items)
 
-	for _, timelineItem := range pr.TimelineItems.Nodes {
+	for _, timelineItem := range items.Nodes {
 		if isRetestCommentAfterLastPush(timelineItem, lastPush) {
 			total++
 		}
@@ -115,11 +116,11 @@ func RetestComments(pr *ChatopsPullRequestFragment) float64 {
 	return total
 }
 
-func determineLastPush(pr *ChatopsPullRequestFragment) time.Time {
+func determineLastPush(pr *githubV1Alhpa1.TimelineItems) time.Time {
 	lastPush := zeroDate
 
 	var itemDate time.Time
-	for _, timelineItem := range pr.TimelineItems.Nodes {
+	for _, timelineItem := range pr.Nodes {
 		if isCommit(timelineItem) {
 			itemDate = timelineItem.PullRequestCommitFragment.Commit.CommittedDate
 		} else if isHeadRefForcePush(timelineItem) {
@@ -134,21 +135,21 @@ func determineLastPush(pr *ChatopsPullRequestFragment) time.Time {
 	return lastPush
 }
 
-func isCommit(timelineItem TimelineItem) bool {
-	return timelineItem.PullRequestCommitFragment != PullRequestCommitFragment{}
+func isCommit(timelineItem githubV1Alhpa1.TimelineItem) bool {
+	return timelineItem.PullRequestCommitFragment != githubV1Alhpa1.PullRequestCommitFragment{}
 }
 
-func isHeadRefForcePush(timelineItem TimelineItem) bool {
+func isHeadRefForcePush(timelineItem githubV1Alhpa1.TimelineItem) bool {
 	return timelineItem.HeadRefForcePushFragment.Actor.Login != ""
 }
 
-func isBaseRefForcePush(timelineItem TimelineItem) bool {
+func isBaseRefForcePush(timelineItem githubV1Alhpa1.TimelineItem) bool {
 	return timelineItem.BaseRefForcePushFragment.Actor.Login != ""
 
 }
 
-func isRetestCommentAfterLastPush(timelineItem TimelineItem, lastPush time.Time) bool {
-	return timelineItem.IssueCommentFragment != IssueCommentFragment{} &&
+func isRetestCommentAfterLastPush(timelineItem githubV1Alhpa1.TimelineItem, lastPush time.Time) bool {
+	return timelineItem.IssueCommentFragment != githubV1Alhpa1.IssueCommentFragment{} &&
 		timelineItem.IssueCommentFragment.CreatedAt.After(lastPush) &&
 		(strings.HasPrefix(timelineItem.IssueCommentFragment.BodyText, "/retest") ||
 			strings.HasPrefix(timelineItem.IssueCommentFragment.BodyText, "/test"))

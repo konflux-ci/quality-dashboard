@@ -38,6 +38,10 @@ type PullRequests struct {
 	Author string `json:"author,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
+	// MergeCommit holds the value of the "merge_commit" field.
+	MergeCommit *string `json:"merge_commit,omitempty"`
+	// RetestBeforeMergeCount holds the value of the "retest_before_merge_count" field.
+	RetestBeforeMergeCount *float64 `json:"retest_before_merge_count,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PullRequestsQuery when eager-loading is set.
 	Edges          PullRequestsEdges `json:"edges"`
@@ -71,9 +75,11 @@ func (*PullRequests) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case pullrequests.FieldRetestBeforeMergeCount:
+			values[i] = new(sql.NullFloat64)
 		case pullrequests.FieldID, pullrequests.FieldNumber:
 			values[i] = new(sql.NullInt64)
-		case pullrequests.FieldRepositoryName, pullrequests.FieldRepositoryOrganization, pullrequests.FieldState, pullrequests.FieldAuthor, pullrequests.FieldTitle:
+		case pullrequests.FieldRepositoryName, pullrequests.FieldRepositoryOrganization, pullrequests.FieldState, pullrequests.FieldAuthor, pullrequests.FieldTitle, pullrequests.FieldMergeCommit:
 			values[i] = new(sql.NullString)
 		case pullrequests.FieldCreatedAt, pullrequests.FieldClosedAt, pullrequests.FieldMergedAt:
 			values[i] = new(sql.NullTime)
@@ -162,6 +168,20 @@ func (pr *PullRequests) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pr.Title = value.String
 			}
+		case pullrequests.FieldMergeCommit:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field merge_commit", values[i])
+			} else if value.Valid {
+				pr.MergeCommit = new(string)
+				*pr.MergeCommit = value.String
+			}
+		case pullrequests.FieldRetestBeforeMergeCount:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field retest_before_merge_count", values[i])
+			} else if value.Valid {
+				pr.RetestBeforeMergeCount = new(float64)
+				*pr.RetestBeforeMergeCount = value.Float64
+			}
 		case pullrequests.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field repository_prs", values[i])
@@ -231,6 +251,16 @@ func (pr *PullRequests) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("title=")
 	builder.WriteString(pr.Title)
+	builder.WriteString(", ")
+	if v := pr.MergeCommit; v != nil {
+		builder.WriteString("merge_commit=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := pr.RetestBeforeMergeCount; v != nil {
+		builder.WriteString("retest_before_merge_count=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }
