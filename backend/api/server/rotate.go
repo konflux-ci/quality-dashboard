@@ -71,17 +71,6 @@ func staticRotationStrategy() rotationStrategy {
 	}
 }
 
-/**
-bugs := s.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", teams.JiraKeys))
-if err := s.Storage.CreateJiraBug(bugs, teams); err != nil {
-	return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-		Message:    err.Error(),
-		StatusCode: http.StatusInternalServerError,
-	})
-}
-
-*/
-
 func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
 	bugs := s.cfg.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys))
 	if err := s.cfg.Storage.CreateJiraBug(bugs, team); err != nil {
