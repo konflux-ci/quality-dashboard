@@ -7,7 +7,6 @@ require (
 	github.com/andygrunwald/go-jira v1.16.0
 	github.com/coreos/go-oidc v2.1.0+incompatible
 	github.com/devfile/library v1.3.0
-	github.com/etherlabsio/healthcheck/v2 v2.0.0
 	github.com/google/go-github/v44 v44.1.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
