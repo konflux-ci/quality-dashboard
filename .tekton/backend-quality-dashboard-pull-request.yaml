@@ -45,6 +45,8 @@ spec:
         - name: kind
           value: task
         resolver: bundles
+
+
     - name: show-summary
       params:
       - name: pipelinerun-name
@@ -60,7 +62,7 @@ spec:
         - name: name
           value: summary
         - name: bundle
-          value: quay.io/redhat-appstudio-tekton-catalog/task-summary:0.1@sha256:9d43202379cb83358942ce2e936c0297e30faaa0c73811324318c6260a6edc25
+          value: quay.io/redhat-appstudio-tekton-catalog/task-summary:0.1@sha256:e69f53a3991d7088d8aa2827365ab761ab7524d4269f296b4a78b0f085789d30
         - name: kind
           value: task
         resolver: bundles
@@ -76,13 +78,11 @@ spec:
       name: output-image
       type: string
     - default: .
-      description: Path to the source code of an application's component from where
-        to build image.
+      description: The path to your source code
       name: path-context
       type: string
     - default: Dockerfile
-      description: Path to the Dockerfile inside the context specified by parameter
-        path-context
+      description: Path to the Dockerfile
       name: dockerfile
       type: string
     - default: "false"
@@ -203,6 +203,62 @@ spec:
       workspaces:
       - name: source
         workspace: workspace
+    - name: golang-cilint
+      workspaces:
+      - name: source
+        workspace: workspace
+      runAfter:
+      - clone-repository
+      taskSpec:
+        params:
+        - name: context
+          description: path to the directory to use as context.
+          default: "."
+        - name: flags
+          description: flags to use for the test command
+          default: --verbose
+        - name: version
+          description: golangci-lint version to use
+          default: "v1.39"
+        - name: GOOS
+          description: "running operating system target"
+          default: linux
+        - name: GOARCH
+          description: "running architecture target"
+          default: amd64
+        - name: GO111MODULE
+          description: "value of module support"
+          default: auto
+        - name: GOCACHE
+          description: "Go caching directory path"
+          default: ""
+        - name: GOMODCACHE
+          description: "Go mod caching directory path"
+          default: ""
+        - name: GOLANGCI_LINT_CACHE
+          description: "golangci-lint cache path"
+          default: ""
+        steps:
+        - name: lint
+          image: docker.io/golangci/golangci-lint:$(params.version)
+          script: |
+            ls -larth
+            golangci-lint run --version
+          env:
+          - name: GOPATH
+            value: /workspace
+          - name: GOOS
+            value: "$(params.GOOS)"
+          - name: GOARCH
+            value: "$(params.GOARCH)"
+          - name: GO111MODULE
+            value: "$(params.GO111MODULE)"
+          - name: GOCACHE
+            value: "$(params.GOCACHE)"
+          - name: GOMODCACHE
+            value: "$(params.GOMODCACHE)"
+          - name: GOLANGCI_LINT_CACHE
+            value: "$(params.GOLANGCI_LINT_CACHE)"
     - name: build-container
       params:
       - name: IMAGE
@@ -220,13 +276,13 @@ spec:
       - name: COMMIT_SHA
         value: $(tasks.clone-repository.results.commit)
       runAfter:
-      - prefetch-dependencies
+      - golang-cilint
       taskRef:
         params:
         - name: name
           value: buildah
         - name: bundle
-          value: quay.io/redhat-appstudio-tekton-catalog/task-buildah:0.1@sha256:97f21661e237735af04b37feeeaedd328424bfa0ebd4cd0f79ac39cde17137f6
+          value: quay.io/redhat-appstudio-tekton-catalog/task-buildah:0.1@sha256:e607665f13adadbd4a8d0b32768fc1b24a90884d867ecb681e15c5bc25434f71
         - name: kind
           value: task
         resolver: bundles
@@ -272,7 +328,7 @@ spec:
         - name: name
           value: deprecated-image-check
         - name: bundle
-          value: quay.io/redhat-appstudio-tekton-catalog/task-deprecated-image-check:0.3@sha256:0f62d3583a2aad17af1e8af511751701a926bf53835574d47781a40945b59381
+          value: quay.io/redhat-appstudio-tekton-catalog/task-deprecated-image-check:0.3@sha256:2892e53a43f66d0166811defd25f539f804927940df5ad963077027bcdd93ad6
         - name: kind
           value: task
         resolver: bundles
@@ -311,7 +367,7 @@ spec:
         - name: name
           value: sast-snyk-check
         - name: bundle
-          value: quay.io/redhat-appstudio-tekton-catalog/task-sast-snyk-check:0.1@sha256:dbddd5c8d413245cdd5f9666cf5129e43f5841ddece3fdf57d7dc18bf8fd988a
+          value: quay.io/redhat-appstudio-tekton-catalog/task-sast-snyk-check:0.1@sha256:9dcd450b454705b9fe22c5f8f7bb7305cebc3cb73e783b85e047f7e721994189
         - name: kind
           value: task
         resolver: bundles
