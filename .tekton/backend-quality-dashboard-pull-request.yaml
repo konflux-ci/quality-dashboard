@@ -237,9 +237,6 @@ spec:
         default: ""
       runAfter:
       - prefetch-dependencies
-      workspaces:
-      - name: source
-        mountPath: /workspace/src/$(params.package)
       steps:
       - name: lint
         image: docker.io/golangci/golangci-lint:$(params.version)
@@ -279,7 +276,7 @@ spec:
       - name: COMMIT_SHA
         value: $(tasks.clone-repository.results.commit)
       runAfter:
-      - prefetch-dependencies
+      - golangci-lint
       taskRef:
         params:
         - name: name
