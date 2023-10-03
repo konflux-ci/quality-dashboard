@@ -1,17 +1,24 @@
 # Quality Dashboard
-1. [Purpose](#purpose)
-2. [Specifications](#ppecifications)
-    * [Backend](#backend)
-    * [Frontend](#frontend)
-3. [Install](#installation)
-    * [Install locally](#install-quality-dashboard-locally)
-4. [Features](#features)
-    * [Teams](#teams)
-5. [Connectors](#connectors)
-    * [Openshift CI and Prow Jobs](#openshift-ci-and-prow-jobs)
-    * [Github](#github)
-    * [Codecov](#codecov)
-    * [Jira](#jira)
+- [Quality Dashboard](#quality-dashboard)
+- [Purpose](#purpose)
+- [Specifications](#specifications)
+  - [Backend](#backend)
+        - [About entgo framework](#about-entgo-framework)
+        - [APIs](#apis)
+  - [Frontend](#frontend)
+- [Install quality dashboard locally](#install-quality-dashboard-locally)
+  - [Prerequisites](#prerequisites)
+    - [Dex for oauth](#dex-for-oauth)
+    - [Backend](#backend-1)
+        - [Frontend](#frontend-1)
+  - [Features](#features)
+    - [Teams](#teams)
+    - [Config](#config)
+  - [Connectors](#connectors)
+    - [Openshift CI and Prow Jobs](#openshift-ci-and-prow-jobs)
+    - [Github](#github)
+    - [Codecov](#codecov)
+    - [Jira](#jira)
 
 # Purpose
 The purpose of the quality dashboard is to collect the status of AppStudio services:
@@ -30,10 +37,10 @@ Quality Dashboard implements a Golang-based backed and stores data in a PostgreS
 Different specific connectors are developed to pull data from different sources:
 * Github connector: to pull data from github, such as repositories information and actions status
 * Codecov connector: to pull code coverage data from Codecov
-* ProwJobs connector: to pull automatically data about prow jobs executions impacting the repositories 
+* ProwJobs connector: to pull automatically data about prow jobs executions impacting the repositories
 * Jira connector: to pull issues from Jira
 
-The database will retain last 10 days of CI job executions. 
+The database will retain last 10 days of CI job executions.
 
 ##### About entgo framework
 Ent is an Object Relational Mapping (ORM) framework for modeling any database schema as Go objects. The only thing you need to do is to define a schema and Ent will handle the rest. Your schema will be validated first, then Ent will generate a well-typed and idiomatic API.
@@ -42,9 +49,9 @@ The generated API is used to manage the data and will contain:
 * CRUD builders for each schema type
 * Entity object (Go struct) for each the schema type
 
-You can use such generated code to build your endpoints and manipulate the database in an easy and programmatic way. 
+You can use such generated code to build your endpoints and manipulate the database in an easy and programmatic way.
 
-The schema for Quality Dashboard data types is located [here](https://github.com/redhat-appstudio/quality-dashboard/tree/main/backend/pkg/storage/ent/schema). You can refer to entgo [documentation](https://entgo.io/docs/schema-def) for syntax details. 
+The schema for Quality Dashboard data types is located [here](https://github.com/redhat-appstudio/quality-dashboard/tree/main/backend/pkg/storage/ent/schema). You can refer to entgo [documentation](https://entgo.io/docs/schema-def) for syntax details.
 
 After adding new data types to the schema (or editing the existing ones), you have to execute the following command in `backend/pkg/storage/ent` to re-build the model:
 
@@ -54,47 +61,58 @@ go run -mod=mod entgo.io/ent/cmd/ent generate ./schema --target ./db --feature s
 
 The generated code will be saved into the `backend/pkg/storage/ent/db` folder.
 
-The `backend/pkg/storage/ent/client` package implements the database client used to interact with the database. 
+The `backend/pkg/storage/ent/client` package implements the database client used to interact with the database.
 
 In turn, the database client package implements the storage interface used by the server.
 
 
 ##### APIs
-The backend server exposes a set of APIs to interact with data. The implementation of the API server is located at `backend/api` and uses a basic HTTP router configuration. 
+The backend server exposes a set of APIs to interact with data. The implementation of the API server is located at `backend/api` and uses a basic HTTP router configuration.
 
-## Frontend 
+## Frontend
 The frontend component is a React web application that uses [patternfly project](https://www.patternfly.org/v4/get-started/develop/) to build the UI.
-It interacts with the backend via HTTP api endpoints. 
+It interacts with the backend via HTTP api endpoints.
 
-# Install
+# Install quality dashboard locally
 
-You need to be logged in to an OpenShift cluster first.
-Example (oc command): `oc login -u <user> -p <password> <oc_api_url>.`
+To install quality dashboard locally (for development purposes) you will need to run both backend and frontend by your own.
 
-The install script will deploy quality dashboard and all resources to your OpenShift cluster.
-The script will create a namespace `appstudio-qe` and deploy [backend](https://github.com/redhat-appstudio/quality-dashboard/tree/main/backend/deploy/base/local) and [frontend](https://github.com/redhat-appstudio/quality-dashboard/tree/main/frontend/deploy/base/local) using [kustomize](https://kustomize.io/)
+## Prerequisites
+* Make sure you have Go (Golang) installed on your system, as DEX and backend is written in Go
+* You will need a GitHub account and access to create OAuth applications on GitHub
 
-To run the script:
+### Dex for oauth
+To install dex locally you need to follow next steps:
 
+* Clone the DEX GitHub repository to your local machine.
+```bash
+    git clone https://github.com/dexidp/dex.git
 ```
-# Run install.sh from hack folder to deploy the dashboard
-/bin/bash hack/install.sh --storage-user <username> --storage-password <password> --github-token <token> --jira-token <token>
+
+* Change your working directory to the DEX repository.
+``` bash
+    cd dex
+```
+* Configure GitHub OAuth App:
+  * Navigate to Settings -> Developer settings -> OAuth Apps.
+  * Click on "New OAuth App" and fill in the required information. You will need to specify a "Homepage URL" and a "Callback URL." For local development, you can use http://localhost:5555/callback as the callback URL.
+  * After creating the OAuth App, you will receive a Client ID and Client Secret. Keep these values handy.
+* Create a configuration file for DEX. You can use the provided examples/config-dev.yaml file as a starting point and modify it according to your needs. Make sure to configure the GitHub connector with your GitHub OAuth App's Client ID and Client Secret.
+* Build DEX using the following command:
+``` bash
+    go build ./cmd/dex
 ```
 
-When running the install script, you need to specify these parameters:
+Then, run DEX with your configuration file:
+``` bash
+    ./dex serve <path-to-your-config-file>
+    Replace <path-to-your-config-file> with the actual path to your DEX configuration file.
+```
+Example configuration about GitHub provider can be found [here](https://dexidp.io/docs/connectors/github/#configuration)
 
-| Parameter Name | Description | Required | Example |
-| -- | -- | -- | -- |
-| `github-token` | Github token to read repositories | yes | --github-token ghp_xxxxx |
-| `jira-token` | Jira token to read jira issues | yes | --jira-token xxxxx |
-| `storage-user` | Database user name | yes | --storage-user admin |
-| `storage-password` | Database user password | yes | --storage-password adminPassword |
+Please note that these are general steps, and the exact steps may vary based on your specific requirements and DEX configuration. Make sure to refer to the DEX documentation and GitHub OAuth documentation for more detailed information and troubleshooting if needed.
 
-## Install quality dashboard locally
-
-To install quality dashboard locally (for development purposes) you will need to run both backend and frontend by your own. 
-
-##### Backend
+### Backend
 
 First, you need to have a PostgreSQL instance running to host local data. You can start one with your favourite container engine (docker or podman)
 
@@ -104,7 +122,7 @@ First, you need to have a PostgreSQL instance running to host local data. You ca
 
 After that, you need to build the backend binaries. To do that you can follow the backend [instructions](./backend/README.md).
 
-Once built, run the backend server in a terminal: 
+Once built, run the backend server in a terminal:
 ```bash
     # from the backend folder
     ./bin/server-runtime
@@ -132,14 +150,14 @@ Open a new terminal, navigate to the frontend folder, install dependencies and r
 or with npm:
 ```bash
     cd frontend
-    npm install 
+    npm install
     npm run start:dev
 ```
 
 ## Features
 
 ### Teams
-All data is organized by Teams: a team groups a set of repositories to show data in a more concise manner and acts as a global filter. 
+All data is organized by Teams: a team groups a set of repositories to show data in a more concise manner and acts as a global filter.
 All the teams that have been created will be listed in a table in the Teams page, where they can also be managed.
 Switching a team from the main toolbar, will update the context for the whole view in the dashboard.
 
@@ -168,11 +186,11 @@ teams:
 ## Connectors
 
 ### Openshift CI and Prow Jobs
-The Openshift CI connector will collect and show an overview of the last 10 days of jobs execution, by repository and job type. 
+The Openshift CI connector will collect and show an overview of the last 10 days of jobs execution, by repository and job type.
 Current job types are: presubmit, periodic and postsubmit.
 If more than one job per repository and job type is there, the connector will collect all of them.
 The dashboard will present the last 10 days of data in a chart, for day to day inspection, and the averages of the whole period of time.
-Also, just for periodic jobs, we show the test suites output of the last executed job. 
+Also, just for periodic jobs, we show the test suites output of the last executed job.
 
 ### Github
 The Github connector will pull data from Github, such has repositories info and action status.
@@ -181,4 +199,4 @@ The Github connector will pull data from Github, such has repositories info and 
 The codecov connector will pull code coverage data from Codecov.
 
 ### Jira
-The Jira connector will pull data from Jira. We gather Jira issues that are impacting RHTAP (such as blockers, in progress, etc.) and present them in the dashboard for quick reference.  
+The Jira connector will pull data from Jira. We gather Jira issues that are impacting RHTAP (such as blockers, in progress, etc.) and present them in the dashboard for quick reference.
