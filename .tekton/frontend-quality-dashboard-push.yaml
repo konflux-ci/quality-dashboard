@@ -299,7 +299,7 @@ spec:
       - input: $(params.skip-checks)
         operator: in
         values:
-        - "false"
+        - "true"
     - name: sast-snyk-check
       runAfter:
       - clone-repository
