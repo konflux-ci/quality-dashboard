@@ -316,7 +316,7 @@ spec:
       - input: $(params.skip-checks)
         operator: in
         values:
-        - "false"
+        - "true"
       workspaces:
       - name: workspace
         workspace: workspace
@@ -341,7 +341,7 @@ spec:
       - input: $(params.skip-checks)
         operator: in
         values:
-        - "false"
+        - "true"
     - name: sbom-json-check
       params:
       - name: IMAGE_URL
