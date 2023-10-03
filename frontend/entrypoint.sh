@@ -1,19 +1,21 @@
 #!/bin/sh
-
 set -ex
 
-ENVFILE=$(pwd)/.env
-if [ -f "$ENVFILE" ]; then
-    rm -rf $ENVFILE
-fi
+REACT_APP_API_SERVER_URL_REPLACE=$(grep REACT_APP_API_SERVER_URL .env | cut -d '=' -f 2)
+DEX_ISSUER_REPLACE=$(grep DEX_ISSUER .env | cut -d '=' -f 2)
+FRONTEND_REDIRECT_URI_REPLACE=$(grep FRONTEND_REDIRECT_URI .env | cut -d '=' -f 2)
+DEX_APPLICATION_ID_REPLACE=$(grep DEX_APPLICATION_ID .env | cut -d '=' -f 2)
 
-# creates env file to start frontend
-cat <<EOT >> .env
-REACT_APP_API_SERVER_URL=$REACT_APP_API_SERVER_URL
-DEX_ISSUER=$DEX_ISSUER
-FRONTEND_REDIRECT_URI=$FRONTEND_REDIRECT_URI
-DEX_APPLICATION_ID=$DEX_APPLICATION_ID
-EOT
+sed -i -- "s#$REACT_APP_API_SERVER_URL_REPLACE#$REACT_APP_API_SERVER_URL#g" "dist/main.bundle.js"
+sed -i -- "s#$REACT_APP_API_SERVER_URL_REPLACE#$REACT_APP_API_SERVER_URL#g" "dist/main.bundle.js.map"
 
-yarn install --network-timeout 1000000
-yarn build && yarn start
+sed -i -- "s#$DEX_ISSUER_REPLACE#$DEX_ISSUER#g" "dist/main.bundle.js"
+sed -i -- "s#$DEX_ISSUER_REPLACE#$DEX_ISSUER#g" "dist/main.bundle.js.map"
+
+sed -i -- "s#$FRONTEND_REDIRECT_URI_REPLACE#$FRONTEND_REDIRECT_URI#g" "dist/main.bundle.js"
+sed -i -- "s#$FRONTEND_REDIRECT_URI_REPLACE#$FRONTEND_REDIRECT_URI#g" "dist/main.bundle.js.map"
+
+sed -i -- "s#$DEX_APPLICATION_ID_REPLACE#$DEX_APPLICATION_ID#g" "dist/main.bundle.js"
+sed -i -- "s#$DEX_APPLICATION_ID_REPLACE#$DEX_APPLICATION_ID#g" "dist/main.bundle.js.map"
+
+yarn start
