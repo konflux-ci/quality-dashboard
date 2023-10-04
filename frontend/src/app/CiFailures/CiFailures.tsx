@@ -23,6 +23,7 @@ import { validateParam } from '@app/utils/utils';
 import { formatDate, getRangeDates } from '@app/Reports/utils';
 import { useHistory } from 'react-router-dom';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
+import { Header } from '@app/utils/Header';
 
 export interface FailureInfo {
   jira_key: string;
@@ -132,6 +133,7 @@ let CiFailures = () => {
     <ModalContext.Provider value={defaultModalContext}>
       <React.Fragment>
         {/* page title bar */}
+        <Header info="Observe the impact of the RHTAPBUGS that are affecting CI."></Header>
         <PageSection variant={PageSectionVariants.light}>
           <Title headingLevel="h3" size={TitleSizes['2xl']}>
             RHTAPBUGS Impact on CI

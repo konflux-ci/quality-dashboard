@@ -111,6 +111,36 @@ func ProjectKey(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldEQ(FieldProjectKey, v))
 }
 
+// AssignmentTime applies equality check predicate on the "assignment_time" field. It's identical to AssignmentTimeEQ.
+func AssignmentTime(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldAssignmentTime, v))
+}
+
+// PrioritizationTime applies equality check predicate on the "prioritization_time" field. It's identical to PrioritizationTimeEQ.
+func PrioritizationTime(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldPrioritizationTime, v))
+}
+
+// DaysWithoutAssignee applies equality check predicate on the "days_without_assignee" field. It's identical to DaysWithoutAssigneeEQ.
+func DaysWithoutAssignee(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldDaysWithoutAssignee, v))
+}
+
+// DaysWithoutPriority applies equality check predicate on the "days_without_priority" field. It's identical to DaysWithoutPriorityEQ.
+func DaysWithoutPriority(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldDaysWithoutPriority, v))
+}
+
+// DaysWithoutResolution applies equality check predicate on the "days_without_resolution" field. It's identical to DaysWithoutResolutionEQ.
+func DaysWithoutResolution(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldDaysWithoutResolution, v))
+}
+
+// Labels applies equality check predicate on the "labels" field. It's identical to LabelsEQ.
+func Labels(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldLabels, v))
+}
+
 // JiraKeyEQ applies the EQ predicate on the "jira_key" field.
 func JiraKeyEQ(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldEQ(FieldJiraKey, v))
@@ -679,6 +709,331 @@ func ProjectKeyEqualFold(v string) predicate.Bugs {
 // ProjectKeyContainsFold applies the ContainsFold predicate on the "project_key" field.
 func ProjectKeyContainsFold(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldContainsFold(FieldProjectKey, v))
+}
+
+// AssignmentTimeEQ applies the EQ predicate on the "assignment_time" field.
+func AssignmentTimeEQ(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldAssignmentTime, v))
+}
+
+// AssignmentTimeNEQ applies the NEQ predicate on the "assignment_time" field.
+func AssignmentTimeNEQ(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNEQ(FieldAssignmentTime, v))
+}
+
+// AssignmentTimeIn applies the In predicate on the "assignment_time" field.
+func AssignmentTimeIn(vs ...float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldIn(FieldAssignmentTime, vs...))
+}
+
+// AssignmentTimeNotIn applies the NotIn predicate on the "assignment_time" field.
+func AssignmentTimeNotIn(vs ...float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotIn(FieldAssignmentTime, vs...))
+}
+
+// AssignmentTimeGT applies the GT predicate on the "assignment_time" field.
+func AssignmentTimeGT(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGT(FieldAssignmentTime, v))
+}
+
+// AssignmentTimeGTE applies the GTE predicate on the "assignment_time" field.
+func AssignmentTimeGTE(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGTE(FieldAssignmentTime, v))
+}
+
+// AssignmentTimeLT applies the LT predicate on the "assignment_time" field.
+func AssignmentTimeLT(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLT(FieldAssignmentTime, v))
+}
+
+// AssignmentTimeLTE applies the LTE predicate on the "assignment_time" field.
+func AssignmentTimeLTE(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLTE(FieldAssignmentTime, v))
+}
+
+// AssignmentTimeIsNil applies the IsNil predicate on the "assignment_time" field.
+func AssignmentTimeIsNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldIsNull(FieldAssignmentTime))
+}
+
+// AssignmentTimeNotNil applies the NotNil predicate on the "assignment_time" field.
+func AssignmentTimeNotNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotNull(FieldAssignmentTime))
+}
+
+// PrioritizationTimeEQ applies the EQ predicate on the "prioritization_time" field.
+func PrioritizationTimeEQ(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldPrioritizationTime, v))
+}
+
+// PrioritizationTimeNEQ applies the NEQ predicate on the "prioritization_time" field.
+func PrioritizationTimeNEQ(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNEQ(FieldPrioritizationTime, v))
+}
+
+// PrioritizationTimeIn applies the In predicate on the "prioritization_time" field.
+func PrioritizationTimeIn(vs ...float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldIn(FieldPrioritizationTime, vs...))
+}
+
+// PrioritizationTimeNotIn applies the NotIn predicate on the "prioritization_time" field.
+func PrioritizationTimeNotIn(vs ...float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotIn(FieldPrioritizationTime, vs...))
+}
+
+// PrioritizationTimeGT applies the GT predicate on the "prioritization_time" field.
+func PrioritizationTimeGT(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGT(FieldPrioritizationTime, v))
+}
+
+// PrioritizationTimeGTE applies the GTE predicate on the "prioritization_time" field.
+func PrioritizationTimeGTE(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGTE(FieldPrioritizationTime, v))
+}
+
+// PrioritizationTimeLT applies the LT predicate on the "prioritization_time" field.
+func PrioritizationTimeLT(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLT(FieldPrioritizationTime, v))
+}
+
+// PrioritizationTimeLTE applies the LTE predicate on the "prioritization_time" field.
+func PrioritizationTimeLTE(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLTE(FieldPrioritizationTime, v))
+}
+
+// PrioritizationTimeIsNil applies the IsNil predicate on the "prioritization_time" field.
+func PrioritizationTimeIsNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldIsNull(FieldPrioritizationTime))
+}
+
+// PrioritizationTimeNotNil applies the NotNil predicate on the "prioritization_time" field.
+func PrioritizationTimeNotNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotNull(FieldPrioritizationTime))
+}
+
+// DaysWithoutAssigneeEQ applies the EQ predicate on the "days_without_assignee" field.
+func DaysWithoutAssigneeEQ(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldDaysWithoutAssignee, v))
+}
+
+// DaysWithoutAssigneeNEQ applies the NEQ predicate on the "days_without_assignee" field.
+func DaysWithoutAssigneeNEQ(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNEQ(FieldDaysWithoutAssignee, v))
+}
+
+// DaysWithoutAssigneeIn applies the In predicate on the "days_without_assignee" field.
+func DaysWithoutAssigneeIn(vs ...float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldIn(FieldDaysWithoutAssignee, vs...))
+}
+
+// DaysWithoutAssigneeNotIn applies the NotIn predicate on the "days_without_assignee" field.
+func DaysWithoutAssigneeNotIn(vs ...float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotIn(FieldDaysWithoutAssignee, vs...))
+}
+
+// DaysWithoutAssigneeGT applies the GT predicate on the "days_without_assignee" field.
+func DaysWithoutAssigneeGT(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGT(FieldDaysWithoutAssignee, v))
+}
+
+// DaysWithoutAssigneeGTE applies the GTE predicate on the "days_without_assignee" field.
+func DaysWithoutAssigneeGTE(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGTE(FieldDaysWithoutAssignee, v))
+}
+
+// DaysWithoutAssigneeLT applies the LT predicate on the "days_without_assignee" field.
+func DaysWithoutAssigneeLT(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLT(FieldDaysWithoutAssignee, v))
+}
+
+// DaysWithoutAssigneeLTE applies the LTE predicate on the "days_without_assignee" field.
+func DaysWithoutAssigneeLTE(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLTE(FieldDaysWithoutAssignee, v))
+}
+
+// DaysWithoutAssigneeIsNil applies the IsNil predicate on the "days_without_assignee" field.
+func DaysWithoutAssigneeIsNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldIsNull(FieldDaysWithoutAssignee))
+}
+
+// DaysWithoutAssigneeNotNil applies the NotNil predicate on the "days_without_assignee" field.
+func DaysWithoutAssigneeNotNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotNull(FieldDaysWithoutAssignee))
+}
+
+// DaysWithoutPriorityEQ applies the EQ predicate on the "days_without_priority" field.
+func DaysWithoutPriorityEQ(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldDaysWithoutPriority, v))
+}
+
+// DaysWithoutPriorityNEQ applies the NEQ predicate on the "days_without_priority" field.
+func DaysWithoutPriorityNEQ(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNEQ(FieldDaysWithoutPriority, v))
+}
+
+// DaysWithoutPriorityIn applies the In predicate on the "days_without_priority" field.
+func DaysWithoutPriorityIn(vs ...float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldIn(FieldDaysWithoutPriority, vs...))
+}
+
+// DaysWithoutPriorityNotIn applies the NotIn predicate on the "days_without_priority" field.
+func DaysWithoutPriorityNotIn(vs ...float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotIn(FieldDaysWithoutPriority, vs...))
+}
+
+// DaysWithoutPriorityGT applies the GT predicate on the "days_without_priority" field.
+func DaysWithoutPriorityGT(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGT(FieldDaysWithoutPriority, v))
+}
+
+// DaysWithoutPriorityGTE applies the GTE predicate on the "days_without_priority" field.
+func DaysWithoutPriorityGTE(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGTE(FieldDaysWithoutPriority, v))
+}
+
+// DaysWithoutPriorityLT applies the LT predicate on the "days_without_priority" field.
+func DaysWithoutPriorityLT(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLT(FieldDaysWithoutPriority, v))
+}
+
+// DaysWithoutPriorityLTE applies the LTE predicate on the "days_without_priority" field.
+func DaysWithoutPriorityLTE(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLTE(FieldDaysWithoutPriority, v))
+}
+
+// DaysWithoutPriorityIsNil applies the IsNil predicate on the "days_without_priority" field.
+func DaysWithoutPriorityIsNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldIsNull(FieldDaysWithoutPriority))
+}
+
+// DaysWithoutPriorityNotNil applies the NotNil predicate on the "days_without_priority" field.
+func DaysWithoutPriorityNotNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotNull(FieldDaysWithoutPriority))
+}
+
+// DaysWithoutResolutionEQ applies the EQ predicate on the "days_without_resolution" field.
+func DaysWithoutResolutionEQ(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldDaysWithoutResolution, v))
+}
+
+// DaysWithoutResolutionNEQ applies the NEQ predicate on the "days_without_resolution" field.
+func DaysWithoutResolutionNEQ(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNEQ(FieldDaysWithoutResolution, v))
+}
+
+// DaysWithoutResolutionIn applies the In predicate on the "days_without_resolution" field.
+func DaysWithoutResolutionIn(vs ...float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldIn(FieldDaysWithoutResolution, vs...))
+}
+
+// DaysWithoutResolutionNotIn applies the NotIn predicate on the "days_without_resolution" field.
+func DaysWithoutResolutionNotIn(vs ...float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotIn(FieldDaysWithoutResolution, vs...))
+}
+
+// DaysWithoutResolutionGT applies the GT predicate on the "days_without_resolution" field.
+func DaysWithoutResolutionGT(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGT(FieldDaysWithoutResolution, v))
+}
+
+// DaysWithoutResolutionGTE applies the GTE predicate on the "days_without_resolution" field.
+func DaysWithoutResolutionGTE(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGTE(FieldDaysWithoutResolution, v))
+}
+
+// DaysWithoutResolutionLT applies the LT predicate on the "days_without_resolution" field.
+func DaysWithoutResolutionLT(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLT(FieldDaysWithoutResolution, v))
+}
+
+// DaysWithoutResolutionLTE applies the LTE predicate on the "days_without_resolution" field.
+func DaysWithoutResolutionLTE(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLTE(FieldDaysWithoutResolution, v))
+}
+
+// DaysWithoutResolutionIsNil applies the IsNil predicate on the "days_without_resolution" field.
+func DaysWithoutResolutionIsNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldIsNull(FieldDaysWithoutResolution))
+}
+
+// DaysWithoutResolutionNotNil applies the NotNil predicate on the "days_without_resolution" field.
+func DaysWithoutResolutionNotNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotNull(FieldDaysWithoutResolution))
+}
+
+// LabelsEQ applies the EQ predicate on the "labels" field.
+func LabelsEQ(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldLabels, v))
+}
+
+// LabelsNEQ applies the NEQ predicate on the "labels" field.
+func LabelsNEQ(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNEQ(FieldLabels, v))
+}
+
+// LabelsIn applies the In predicate on the "labels" field.
+func LabelsIn(vs ...string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldIn(FieldLabels, vs...))
+}
+
+// LabelsNotIn applies the NotIn predicate on the "labels" field.
+func LabelsNotIn(vs ...string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotIn(FieldLabels, vs...))
+}
+
+// LabelsGT applies the GT predicate on the "labels" field.
+func LabelsGT(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGT(FieldLabels, v))
+}
+
+// LabelsGTE applies the GTE predicate on the "labels" field.
+func LabelsGTE(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGTE(FieldLabels, v))
+}
+
+// LabelsLT applies the LT predicate on the "labels" field.
+func LabelsLT(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLT(FieldLabels, v))
+}
+
+// LabelsLTE applies the LTE predicate on the "labels" field.
+func LabelsLTE(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLTE(FieldLabels, v))
+}
+
+// LabelsContains applies the Contains predicate on the "labels" field.
+func LabelsContains(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldContains(FieldLabels, v))
+}
+
+// LabelsHasPrefix applies the HasPrefix predicate on the "labels" field.
+func LabelsHasPrefix(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldHasPrefix(FieldLabels, v))
+}
+
+// LabelsHasSuffix applies the HasSuffix predicate on the "labels" field.
+func LabelsHasSuffix(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldHasSuffix(FieldLabels, v))
+}
+
+// LabelsIsNil applies the IsNil predicate on the "labels" field.
+func LabelsIsNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldIsNull(FieldLabels))
+}
+
+// LabelsNotNil applies the NotNil predicate on the "labels" field.
+func LabelsNotNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotNull(FieldLabels))
+}
+
+// LabelsEqualFold applies the EqualFold predicate on the "labels" field.
+func LabelsEqualFold(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEqualFold(FieldLabels, v))
+}
+
+// LabelsContainsFold applies the ContainsFold predicate on the "labels" field.
+func LabelsContainsFold(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldContainsFold(FieldLabels, v))
 }
 
 // HasBugs applies the HasEdge predicate on the "bugs" edge.

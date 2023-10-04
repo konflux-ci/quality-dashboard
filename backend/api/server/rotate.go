@@ -55,6 +55,8 @@ func (s *Server) rotate() error {
 		}
 	}
 
+	// temporary (just for testing)
+	s.SendBugSLOAlerts()
 	s.UpdateProwStatusByTeam()
 	s.UpdateFailuresByTeam()
 	err = s.UpdateDataBaseRepoByTeam()
@@ -65,9 +67,11 @@ func (s *Server) rotate() error {
 
 	return nil
 }
+
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
-		rotationFrequency: time.Minute * 15,
+		// temporary set to 5
+		rotationFrequency: time.Minute * 5,
 	}
 }
 

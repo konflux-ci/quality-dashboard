@@ -12,6 +12,7 @@ import { GitHub } from './Github/Github';
 import { Config } from './Config/Config';
 import { initOauthFlow, completeOauthFlow, OauthData, refreshTokenFlow } from '@app/utils/oauth'
 import { CiFailures } from './CiFailures/CiFailures';
+import { BugSLOs } from './BugSLOs/MainPage';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -89,6 +90,15 @@ const routes: AppRouteConfig[] = [
         title: 'Jira  | Quality Studio',
       },
       {
+        component: BugSLOs,
+        exact: true,
+        isAsync: true,
+        isProtected: true,
+        label: 'Bug SLOs',
+        path: '/home/bug-slos',
+        title: 'Bug SLOs | Quality Studio',
+      },
+      {
         component: Reports,
         exact: true,
         isAsync: true,
@@ -161,27 +171,27 @@ const AppRoutes = (): React.ReactElement => {
     // when the route changes, check for token expired and refresh it
     if (state.auth.AT && state.auth.AT_expiration) {
       const now = new Date()
-      if(new Date(state.auth.AT_expiration*1000) < now){
+      if (new Date(state.auth.AT_expiration * 1000) < now) {
         (async () => {
-          try{
+          try {
             let data = await refreshTokenFlow(state.auth.RT)
             dispatch({ type: "SET_REFRESH_TOKEN", data: data.RT });
             dispatch({ type: "SET_ACCESS_TOKEN", data: data.AT });
             dispatch({ type: "SET_ID_TOKEN", data: data.IDT });
             dispatch({ type: "SET_AT_EXPIRATION", data: data.AT_EXPIRATION });
-          } catch(err) {
+          } catch (err) {
             console.log("error refreshing token")
             dispatch({ type: "SET_REFRESH_TOKEN", data: "" });
             dispatch({ type: "SET_ACCESS_TOKEN", data: "data.AT" });
             dispatch({ type: "SET_ID_TOKEN", data: "" });
-            dispatch({ type: "SET_AT_EXPIRATION", data: ""});
+            dispatch({ type: "SET_AT_EXPIRATION", data: "" });
             localStorage.clear();
             history.push("/login")
             window.location.reload();
           }
         })();
       }
-  }
+    }
   }, [location])
 
   React.useEffect(() => {

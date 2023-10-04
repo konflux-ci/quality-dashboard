@@ -62,11 +62,14 @@ export const BasicMasthead = () => {
     if (history.location.pathname == "/home/rhtapbugs-impact" && team != null && team != event.target.dataset.value) {
       history.push('/home/rhtapbugs-impact?team=' + event.target.dataset.value)
     }
+
+    if (history.location.pathname == "/home/bug-slos" && team != null && team != event.target.dataset.value) {
+      history.push('/home/bug-slos?team=' + event.target.dataset.value)
+    }
   }
 
   function Log_out() {
-    localStorage.clear()
-    history.push('/login');
+    history.push('/oauth/sign_out');
     window.location.reload();
   }
 

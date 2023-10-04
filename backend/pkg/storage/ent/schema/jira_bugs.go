@@ -46,6 +46,30 @@ func (Bugs) Fields() []ent.Field {
 			SchemaType(textSchema).
 			Optional().
 			Nillable(),
+		field.Float("assignment_time").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
+		field.Float("prioritization_time").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
+		field.Float("days_without_assignee").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
+		field.Float("days_without_priority").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
+		field.Float("days_without_resolution").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
+		field.Text("labels").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
 	}
 }
 

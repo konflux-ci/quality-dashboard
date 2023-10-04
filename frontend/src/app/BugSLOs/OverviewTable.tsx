@@ -8,112 +8,93 @@ import {
     Tbody,
     Td,
     ThProps,
-    ActionsColumn,
-    IAction,
 } from '@patternfly/react-table';
-import { GetCodeCovInfo } from './CodeCov';
-import { deleteInApi } from '@app/utils/APIService';
-import { useHistory } from 'react-router-dom';
-import { RepositoryInfo } from './Github';
+import { fillPopOver } from '@app/Github/Table';
 import { GetMetrics, MetricsModalContext, useMetricsModalContext, useMetricsModalContextState } from './Metrics';
 
-export const fillPopOver = (title, description) => {
-    return {
-        popover: (description),
-        ariaLabel: 'More information on' + title,
-        popoverProps: {
-            headerContent: title,
-        }
-
-    }
+interface BugSLOInfo {
+    total: number,
+    average: number,
 }
 
-export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, modal }) => {
-    const [reposPage, setReposPage] = useState<Array<RepositoryInfo>>([]);
+interface Alert {
+    alert_message: string,
+    signal: string,
+}
+
+interface BugSLO {
+    jira_key: string,
+    jira_url: string,
+    triage_sli: Alert,
+    response_sli: Alert,
+    resolution_sli: Alert,
+    days_without_assignee: number,
+    days_without_priority: number,
+    days_without_resolution: number,
+}
+
+interface ProjectInfo {
+    project_key: string;
+    bug_slos: BugSLO[];
+    red_triage_time_bug_slo_info: BugSLOInfo;
+    yellow_triage_time_bug_slo_info: BugSLOInfo;
+    red_response_time_bug_slo_info: BugSLOInfo;
+    red_resolution_time_bug_slo_info: BugSLOInfo;
+    yellow_resolution_time_bug_slo_info: BugSLOInfo;
+
+}
+
+export const OverviewTable: React.FC<{ bugSLOs: any }> = ({ bugSLOs }) => {
+    const [bugSLOsPage, setBugSLOsPage] = useState<Array<ProjectInfo>>([]);
     const [page, setPage] = React.useState(1);
     const [perPage, setPerPage] = React.useState(10);
-    const [count, setCount] = useState(repos.length);
+    const [count, setCount] = useState(bugSLOs.length);
     const [filters, setFilters] = useState({});
     const [activeSortIndex, setActiveSortIndex] = React.useState<number | null>(null);
     const [activeSortDirection, setActiveSortDirection] = React.useState<'asc' | 'desc' | null>(null);
-    const history = useHistory();
-    const params = new URLSearchParams(window.location.search);
     const defaultModalContext = useMetricsModalContextState();
     const modalContext = useMetricsModalContext();
 
-    async function deleteRepository(gitOrg: string, repoName: string) {
-        const data = {
-            git_organization: gitOrg,
-            repository_name: repoName,
-        };
-        try {
-            await deleteInApi(data, '/api/quality/repositories/delete');
-            history.push(window.location.pathname + '?' + 'team=' + params.get('team'));
-            window.location.reload();
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-    async function editRepository(repo) {
-        try {
-            modal.handleModalToggle(true, repo);
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-    const defaultActions = (repo): IAction[] => [
-        {
-            title: 'Delete Repository',
-            onClick: () => deleteRepository(repo.git_organization, repo.repository_name),
-        },
-        {
-            title: 'Edit Repository',
-            onClick: () => editRepository(repo),
-        },
-    ];
 
     useEffect(() => {
-        if (repos.length == 0) {
+        if (bugSLOs.length == 0) {
             setPage(1)
-            setReposPage([])
+            setBugSLOsPage([])
         }
-        if (repos.length > 0) {
-            setReposPage(repos.slice(0, perPage))
+        if (bugSLOs.length > 0) {
+            setBugSLOsPage(bugSLOs.slice(0, perPage))
             setPage(1)
         }
-    }, [repos]);
+    }, [bugSLOs]);
 
     const columnNames = {
-        repository_name: "Repository",
-        git_organization: "Organization",
-        description: "Description",
-        code_cov: "CodeCov",
-        retest_before_merge_avg: "Retest Before Merge Avg",
-        open_prs: "Open PRs",
-        merged_prs: "Merged PRs",
-        time_to_merge_pr_avg_days: "Time To Merge PR Avg Days",
+        project_key: "Project Key",
+        red_triage_time_bug_slo_info: "Total Bugs Meeting Triage Time Bug SLO",
+        yellow_triage_time_bug_slo_info: "Total Bugs At Risk of Meeting Triage Time Bug SLO",
+        red_response_time_bug_slo_info: "Total Bugs Meeting Response Time Bug SLO",
+        red_resolution_time_bug_slo_info: "Total Bugs Meeting Resolution Time Bug SLO",
+        yellow_resolution_time_bug_slo_info: "Total Bugs At Risk of Meeting Resolution Time Bug SLO",
+
     };
 
     useEffect(
         () => {
-            setCount(repos.length);
+            setCount(bugSLOs.length);
         },
-        [repos],
+        [bugSLOs],
     );
 
     useEffect(() => {
-        setCount(repos.length)
-        if (repos.length > 0) {
-            const filteredRows = filterRows(repos, filters)
+        setCount(bugSLOs.length)
+        if (bugSLOs.length > 0) {
+            const filteredRows = filterRows(bugSLOs, filters)
             const sortedRows = sortRows(filteredRows)
             setCount(sortedRows.length)
 
             const from = (page - 1) * perPage
             const to = (page - 1) * perPage + perPage >= sortedRows.length ? sortedRows.length : (page - 1) * perPage + perPage;
 
-            setReposPage(sortedRows.slice(from, to))
+            setBugSLOsPage(sortedRows.slice(from, to))
         }
     }, [page, perPage, filters, activeSortIndex, activeSortDirection]);
 
@@ -134,14 +115,13 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
 
     // Filters helpers
     const columns = [
-        { column: 'repository_name', label: 'Repository' },
-        { column: 'git_organization', label: 'Organization' },
-        { column: 'description', label: 'Description' },
-        { column: 'code_cov', label: 'Code Cov' },
-        { column: 'retest_before_merge_avg', label: 'Retest Before Merge Avg' },
-        { column: 'open_prs', label: 'Total Open PRs' },
-        { column: 'merged_prs', label: 'Total Merged PRs' },
-        { column: 'time_to_merge_pr_avg_days', label: 'Time To Merge PR Avg Days' },
+        { column: 'project_key', label: 'Project Key' },
+        { column: 'red_triage_time_bug_slo_info', label: 'Total Bugs Meeting Triage Time Bug SLO' },
+        { column: 'yellow_triage_time_bug_slo_info', label: 'Total Bugs At Risk of Meeting Triage Time Bug SLO' },
+        { column: 'red_response_time_bug_slo_info', label: 'Total Bugs Meeting Response Time Bug SLO' },
+        { column: 'red_resolution_time_bug_slo_info', label: 'Total Bugs Meeting Resolution Time Bug SLO' },
+        { column: 'yellow_resolution_time_bug_slo_info', label: 'Total Bugs At Risk of Meeting Resolution Time Bug SLO' },
+
     ]
 
     function filterRows(rows, filters) {
@@ -157,7 +137,6 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
                     return value == searchValue
                 }
 
-                // handle ID, Summary, Created at, Updated at, and Resolved at filters
                 if (typeof value === 'string') {
                     return value.toLocaleLowerCase().includes(searchValue.toLocaleLowerCase())
                 }
@@ -185,22 +164,34 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
 
 
     // Sort helpers
-    const getSortableRowValues = (repo: RepositoryInfo): (string | number)[] => {
-        const { repository_name, git_organization, description, code_cov, retest_before_merge_avg, open_prs, merged_prs, time_to_merge_pr_avg_days } = repo;
-        return [repository_name, git_organization, description, code_cov, retest_before_merge_avg, open_prs, merged_prs, time_to_merge_pr_avg_days];
+    const getSortableRowValues = (project: any): (string | number | BugSLOInfo)[] => {
+        const { project_key, red_triage_time_bug_slo_info, yellow_triage_time_bug_slo_info, red_response_time_bug_slo_info, red_resolution_time_bug_slo_info, yellow_resolution_time_bug_slo_info } = project;
+        return [project_key, red_triage_time_bug_slo_info, yellow_triage_time_bug_slo_info, red_response_time_bug_slo_info, red_resolution_time_bug_slo_info, yellow_resolution_time_bug_slo_info];
     };
 
     const sortRows = (rows) => {
         if (activeSortIndex !== null) {
             return rows.sort((a, b) => {
-                const aValue = getSortableRowValues(a)[activeSortIndex] ? getSortableRowValues(a)[activeSortIndex] : "-";
-                const bValue = getSortableRowValues(b)[activeSortIndex] ? getSortableRowValues(b)[activeSortIndex] : "-";
+                let aValue = getSortableRowValues(a)[activeSortIndex] || a.frequency == 0 ? getSortableRowValues(a)[activeSortIndex] : "-";
+                let bValue = getSortableRowValues(b)[activeSortIndex] || b.frequency == 0 ? getSortableRowValues(b)[activeSortIndex] : "-";
 
-                if (aValue == 'N/A') {
+
+                // workaround for sorting the following fields:
+                // red_triage_time_bug_slo_info, red_response_time_bug_slo_info, and red_resolution_time_bug_slo_info
+                if (typeof getSortableRowValues(a)[activeSortIndex] == 'object') {
+                    const targetA = getSortableRowValues(a)[activeSortIndex] as BugSLOInfo
+                    const targetB = getSortableRowValues(b)[activeSortIndex] as BugSLOInfo
+
+                    aValue = targetA.total || a.frequency == 0 ? targetA.total : "-";
+                    bValue = targetB.total || b.frequency == 0 ? targetB.total : "-";
+
+                }
+
+                if (aValue == "-") {
                     return 1
                 }
 
-                if (bValue == 'N/A') {
+                if (bValue == "-") {
                     return -1
                 }
 
@@ -236,14 +227,14 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
     // End of sort helpers
 
     const getInfo = (label) => {
-        if (label == "Retest Before Merge Avg") {
-            return fillPopOver("Retest Before Merge Avg", "Calculates an average how many /test and /retest comments were issued after the last code push (in the selected time range)")
+        if (label == "Total Bugs Meeting Triage Time Bug SLO") {
+            return fillPopOver(label, "Number of bugs that meet Triage Time Bug SLO (priority should not be undefined for more than 2 days on untriaged bugs).")
         }
-        if (label == "Time To Merge PR Avg Days") {
-            return fillPopOver("Time To Merge PR Avg Days", "Calculates an average of how many days were needed to merge a PR (difference between creation and merged date in the selected time range)")
+        if (label == "Total Bugs Meeting Response Time Bug SLO") {
+            return fillPopOver(label, "Number of bugs that meet Response Time Bug SLO (assignee should not be undefined for more than 2 days in Blocker or Critical bugs).")
         }
-        if (label == "Code Cov") {
-            return fillPopOver("Code Cov", "The coverage trend is calculated through the two last commits. No trend arrow means that the coverage trend is stable")
+        if (label == "Total Bugs Meeting Resolution Time Bug SLO") {
+            return fillPopOver(label, <div><div>Number of bugs that meet Red Resolution Time Bug SLO.</div>Blocker bugs should not take more than 10 days to be resolved.<div>Critical bugs should not take more than 20 days to be resolved.</div><div>Major bugs should not take more than 40 days to be resolved.</div></div>)
         }
         return
     }
@@ -299,33 +290,23 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
                         </Tr>
                     </Thead>
                     <Tbody>
-                        {reposPage.map((repo, index) => {
-                            const rowActions: IAction[] | null = defaultActions(repo);
-
+                        {bugSLOsPage.map((bugSLO, index) => {
                             return (
                                 <Tr key={index} {...(index % 2 === 0 && { isStriped: true })}>
-                                    <Td dataLabel={columnNames.repository_name}>
+                                    <Td dataLabel={columnNames.project_key}>
                                         <div>
-                                            <a href={repo.git_url} target={repo.git_url}>{repo.repository_name}</a>
+                                            {bugSLO.project_key}
                                         </div>
                                         <div style={{ marginTop: 2 }}>
-                                            <Button style={{ fontSize: 14 }} variant="link" onClick={() => modalContext.handleModalToggle(repo)}>{"> Show detailed metrics"}</Button>
+                                            <Button style={{ fontSize: 14 }} variant="link" onClick={() => modalContext.handleModalToggle(bugSLO)}>{"> Show detailed metrics"}</Button>
                                         </div>
                                     </Td>
-                                    <Td dataLabel={columnNames.git_organization}>{repo.git_organization}</Td>
-                                    <Td dataLabel={columnNames.description}>{repo.description}</Td>
-                                    <Td dataLabel={columnNames.code_cov}>{repo.code_cov == 'N/A' ? "N/A" : GetCodeCovInfo(repo, 'left')}</Td>
-                                    <Td dataLabel={columnNames.retest_before_merge_avg}>{repo.retest_before_merge_avg}</Td>
-                                    <Td dataLabel={columnNames.open_prs}>{repo.open_prs}</Td>
-                                    <Td dataLabel={columnNames.merged_prs}>{repo.merged_prs}</Td>
-                                    <Td dataLabel={columnNames.time_to_merge_pr_avg_days}>{repo.time_to_merge_pr_avg_days}</Td>
-                                    <Td isActionCell>
-                                        {rowActions ? (
-                                            <ActionsColumn
-                                                items={rowActions}
-                                            />
-                                        ) : null}
-                                    </Td>
+                                    <Td dataLabel={columnNames.red_triage_time_bug_slo_info}>{bugSLO.red_triage_time_bug_slo_info.total}</Td>
+                                    <Td dataLabel={columnNames.yellow_triage_time_bug_slo_info}>{bugSLO.yellow_triage_time_bug_slo_info.total}</Td>
+                                    <Td dataLabel={columnNames.red_response_time_bug_slo_info}>{bugSLO.red_response_time_bug_slo_info.total}</Td>
+                                    <Td dataLabel={columnNames.red_resolution_time_bug_slo_info}>{bugSLO.red_resolution_time_bug_slo_info.total}</Td>
+                                    <Td dataLabel={columnNames.yellow_resolution_time_bug_slo_info}>{bugSLO.yellow_resolution_time_bug_slo_info.total}</Td>
+
                                 </Tr>
                             )
                         })}

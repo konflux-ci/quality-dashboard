@@ -34,6 +34,7 @@ import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 import { useHistory } from 'react-router-dom';
 import { getLabels } from '@app/utils/utils';
 import { help } from '@app/Github/PullRequests';
+import { Header } from '@app/utils/Header';
 
 interface Bugs {
     jira_key: string;
@@ -251,21 +252,7 @@ export const Jira = () => {
 
     return (
         <React.Fragment>
-            <PageSection style={{
-                minHeight: "12%",
-                background: "url(https://console.redhat.com/apps/frontend-assets/background-images/new-landing-page/estate_section_banner.svg)",
-                backgroundSize: "cover",
-                backgroundColor: "black",
-                opacity: '0.9'
-            }} variant={PageSectionVariants.light}
-            >
-                <TextContent style={{ color: "white", display: "inline" }}>
-                    <div style={{ float: "left", }}>
-                        <Text component="h2">Get Started with Red Hat Quality Studio</Text>
-                        <Text component="p">Observe which Jira Issues are affecting the CI pass rate.</Text>
-                    </div>
-                </TextContent>
-            </PageSection>
+            <Header info="Observe which Jira Issues are affecting the CI pass rate."></Header>
             <PageSection>
                 {loadingState && <div style={{ width: '100%', textAlign: "center" }}>
                     <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />

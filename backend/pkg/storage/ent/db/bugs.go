@@ -40,6 +40,18 @@ type Bugs struct {
 	URL string `json:"url,omitempty"`
 	// ProjectKey holds the value of the "project_key" field.
 	ProjectKey *string `json:"project_key,omitempty"`
+	// AssignmentTime holds the value of the "assignment_time" field.
+	AssignmentTime *float64 `json:"assignment_time,omitempty"`
+	// PrioritizationTime holds the value of the "prioritization_time" field.
+	PrioritizationTime *float64 `json:"prioritization_time,omitempty"`
+	// DaysWithoutAssignee holds the value of the "days_without_assignee" field.
+	DaysWithoutAssignee *float64 `json:"days_without_assignee,omitempty"`
+	// DaysWithoutPriority holds the value of the "days_without_priority" field.
+	DaysWithoutPriority *float64 `json:"days_without_priority,omitempty"`
+	// DaysWithoutResolution holds the value of the "days_without_resolution" field.
+	DaysWithoutResolution *float64 `json:"days_without_resolution,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels *string `json:"labels,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the BugsQuery when eager-loading is set.
 	Edges      BugsEdges `json:"edges"`
@@ -75,9 +87,9 @@ func (*Bugs) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case bugs.FieldResolved:
 			values[i] = new(sql.NullBool)
-		case bugs.FieldResolutionTime:
+		case bugs.FieldResolutionTime, bugs.FieldAssignmentTime, bugs.FieldPrioritizationTime, bugs.FieldDaysWithoutAssignee, bugs.FieldDaysWithoutPriority, bugs.FieldDaysWithoutResolution:
 			values[i] = new(sql.NullFloat64)
-		case bugs.FieldJiraKey, bugs.FieldPriority, bugs.FieldStatus, bugs.FieldSummary, bugs.FieldURL, bugs.FieldProjectKey:
+		case bugs.FieldJiraKey, bugs.FieldPriority, bugs.FieldStatus, bugs.FieldSummary, bugs.FieldURL, bugs.FieldProjectKey, bugs.FieldLabels:
 			values[i] = new(sql.NullString)
 		case bugs.FieldCreatedAt, bugs.FieldUpdatedAt, bugs.FieldResolvedAt:
 			values[i] = new(sql.NullTime)
@@ -174,6 +186,48 @@ func (b *Bugs) assignValues(columns []string, values []any) error {
 				b.ProjectKey = new(string)
 				*b.ProjectKey = value.String
 			}
+		case bugs.FieldAssignmentTime:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field assignment_time", values[i])
+			} else if value.Valid {
+				b.AssignmentTime = new(float64)
+				*b.AssignmentTime = value.Float64
+			}
+		case bugs.FieldPrioritizationTime:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field prioritization_time", values[i])
+			} else if value.Valid {
+				b.PrioritizationTime = new(float64)
+				*b.PrioritizationTime = value.Float64
+			}
+		case bugs.FieldDaysWithoutAssignee:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field days_without_assignee", values[i])
+			} else if value.Valid {
+				b.DaysWithoutAssignee = new(float64)
+				*b.DaysWithoutAssignee = value.Float64
+			}
+		case bugs.FieldDaysWithoutPriority:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field days_without_priority", values[i])
+			} else if value.Valid {
+				b.DaysWithoutPriority = new(float64)
+				*b.DaysWithoutPriority = value.Float64
+			}
+		case bugs.FieldDaysWithoutResolution:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field days_without_resolution", values[i])
+			} else if value.Valid {
+				b.DaysWithoutResolution = new(float64)
+				*b.DaysWithoutResolution = value.Float64
+			}
+		case bugs.FieldLabels:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field labels", values[i])
+			} else if value.Valid {
+				b.Labels = new(string)
+				*b.Labels = value.String
+			}
 		case bugs.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field teams_bugs", values[i])
@@ -248,6 +302,36 @@ func (b *Bugs) String() string {
 	builder.WriteString(", ")
 	if v := b.ProjectKey; v != nil {
 		builder.WriteString("project_key=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := b.AssignmentTime; v != nil {
+		builder.WriteString("assignment_time=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := b.PrioritizationTime; v != nil {
+		builder.WriteString("prioritization_time=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := b.DaysWithoutAssignee; v != nil {
+		builder.WriteString("days_without_assignee=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := b.DaysWithoutPriority; v != nil {
+		builder.WriteString("days_without_priority=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := b.DaysWithoutResolution; v != nil {
+		builder.WriteString("days_without_resolution=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := b.Labels; v != nil {
+		builder.WriteString("labels=")
 		builder.WriteString(*v)
 	}
 	builder.WriteByte(')')

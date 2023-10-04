@@ -288,3 +288,46 @@ func (s *jiraRouter) bugExists(ctx context.Context, w http.ResponseWriter, r *ht
 
 	return httputils.WriteJSON(w, http.StatusOK, exists)
 }
+
+func (s *jiraRouter) getBugSLOs(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	teamName := r.URL.Query()["team_name"]
+	startDate := r.URL.Query()["start_date"]
+	endDate := r.URL.Query()["end_date"]
+
+	if len(teamName) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "team_name value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(startDate) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "start_date value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(endDate) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "end_date value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	team, err := s.Storage.GetTeamByName(teamName[0])
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	bugs, err := s.Storage.GetAllOpenBugSLOs(startDate[0], endDate[0], team)
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	slos := GetBugSLOsByProject(bugs)
+
+	return httputils.WriteJSON(w, http.StatusOK, slos)
+}

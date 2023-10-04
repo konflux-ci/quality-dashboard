@@ -133,6 +133,161 @@ func (bu *BugsUpdate) ClearProjectKey() *BugsUpdate {
 	return bu
 }
 
+// SetAssignmentTime sets the "assignment_time" field.
+func (bu *BugsUpdate) SetAssignmentTime(f float64) *BugsUpdate {
+	bu.mutation.ResetAssignmentTime()
+	bu.mutation.SetAssignmentTime(f)
+	return bu
+}
+
+// SetNillableAssignmentTime sets the "assignment_time" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableAssignmentTime(f *float64) *BugsUpdate {
+	if f != nil {
+		bu.SetAssignmentTime(*f)
+	}
+	return bu
+}
+
+// AddAssignmentTime adds f to the "assignment_time" field.
+func (bu *BugsUpdate) AddAssignmentTime(f float64) *BugsUpdate {
+	bu.mutation.AddAssignmentTime(f)
+	return bu
+}
+
+// ClearAssignmentTime clears the value of the "assignment_time" field.
+func (bu *BugsUpdate) ClearAssignmentTime() *BugsUpdate {
+	bu.mutation.ClearAssignmentTime()
+	return bu
+}
+
+// SetPrioritizationTime sets the "prioritization_time" field.
+func (bu *BugsUpdate) SetPrioritizationTime(f float64) *BugsUpdate {
+	bu.mutation.ResetPrioritizationTime()
+	bu.mutation.SetPrioritizationTime(f)
+	return bu
+}
+
+// SetNillablePrioritizationTime sets the "prioritization_time" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillablePrioritizationTime(f *float64) *BugsUpdate {
+	if f != nil {
+		bu.SetPrioritizationTime(*f)
+	}
+	return bu
+}
+
+// AddPrioritizationTime adds f to the "prioritization_time" field.
+func (bu *BugsUpdate) AddPrioritizationTime(f float64) *BugsUpdate {
+	bu.mutation.AddPrioritizationTime(f)
+	return bu
+}
+
+// ClearPrioritizationTime clears the value of the "prioritization_time" field.
+func (bu *BugsUpdate) ClearPrioritizationTime() *BugsUpdate {
+	bu.mutation.ClearPrioritizationTime()
+	return bu
+}
+
+// SetDaysWithoutAssignee sets the "days_without_assignee" field.
+func (bu *BugsUpdate) SetDaysWithoutAssignee(f float64) *BugsUpdate {
+	bu.mutation.ResetDaysWithoutAssignee()
+	bu.mutation.SetDaysWithoutAssignee(f)
+	return bu
+}
+
+// SetNillableDaysWithoutAssignee sets the "days_without_assignee" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableDaysWithoutAssignee(f *float64) *BugsUpdate {
+	if f != nil {
+		bu.SetDaysWithoutAssignee(*f)
+	}
+	return bu
+}
+
+// AddDaysWithoutAssignee adds f to the "days_without_assignee" field.
+func (bu *BugsUpdate) AddDaysWithoutAssignee(f float64) *BugsUpdate {
+	bu.mutation.AddDaysWithoutAssignee(f)
+	return bu
+}
+
+// ClearDaysWithoutAssignee clears the value of the "days_without_assignee" field.
+func (bu *BugsUpdate) ClearDaysWithoutAssignee() *BugsUpdate {
+	bu.mutation.ClearDaysWithoutAssignee()
+	return bu
+}
+
+// SetDaysWithoutPriority sets the "days_without_priority" field.
+func (bu *BugsUpdate) SetDaysWithoutPriority(f float64) *BugsUpdate {
+	bu.mutation.ResetDaysWithoutPriority()
+	bu.mutation.SetDaysWithoutPriority(f)
+	return bu
+}
+
+// SetNillableDaysWithoutPriority sets the "days_without_priority" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableDaysWithoutPriority(f *float64) *BugsUpdate {
+	if f != nil {
+		bu.SetDaysWithoutPriority(*f)
+	}
+	return bu
+}
+
+// AddDaysWithoutPriority adds f to the "days_without_priority" field.
+func (bu *BugsUpdate) AddDaysWithoutPriority(f float64) *BugsUpdate {
+	bu.mutation.AddDaysWithoutPriority(f)
+	return bu
+}
+
+// ClearDaysWithoutPriority clears the value of the "days_without_priority" field.
+func (bu *BugsUpdate) ClearDaysWithoutPriority() *BugsUpdate {
+	bu.mutation.ClearDaysWithoutPriority()
+	return bu
+}
+
+// SetDaysWithoutResolution sets the "days_without_resolution" field.
+func (bu *BugsUpdate) SetDaysWithoutResolution(f float64) *BugsUpdate {
+	bu.mutation.ResetDaysWithoutResolution()
+	bu.mutation.SetDaysWithoutResolution(f)
+	return bu
+}
+
+// SetNillableDaysWithoutResolution sets the "days_without_resolution" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableDaysWithoutResolution(f *float64) *BugsUpdate {
+	if f != nil {
+		bu.SetDaysWithoutResolution(*f)
+	}
+	return bu
+}
+
+// AddDaysWithoutResolution adds f to the "days_without_resolution" field.
+func (bu *BugsUpdate) AddDaysWithoutResolution(f float64) *BugsUpdate {
+	bu.mutation.AddDaysWithoutResolution(f)
+	return bu
+}
+
+// ClearDaysWithoutResolution clears the value of the "days_without_resolution" field.
+func (bu *BugsUpdate) ClearDaysWithoutResolution() *BugsUpdate {
+	bu.mutation.ClearDaysWithoutResolution()
+	return bu
+}
+
+// SetLabels sets the "labels" field.
+func (bu *BugsUpdate) SetLabels(s string) *BugsUpdate {
+	bu.mutation.SetLabels(s)
+	return bu
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableLabels(s *string) *BugsUpdate {
+	if s != nil {
+		bu.SetLabels(*s)
+	}
+	return bu
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (bu *BugsUpdate) ClearLabels() *BugsUpdate {
+	bu.mutation.ClearLabels()
+	return bu
+}
+
 // SetBugsID sets the "bugs" edge to the Teams entity by ID.
 func (bu *BugsUpdate) SetBugsID(id uuid.UUID) *BugsUpdate {
 	bu.mutation.SetBugsID(id)
@@ -259,6 +414,57 @@ func (bu *BugsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if bu.mutation.ProjectKeyCleared() {
 		_spec.ClearField(bugs.FieldProjectKey, field.TypeString)
+	}
+	if value, ok := bu.mutation.AssignmentTime(); ok {
+		_spec.SetField(bugs.FieldAssignmentTime, field.TypeFloat64, value)
+	}
+	if value, ok := bu.mutation.AddedAssignmentTime(); ok {
+		_spec.AddField(bugs.FieldAssignmentTime, field.TypeFloat64, value)
+	}
+	if bu.mutation.AssignmentTimeCleared() {
+		_spec.ClearField(bugs.FieldAssignmentTime, field.TypeFloat64)
+	}
+	if value, ok := bu.mutation.PrioritizationTime(); ok {
+		_spec.SetField(bugs.FieldPrioritizationTime, field.TypeFloat64, value)
+	}
+	if value, ok := bu.mutation.AddedPrioritizationTime(); ok {
+		_spec.AddField(bugs.FieldPrioritizationTime, field.TypeFloat64, value)
+	}
+	if bu.mutation.PrioritizationTimeCleared() {
+		_spec.ClearField(bugs.FieldPrioritizationTime, field.TypeFloat64)
+	}
+	if value, ok := bu.mutation.DaysWithoutAssignee(); ok {
+		_spec.SetField(bugs.FieldDaysWithoutAssignee, field.TypeFloat64, value)
+	}
+	if value, ok := bu.mutation.AddedDaysWithoutAssignee(); ok {
+		_spec.AddField(bugs.FieldDaysWithoutAssignee, field.TypeFloat64, value)
+	}
+	if bu.mutation.DaysWithoutAssigneeCleared() {
+		_spec.ClearField(bugs.FieldDaysWithoutAssignee, field.TypeFloat64)
+	}
+	if value, ok := bu.mutation.DaysWithoutPriority(); ok {
+		_spec.SetField(bugs.FieldDaysWithoutPriority, field.TypeFloat64, value)
+	}
+	if value, ok := bu.mutation.AddedDaysWithoutPriority(); ok {
+		_spec.AddField(bugs.FieldDaysWithoutPriority, field.TypeFloat64, value)
+	}
+	if bu.mutation.DaysWithoutPriorityCleared() {
+		_spec.ClearField(bugs.FieldDaysWithoutPriority, field.TypeFloat64)
+	}
+	if value, ok := bu.mutation.DaysWithoutResolution(); ok {
+		_spec.SetField(bugs.FieldDaysWithoutResolution, field.TypeFloat64, value)
+	}
+	if value, ok := bu.mutation.AddedDaysWithoutResolution(); ok {
+		_spec.AddField(bugs.FieldDaysWithoutResolution, field.TypeFloat64, value)
+	}
+	if bu.mutation.DaysWithoutResolutionCleared() {
+		_spec.ClearField(bugs.FieldDaysWithoutResolution, field.TypeFloat64)
+	}
+	if value, ok := bu.mutation.Labels(); ok {
+		_spec.SetField(bugs.FieldLabels, field.TypeString, value)
+	}
+	if bu.mutation.LabelsCleared() {
+		_spec.ClearField(bugs.FieldLabels, field.TypeString)
 	}
 	if bu.mutation.BugsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -418,6 +624,161 @@ func (buo *BugsUpdateOne) ClearProjectKey() *BugsUpdateOne {
 	return buo
 }
 
+// SetAssignmentTime sets the "assignment_time" field.
+func (buo *BugsUpdateOne) SetAssignmentTime(f float64) *BugsUpdateOne {
+	buo.mutation.ResetAssignmentTime()
+	buo.mutation.SetAssignmentTime(f)
+	return buo
+}
+
+// SetNillableAssignmentTime sets the "assignment_time" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableAssignmentTime(f *float64) *BugsUpdateOne {
+	if f != nil {
+		buo.SetAssignmentTime(*f)
+	}
+	return buo
+}
+
+// AddAssignmentTime adds f to the "assignment_time" field.
+func (buo *BugsUpdateOne) AddAssignmentTime(f float64) *BugsUpdateOne {
+	buo.mutation.AddAssignmentTime(f)
+	return buo
+}
+
+// ClearAssignmentTime clears the value of the "assignment_time" field.
+func (buo *BugsUpdateOne) ClearAssignmentTime() *BugsUpdateOne {
+	buo.mutation.ClearAssignmentTime()
+	return buo
+}
+
+// SetPrioritizationTime sets the "prioritization_time" field.
+func (buo *BugsUpdateOne) SetPrioritizationTime(f float64) *BugsUpdateOne {
+	buo.mutation.ResetPrioritizationTime()
+	buo.mutation.SetPrioritizationTime(f)
+	return buo
+}
+
+// SetNillablePrioritizationTime sets the "prioritization_time" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillablePrioritizationTime(f *float64) *BugsUpdateOne {
+	if f != nil {
+		buo.SetPrioritizationTime(*f)
+	}
+	return buo
+}
+
+// AddPrioritizationTime adds f to the "prioritization_time" field.
+func (buo *BugsUpdateOne) AddPrioritizationTime(f float64) *BugsUpdateOne {
+	buo.mutation.AddPrioritizationTime(f)
+	return buo
+}
+
+// ClearPrioritizationTime clears the value of the "prioritization_time" field.
+func (buo *BugsUpdateOne) ClearPrioritizationTime() *BugsUpdateOne {
+	buo.mutation.ClearPrioritizationTime()
+	return buo
+}
+
+// SetDaysWithoutAssignee sets the "days_without_assignee" field.
+func (buo *BugsUpdateOne) SetDaysWithoutAssignee(f float64) *BugsUpdateOne {
+	buo.mutation.ResetDaysWithoutAssignee()
+	buo.mutation.SetDaysWithoutAssignee(f)
+	return buo
+}
+
+// SetNillableDaysWithoutAssignee sets the "days_without_assignee" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableDaysWithoutAssignee(f *float64) *BugsUpdateOne {
+	if f != nil {
+		buo.SetDaysWithoutAssignee(*f)
+	}
+	return buo
+}
+
+// AddDaysWithoutAssignee adds f to the "days_without_assignee" field.
+func (buo *BugsUpdateOne) AddDaysWithoutAssignee(f float64) *BugsUpdateOne {
+	buo.mutation.AddDaysWithoutAssignee(f)
+	return buo
+}
+
+// ClearDaysWithoutAssignee clears the value of the "days_without_assignee" field.
+func (buo *BugsUpdateOne) ClearDaysWithoutAssignee() *BugsUpdateOne {
+	buo.mutation.ClearDaysWithoutAssignee()
+	return buo
+}
+
+// SetDaysWithoutPriority sets the "days_without_priority" field.
+func (buo *BugsUpdateOne) SetDaysWithoutPriority(f float64) *BugsUpdateOne {
+	buo.mutation.ResetDaysWithoutPriority()
+	buo.mutation.SetDaysWithoutPriority(f)
+	return buo
+}
+
+// SetNillableDaysWithoutPriority sets the "days_without_priority" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableDaysWithoutPriority(f *float64) *BugsUpdateOne {
+	if f != nil {
+		buo.SetDaysWithoutPriority(*f)
+	}
+	return buo
+}
+
+// AddDaysWithoutPriority adds f to the "days_without_priority" field.
+func (buo *BugsUpdateOne) AddDaysWithoutPriority(f float64) *BugsUpdateOne {
+	buo.mutation.AddDaysWithoutPriority(f)
+	return buo
+}
+
+// ClearDaysWithoutPriority clears the value of the "days_without_priority" field.
+func (buo *BugsUpdateOne) ClearDaysWithoutPriority() *BugsUpdateOne {
+	buo.mutation.ClearDaysWithoutPriority()
+	return buo
+}
+
+// SetDaysWithoutResolution sets the "days_without_resolution" field.
+func (buo *BugsUpdateOne) SetDaysWithoutResolution(f float64) *BugsUpdateOne {
+	buo.mutation.ResetDaysWithoutResolution()
+	buo.mutation.SetDaysWithoutResolution(f)
+	return buo
+}
+
+// SetNillableDaysWithoutResolution sets the "days_without_resolution" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableDaysWithoutResolution(f *float64) *BugsUpdateOne {
+	if f != nil {
+		buo.SetDaysWithoutResolution(*f)
+	}
+	return buo
+}
+
+// AddDaysWithoutResolution adds f to the "days_without_resolution" field.
+func (buo *BugsUpdateOne) AddDaysWithoutResolution(f float64) *BugsUpdateOne {
+	buo.mutation.AddDaysWithoutResolution(f)
+	return buo
+}
+
+// ClearDaysWithoutResolution clears the value of the "days_without_resolution" field.
+func (buo *BugsUpdateOne) ClearDaysWithoutResolution() *BugsUpdateOne {
+	buo.mutation.ClearDaysWithoutResolution()
+	return buo
+}
+
+// SetLabels sets the "labels" field.
+func (buo *BugsUpdateOne) SetLabels(s string) *BugsUpdateOne {
+	buo.mutation.SetLabels(s)
+	return buo
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableLabels(s *string) *BugsUpdateOne {
+	if s != nil {
+		buo.SetLabels(*s)
+	}
+	return buo
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (buo *BugsUpdateOne) ClearLabels() *BugsUpdateOne {
+	buo.mutation.ClearLabels()
+	return buo
+}
+
 // SetBugsID sets the "bugs" edge to the Teams entity by ID.
 func (buo *BugsUpdateOne) SetBugsID(id uuid.UUID) *BugsUpdateOne {
 	buo.mutation.SetBugsID(id)
@@ -568,6 +929,57 @@ func (buo *BugsUpdateOne) sqlSave(ctx context.Context) (_node *Bugs, err error) 
 	}
 	if buo.mutation.ProjectKeyCleared() {
 		_spec.ClearField(bugs.FieldProjectKey, field.TypeString)
+	}
+	if value, ok := buo.mutation.AssignmentTime(); ok {
+		_spec.SetField(bugs.FieldAssignmentTime, field.TypeFloat64, value)
+	}
+	if value, ok := buo.mutation.AddedAssignmentTime(); ok {
+		_spec.AddField(bugs.FieldAssignmentTime, field.TypeFloat64, value)
+	}
+	if buo.mutation.AssignmentTimeCleared() {
+		_spec.ClearField(bugs.FieldAssignmentTime, field.TypeFloat64)
+	}
+	if value, ok := buo.mutation.PrioritizationTime(); ok {
+		_spec.SetField(bugs.FieldPrioritizationTime, field.TypeFloat64, value)
+	}
+	if value, ok := buo.mutation.AddedPrioritizationTime(); ok {
+		_spec.AddField(bugs.FieldPrioritizationTime, field.TypeFloat64, value)
+	}
+	if buo.mutation.PrioritizationTimeCleared() {
+		_spec.ClearField(bugs.FieldPrioritizationTime, field.TypeFloat64)
+	}
+	if value, ok := buo.mutation.DaysWithoutAssignee(); ok {
+		_spec.SetField(bugs.FieldDaysWithoutAssignee, field.TypeFloat64, value)
+	}
+	if value, ok := buo.mutation.AddedDaysWithoutAssignee(); ok {
+		_spec.AddField(bugs.FieldDaysWithoutAssignee, field.TypeFloat64, value)
+	}
+	if buo.mutation.DaysWithoutAssigneeCleared() {
+		_spec.ClearField(bugs.FieldDaysWithoutAssignee, field.TypeFloat64)
+	}
+	if value, ok := buo.mutation.DaysWithoutPriority(); ok {
+		_spec.SetField(bugs.FieldDaysWithoutPriority, field.TypeFloat64, value)
+	}
+	if value, ok := buo.mutation.AddedDaysWithoutPriority(); ok {
+		_spec.AddField(bugs.FieldDaysWithoutPriority, field.TypeFloat64, value)
+	}
+	if buo.mutation.DaysWithoutPriorityCleared() {
+		_spec.ClearField(bugs.FieldDaysWithoutPriority, field.TypeFloat64)
+	}
+	if value, ok := buo.mutation.DaysWithoutResolution(); ok {
+		_spec.SetField(bugs.FieldDaysWithoutResolution, field.TypeFloat64, value)
+	}
+	if value, ok := buo.mutation.AddedDaysWithoutResolution(); ok {
+		_spec.AddField(bugs.FieldDaysWithoutResolution, field.TypeFloat64, value)
+	}
+	if buo.mutation.DaysWithoutResolutionCleared() {
+		_spec.ClearField(bugs.FieldDaysWithoutResolution, field.TypeFloat64)
+	}
+	if value, ok := buo.mutation.Labels(); ok {
+		_spec.SetField(bugs.FieldLabels, field.TypeString, value)
+	}
+	if buo.mutation.LabelsCleared() {
+		_spec.ClearField(bugs.FieldLabels, field.TypeString)
 	}
 	if buo.mutation.BugsCleared() {
 		edge := &sqlgraph.EdgeSpec{

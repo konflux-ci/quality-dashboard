@@ -48,27 +48,38 @@ const (
 // BugsMutation represents an operation that mutates the Bugs nodes in the graph.
 type BugsMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	jira_key           *string
-	created_at         *time.Time
-	updated_at         *time.Time
-	resolved_at        *time.Time
-	resolved           *bool
-	priority           *string
-	resolution_time    *float64
-	addresolution_time *float64
-	status             *string
-	summary            *string
-	url                *string
-	project_key        *string
-	clearedFields      map[string]struct{}
-	bugs               *uuid.UUID
-	clearedbugs        bool
-	done               bool
-	oldValue           func(context.Context) (*Bugs, error)
-	predicates         []predicate.Bugs
+	op                         Op
+	typ                        string
+	id                         *uuid.UUID
+	jira_key                   *string
+	created_at                 *time.Time
+	updated_at                 *time.Time
+	resolved_at                *time.Time
+	resolved                   *bool
+	priority                   *string
+	resolution_time            *float64
+	addresolution_time         *float64
+	status                     *string
+	summary                    *string
+	url                        *string
+	project_key                *string
+	assignment_time            *float64
+	addassignment_time         *float64
+	prioritization_time        *float64
+	addprioritization_time     *float64
+	days_without_assignee      *float64
+	adddays_without_assignee   *float64
+	days_without_priority      *float64
+	adddays_without_priority   *float64
+	days_without_resolution    *float64
+	adddays_without_resolution *float64
+	labels                     *string
+	clearedFields              map[string]struct{}
+	bugs                       *uuid.UUID
+	clearedbugs                bool
+	done                       bool
+	oldValue                   func(context.Context) (*Bugs, error)
+	predicates                 []predicate.Bugs
 }
 
 var _ ent.Mutation = (*BugsMutation)(nil)
@@ -604,6 +615,405 @@ func (m *BugsMutation) ResetProjectKey() {
 	delete(m.clearedFields, bugs.FieldProjectKey)
 }
 
+// SetAssignmentTime sets the "assignment_time" field.
+func (m *BugsMutation) SetAssignmentTime(f float64) {
+	m.assignment_time = &f
+	m.addassignment_time = nil
+}
+
+// AssignmentTime returns the value of the "assignment_time" field in the mutation.
+func (m *BugsMutation) AssignmentTime() (r float64, exists bool) {
+	v := m.assignment_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAssignmentTime returns the old "assignment_time" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldAssignmentTime(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAssignmentTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAssignmentTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAssignmentTime: %w", err)
+	}
+	return oldValue.AssignmentTime, nil
+}
+
+// AddAssignmentTime adds f to the "assignment_time" field.
+func (m *BugsMutation) AddAssignmentTime(f float64) {
+	if m.addassignment_time != nil {
+		*m.addassignment_time += f
+	} else {
+		m.addassignment_time = &f
+	}
+}
+
+// AddedAssignmentTime returns the value that was added to the "assignment_time" field in this mutation.
+func (m *BugsMutation) AddedAssignmentTime() (r float64, exists bool) {
+	v := m.addassignment_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearAssignmentTime clears the value of the "assignment_time" field.
+func (m *BugsMutation) ClearAssignmentTime() {
+	m.assignment_time = nil
+	m.addassignment_time = nil
+	m.clearedFields[bugs.FieldAssignmentTime] = struct{}{}
+}
+
+// AssignmentTimeCleared returns if the "assignment_time" field was cleared in this mutation.
+func (m *BugsMutation) AssignmentTimeCleared() bool {
+	_, ok := m.clearedFields[bugs.FieldAssignmentTime]
+	return ok
+}
+
+// ResetAssignmentTime resets all changes to the "assignment_time" field.
+func (m *BugsMutation) ResetAssignmentTime() {
+	m.assignment_time = nil
+	m.addassignment_time = nil
+	delete(m.clearedFields, bugs.FieldAssignmentTime)
+}
+
+// SetPrioritizationTime sets the "prioritization_time" field.
+func (m *BugsMutation) SetPrioritizationTime(f float64) {
+	m.prioritization_time = &f
+	m.addprioritization_time = nil
+}
+
+// PrioritizationTime returns the value of the "prioritization_time" field in the mutation.
+func (m *BugsMutation) PrioritizationTime() (r float64, exists bool) {
+	v := m.prioritization_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPrioritizationTime returns the old "prioritization_time" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldPrioritizationTime(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPrioritizationTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPrioritizationTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPrioritizationTime: %w", err)
+	}
+	return oldValue.PrioritizationTime, nil
+}
+
+// AddPrioritizationTime adds f to the "prioritization_time" field.
+func (m *BugsMutation) AddPrioritizationTime(f float64) {
+	if m.addprioritization_time != nil {
+		*m.addprioritization_time += f
+	} else {
+		m.addprioritization_time = &f
+	}
+}
+
+// AddedPrioritizationTime returns the value that was added to the "prioritization_time" field in this mutation.
+func (m *BugsMutation) AddedPrioritizationTime() (r float64, exists bool) {
+	v := m.addprioritization_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearPrioritizationTime clears the value of the "prioritization_time" field.
+func (m *BugsMutation) ClearPrioritizationTime() {
+	m.prioritization_time = nil
+	m.addprioritization_time = nil
+	m.clearedFields[bugs.FieldPrioritizationTime] = struct{}{}
+}
+
+// PrioritizationTimeCleared returns if the "prioritization_time" field was cleared in this mutation.
+func (m *BugsMutation) PrioritizationTimeCleared() bool {
+	_, ok := m.clearedFields[bugs.FieldPrioritizationTime]
+	return ok
+}
+
+// ResetPrioritizationTime resets all changes to the "prioritization_time" field.
+func (m *BugsMutation) ResetPrioritizationTime() {
+	m.prioritization_time = nil
+	m.addprioritization_time = nil
+	delete(m.clearedFields, bugs.FieldPrioritizationTime)
+}
+
+// SetDaysWithoutAssignee sets the "days_without_assignee" field.
+func (m *BugsMutation) SetDaysWithoutAssignee(f float64) {
+	m.days_without_assignee = &f
+	m.adddays_without_assignee = nil
+}
+
+// DaysWithoutAssignee returns the value of the "days_without_assignee" field in the mutation.
+func (m *BugsMutation) DaysWithoutAssignee() (r float64, exists bool) {
+	v := m.days_without_assignee
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDaysWithoutAssignee returns the old "days_without_assignee" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldDaysWithoutAssignee(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDaysWithoutAssignee is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDaysWithoutAssignee requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDaysWithoutAssignee: %w", err)
+	}
+	return oldValue.DaysWithoutAssignee, nil
+}
+
+// AddDaysWithoutAssignee adds f to the "days_without_assignee" field.
+func (m *BugsMutation) AddDaysWithoutAssignee(f float64) {
+	if m.adddays_without_assignee != nil {
+		*m.adddays_without_assignee += f
+	} else {
+		m.adddays_without_assignee = &f
+	}
+}
+
+// AddedDaysWithoutAssignee returns the value that was added to the "days_without_assignee" field in this mutation.
+func (m *BugsMutation) AddedDaysWithoutAssignee() (r float64, exists bool) {
+	v := m.adddays_without_assignee
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDaysWithoutAssignee clears the value of the "days_without_assignee" field.
+func (m *BugsMutation) ClearDaysWithoutAssignee() {
+	m.days_without_assignee = nil
+	m.adddays_without_assignee = nil
+	m.clearedFields[bugs.FieldDaysWithoutAssignee] = struct{}{}
+}
+
+// DaysWithoutAssigneeCleared returns if the "days_without_assignee" field was cleared in this mutation.
+func (m *BugsMutation) DaysWithoutAssigneeCleared() bool {
+	_, ok := m.clearedFields[bugs.FieldDaysWithoutAssignee]
+	return ok
+}
+
+// ResetDaysWithoutAssignee resets all changes to the "days_without_assignee" field.
+func (m *BugsMutation) ResetDaysWithoutAssignee() {
+	m.days_without_assignee = nil
+	m.adddays_without_assignee = nil
+	delete(m.clearedFields, bugs.FieldDaysWithoutAssignee)
+}
+
+// SetDaysWithoutPriority sets the "days_without_priority" field.
+func (m *BugsMutation) SetDaysWithoutPriority(f float64) {
+	m.days_without_priority = &f
+	m.adddays_without_priority = nil
+}
+
+// DaysWithoutPriority returns the value of the "days_without_priority" field in the mutation.
+func (m *BugsMutation) DaysWithoutPriority() (r float64, exists bool) {
+	v := m.days_without_priority
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDaysWithoutPriority returns the old "days_without_priority" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldDaysWithoutPriority(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDaysWithoutPriority is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDaysWithoutPriority requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDaysWithoutPriority: %w", err)
+	}
+	return oldValue.DaysWithoutPriority, nil
+}
+
+// AddDaysWithoutPriority adds f to the "days_without_priority" field.
+func (m *BugsMutation) AddDaysWithoutPriority(f float64) {
+	if m.adddays_without_priority != nil {
+		*m.adddays_without_priority += f
+	} else {
+		m.adddays_without_priority = &f
+	}
+}
+
+// AddedDaysWithoutPriority returns the value that was added to the "days_without_priority" field in this mutation.
+func (m *BugsMutation) AddedDaysWithoutPriority() (r float64, exists bool) {
+	v := m.adddays_without_priority
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDaysWithoutPriority clears the value of the "days_without_priority" field.
+func (m *BugsMutation) ClearDaysWithoutPriority() {
+	m.days_without_priority = nil
+	m.adddays_without_priority = nil
+	m.clearedFields[bugs.FieldDaysWithoutPriority] = struct{}{}
+}
+
+// DaysWithoutPriorityCleared returns if the "days_without_priority" field was cleared in this mutation.
+func (m *BugsMutation) DaysWithoutPriorityCleared() bool {
+	_, ok := m.clearedFields[bugs.FieldDaysWithoutPriority]
+	return ok
+}
+
+// ResetDaysWithoutPriority resets all changes to the "days_without_priority" field.
+func (m *BugsMutation) ResetDaysWithoutPriority() {
+	m.days_without_priority = nil
+	m.adddays_without_priority = nil
+	delete(m.clearedFields, bugs.FieldDaysWithoutPriority)
+}
+
+// SetDaysWithoutResolution sets the "days_without_resolution" field.
+func (m *BugsMutation) SetDaysWithoutResolution(f float64) {
+	m.days_without_resolution = &f
+	m.adddays_without_resolution = nil
+}
+
+// DaysWithoutResolution returns the value of the "days_without_resolution" field in the mutation.
+func (m *BugsMutation) DaysWithoutResolution() (r float64, exists bool) {
+	v := m.days_without_resolution
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDaysWithoutResolution returns the old "days_without_resolution" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldDaysWithoutResolution(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDaysWithoutResolution is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDaysWithoutResolution requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDaysWithoutResolution: %w", err)
+	}
+	return oldValue.DaysWithoutResolution, nil
+}
+
+// AddDaysWithoutResolution adds f to the "days_without_resolution" field.
+func (m *BugsMutation) AddDaysWithoutResolution(f float64) {
+	if m.adddays_without_resolution != nil {
+		*m.adddays_without_resolution += f
+	} else {
+		m.adddays_without_resolution = &f
+	}
+}
+
+// AddedDaysWithoutResolution returns the value that was added to the "days_without_resolution" field in this mutation.
+func (m *BugsMutation) AddedDaysWithoutResolution() (r float64, exists bool) {
+	v := m.adddays_without_resolution
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDaysWithoutResolution clears the value of the "days_without_resolution" field.
+func (m *BugsMutation) ClearDaysWithoutResolution() {
+	m.days_without_resolution = nil
+	m.adddays_without_resolution = nil
+	m.clearedFields[bugs.FieldDaysWithoutResolution] = struct{}{}
+}
+
+// DaysWithoutResolutionCleared returns if the "days_without_resolution" field was cleared in this mutation.
+func (m *BugsMutation) DaysWithoutResolutionCleared() bool {
+	_, ok := m.clearedFields[bugs.FieldDaysWithoutResolution]
+	return ok
+}
+
+// ResetDaysWithoutResolution resets all changes to the "days_without_resolution" field.
+func (m *BugsMutation) ResetDaysWithoutResolution() {
+	m.days_without_resolution = nil
+	m.adddays_without_resolution = nil
+	delete(m.clearedFields, bugs.FieldDaysWithoutResolution)
+}
+
+// SetLabels sets the "labels" field.
+func (m *BugsMutation) SetLabels(s string) {
+	m.labels = &s
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *BugsMutation) Labels() (r string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldLabels(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (m *BugsMutation) ClearLabels() {
+	m.labels = nil
+	m.clearedFields[bugs.FieldLabels] = struct{}{}
+}
+
+// LabelsCleared returns if the "labels" field was cleared in this mutation.
+func (m *BugsMutation) LabelsCleared() bool {
+	_, ok := m.clearedFields[bugs.FieldLabels]
+	return ok
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *BugsMutation) ResetLabels() {
+	m.labels = nil
+	delete(m.clearedFields, bugs.FieldLabels)
+}
+
 // SetBugsID sets the "bugs" edge to the Teams entity by id.
 func (m *BugsMutation) SetBugsID(id uuid.UUID) {
 	m.bugs = &id
@@ -677,7 +1087,7 @@ func (m *BugsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BugsMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 17)
 	if m.jira_key != nil {
 		fields = append(fields, bugs.FieldJiraKey)
 	}
@@ -711,6 +1121,24 @@ func (m *BugsMutation) Fields() []string {
 	if m.project_key != nil {
 		fields = append(fields, bugs.FieldProjectKey)
 	}
+	if m.assignment_time != nil {
+		fields = append(fields, bugs.FieldAssignmentTime)
+	}
+	if m.prioritization_time != nil {
+		fields = append(fields, bugs.FieldPrioritizationTime)
+	}
+	if m.days_without_assignee != nil {
+		fields = append(fields, bugs.FieldDaysWithoutAssignee)
+	}
+	if m.days_without_priority != nil {
+		fields = append(fields, bugs.FieldDaysWithoutPriority)
+	}
+	if m.days_without_resolution != nil {
+		fields = append(fields, bugs.FieldDaysWithoutResolution)
+	}
+	if m.labels != nil {
+		fields = append(fields, bugs.FieldLabels)
+	}
 	return fields
 }
 
@@ -741,6 +1169,18 @@ func (m *BugsMutation) Field(name string) (ent.Value, bool) {
 		return m.URL()
 	case bugs.FieldProjectKey:
 		return m.ProjectKey()
+	case bugs.FieldAssignmentTime:
+		return m.AssignmentTime()
+	case bugs.FieldPrioritizationTime:
+		return m.PrioritizationTime()
+	case bugs.FieldDaysWithoutAssignee:
+		return m.DaysWithoutAssignee()
+	case bugs.FieldDaysWithoutPriority:
+		return m.DaysWithoutPriority()
+	case bugs.FieldDaysWithoutResolution:
+		return m.DaysWithoutResolution()
+	case bugs.FieldLabels:
+		return m.Labels()
 	}
 	return nil, false
 }
@@ -772,6 +1212,18 @@ func (m *BugsMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldURL(ctx)
 	case bugs.FieldProjectKey:
 		return m.OldProjectKey(ctx)
+	case bugs.FieldAssignmentTime:
+		return m.OldAssignmentTime(ctx)
+	case bugs.FieldPrioritizationTime:
+		return m.OldPrioritizationTime(ctx)
+	case bugs.FieldDaysWithoutAssignee:
+		return m.OldDaysWithoutAssignee(ctx)
+	case bugs.FieldDaysWithoutPriority:
+		return m.OldDaysWithoutPriority(ctx)
+	case bugs.FieldDaysWithoutResolution:
+		return m.OldDaysWithoutResolution(ctx)
+	case bugs.FieldLabels:
+		return m.OldLabels(ctx)
 	}
 	return nil, fmt.Errorf("unknown Bugs field %s", name)
 }
@@ -858,6 +1310,48 @@ func (m *BugsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetProjectKey(v)
 		return nil
+	case bugs.FieldAssignmentTime:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAssignmentTime(v)
+		return nil
+	case bugs.FieldPrioritizationTime:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPrioritizationTime(v)
+		return nil
+	case bugs.FieldDaysWithoutAssignee:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDaysWithoutAssignee(v)
+		return nil
+	case bugs.FieldDaysWithoutPriority:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDaysWithoutPriority(v)
+		return nil
+	case bugs.FieldDaysWithoutResolution:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDaysWithoutResolution(v)
+		return nil
+	case bugs.FieldLabels:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Bugs field %s", name)
 }
@@ -869,6 +1363,21 @@ func (m *BugsMutation) AddedFields() []string {
 	if m.addresolution_time != nil {
 		fields = append(fields, bugs.FieldResolutionTime)
 	}
+	if m.addassignment_time != nil {
+		fields = append(fields, bugs.FieldAssignmentTime)
+	}
+	if m.addprioritization_time != nil {
+		fields = append(fields, bugs.FieldPrioritizationTime)
+	}
+	if m.adddays_without_assignee != nil {
+		fields = append(fields, bugs.FieldDaysWithoutAssignee)
+	}
+	if m.adddays_without_priority != nil {
+		fields = append(fields, bugs.FieldDaysWithoutPriority)
+	}
+	if m.adddays_without_resolution != nil {
+		fields = append(fields, bugs.FieldDaysWithoutResolution)
+	}
 	return fields
 }
 
@@ -879,6 +1388,16 @@ func (m *BugsMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case bugs.FieldResolutionTime:
 		return m.AddedResolutionTime()
+	case bugs.FieldAssignmentTime:
+		return m.AddedAssignmentTime()
+	case bugs.FieldPrioritizationTime:
+		return m.AddedPrioritizationTime()
+	case bugs.FieldDaysWithoutAssignee:
+		return m.AddedDaysWithoutAssignee()
+	case bugs.FieldDaysWithoutPriority:
+		return m.AddedDaysWithoutPriority()
+	case bugs.FieldDaysWithoutResolution:
+		return m.AddedDaysWithoutResolution()
 	}
 	return nil, false
 }
@@ -895,6 +1414,41 @@ func (m *BugsMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddResolutionTime(v)
 		return nil
+	case bugs.FieldAssignmentTime:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAssignmentTime(v)
+		return nil
+	case bugs.FieldPrioritizationTime:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPrioritizationTime(v)
+		return nil
+	case bugs.FieldDaysWithoutAssignee:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDaysWithoutAssignee(v)
+		return nil
+	case bugs.FieldDaysWithoutPriority:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDaysWithoutPriority(v)
+		return nil
+	case bugs.FieldDaysWithoutResolution:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDaysWithoutResolution(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Bugs numeric field %s", name)
 }
@@ -905,6 +1459,24 @@ func (m *BugsMutation) ClearedFields() []string {
 	var fields []string
 	if m.FieldCleared(bugs.FieldProjectKey) {
 		fields = append(fields, bugs.FieldProjectKey)
+	}
+	if m.FieldCleared(bugs.FieldAssignmentTime) {
+		fields = append(fields, bugs.FieldAssignmentTime)
+	}
+	if m.FieldCleared(bugs.FieldPrioritizationTime) {
+		fields = append(fields, bugs.FieldPrioritizationTime)
+	}
+	if m.FieldCleared(bugs.FieldDaysWithoutAssignee) {
+		fields = append(fields, bugs.FieldDaysWithoutAssignee)
+	}
+	if m.FieldCleared(bugs.FieldDaysWithoutPriority) {
+		fields = append(fields, bugs.FieldDaysWithoutPriority)
+	}
+	if m.FieldCleared(bugs.FieldDaysWithoutResolution) {
+		fields = append(fields, bugs.FieldDaysWithoutResolution)
+	}
+	if m.FieldCleared(bugs.FieldLabels) {
+		fields = append(fields, bugs.FieldLabels)
 	}
 	return fields
 }
@@ -922,6 +1494,24 @@ func (m *BugsMutation) ClearField(name string) error {
 	switch name {
 	case bugs.FieldProjectKey:
 		m.ClearProjectKey()
+		return nil
+	case bugs.FieldAssignmentTime:
+		m.ClearAssignmentTime()
+		return nil
+	case bugs.FieldPrioritizationTime:
+		m.ClearPrioritizationTime()
+		return nil
+	case bugs.FieldDaysWithoutAssignee:
+		m.ClearDaysWithoutAssignee()
+		return nil
+	case bugs.FieldDaysWithoutPriority:
+		m.ClearDaysWithoutPriority()
+		return nil
+	case bugs.FieldDaysWithoutResolution:
+		m.ClearDaysWithoutResolution()
+		return nil
+	case bugs.FieldLabels:
+		m.ClearLabels()
 		return nil
 	}
 	return fmt.Errorf("unknown Bugs nullable field %s", name)
@@ -963,6 +1553,24 @@ func (m *BugsMutation) ResetField(name string) error {
 		return nil
 	case bugs.FieldProjectKey:
 		m.ResetProjectKey()
+		return nil
+	case bugs.FieldAssignmentTime:
+		m.ResetAssignmentTime()
+		return nil
+	case bugs.FieldPrioritizationTime:
+		m.ResetPrioritizationTime()
+		return nil
+	case bugs.FieldDaysWithoutAssignee:
+		m.ResetDaysWithoutAssignee()
+		return nil
+	case bugs.FieldDaysWithoutPriority:
+		m.ResetDaysWithoutPriority()
+		return nil
+	case bugs.FieldDaysWithoutResolution:
+		m.ResetDaysWithoutResolution()
+		return nil
+	case bugs.FieldLabels:
+		m.ResetLabels()
 		return nil
 	}
 	return fmt.Errorf("unknown Bugs field %s", name)

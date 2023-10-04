@@ -18,7 +18,7 @@ type RepositoriesApiResponse = {
   all: any;
 };
 
-const API_URL = process.env.REACT_APP_API_SERVER_URL || 'https://backend-quality-dashboardvmre-rhtap-qe-shared-tenant.apps.stone-prd-m01.84db.p1.openshiftapps.com';
+const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898';
 
 async function getVersion() {
   const result: ApiResponse = { code: 0, data: {} };
@@ -281,7 +281,7 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
   const start_date = formatDate(rangeDateTime[0]);
   const end_date = formatDate(rangeDateTime[1]);
 
-  const response = await axios.get(
+  const response = await fetch(
     API_URL +
     '/api/quality/prow/metrics/get?repository_name=' +
     repoName +
@@ -294,10 +294,10 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
     '&end_date=' +
     end_date
   );
-  if (response.status >= 300) {
+  if (!response.ok) {
     throw 'Error fetching data from server. ';
   }
-  const statistics: JobsStatistics = response.data;
+  const statistics: JobsStatistics = await response.json();
   if (statistics.jobs == null) {
     throw 'No jobs detected in OpenShift CI';
   }
@@ -574,8 +574,33 @@ async function bugExists(jiraKey: string, teamName: string) {
   }
   const data = await response.json();
 
-  console.log("data", response)
   return data;
+}
+
+async function getBugSLOsByProject(team: string, rangeDateTime: Date[]) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const start_date = formatDate(rangeDateTime[0]);
+  const end_date = formatDate(rangeDateTime[1]);
+
+  const subPath = '/api/quality/jira/slos/list?team_name=' + team +
+    '&start_date=' +
+    start_date +
+    '&end_date=' +
+    end_date
+
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  return result;
 }
 
 export {
@@ -602,5 +627,6 @@ export {
   getFailures,
   createFailure,
   deleteFailureByJiraKey,
-  bugExists
+  bugExists,
+  getBugSLOsByProject
 };

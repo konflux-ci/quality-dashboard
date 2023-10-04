@@ -34,8 +34,12 @@ func (t *clientFactory) GetBugsByJQLQuery(JQLQuery string) []jira.Issue {
 		return err
 	}
 
+	options := &jira.SearchOptions{
+		Expand: "changelog",
+	}
+
 	// In this example, we'll search for all the issues with the provided JQL filter and Print the Story Points
-	err := t.Client.Issue.SearchPages(JQLQuery, nil, appendFunc)
+	err := t.Client.Issue.SearchPages(JQLQuery, options, appendFunc)
 	if err != nil {
 		logger, _ := logger.InitZap("info")
 		logger.Error("Failed to search pages", zap.Error(err))

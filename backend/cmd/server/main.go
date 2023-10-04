@@ -17,6 +17,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/client"
 	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
+	"github.com/slack-go/slack"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -98,6 +99,7 @@ func main() {
 		CodeCov: codecov.NewCodeCoverageClient(),
 		Jira:    jiraAPI,
 		Db:      db,
+		Slack:   slack.New(util.GetEnv("SLACK_TOKEN", ""), slack.OptionDebug(true)),
 	})
 
 	dexIssuer := os.Getenv("DEX_ISSUER")
