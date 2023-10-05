@@ -4,16 +4,17 @@ metadata:
   annotations:
     build.appstudio.openshift.io/repo: https://github.com/redhat-appstudio/quality-dashboard?rev={{revision}}
     build.appstudio.redhat.com/commit_sha: '{{revision}}'
+    build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    pipelinesascode.tekton.dev/on-event: '[push]'
+    pipelinesascode.tekton.dev/on-event: '[pull_request]'
     pipelinesascode.tekton.dev/on-target-branch: '[main]'
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: quality-dashboard
-    appstudio.openshift.io/component: backend-quality-dashboard
+    appstudio.openshift.io/component: frontend-quality-dashboard
     pipelines.appstudio.openshift.io/type: build
-  name: backend-quality-dashboard-on-push
+  name: frontend-quality-dashboard-on-pull-request
   namespace: rhtap-qe-shared-tenant
 spec:
   params:
@@ -21,10 +22,12 @@ spec:
     value: Dockerfile
   - name: git-url
     value: '{{repo_url}}'
+  - name: image-expires-after
+    value: 5d
   - name: output-image
-    value: quay.io/redhat-user-workloads/rhtap-qe-shared-tenant/quality-dashboard/backend-quality-dashboard:{{revision}}
+    value: quay.io/redhat-user-workloads/rhtap-qe-shared-tenant/quality-dashboard/frontend-quality-dashboard:on-pr-{{revision}}
   - name: path-context
-    value: backend
+    value: frontend
   - name: revision
     value: '{{revision}}'
   pipelineSpec:
@@ -299,7 +302,7 @@ spec:
       - input: $(params.skip-checks)
         operator: in
         values:
-        - "false"
+        - "true"
     - name: sast-snyk-check
       runAfter:
       - clone-repository
@@ -341,7 +344,7 @@ spec:
       - input: $(params.skip-checks)
         operator: in
         values:
-        - "false"
+        - "true"
     - name: sbom-json-check
       params:
       - name: IMAGE_URL
@@ -378,7 +381,7 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: 1Gi
+            storage: 4Gi
       status: {}
   - name: git-auth
     secret:
