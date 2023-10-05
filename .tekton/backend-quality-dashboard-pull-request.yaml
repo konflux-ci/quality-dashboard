@@ -223,7 +223,13 @@ spec:
             git clone $(params.git-url) .
             git checkout $(params.revision)
 
-            cat quality-dashboard/.tekton/backend-quality-dashboard-pull-request.yaml
+            cat .tekton/backend-quality-dashboard-pull-request.yaml
+            echo "Hello World 2.0"
+            go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
+
+
+            golangci-lint --version
+
     - name: build-container
       params:
       - name: IMAGE
