@@ -101,6 +101,7 @@ const routes: AppRouteConfig[] = [
         component: CiFailures,
         exact: true,
         isAsync: true,
+        isProtected: true,
         label: 'RHTAPBUGS Impact on CI',
         path: '/home/rhtapbugs-impact',
         title: 'RHTAPBUGS Impact on CI | Quality Studio',
