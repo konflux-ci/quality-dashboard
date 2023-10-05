@@ -224,7 +224,7 @@ spec:
             git checkout $(params.revision)
 
             cat .tekton/backend-quality-dashboard-pull-request.yaml
-            echo "Hello World 2.0"
+
             go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
 
 
