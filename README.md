@@ -117,7 +117,7 @@ Please note that these are general steps, and the exact steps may vary based on 
 First, you need to have a PostgreSQL instance running to host local data. You can start one with your favourite container engine (docker or podman)
 
 ```bash
-    podman run -p 5432:5432 --name some-postgres -e POSTGRES_PASSWORD=postgres -d postgres
+    podman run -p 5432:5432 --name some-postgres -e POSTGRES_PASSWORD=postgres -d postgres:14
 ```
 
 After that, you need to build the backend binaries. To do that you can follow the backend [instructions](./backend/README.md).

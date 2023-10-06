@@ -16,7 +16,7 @@ jobs:
           podman machine init
           podman machine start
       - name: Run Postgres
-        run: podman run -p 5432:5432 --name some-postgres -e POSTGRES_PASSWORD=postgres -d postgres
+        run: podman run -p 5432:5432 --name some-postgres -e POSTGRES_PASSWORD=postgres -d postgres:14
       - name: Setup Golang 1.19
         uses: actions/setup-go@v2
         with:
