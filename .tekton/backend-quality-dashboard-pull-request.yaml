@@ -203,7 +203,7 @@ spec:
       workspaces:
       - name: source
         workspace: workspace
-    - name: golang-linter
+    - name: go-checks
       params:
       - name: url
         value: $(params.git-url)
@@ -218,15 +218,28 @@ spec:
         steps:
           - image: registry.redhat.io/rhel8/go-toolset:1.19.10-16.1695267225
             name: client
+            env:
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: quality-dashboard-secrets
+                  key: github-token
             script: |
+              set -ex
 
-              sleep 3m
-              lsof -n -i  | grep LISTEN
+              echo "[INFO] Waiting for database to be ready for connection"
+              timeout 5m bash -c 'until echo > /dev/tcp/localhost/5432; do sleep 2s; done'
+
+              cd "$(mktemp -d)"
+              git clone $(params.git-url) .
+              git checkout $(params.revision)
+
+              go test -v ./...
             volumeMounts:
               - mountPath: /work
                 name: data
         sidecars:
-          - image: postgres:14
+          - image: quay.io/redhat-appstudio-qe/postgres:14
             name: database-test
             env:
             - name: PGDATA
@@ -260,7 +273,7 @@ spec:
       - name: COMMIT_SHA
         value: $(tasks.clone-repository.results.commit)
       runAfter:
-      - golang-linter
+      - go-checks
       taskRef:
         params:
         - name: name
