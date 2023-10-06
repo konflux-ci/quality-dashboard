@@ -231,10 +231,13 @@ spec:
               timeout 5m bash -c 'until echo > /dev/tcp/localhost/5432; do sleep 2s; done'
 
               cd "$(mktemp -d)"
+              # turn the detached message off
+              git config --global advice.detachedHead false
+
               git clone $(params.git-url) .
               git checkout $(params.revision)
 
-              go test -v ./...
+              cd backend && go test -v ./...
             volumeMounts:
               - mountPath: /work
                 name: data
