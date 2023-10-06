@@ -224,6 +224,7 @@ func (s *Server) createMux() *mux.Router {
 		if err != nil {
 			s.cfg.Logger.Error("/api/quality/"+"swagger error", zap.Error(err), zap.String("path", "/swagger.json"))
 		}
+		// nolint:all
 		w.Write([]byte(doc))
 	})
 

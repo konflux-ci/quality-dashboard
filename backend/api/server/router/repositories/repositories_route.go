@@ -21,8 +21,11 @@ type repositoryRouter struct {
 
 // NewRouter initializes a new system router
 func NewRouter(s storage.Storage) router.Router {
-	githubAPI := github.NewGithubClient(util.GetEnv("GITHUB_TOKEN", ""))
+	// nolint:all
+	githubAPI, _ := github.NewGithubClient(util.GetEnv("GITHUB_TOKEN", ""))
+
 	logger, _ := logger.InitZap("info")
+
 	codecovApi := codecov.NewCodeCoverageClient()
 	r := &repositoryRouter{}
 

@@ -8,7 +8,7 @@ import (
 )
 
 func TestGetGithubRepositoryInformation(t *testing.T) {
-	gh := NewGithubClient(util.GetEnv("GITHUB_TOKEN", ""))
+	gh, _ := NewGithubClient(util.GetEnv("GITHUB_TOKEN", ""))
 
 	cases := []struct {
 		Name            string
@@ -45,7 +45,7 @@ func TestGetGithubRepositoryInformation(t *testing.T) {
 }
 
 func TestGetRepositoryWorkflows(t *testing.T) {
-	gh := NewGithubClient(util.GetEnv("GITHUB_TOKEN", ""))
+	gh, _ := NewGithubClient(util.GetEnv("GITHUB_TOKEN", ""))
 
 	cases := []struct {
 		Name               string
