@@ -92,10 +92,7 @@ func main() {
 	}
 
 	jiraAPI := jiraAPI.NewJiraConfig()
-	githubClient, err := github.NewGithubClient(util.GetEnv(DefaultGithubTokenEnv, ""))
-	if err != nil {
-		logger.Sugar().Fatalf("error generating github client %v", err)
-	}
+	githubClient := github.NewGithubClient(util.GetEnv(DefaultGithubTokenEnv, ""))
 
 	server := server.New(&server.Config{
 		Logger:  logger,

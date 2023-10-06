@@ -1,6 +1,7 @@
 package github
 
 import (
+	"fmt"
 	"testing"
 
 	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
@@ -8,7 +9,7 @@ import (
 )
 
 func TestGetGithubRepositoryInformation(t *testing.T) {
-	gh, _ := NewGithubClient(util.GetEnv("GITHUB_TOKEN", ""))
+	gh := NewGithubClient(util.GetEnv("GITHUB_TOKEN", ""))
 
 	cases := []struct {
 		Name            string
@@ -33,7 +34,7 @@ func TestGetGithubRepositoryInformation(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
 			got, err := gh.GetGithubRepositoryInformation(c.GitOrganization, c.RepositoryName)
-
+			fmt.Println(err)
 			if err != nil || c.ExpectedError != "" {
 				assert.EqualError(t, err, c.ExpectedError)
 				return
@@ -45,7 +46,7 @@ func TestGetGithubRepositoryInformation(t *testing.T) {
 }
 
 func TestGetRepositoryWorkflows(t *testing.T) {
-	gh, _ := NewGithubClient(util.GetEnv("GITHUB_TOKEN", ""))
+	gh := NewGithubClient(util.GetEnv("GITHUB_TOKEN", ""))
 
 	cases := []struct {
 		Name               string

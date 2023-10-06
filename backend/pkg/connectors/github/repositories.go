@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/go-github/v44/github"
@@ -17,6 +18,11 @@ var (
 )
 
 func (g *Github) GetGithubRepositoryInformation(organization string, repository string) (*github.Repository, error) {
+	fmt.Println("hola")
+	fmt.Println(organization)
+	fmt.Println(repository)
+	fmt.Println("hola")
+
 	repo, resp, err := g.client.Repositories.Get(context.Background(), organization, repository)
 	if resp.StatusCode != 200 {
 		return nil, GENERIC_ERROR_GIT_RESPONSE

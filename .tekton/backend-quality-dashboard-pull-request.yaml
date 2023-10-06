@@ -231,7 +231,9 @@ spec:
             curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/v1.54.2/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.54.2
             alias golangci-lint=$(go env GOPATH)/bin/golangci-lint
 
-            cd backend && golangci-lint run
+            cd backend
+            golangci-lint cache clean && go clean -modcache -cache -i
+            golangci-lint run -v --timeout=10m
     - name: backend-unit-tests
       params:
       - name: url
@@ -305,7 +307,7 @@ spec:
       - name: COMMIT_SHA
         value: $(tasks.clone-repository.results.commit)
       runAfter:
-      - go-checks
+      - backend-unit-tests
       taskRef:
         params:
         - name: name
