@@ -1,6 +1,7 @@
 package github
 
 import (
+	"fmt"
 	"testing"
 
 	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
@@ -33,7 +34,7 @@ func TestGetGithubRepositoryInformation(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
 			got, err := gh.GetGithubRepositoryInformation(c.GitOrganization, c.RepositoryName)
-
+			fmt.Println(err)
 			if err != nil || c.ExpectedError != "" {
 				assert.EqualError(t, err, c.ExpectedError)
 				return

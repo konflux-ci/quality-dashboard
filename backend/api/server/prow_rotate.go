@@ -56,7 +56,9 @@ func (s *Server) BuildLogErrorsUpdate() {
 			pj.BuildErrorLogs == nil {
 			buildErrors := getBuildLogErrors(pj.JobURL)
 			if buildErrors != "" {
-				s.cfg.Storage.UpdateBuildLogErrors(pj.JobID, buildErrors)
+				if err := s.cfg.Storage.UpdateBuildLogErrors(pj.JobID, buildErrors); err != nil {
+					s.cfg.Logger.Sugar().Error("failed to update build errors ", err)
+				}
 			}
 		}
 	}
@@ -149,13 +151,16 @@ func SaveProwJobsinDatabase(s storage.Storage, pj prow.ProwJob, ts prow.TestSuit
 	if pj.Spec.Type == "periodic" {
 		for _, suite := range ts.Suites {
 			for _, testCase := range suite.TestCases {
-				s.CreateProwJobSuites(prowV1Alpha1.JobSuites{
+				if err := s.CreateProwJobSuites(prowV1Alpha1.JobSuites{
 					JobID:          pj.Status.BuildID,
 					TestCaseName:   testCase.Name,
 					TestCaseStatus: testCase.Status,
 					TestTiming:     testCase.Duration,
 					JobType:        pj.Spec.Type,
-				}, repositoryId)
+				}, repositoryId); err != nil {
+					// nolint:all
+					fmt.Errorf("failed to save job to db %v", err)
+				}
 			}
 		}
 	}
