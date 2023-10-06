@@ -102,8 +102,8 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 
 	mergedPullRequestsInTimeRange, err := d.client.Repository.QueryPrs(repo).Select().
 		Where(predicate.PullRequests(pullrequests.State("MERGED"))).
-		Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
-			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
+		Where(func(s *sql.Selector) { // "merged_at BETWEEN ? AND 2022-08-17", "2022-08-16"
+			s.Where(sql.ExprP(fmt.Sprintf("merged_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 		}).
 		All(context.TODO())
 	if err != nil {
