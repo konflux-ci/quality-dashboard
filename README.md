@@ -65,7 +65,6 @@ The `backend/pkg/storage/ent/client` package implements the database client used
 
 In turn, the database client package implements the storage interface used by the server.
 
-
 ##### APIs
 The backend server exposes a set of APIs to interact with data. The implementation of the API server is located at `backend/api` and uses a basic HTTP router configuration.
 
