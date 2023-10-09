@@ -9,12 +9,11 @@ import {
   Dropdown,
   DropdownToggle,
   DropdownItem,
-  Button
 } from '@patternfly/react-core';
 import CaretDownIcon from '@patternfly/react-icons/dist/js/icons/caret-down-icon';
 import { useHistory } from 'react-router-dom';
-import { SignOutAltIcon } from '@patternfly/react-icons';
 import { ReactReduxContext, useSelector } from 'react-redux';
+import { UserToolbarGroup } from './User';
 
 export interface ITeam {
   id: string
@@ -22,6 +21,8 @@ export interface ITeam {
   description: string
   jira_keys: string
 }
+
+
 
 export const BasicMasthead = () => {
   const history = useHistory();
@@ -64,18 +65,13 @@ export const BasicMasthead = () => {
     }
   }
 
-  function Log_out() {
-    localStorage.clear()
-    history.push('/login');
-    window.location.reload();
-  }
-
   const currentTeamsAvailable = useSelector((state: any) => state.teams.TeamsAvailable);
 
   useEffect(() => {
-    let ddi = currentTeamsAvailable.map((team) => <DropdownItem key={team.id} data-value={team.team_name}>{team.team_name}</DropdownItem>)
+    const ddi = currentTeamsAvailable.map((team) => <DropdownItem key={team.id} data-value={team.team_name}>{team.team_name}</DropdownItem>)
     setDropdownItems(ddi)
   }, [currentTeamsAvailable]);
+
 
   return (
     <Masthead id="basic-demo">
@@ -83,7 +79,7 @@ export const BasicMasthead = () => {
         <Toolbar id="toolbar" isFullHeight isStatic>
           <ToolbarContent>
             <ToolbarGroup alignment={{ default: 'alignLeft' }}>
-              <ToolbarItem visibility={{ default: 'hidden', lg: 'visible' }}>
+              <ToolbarItem  visibility={{ default: 'hidden', lg: 'visible' }}>
                 <Dropdown
                   onSelect={onDropdownSelect}
                   toggle={
@@ -95,13 +91,11 @@ export const BasicMasthead = () => {
                   dropdownItems={dropdownItems}
                   isFullHeight
                 />
-              </ToolbarItem>
+            </ToolbarItem>
             </ToolbarGroup>
+            <UserToolbarGroup></UserToolbarGroup>
           </ToolbarContent>
         </Toolbar>
-        <Button onClick={Log_out} variant="link" icon={<SignOutAltIcon />} iconPosition="right">
-          Log out
-        </Button>
       </MastheadContent>
     </Masthead>
   );

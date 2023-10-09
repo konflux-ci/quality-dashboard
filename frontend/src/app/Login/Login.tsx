@@ -61,7 +61,7 @@ let Login = () => {
         redux_dispatch({ type: "SET_AT_EXPIRATION", data: data.AT_EXPIRATION });
         redux_dispatch({ type: "SET_USERNAME", data: data.USERNAME });
 
-        setTimeout(function() { 
+        setTimeout(function() {
           setCallbackError("")
           const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898'
           document.location.href = "/home/overview"
@@ -74,7 +74,7 @@ let Login = () => {
 
     })();
   }, []);
-  
+
   return (
     <React.Fragment>
       <div>
@@ -86,14 +86,14 @@ let Login = () => {
             loginSubtitle="Choose your provider to login"
             signUpForAccountMessage={signUpForAccountMessage}
           >
-            { !isCallback && <Button isBlock onClick={callLogin}>Login with Github</Button>}
-            { isCallback  && 
+            { !isCallback && <Button isBlock onClick={callLogin}>Continue to Login...</Button>}
+            { isCallback  &&
               <div>
                 <div> <Spinner isSVG aria-label="Contents of the basic example" /> </div>
                 <div> You will be redirected in a few seconds.. </div>
               </div>
             }
-            { callbackError != ""  && 
+            { callbackError != ""  &&
               <div>
                 <div style={{color: "red", margin: "5px"}}> {callbackError} </div>
                 <Button onClick={goBackToLogin}>Go Back</Button>
