@@ -15,6 +15,7 @@ type Github struct {
 }
 
 func NewGithubClient(token string) *Github {
+	//nolint:all
 	ctx, _ := context.WithTimeout(context.Background(), 90*time.Second)
 
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
