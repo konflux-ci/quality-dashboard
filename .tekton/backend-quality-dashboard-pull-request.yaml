@@ -219,19 +219,12 @@ spec:
         - name: lint
           image: registry.redhat.io/rhel8/go-toolset:1.19.10-16.1695267225
           script: |
-            cd "$(mktemp -d)"
-            # turn the detached message off
-            git config --global advice.detachedHead false
-
-            git clone $(params.git-url) .
-            git checkout $(params.revision)
-
-
             # binary will be $(go env GOPATH)/bin/golangci-lint
             curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/v1.54.2/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.54.2
             alias golangci-lint=$(go env GOPATH)/bin/golangci-lint
 
-            cd backend
+            cd /workspace/source/$(params.path-context)
+
             golangci-lint cache clean && go clean -modcache -cache -i
             golangci-lint run -v --timeout=10m
     - name: backend-unit-tests
@@ -261,14 +254,7 @@ spec:
               echo "[INFO] Waiting for database to be ready for connection"
               timeout 5m bash -c 'until echo > /dev/tcp/localhost/5432; do sleep 2s; done'
 
-              cd "$(mktemp -d)"
-              # turn the detached message off
-              git config --global advice.detachedHead false
-
-              git clone $(params.git-url) .
-              git checkout $(params.revision)
-
-              cd backend && go test -v ./...
+              cd /workspace/source/$(params.path-context) && go test -v ./...
             volumeMounts:
               - mountPath: /work
                 name: data
