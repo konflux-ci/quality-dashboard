@@ -41,7 +41,7 @@ export const UserToolbarGroup = () => {
         <DropdownSeparator key="dropdown-separator" />
         </DropdownGroup>,
         <DropdownGroup key="group-2">
-          <DropdownItem onClick={LogOut} key="group-2-logout" icon={<DisconnectedIcon size="xl" color="#C9190B"></DisconnectedIcon>}>Logout</DropdownItem>
+          <DropdownItem onClick={LogOut} key="group-2-logout" icon={<DisconnectedIcon size="lg" color="#C9190B"></DisconnectedIcon>}>Logout</DropdownItem>
         </DropdownGroup>
     ];
 
@@ -54,7 +54,7 @@ export const UserToolbarGroup = () => {
                         id="toggle-id"
                         onToggle={onDropdownToggle}
                         toggleIndicator={CaretDownIcon}
-                        icon={<UserCircleIcon size="xl"></UserCircleIcon>}
+                        icon={<UserCircleIcon size="lg"></UserCircleIcon>}
                         >
                         {username}
                         </DropdownToggle>
