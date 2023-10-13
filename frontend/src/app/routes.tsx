@@ -9,6 +9,7 @@ import { Teams } from '@app/Teams/Teams';
 import { ReactReduxContext } from 'react-redux';
 import { Jira } from './Jira/Jira';
 import { GitHub } from './Github/Github';
+import { PHub } from './Hub/Hub';
 import { Config } from './Config/Config';
 import { initOauthFlow, completeOauthFlow, OauthData, refreshTokenFlow } from '@app/utils/oauth'
 import { CiFailures } from './CiFailures/CiFailures';
@@ -70,6 +71,15 @@ const routes: AppRouteConfig[] = [
   {
     label: 'Plugins',
     routes: [
+      {
+        component: PHub,
+        exact: true,
+        isAsync: true,
+        isProtected: true,
+        label: 'Hub',
+        path: '/home/hub',
+        title: 'Hub | Quality Studio',
+      },
       {
         component: GitHub,
         exact: true,
