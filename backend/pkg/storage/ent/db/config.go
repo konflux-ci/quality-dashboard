@@ -30,6 +30,7 @@ type (
 		Bugs         []ent.Hook
 		CodeCov      []ent.Hook
 		Failure      []ent.Hook
+		Plugins      []ent.Hook
 		ProwJobs     []ent.Hook
 		ProwSuites   []ent.Hook
 		PullRequests []ent.Hook
@@ -41,6 +42,7 @@ type (
 		Bugs         []ent.Interceptor
 		CodeCov      []ent.Interceptor
 		Failure      []ent.Interceptor
+		Plugins      []ent.Interceptor
 		ProwJobs     []ent.Interceptor
 		ProwSuites   []ent.Interceptor
 		PullRequests []ent.Interceptor

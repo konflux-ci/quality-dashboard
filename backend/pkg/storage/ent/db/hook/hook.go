@@ -45,6 +45,18 @@ func (f FailureFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.FailureMutation", m)
 }
 
+// The PluginsFunc type is an adapter to allow the use of ordinary
+// function as Plugins mutator.
+type PluginsFunc func(context.Context, *db.PluginsMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PluginsFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.PluginsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.PluginsMutation", m)
+}
+
 // The ProwJobsFunc type is an adapter to allow the use of ordinary
 // function as ProwJobs mutator.
 type ProwJobsFunc func(context.Context, *db.ProwJobsMutation) (db.Value, error)

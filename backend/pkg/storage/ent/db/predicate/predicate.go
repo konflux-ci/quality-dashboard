@@ -15,6 +15,9 @@ type CodeCov func(*sql.Selector)
 // Failure is the predicate function for failure builders.
 type Failure func(*sql.Selector)
 
+// Plugins is the predicate function for plugins builders.
+type Plugins func(*sql.Selector)
+
 // ProwJobs is the predicate function for prowjobs builders.
 type ProwJobs func(*sql.Selector)
 

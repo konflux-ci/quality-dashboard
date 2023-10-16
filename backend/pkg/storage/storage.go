@@ -9,6 +9,7 @@ import (
 	failureV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/failure/v1alpha1"
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	jiraV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/jira/v1alpha1"
+	v1alphaPlugins "github.com/redhat-appstudio/quality-studio/api/apis/plugins/v1alpha1"
 	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 )
@@ -47,6 +48,8 @@ type Storage interface {
 	GetFailuresByDate(team *db.Teams, startDate, endDate string) ([]*failureV1Alpha1.Failure, error)
 	GetAllFailures(team *db.Teams) ([]*db.Failure, error)
 	BugExists(projectKey string, t *db.Teams) (bool, error)
+	GetPluginByName(pluginName string) (*db.Plugins, error)
+	GetPluginsByTeam(team *db.Teams) ([]*db.Plugins, error)
 
 	// POST
 	CreateRepository(p repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error)
@@ -64,12 +67,16 @@ type Storage interface {
 	CreateFailure(f failureV1Alpha1.Failure, team_id uuid.UUID) error
 	UpdateBuildLogErrors(jobID, buildErrorLogs string) error
 	GetAllProwJobs(startDate, endDate string) ([]*db.ProwJobs, error)
+	CreatePlugin(plugin *v1alphaPlugins.Plugin) (*db.Plugins, error)
+	InstallPlugin(team *db.Teams, plugin *db.Plugins) (db *db.Teams, err error)
 
 	// Delete
 	DeleteRepository(repositoryName, gitOrganizationName string) error
 	DeleteTeam(teamName string) (bool, error)
 	DeleteJiraBugsByProject(projectKey string, team *db.Teams) error
 	DeleteFailure(jiraKey string) error
+
+	ListPlugins() ([]*db.Plugins, error)
 }
 
 type RepositoryQualityInfo struct {
