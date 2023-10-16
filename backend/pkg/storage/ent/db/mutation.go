@@ -2289,6 +2289,9 @@ type PluginsMutation struct {
 	description   *string
 	status        *string
 	clearedFields map[string]struct{}
+	teams         map[uuid.UUID]struct{}
+	removedteams  map[uuid.UUID]struct{}
+	clearedteams  bool
 	done          bool
 	oldValue      func(context.Context) (*Plugins, error)
 	predicates    []predicate.Plugins
@@ -2578,6 +2581,60 @@ func (m *PluginsMutation) ResetStatus() {
 	m.status = nil
 }
 
+// AddTeamIDs adds the "teams" edge to the Teams entity by ids.
+func (m *PluginsMutation) AddTeamIDs(ids ...uuid.UUID) {
+	if m.teams == nil {
+		m.teams = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.teams[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTeams clears the "teams" edge to the Teams entity.
+func (m *PluginsMutation) ClearTeams() {
+	m.clearedteams = true
+}
+
+// TeamsCleared reports if the "teams" edge to the Teams entity was cleared.
+func (m *PluginsMutation) TeamsCleared() bool {
+	return m.clearedteams
+}
+
+// RemoveTeamIDs removes the "teams" edge to the Teams entity by IDs.
+func (m *PluginsMutation) RemoveTeamIDs(ids ...uuid.UUID) {
+	if m.removedteams == nil {
+		m.removedteams = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.teams, ids[i])
+		m.removedteams[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTeams returns the removed IDs of the "teams" edge to the Teams entity.
+func (m *PluginsMutation) RemovedTeamsIDs() (ids []uuid.UUID) {
+	for id := range m.removedteams {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TeamsIDs returns the "teams" edge IDs in the mutation.
+func (m *PluginsMutation) TeamsIDs() (ids []uuid.UUID) {
+	for id := range m.teams {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTeams resets all changes to the "teams" edge.
+func (m *PluginsMutation) ResetTeams() {
+	m.teams = nil
+	m.clearedteams = false
+	m.removedteams = nil
+}
+
 // Where appends a list predicates to the PluginsMutation builder.
 func (m *PluginsMutation) Where(ps ...predicate.Plugins) {
 	m.predicates = append(m.predicates, ps...)
@@ -2779,49 +2836,85 @@ func (m *PluginsMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PluginsMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.teams != nil {
+		edges = append(edges, plugins.EdgeTeams)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *PluginsMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case plugins.EdgeTeams:
+		ids := make([]ent.Value, 0, len(m.teams))
+		for id := range m.teams {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PluginsMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedteams != nil {
+		edges = append(edges, plugins.EdgeTeams)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *PluginsMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case plugins.EdgeTeams:
+		ids := make([]ent.Value, 0, len(m.removedteams))
+		for id := range m.removedteams {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PluginsMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedteams {
+		edges = append(edges, plugins.EdgeTeams)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *PluginsMutation) EdgeCleared(name string) bool {
+	switch name {
+	case plugins.EdgeTeams:
+		return m.clearedteams
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *PluginsMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown Plugins unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *PluginsMutation) ResetEdge(name string) error {
+	switch name {
+	case plugins.EdgeTeams:
+		m.ResetTeams()
+		return nil
+	}
 	return fmt.Errorf("unknown Plugins edge %s", name)
 }
 

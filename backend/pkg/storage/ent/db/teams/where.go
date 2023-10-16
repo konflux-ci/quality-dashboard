@@ -350,7 +350,7 @@ func HasPlugins() predicate.Teams {
 	return predicate.Teams(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, PluginsTable, PluginsColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, PluginsTable, PluginsPrimaryKey...),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -362,7 +362,7 @@ func HasPluginsWith(preds ...predicate.Plugins) predicate.Teams {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(PluginsInverseTable, PluginsFieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, PluginsTable, PluginsColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, PluginsTable, PluginsPrimaryKey...),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

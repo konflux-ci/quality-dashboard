@@ -15,7 +15,6 @@ import (
 // @Produce json
 // @Router /workflows/get [get]
 // @Param   repository_name     query     string     false  "string example"   example(string)
-// @Success 200 {array} storage.GithubWorkflows
 // @Failure 400 {object} types.ErrorResponse
 func (rp *repositoryRouter) getWorkflowByRepositoryName(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	repositoryName := r.URL.Query()["repository_name"]

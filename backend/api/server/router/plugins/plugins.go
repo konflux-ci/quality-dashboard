@@ -3,6 +3,7 @@ package plugins
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -20,33 +21,36 @@ type TeamPluginRequest struct {
 	PluginName string `json:"plugin_name"`
 }
 
-// Teams godoc
-// @Summary Teams API Info
-// @Description returns a list of teams created in quality studio
-// @Tags Teams API Info
+// Plugins godoc
+// @Summary List Plugins
+// @Description returns a list of plugins created in quality studio
+// @Tags Plugins API Info
 // @Produce json
-// @Router /teams/list/all [get]
-// @Success 200 {object} []db.Teams
+// @Router /plugins/hub/list [get]
+// @Success 200 {object} []db.Plugins
+// @Failure 400 {object} types.ErrorResponse
 func (s *pluginsRouter) getAllPlugins(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	plugins, err := s.Storage.ListPlugins()
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
-			StatusCode: http.StatusConflict,
+			StatusCode: http.StatusBadRequest,
 		})
 	}
 
 	return httputils.WriteJSON(w, http.StatusOK, plugins)
 }
 
-// Teams godoc
-// @Summary Teams API Info
-// @Description create a team in quality studio
-// @Tags Teams API Info
+// Plugins godoc
+// @Summary Create plugins
+// @Description create a plugin in quality studio
+// @Tags Plugins API Info
 // @Produce json
-// @Router /teams/create [post]
-// @Param request body TeamsRequest true "Body json params"
-// @Success 200 {object} db.Teams
+// @Router /plugins/hub/create [post]
+// @Param request body TeamPluginRequest true "Body json params"
+// @Success 200 {object} db.Plugins
+// @Failure 400 {object} types.ErrorResponse
+// @Failure 500 {object} types.ErrorResponse
 func (s *pluginsRouter) createPlugin(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	var plugin *v1alphaPlugins.Plugin
 	if err := json.NewDecoder(r.Body).Decode(&plugin); err != nil {
@@ -74,14 +78,16 @@ func (s *pluginsRouter) createPlugin(ctx context.Context, w http.ResponseWriter,
 	return httputils.WriteJSON(w, http.StatusOK, plugins)
 }
 
-// Teams godoc
-// @Summary Teams API Info
-// @Description create a team in quality studio
-// @Tags Teams API Info
+// Plugins godoc
+// @Summary Assign Plugin to a team
+// @Description Assign a plugin to a team in Quality Studio
+// @Tags Plugins API Info
 // @Produce json
-// @Router /teams/create [post]
-// @Param request body TeamsRequest true "Body json params"
-// @Success 200 {object} db.Teams
+// @Router /plugins/hub/install [post]
+// @Param request body TeamPluginRequest true "Body json params"
+// @Success 200 {object} db.Plugins
+// @Failure 400 {object} types.ErrorResponse
+// @Failure 500 {object} types.ErrorResponse
 func (s *pluginsRouter) installTeamPlugin(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	var teamPluginRequest *TeamPluginRequest
 	if err := json.NewDecoder(r.Body).Decode(&teamPluginRequest); err != nil {
@@ -108,6 +114,7 @@ func (s *pluginsRouter) installTeamPlugin(ctx context.Context, w http.ResponseWr
 	}
 
 	if _, err := s.Storage.InstallPlugin(team, plugin); err != nil {
+		fmt.Println(err)
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    "error installing plugin",
 			StatusCode: http.StatusBadRequest,
@@ -117,14 +124,15 @@ func (s *pluginsRouter) installTeamPlugin(ctx context.Context, w http.ResponseWr
 	return httputils.WriteJSON(w, http.StatusOK, plugin)
 }
 
-// Teams godoc
-// @Summary Teams API Info
-// @Description create a team in quality studio
-// @Tags Teams API Info
+// Plugins godoc
+// @Summary Get plugin by team
+// @Description Get a plugin from a given team_name in params
+// @Tags Plugins API Info
 // @Produce json
-// @Router /teams/create [post]
-// @Param request body TeamsRequest true "Body json params"
-// @Success 200 {object} db.Teams
+// @Router /plugins/hub/get/team [post]
+// @Param   team_name     query     string     true  "string example"   example(string)
+// @Success 200 {object} db.Plugins
+// @Failure 400 {object} types.ErrorResponse
 func (s *pluginsRouter) getPluginsByTeam(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	teamName := r.URL.Query()["team_name"]
 	if len(teamName) == 0 {

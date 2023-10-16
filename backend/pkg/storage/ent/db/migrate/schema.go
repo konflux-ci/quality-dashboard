@@ -92,21 +92,12 @@ var (
 		{Name: "logo", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "description", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "status", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
-		{Name: "teams_plugins", Type: field.TypeUUID, Nullable: true},
 	}
 	// PluginsTable holds the schema information for the "plugins" table.
 	PluginsTable = &schema.Table{
 		Name:       "plugins",
 		Columns:    PluginsColumns,
 		PrimaryKey: []*schema.Column{PluginsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "plugins_teams_plugins",
-				Columns:    []*schema.Column{PluginsColumns[6]},
-				RefColumns: []*schema.Column{TeamsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
 	}
 	// ProwJobsColumns holds the columns for the "prow_jobs" table.
 	ProwJobsColumns = []*schema.Column{
@@ -256,6 +247,31 @@ var (
 			},
 		},
 	}
+	// PluginsTeamsColumns holds the columns for the "plugins_teams" table.
+	PluginsTeamsColumns = []*schema.Column{
+		{Name: "plugins_id", Type: field.TypeUUID},
+		{Name: "teams_id", Type: field.TypeUUID},
+	}
+	// PluginsTeamsTable holds the schema information for the "plugins_teams" table.
+	PluginsTeamsTable = &schema.Table{
+		Name:       "plugins_teams",
+		Columns:    PluginsTeamsColumns,
+		PrimaryKey: []*schema.Column{PluginsTeamsColumns[0], PluginsTeamsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "plugins_teams_plugins_id",
+				Columns:    []*schema.Column{PluginsTeamsColumns[0]},
+				RefColumns: []*schema.Column{PluginsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "plugins_teams_teams_id",
+				Columns:    []*schema.Column{PluginsTeamsColumns[1]},
+				RefColumns: []*schema.Column{TeamsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		BugsTable,
@@ -268,6 +284,7 @@ var (
 		RepositoriesTable,
 		TeamsTable,
 		WorkflowsTable,
+		PluginsTeamsTable,
 	}
 )
 
@@ -275,10 +292,11 @@ func init() {
 	BugsTable.ForeignKeys[0].RefTable = TeamsTable
 	CodeCovsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	FailuresTable.ForeignKeys[0].RefTable = TeamsTable
-	PluginsTable.ForeignKeys[0].RefTable = TeamsTable
 	ProwJobsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	ProwSuitesTable.ForeignKeys[0].RefTable = RepositoriesTable
 	PullRequestsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	RepositoriesTable.ForeignKeys[0].RefTable = TeamsTable
 	WorkflowsTable.ForeignKeys[0].RefTable = RepositoriesTable
+	PluginsTeamsTable.ForeignKeys[0].RefTable = PluginsTable
+	PluginsTeamsTable.ForeignKeys[1].RefTable = TeamsTable
 }

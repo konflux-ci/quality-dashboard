@@ -25,8 +25,28 @@ type Plugins struct {
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// Status holds the value of the "status" field.
-	Status        string `json:"status,omitempty"`
-	teams_plugins *uuid.UUID
+	Status string `json:"status,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the PluginsQuery when eager-loading is set.
+	Edges PluginsEdges `json:"edges"`
+}
+
+// PluginsEdges holds the relations/edges for other nodes in the graph.
+type PluginsEdges struct {
+	// Teams holds the value of the teams edge.
+	Teams []*Teams `json:"teams,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// TeamsOrErr returns the Teams value or an error if the edge
+// was not loaded in eager-loading.
+func (e PluginsEdges) TeamsOrErr() ([]*Teams, error) {
+	if e.loadedTypes[0] {
+		return e.Teams, nil
+	}
+	return nil, &NotLoadedError{edge: "teams"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -38,8 +58,6 @@ func (*Plugins) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullString)
 		case plugins.FieldID:
 			values[i] = new(uuid.UUID)
-		case plugins.ForeignKeys[0]: // teams_plugins
-			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Plugins", columns[i])
 		}
@@ -91,16 +109,14 @@ func (pl *Plugins) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pl.Status = value.String
 			}
-		case plugins.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field teams_plugins", values[i])
-			} else if value.Valid {
-				pl.teams_plugins = new(uuid.UUID)
-				*pl.teams_plugins = *value.S.(*uuid.UUID)
-			}
 		}
 	}
 	return nil
+}
+
+// QueryTeams queries the "teams" edge of the Plugins entity.
+func (pl *Plugins) QueryTeams() *TeamsQuery {
+	return NewPluginsClient(pl.config).QueryTeams(pl)
 }
 
 // Update returns a builder for updating this Plugins.

@@ -43,7 +43,7 @@ func (Teams) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),
-		edge.To("plugins", Plugins.Type).
-			Annotations(entsql.Annotation{}),
+		edge.From("plugins", Plugins.Type).
+			Ref("teams"),
 	}
 }

@@ -56,13 +56,11 @@ const (
 	FailuresInverseTable = "failures"
 	// FailuresColumn is the table column denoting the failures relation/edge.
 	FailuresColumn = "teams_failures"
-	// PluginsTable is the table that holds the plugins relation/edge.
-	PluginsTable = "plugins"
+	// PluginsTable is the table that holds the plugins relation/edge. The primary key declared below.
+	PluginsTable = "plugins_teams"
 	// PluginsInverseTable is the table name for the Plugins entity.
 	// It exists in this package in order to avoid circular dependency with the "plugins" package.
 	PluginsInverseTable = "plugins"
-	// PluginsColumn is the table column denoting the plugins relation/edge.
-	PluginsColumn = "teams_plugins"
 )
 
 // Columns holds all SQL columns for teams fields.
@@ -72,6 +70,12 @@ var Columns = []string{
 	FieldDescription,
 	FieldJiraKeys,
 }
+
+var (
+	// PluginsPrimaryKey and PluginsColumn2 are the table columns denoting the
+	// primary key for the plugins relation (M2M).
+	PluginsPrimaryKey = []string{"plugins_id", "teams_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

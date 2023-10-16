@@ -4,6 +4,7 @@ package db
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/plugins"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 )
 
 // PluginsQuery is the builder for querying Plugins entities.
@@ -22,7 +24,7 @@ type PluginsQuery struct {
 	order      []OrderFunc
 	inters     []Interceptor
 	predicates []predicate.Plugins
-	withFKs    bool
+	withTeams  *TeamsQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -57,6 +59,28 @@ func (pq *PluginsQuery) Unique(unique bool) *PluginsQuery {
 func (pq *PluginsQuery) Order(o ...OrderFunc) *PluginsQuery {
 	pq.order = append(pq.order, o...)
 	return pq
+}
+
+// QueryTeams chains the current query on the "teams" edge.
+func (pq *PluginsQuery) QueryTeams() *TeamsQuery {
+	query := (&TeamsClient{config: pq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(plugins.Table, plugins.FieldID, selector),
+			sqlgraph.To(teams.Table, teams.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, plugins.TeamsTable, plugins.TeamsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Plugins entity from the query.
@@ -249,10 +273,22 @@ func (pq *PluginsQuery) Clone() *PluginsQuery {
 		order:      append([]OrderFunc{}, pq.order...),
 		inters:     append([]Interceptor{}, pq.inters...),
 		predicates: append([]predicate.Plugins{}, pq.predicates...),
+		withTeams:  pq.withTeams.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
 	}
+}
+
+// WithTeams tells the query-builder to eager-load the nodes that are connected to
+// the "teams" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PluginsQuery) WithTeams(opts ...func(*TeamsQuery)) *PluginsQuery {
+	query := (&TeamsClient{config: pq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withTeams = query
+	return pq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -331,19 +367,19 @@ func (pq *PluginsQuery) prepareQuery(ctx context.Context) error {
 
 func (pq *PluginsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Plugins, error) {
 	var (
-		nodes   = []*Plugins{}
-		withFKs = pq.withFKs
-		_spec   = pq.querySpec()
+		nodes       = []*Plugins{}
+		_spec       = pq.querySpec()
+		loadedTypes = [1]bool{
+			pq.withTeams != nil,
+		}
 	)
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, plugins.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Plugins).scanValues(nil, columns)
 	}
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Plugins{config: pq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -355,7 +391,76 @@ func (pq *PluginsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Plug
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := pq.withTeams; query != nil {
+		if err := pq.loadTeams(ctx, query, nodes,
+			func(n *Plugins) { n.Edges.Teams = []*Teams{} },
+			func(n *Plugins, e *Teams) { n.Edges.Teams = append(n.Edges.Teams, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (pq *PluginsQuery) loadTeams(ctx context.Context, query *TeamsQuery, nodes []*Plugins, init func(*Plugins), assign func(*Plugins, *Teams)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[uuid.UUID]*Plugins)
+	nids := make(map[uuid.UUID]map[*Plugins]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(plugins.TeamsTable)
+		s.Join(joinT).On(s.C(teams.FieldID), joinT.C(plugins.TeamsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(plugins.TeamsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(plugins.TeamsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(uuid.UUID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*uuid.UUID)
+				inValue := *values[1].(*uuid.UUID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*Plugins]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Teams](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "teams" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
 }
 
 func (pq *PluginsQuery) sqlCount(ctx context.Context) (int, error) {

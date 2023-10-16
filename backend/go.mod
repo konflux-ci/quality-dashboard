@@ -19,11 +19,12 @@ require (
 	github.com/spf13/viper v1.14.0
 	github.com/stretchr/testify v1.8.2
 	github.com/swaggo/http-swagger v1.3.3
-	github.com/swaggo/swag v1.8.10
+	github.com/swaggo/swag v1.16.2
 	go.uber.org/zap v1.24.0
 	golang.org/x/oauth2 v0.5.0
 	google.golang.org/grpc v1.51.0
 	k8s.io/apimachinery v0.26.0
+	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
 )
 
 require (
@@ -39,6 +40,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cheekybits/genny v1.0.0 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
@@ -103,6 +105,7 @@ require (
 	github.com/prometheus/common v0.40.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rivo/uniseg v0.1.0 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shurcooL/graphql v0.0.0-20220606043923-3cf50f8a0a29 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
@@ -111,16 +114,17 @@ require (
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/swaggo/files v1.0.0 // indirect
 	github.com/trivago/tgo v1.0.7 // indirect
+	github.com/urfave/cli/v2 v2.3.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	github.com/zclconf/go-cty v1.12.1 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.9.0 // indirect
 	golang.org/x/crypto v0.4.0 // indirect
-	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/mod v0.9.0 // indirect
+	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
-	golang.org/x/tools v0.4.0 // indirect
+	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/tools v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20221207170731-23e4bf6bdc37 // indirect
@@ -135,7 +139,7 @@ require (
 	k8s.io/client-go v0.21.3 // indirect
 	k8s.io/klog v1.0.0 // indirect
 	k8s.io/klog/v2 v2.80.1 // indirect
-	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
+	sigs.k8s.io/yaml v1.3.0 // indirect
 )

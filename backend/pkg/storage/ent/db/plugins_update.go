@@ -10,8 +10,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/plugins"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 )
 
 // PluginsUpdate is the builder for updating Plugins entities.
@@ -57,9 +59,45 @@ func (pu *PluginsUpdate) SetStatus(s string) *PluginsUpdate {
 	return pu
 }
 
+// AddTeamIDs adds the "teams" edge to the Teams entity by IDs.
+func (pu *PluginsUpdate) AddTeamIDs(ids ...uuid.UUID) *PluginsUpdate {
+	pu.mutation.AddTeamIDs(ids...)
+	return pu
+}
+
+// AddTeams adds the "teams" edges to the Teams entity.
+func (pu *PluginsUpdate) AddTeams(t ...*Teams) *PluginsUpdate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pu.AddTeamIDs(ids...)
+}
+
 // Mutation returns the PluginsMutation object of the builder.
 func (pu *PluginsUpdate) Mutation() *PluginsMutation {
 	return pu.mutation
+}
+
+// ClearTeams clears all "teams" edges to the Teams entity.
+func (pu *PluginsUpdate) ClearTeams() *PluginsUpdate {
+	pu.mutation.ClearTeams()
+	return pu
+}
+
+// RemoveTeamIDs removes the "teams" edge to Teams entities by IDs.
+func (pu *PluginsUpdate) RemoveTeamIDs(ids ...uuid.UUID) *PluginsUpdate {
+	pu.mutation.RemoveTeamIDs(ids...)
+	return pu
+}
+
+// RemoveTeams removes "teams" edges to Teams entities.
+func (pu *PluginsUpdate) RemoveTeams(t ...*Teams) *PluginsUpdate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pu.RemoveTeamIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -150,6 +188,60 @@ func (pu *PluginsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pu.mutation.Status(); ok {
 		_spec.SetField(plugins.FieldStatus, field.TypeString, value)
 	}
+	if pu.mutation.TeamsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   plugins.TeamsTable,
+			Columns: plugins.TeamsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: teams.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.RemovedTeamsIDs(); len(nodes) > 0 && !pu.mutation.TeamsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   plugins.TeamsTable,
+			Columns: plugins.TeamsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: teams.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.TeamsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   plugins.TeamsTable,
+			Columns: plugins.TeamsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: teams.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{plugins.Label}
@@ -200,9 +292,45 @@ func (puo *PluginsUpdateOne) SetStatus(s string) *PluginsUpdateOne {
 	return puo
 }
 
+// AddTeamIDs adds the "teams" edge to the Teams entity by IDs.
+func (puo *PluginsUpdateOne) AddTeamIDs(ids ...uuid.UUID) *PluginsUpdateOne {
+	puo.mutation.AddTeamIDs(ids...)
+	return puo
+}
+
+// AddTeams adds the "teams" edges to the Teams entity.
+func (puo *PluginsUpdateOne) AddTeams(t ...*Teams) *PluginsUpdateOne {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return puo.AddTeamIDs(ids...)
+}
+
 // Mutation returns the PluginsMutation object of the builder.
 func (puo *PluginsUpdateOne) Mutation() *PluginsMutation {
 	return puo.mutation
+}
+
+// ClearTeams clears all "teams" edges to the Teams entity.
+func (puo *PluginsUpdateOne) ClearTeams() *PluginsUpdateOne {
+	puo.mutation.ClearTeams()
+	return puo
+}
+
+// RemoveTeamIDs removes the "teams" edge to Teams entities by IDs.
+func (puo *PluginsUpdateOne) RemoveTeamIDs(ids ...uuid.UUID) *PluginsUpdateOne {
+	puo.mutation.RemoveTeamIDs(ids...)
+	return puo
+}
+
+// RemoveTeams removes "teams" edges to Teams entities.
+func (puo *PluginsUpdateOne) RemoveTeams(t ...*Teams) *PluginsUpdateOne {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return puo.RemoveTeamIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -316,6 +444,60 @@ func (puo *PluginsUpdateOne) sqlSave(ctx context.Context) (_node *Plugins, err e
 	}
 	if value, ok := puo.mutation.Status(); ok {
 		_spec.SetField(plugins.FieldStatus, field.TypeString, value)
+	}
+	if puo.mutation.TeamsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   plugins.TeamsTable,
+			Columns: plugins.TeamsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: teams.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.RemovedTeamsIDs(); len(nodes) > 0 && !puo.mutation.TeamsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   plugins.TeamsTable,
+			Columns: plugins.TeamsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: teams.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.TeamsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   plugins.TeamsTable,
+			Columns: plugins.TeamsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: teams.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Plugins{config: puo.config}
 	_spec.Assign = _node.assignValues

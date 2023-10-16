@@ -284,10 +284,10 @@ func (tc *TeamsCreate) createSpec() (*Teams, *sqlgraph.CreateSpec) {
 	}
 	if nodes := tc.mutation.PluginsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
 			Table:   teams.PluginsTable,
-			Columns: []string{teams.PluginsColumn},
+			Columns: teams.PluginsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

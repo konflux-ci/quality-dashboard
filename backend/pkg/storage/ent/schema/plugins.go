@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -38,5 +39,7 @@ func (Plugins) Fields() []ent.Field {
 
 // Edges of the Password.
 func (Plugins) Edges() []ent.Edge {
-	return []ent.Edge{}
+	return []ent.Edge{
+		edge.To("teams", Teams.Type),
+	}
 }

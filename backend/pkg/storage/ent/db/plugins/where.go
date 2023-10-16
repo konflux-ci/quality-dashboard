@@ -4,6 +4,7 @@ package plugins
 
 import (
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 )
@@ -401,6 +402,33 @@ func StatusEqualFold(v string) predicate.Plugins {
 // StatusContainsFold applies the ContainsFold predicate on the "status" field.
 func StatusContainsFold(v string) predicate.Plugins {
 	return predicate.Plugins(sql.FieldContainsFold(FieldStatus, v))
+}
+
+// HasTeams applies the HasEdge predicate on the "teams" edge.
+func HasTeams() predicate.Plugins {
+	return predicate.Plugins(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, TeamsTable, TeamsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTeamsWith applies the HasEdge predicate on the "teams" edge with a given conditions (other predicates).
+func HasTeamsWith(preds ...predicate.Teams) predicate.Plugins {
+	return predicate.Plugins(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TeamsInverseTable, TeamsFieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, TeamsTable, TeamsPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

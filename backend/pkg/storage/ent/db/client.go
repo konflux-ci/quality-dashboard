@@ -725,6 +725,22 @@ func (c *PluginsClient) GetX(ctx context.Context, id uuid.UUID) *Plugins {
 	return obj
 }
 
+// QueryTeams queries the teams edge of a Plugins.
+func (c *PluginsClient) QueryTeams(pl *Plugins) *TeamsQuery {
+	query := (&TeamsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pl.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(plugins.Table, plugins.FieldID, id),
+			sqlgraph.To(teams.Table, teams.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, plugins.TeamsTable, plugins.TeamsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(pl.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *PluginsClient) Hooks() []Hook {
 	return c.hooks.Plugins
@@ -1515,7 +1531,7 @@ func (c *TeamsClient) QueryPlugins(t *Teams) *PluginsQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(teams.Table, teams.FieldID, id),
 			sqlgraph.To(plugins.Table, plugins.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, teams.PluginsTable, teams.PluginsColumn),
+			sqlgraph.Edge(sqlgraph.M2M, true, teams.PluginsTable, teams.PluginsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil

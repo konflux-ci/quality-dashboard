@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/plugins"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 )
 
 // PluginsCreate is the builder for creating a Plugins entity.
@@ -65,6 +66,21 @@ func (pc *PluginsCreate) SetNillableID(u *uuid.UUID) *PluginsCreate {
 		pc.SetID(*u)
 	}
 	return pc
+}
+
+// AddTeamIDs adds the "teams" edge to the Teams entity by IDs.
+func (pc *PluginsCreate) AddTeamIDs(ids ...uuid.UUID) *PluginsCreate {
+	pc.mutation.AddTeamIDs(ids...)
+	return pc
+}
+
+// AddTeams adds the "teams" edges to the Teams entity.
+func (pc *PluginsCreate) AddTeams(t ...*Teams) *PluginsCreate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pc.AddTeamIDs(ids...)
 }
 
 // Mutation returns the PluginsMutation object of the builder.
@@ -206,6 +222,25 @@ func (pc *PluginsCreate) createSpec() (*Plugins, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.Status(); ok {
 		_spec.SetField(plugins.FieldStatus, field.TypeString, value)
 		_node.Status = value
+	}
+	if nodes := pc.mutation.TeamsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   plugins.TeamsTable,
+			Columns: plugins.TeamsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: teams.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

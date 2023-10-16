@@ -21,8 +21,17 @@ const (
 	FieldDescription = "description"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// EdgeTeams holds the string denoting the teams edge name in mutations.
+	EdgeTeams = "teams"
+	// TeamsFieldID holds the string denoting the ID field of the Teams.
+	TeamsFieldID = "team_id"
 	// Table holds the table name of the plugins in the database.
 	Table = "plugins"
+	// TeamsTable is the table that holds the teams relation/edge. The primary key declared below.
+	TeamsTable = "plugins_teams"
+	// TeamsInverseTable is the table name for the Teams entity.
+	// It exists in this package in order to avoid circular dependency with the "teams" package.
+	TeamsInverseTable = "teams"
 )
 
 // Columns holds all SQL columns for plugins fields.
@@ -35,21 +44,16 @@ var Columns = []string{
 	FieldStatus,
 }
 
-// ForeignKeys holds the SQL foreign-keys that are owned by the "plugins"
-// table and are not defined as standalone fields in the schema.
-var ForeignKeys = []string{
-	"teams_plugins",
-}
+var (
+	// TeamsPrimaryKey and TeamsColumn2 are the table columns denoting the
+	// primary key for the teams relation (M2M).
+	TeamsPrimaryKey = []string{"plugins_id", "teams_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
-			return true
-		}
-	}
-	for i := range ForeignKeys {
-		if column == ForeignKeys[i] {
 			return true
 		}
 	}

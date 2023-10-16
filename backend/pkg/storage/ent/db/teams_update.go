@@ -417,10 +417,10 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if tu.mutation.PluginsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
 			Table:   teams.PluginsTable,
-			Columns: []string{teams.PluginsColumn},
+			Columns: teams.PluginsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -433,10 +433,10 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := tu.mutation.RemovedPluginsIDs(); len(nodes) > 0 && !tu.mutation.PluginsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
 			Table:   teams.PluginsTable,
-			Columns: []string{teams.PluginsColumn},
+			Columns: teams.PluginsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -452,10 +452,10 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if nodes := tu.mutation.PluginsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
 			Table:   teams.PluginsTable,
-			Columns: []string{teams.PluginsColumn},
+			Columns: teams.PluginsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -898,10 +898,10 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 	}
 	if tuo.mutation.PluginsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
 			Table:   teams.PluginsTable,
-			Columns: []string{teams.PluginsColumn},
+			Columns: teams.PluginsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -914,10 +914,10 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 	}
 	if nodes := tuo.mutation.RemovedPluginsIDs(); len(nodes) > 0 && !tuo.mutation.PluginsCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
 			Table:   teams.PluginsTable,
-			Columns: []string{teams.PluginsColumn},
+			Columns: teams.PluginsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
@@ -933,10 +933,10 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 	}
 	if nodes := tuo.mutation.PluginsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
 			Table:   teams.PluginsTable,
-			Columns: []string{teams.PluginsColumn},
+			Columns: teams.PluginsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{
