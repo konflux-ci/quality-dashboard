@@ -10,6 +10,7 @@ import { ReactReduxContext } from 'react-redux';
 import { Jira } from './Jira/Jira';
 import { GitHub } from './Github/Github';
 import { PHub } from './Hub/Hub';
+import { PInstalled } from './Hub/Installed';
 import { Config } from './Config/Config';
 import { initOauthFlow, completeOauthFlow, OauthData, refreshTokenFlow } from '@app/utils/oauth'
 import { CiFailures } from './CiFailures/CiFailures';
@@ -69,17 +70,31 @@ const routes: AppRouteConfig[] = [
     ],
   },
   {
-    label: 'Plugins',
+    label: 'Quality Hub',
     routes: [
       {
         component: PHub,
         exact: true,
         isAsync: true,
         isProtected: true,
-        label: 'Hub',
+        label: 'Plugins',
         path: '/home/hub',
-        title: 'Hub | Quality Studio',
+        title: 'Plugins | Quality Studio',
       },
+      {
+        component: PInstalled,
+        exact: true,
+        isAsync: true,
+        isProtected: true,
+        label: 'Installed Plugins',
+        path: '/home/installedplugins',
+        title: 'Installed Plugins | Quality Studio',
+      },
+    ]
+  },
+  {
+    label: 'Plugins',
+    routes: [
       {
         component: GitHub,
         exact: true,

@@ -36,14 +36,14 @@ export const CardWithImageAndActions: React.FunctionComponent<CProps> = (props:C
 
   return (
     <>
-      <Card>
+      <Card style={{maxHeight: '25vh'}}>
         <CardHeader>
           <img src={props.logo.default} height={50} style={{width:'50px'}}/>
         </CardHeader>
         <CardTitle>
           <Title headingLevel='h2'>{props.name}</Title>
         </CardTitle>
-        <CardBody>{props.description}</CardBody>
+        <CardBody style={{fontSize:'0.8em', maxHeight: "50%", textOverflow: "ellipsis"}}>{props.description}</CardBody>
         <CardFooter>
           { props.status == 'available' && <Button variant="primary" ouiaId="Primary"> Install </Button> }
           { props.status == 'unavailable' && <Button variant="tertiary" isDisabled ouiaId="Primary"> Unavailable </Button> }
