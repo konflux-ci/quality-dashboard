@@ -16,6 +16,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/api/server/router/database"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/failure"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/jira"
+	"github.com/redhat-appstudio/quality-studio/api/server/router/plugins"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/repositories"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/teams"
@@ -190,7 +191,9 @@ func (s *Server) InitRouter() {
 		teams.NewRouter(s.cfg.Storage),
 		jira.NewRouter(s.cfg.Storage),
 		database.NewRouter(s.cfg.Db),
-		failure.NewRouter(s.cfg.Storage))
+		failure.NewRouter(s.cfg.Storage),
+		plugins.NewRouter(s.cfg.Storage),
+	)
 }
 
 type pageNotFoundError struct{}

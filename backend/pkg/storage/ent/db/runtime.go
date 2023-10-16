@@ -7,6 +7,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/failure"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/plugins"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
@@ -56,6 +57,28 @@ func init() {
 	failureDescID := failureFields[0].Descriptor()
 	// failure.DefaultID holds the default value on creation for the id field.
 	failure.DefaultID = failureDescID.Default.(func() uuid.UUID)
+	pluginsFields := schema.Plugins{}.Fields()
+	_ = pluginsFields
+	// pluginsDescName is the schema descriptor for name field.
+	pluginsDescName := pluginsFields[1].Descriptor()
+	// plugins.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	plugins.NameValidator = pluginsDescName.Validators[0].(func(string) error)
+	// pluginsDescCategory is the schema descriptor for category field.
+	pluginsDescCategory := pluginsFields[2].Descriptor()
+	// plugins.CategoryValidator is a validator for the "category" field. It is called by the builders before save.
+	plugins.CategoryValidator = pluginsDescCategory.Validators[0].(func(string) error)
+	// pluginsDescLogo is the schema descriptor for logo field.
+	pluginsDescLogo := pluginsFields[3].Descriptor()
+	// plugins.LogoValidator is a validator for the "logo" field. It is called by the builders before save.
+	plugins.LogoValidator = pluginsDescLogo.Validators[0].(func(string) error)
+	// pluginsDescStatus is the schema descriptor for status field.
+	pluginsDescStatus := pluginsFields[5].Descriptor()
+	// plugins.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	plugins.StatusValidator = pluginsDescStatus.Validators[0].(func(string) error)
+	// pluginsDescID is the schema descriptor for id field.
+	pluginsDescID := pluginsFields[0].Descriptor()
+	// plugins.DefaultID holds the default value on creation for the id field.
+	plugins.DefaultID = pluginsDescID.Default.(func() uuid.UUID)
 	pullrequestsFields := schema.PullRequests{}.Fields()
 	_ = pullrequestsFields
 	// pullrequestsDescPrID is the schema descriptor for pr_id field.

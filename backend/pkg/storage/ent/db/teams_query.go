@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/failure"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/plugins"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
@@ -29,6 +30,7 @@ type TeamsQuery struct {
 	withRepositories *RepositoryQuery
 	withBugs         *BugsQuery
 	withFailures     *FailureQuery
+	withPlugins      *PluginsQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -124,6 +126,28 @@ func (tq *TeamsQuery) QueryFailures() *FailureQuery {
 			sqlgraph.From(teams.Table, teams.FieldID, selector),
 			sqlgraph.To(failure.Table, failure.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, teams.FailuresTable, teams.FailuresColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPlugins chains the current query on the "plugins" edge.
+func (tq *TeamsQuery) QueryPlugins() *PluginsQuery {
+	query := (&PluginsClient{config: tq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(teams.Table, teams.FieldID, selector),
+			sqlgraph.To(plugins.Table, plugins.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, teams.PluginsTable, teams.PluginsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -324,6 +348,7 @@ func (tq *TeamsQuery) Clone() *TeamsQuery {
 		withRepositories: tq.withRepositories.Clone(),
 		withBugs:         tq.withBugs.Clone(),
 		withFailures:     tq.withFailures.Clone(),
+		withPlugins:      tq.withPlugins.Clone(),
 		// clone intermediate query.
 		sql:  tq.sql.Clone(),
 		path: tq.path,
@@ -360,6 +385,17 @@ func (tq *TeamsQuery) WithFailures(opts ...func(*FailureQuery)) *TeamsQuery {
 		opt(query)
 	}
 	tq.withFailures = query
+	return tq
+}
+
+// WithPlugins tells the query-builder to eager-load the nodes that are connected to
+// the "plugins" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TeamsQuery) WithPlugins(opts ...func(*PluginsQuery)) *TeamsQuery {
+	query := (&PluginsClient{config: tq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withPlugins = query
 	return tq
 }
 
@@ -441,10 +477,11 @@ func (tq *TeamsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Teams,
 	var (
 		nodes       = []*Teams{}
 		_spec       = tq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			tq.withRepositories != nil,
 			tq.withBugs != nil,
 			tq.withFailures != nil,
+			tq.withPlugins != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -483,6 +520,13 @@ func (tq *TeamsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Teams,
 		if err := tq.loadFailures(ctx, query, nodes,
 			func(n *Teams) { n.Edges.Failures = []*Failure{} },
 			func(n *Teams, e *Failure) { n.Edges.Failures = append(n.Edges.Failures, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := tq.withPlugins; query != nil {
+		if err := tq.loadPlugins(ctx, query, nodes,
+			func(n *Teams) { n.Edges.Plugins = []*Plugins{} },
+			func(n *Teams, e *Plugins) { n.Edges.Plugins = append(n.Edges.Plugins, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -577,6 +621,37 @@ func (tq *TeamsQuery) loadFailures(ctx context.Context, query *FailureQuery, nod
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "teams_failures" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (tq *TeamsQuery) loadPlugins(ctx context.Context, query *PluginsQuery, nodes []*Teams, init func(*Teams), assign func(*Teams, *Plugins)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Teams)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Plugins(func(s *sql.Selector) {
+		s.Where(sql.InValues(teams.PluginsColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.teams_plugins
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "teams_plugins" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "teams_plugins" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
