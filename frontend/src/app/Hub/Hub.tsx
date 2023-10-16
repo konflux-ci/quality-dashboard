@@ -14,8 +14,8 @@ import {
   Grid, GridItem,
   Toolbar, ToolbarItem, SearchInput
 } from '@patternfly/react-core'
-
-import { Tabs, Tab, TabTitleText, Checkbox, Tooltip } from '@patternfly/react-core';
+import { Flex, FlexItem } from '@patternfly/react-core';
+import { Tabs, Tab } from '@patternfly/react-core';
 
 function importAll(r) {
   let images = {};
@@ -36,19 +36,23 @@ export const CardWithImageAndActions: React.FunctionComponent<CProps> = (props:C
 
   return (
     <>
-      <Card style={{maxHeight: '25vh'}}>
-        <CardHeader>
-          <img src={props.logo.default} height={50} style={{width:'50px'}}/>
+      <Card style={{minHeight: '25vh'}}>
+        <CardHeader >
+          <Grid style={{width: '100%'}}>
+            <GridItem span={4}>
+              <img src={props.logo.default} height={50} style={{width:'50px'}}/>
+            </GridItem>
+            <GridItem span={8} style={{width: '100%', textAlign: "right"}}>
+              { props.status == 'available' && <Button variant="primary" ouiaId="Primary"> Install </Button> }
+              { props.status == 'unavailable' && <Button variant="tertiary" isDisabled ouiaId="Primary"> Unavailable </Button> }
+              { props.status == 'installed' && <Button variant="secondary" readOnly ouiaId="Primary"> Installed </Button> }
+            </GridItem>
+          </Grid>
         </CardHeader>
         <CardTitle>
           <Title headingLevel='h2'>{props.name}</Title>
         </CardTitle>
         <CardBody style={{fontSize:'0.8em', maxHeight: "50%", textOverflow: "ellipsis"}}>{props.description}</CardBody>
-        <CardFooter>
-          { props.status == 'available' && <Button variant="primary" ouiaId="Primary"> Install </Button> }
-          { props.status == 'unavailable' && <Button variant="tertiary" isDisabled ouiaId="Primary"> Unavailable </Button> }
-          { props.status == 'installed' && <Button variant="secondary" readOnly ouiaId="Primary"> Installed </Button> }
-        </CardFooter>
       </Card>
     </>
   );
