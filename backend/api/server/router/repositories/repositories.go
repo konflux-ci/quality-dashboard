@@ -24,7 +24,6 @@ var repository GitRepositoryRequest
 // @Accept json
 // @Produce json
 // @Router /repositories/list [get]
-// @Success 200 {array} storage.RepositoryQualityInfo
 // @Failure 400 {object} types.ErrorResponse
 func (rp *repositoryRouter) listAllRepositoriesQuality(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	teamName := r.URL.Query()["team_name"]

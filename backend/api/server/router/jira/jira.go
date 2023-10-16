@@ -56,7 +56,6 @@ type ResolutionRequest struct {
 // @Tags Jira API Info
 // @Produce json
 // @Router /jira/bugs/resolution [post]
-// @Success 200 {object} v1alpha1.BugsMetrics
 func (s *jiraRouter) calculateRates(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	var resolution ResolutionRequest
 	if err := json.NewDecoder(r.Body).Decode(&resolution); err != nil {
@@ -99,7 +98,6 @@ func (s *jiraRouter) calculateRates(ctx context.Context, w http.ResponseWriter, 
 // @Tags Jira API Info
 // @Produce json
 // @Router /jira/bugs/resolution [post]
-// @Success 200 {object} v1alpha1.BugsMetrics
 func (s *jiraRouter) openBugsMetrics(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	var resolution ResolutionRequest
 	if err := json.NewDecoder(r.Body).Decode(&resolution); err != nil {
@@ -149,7 +147,6 @@ type BugCategoriesMetrics struct {
 // @Tags Jira API Info
 // @Produce json
 // @Router /jira/bugs/metrics/priorities [get]
-// @Success 200 {object} v1alpha1.BugsMetrics
 func (s *jiraRouter) getCountBugsForAllCategories(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	teamName := r.URL.Query()["team_name"]
 	startDate := r.URL.Query()["start_date"]

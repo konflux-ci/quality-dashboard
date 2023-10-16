@@ -14,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/failure"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/plugins"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 )
@@ -101,6 +102,21 @@ func (tc *TeamsCreate) AddFailures(f ...*Failure) *TeamsCreate {
 		ids[i] = f[i].ID
 	}
 	return tc.AddFailureIDs(ids...)
+}
+
+// AddPluginIDs adds the "plugins" edge to the Plugins entity by IDs.
+func (tc *TeamsCreate) AddPluginIDs(ids ...uuid.UUID) *TeamsCreate {
+	tc.mutation.AddPluginIDs(ids...)
+	return tc
+}
+
+// AddPlugins adds the "plugins" edges to the Plugins entity.
+func (tc *TeamsCreate) AddPlugins(p ...*Plugins) *TeamsCreate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return tc.AddPluginIDs(ids...)
 }
 
 // Mutation returns the TeamsMutation object of the builder.
@@ -258,6 +274,25 @@ func (tc *TeamsCreate) createSpec() (*Teams, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: failure.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := tc.mutation.PluginsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   teams.PluginsTable,
+			Columns: teams.PluginsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: plugins.FieldID,
 				},
 			},
 		}

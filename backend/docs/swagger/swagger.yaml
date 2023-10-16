@@ -1,11 +1,70 @@
 basePath: /api/quality/
 definitions:
+  db.Bugs:
+    properties:
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/db.BugsEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the BugsQuery when eager-loading is set.
+      id:
+        description: ID of the ent.
+        type: string
+      jira_key:
+        description: JiraKey holds the value of the "jira_key" field.
+        type: string
+      priority:
+        description: Priority holds the value of the "priority" field.
+        type: string
+      project_key:
+        description: ProjectKey holds the value of the "project_key" field.
+        type: string
+      resolution_time:
+        description: ResolutionTime holds the value of the "resolution_time" field.
+        type: number
+      resolved:
+        description: Resolved holds the value of the "resolved" field.
+        type: boolean
+      resolved_at:
+        description: ResolvedAt holds the value of the "resolved_at" field.
+        type: string
+      status:
+        description: Status holds the value of the "status" field.
+        type: string
+      summary:
+        description: Summary holds the value of the "summary" field.
+        type: string
+      updated_at:
+        description: UpdatedAt holds the value of the "updated_at" field.
+        type: string
+      url:
+        description: URL holds the value of the "url" field.
+        type: string
+    type: object
+  db.BugsEdges:
+    properties:
+      bugs:
+        allOf:
+        - $ref: '#/definitions/db.Teams'
+        description: Bugs holds the value of the bugs edge.
+    type: object
   db.CodeCov:
     properties:
+      average_retests_to_merge:
+        description: AverageRetestsToMerge holds the value of the "average_retests_to_merge"
+          field.
+        type: number
       coverage_percentage:
         description: CoveragePercentage holds the value of the "coverage_percentage"
           field.
         type: number
+      coverage_trend:
+        description: CoverageTrend holds the value of the "coverage_trend" field.
+        type: string
       edges:
         allOf:
         - $ref: '#/definitions/db.CodeCovEdges'
@@ -29,8 +88,74 @@ definitions:
         - $ref: '#/definitions/db.Repository'
         description: Codecov holds the value of the codecov edge.
     type: object
+  db.Failure:
+    properties:
+      edges:
+        allOf:
+        - $ref: '#/definitions/db.FailureEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the FailureQuery when eager-loading is set.
+      error_message:
+        description: ErrorMessage holds the value of the "error_message" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      jira_key:
+        description: JiraKey holds the value of the "jira_key" field.
+        type: string
+      jira_status:
+        description: JiraStatus holds the value of the "jira_status" field.
+        type: string
+    type: object
+  db.FailureEdges:
+    properties:
+      failures:
+        allOf:
+        - $ref: '#/definitions/db.Teams'
+        description: Failures holds the value of the failures edge.
+    type: object
+  db.Plugins:
+    properties:
+      category:
+        description: Category holds the value of the "category" field.
+        type: string
+      description:
+        description: Description holds the value of the "description" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/db.PluginsEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the PluginsQuery when eager-loading is set.
+      id:
+        description: ID of the ent.
+        type: string
+      logo:
+        description: Logo holds the value of the "logo" field.
+        type: string
+      name:
+        description: Name holds the value of the "name" field.
+        type: string
+      status:
+        description: Status holds the value of the "status" field.
+        type: string
+    type: object
+  db.PluginsEdges:
+    properties:
+      teams:
+        description: Teams holds the value of the teams edge.
+        items:
+          $ref: '#/definitions/db.Teams'
+        type: array
+    type: object
   db.ProwJobs:
     properties:
+      build_error_logs:
+        description: BuildErrorLogs holds the value of the "build_error_logs" field.
+        type: string
       ci_failed:
         description: CiFailed holds the value of the "ci_failed" field.
         type: integer
@@ -40,6 +165,10 @@ definitions:
       duration:
         description: Duration holds the value of the "duration" field.
         type: number
+      e2e_failed_test_messages:
+        description: E2eFailedTestMessages holds the value of the "e2e_failed_test_messages"
+          field.
+        type: string
       edges:
         allOf:
         - $ref: '#/definitions/db.ProwJobsEdges'
@@ -69,6 +198,9 @@ definitions:
         type: integer
       state:
         description: State holds the value of the "state" field.
+        type: string
+      suites_xml_url:
+        description: SuitesXMLURL holds the value of the "suites_xml_url" field.
         type: string
       tests_count:
         description: TestsCount holds the value of the "tests_count" field.
@@ -112,6 +244,63 @@ definitions:
         - $ref: '#/definitions/db.Repository'
         description: ProwSuites holds the value of the prow_suites edge.
     type: object
+  db.PullRequests:
+    properties:
+      author:
+        description: Author holds the value of the "author" field.
+        type: string
+      closed_at:
+        description: ClosedAt holds the value of the "closed_at" field.
+        type: string
+      created_at:
+        description: CreatedAt holds the value of the "created_at" field.
+        type: string
+      edges:
+        allOf:
+        - $ref: '#/definitions/db.PullRequestsEdges'
+        description: |-
+          Edges holds the relations/edges for other nodes in the graph.
+          The values are being populated by the PullRequestsQuery when eager-loading is set.
+      id:
+        description: ID of the ent.
+        type: integer
+      merge_commit:
+        description: MergeCommit holds the value of the "merge_commit" field.
+        type: string
+      merged_at:
+        description: MergedAt holds the value of the "merged_at" field.
+        type: string
+      number:
+        description: Number holds the value of the "number" field.
+        type: integer
+      pr_id:
+        description: PrID holds the value of the "pr_id" field.
+        type: string
+      repository_name:
+        description: RepositoryName holds the value of the "repository_name" field.
+        type: string
+      repository_organization:
+        description: RepositoryOrganization holds the value of the "repository_organization"
+          field.
+        type: string
+      retest_before_merge_count:
+        description: RetestBeforeMergeCount holds the value of the "retest_before_merge_count"
+          field.
+        type: number
+      state:
+        description: State holds the value of the "state" field.
+        type: string
+      title:
+        description: Title holds the value of the "title" field.
+        type: string
+    type: object
+  db.PullRequestsEdges:
+    properties:
+      prs:
+        allOf:
+        - $ref: '#/definitions/db.Repository'
+        description: Prs holds the value of the prs edge.
+    type: object
   db.Repository:
     properties:
       description:
@@ -153,6 +342,11 @@ definitions:
         items:
           $ref: '#/definitions/db.ProwSuites'
         type: array
+      prs:
+        description: Prs holds the value of the prs edge.
+        items:
+          $ref: '#/definitions/db.PullRequests'
+        type: array
       repositories:
         allOf:
         - $ref: '#/definitions/db.Teams'
@@ -177,12 +371,30 @@ definitions:
       id:
         description: ID of the ent.
         type: string
+      jira_keys:
+        description: JiraKeys holds the value of the "jira_keys" field.
+        type: string
       team_name:
         description: TeamName holds the value of the "team_name" field.
         type: string
     type: object
   db.TeamsEdges:
     properties:
+      bugs:
+        description: Bugs holds the value of the bugs edge.
+        items:
+          $ref: '#/definitions/db.Bugs'
+        type: array
+      failures:
+        description: Failures holds the value of the failures edge.
+        items:
+          $ref: '#/definitions/db.Failure'
+        type: array
+      plugins:
+        description: Plugins holds the value of the plugins edge.
+        items:
+          $ref: '#/definitions/db.Plugins'
+        type: array
       repositories:
         description: Repositories holds the value of the repositories edge.
         items:
@@ -711,6 +923,13 @@ definitions:
       self:
         type: string
     type: object
+  jira.ProjectListSimplified:
+    properties:
+      project_key:
+        type: string
+      project_name:
+        type: string
+    type: object
   jira.Resolution:
     properties:
       description:
@@ -934,6 +1153,13 @@ definitions:
       updated:
         type: string
     type: object
+  plugins.TeamPluginRequest:
+    properties:
+      plugin_name:
+        type: string
+      team_name:
+        type: string
+    type: object
   prow.GitRepositoryRequest:
     properties:
       git_organization:
@@ -973,55 +1199,14 @@ definitions:
       monitor:
         type: boolean
     type: object
-  storage.Coverage:
-    properties:
-      coverage_percentage:
-        type: number
-      git_organization:
-        type: string
-      repository_name:
-        description: RepositoryName identify an github repository
-        type: string
-    type: object
-  storage.GithubWorkflows:
-    properties:
-      badge_url:
-        type: string
-      html_url:
-        type: string
-      job_url:
-        type: string
-      state:
-        type: string
-      workflow_name:
-        description: RepositoryName identify an github repository
-        type: string
-    type: object
-  storage.RepositoryQualityInfo:
-    properties:
-      code_coverage:
-        $ref: '#/definitions/storage.Coverage'
-      description:
-        type: string
-      git_organization:
-        type: string
-      git_url:
-        type: string
-      github_actions:
-        description: Coverage
-        items:
-          $ref: '#/definitions/storage.GithubWorkflows'
-        type: array
-      repository_name:
-        description: RepositoryName identify an github repository
-        type: string
-    type: object
   tcontainer.MarshalMap:
     additionalProperties: true
     type: object
   teams.TeamsRequest:
     properties:
       description:
+        type: string
+      jira_keys:
         type: string
       team_name:
         type: string
@@ -1081,6 +1266,21 @@ info:
   title: Quality Studio API
   version: v1alpha
 paths:
+  /jira/bugs/all:
+    get:
+      description: returns all bugs stored in database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/db.Bugs'
+            type: array
+      summary: Jira API Info
+      tags:
+      - Jira API Info
   /jira/bugs/e2e:
     get:
       description: returns a list of jira issues which contain the label appstudio-e2e-tests-known-issues
@@ -1096,6 +1296,138 @@ paths:
       summary: Jira API Info
       tags:
       - Jira API Info
+  /jira/bugs/metrics/priorities:
+    get:
+      description: returns all bugs stored in database
+      produces:
+      - application/json
+      responses: {}
+      summary: Jira API Info
+      tags:
+      - Jira API Info
+  /jira/bugs/resolution:
+    post:
+      description: returns all bugs stored in database
+      produces:
+      - application/json
+      responses: {}
+      summary: Jira API Info
+      tags:
+      - Jira API Info
+  /jira/project/list:
+    get:
+      description: returns all bugs stored in database
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/jira.ProjectListSimplified'
+            type: array
+      summary: Jira API Info
+      tags:
+      - Jira API Info
+  /plugins/hub/create:
+    post:
+      description: create a plugin in quality studio
+      parameters:
+      - description: Body json params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/plugins.TeamPluginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.Plugins'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Create plugins
+      tags:
+      - Plugins API Info
+  /plugins/hub/get/team:
+    post:
+      description: Get a plugin from a given team_name in params
+      parameters:
+      - description: string example
+        example: string
+        in: query
+        name: team_name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.Plugins'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Get plugin by team
+      tags:
+      - Plugins API Info
+  /plugins/hub/install:
+    post:
+      description: Assign a plugin to a team in Quality Studio
+      parameters:
+      - description: Body json params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/plugins.TeamPluginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.Plugins'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Assign Plugin to a team
+      tags:
+      - Plugins API Info
+  /plugins/hub/list:
+    get:
+      description: returns a list of plugins created in quality studio
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/db.Plugins'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: List Plugins
+      tags:
+      - Plugins API Info
   /prow/results/get:
     get:
       consumes:
@@ -1218,12 +1550,6 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/storage.RepositoryQualityInfo'
-            type: array
         "400":
           description: Bad Request
           schema:
@@ -1266,6 +1592,30 @@ paths:
       summary: Teams API Info
       tags:
       - Teams API Info
+  /teams/delete:
+    delete:
+      description: delete a team in quality studio
+      parameters:
+      - description: team_name
+        in: body
+        name: repository
+        required: true
+        schema:
+          $ref: '#/definitions/teams.TeamsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Teams API Info
+      tags:
+      - Teams API Info
   /teams/list/all:
     get:
       description: returns a list of teams created in quality studio
@@ -1281,6 +1631,30 @@ paths:
       summary: Teams API Info
       tags:
       - Teams API Info
+  /teams/update:
+    put:
+      description: update a team in quality studio
+      parameters:
+      - description: team_name
+        in: body
+        name: repository
+        required: true
+        schema:
+          $ref: '#/definitions/teams.TeamsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Teams API Info
+      tags:
+      - Teams API Info
   /workflows/get:
     get:
       description: return github workflows from a given repository
@@ -1293,12 +1667,6 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/storage.GithubWorkflows'
-            type: array
         "400":
           description: Bad Request
           schema:

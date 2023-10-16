@@ -13,6 +13,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/failure"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/plugins"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
@@ -37,6 +38,7 @@ const (
 	TypeBugs         = "Bugs"
 	TypeCodeCov      = "CodeCov"
 	TypeFailure      = "Failure"
+	TypePlugins      = "Plugins"
 	TypeProwJobs     = "ProwJobs"
 	TypeProwSuites   = "ProwSuites"
 	TypePullRequests = "PullRequests"
@@ -2273,6 +2275,647 @@ func (m *FailureMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Failure edge %s", name)
+}
+
+// PluginsMutation represents an operation that mutates the Plugins nodes in the graph.
+type PluginsMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	name          *string
+	category      *string
+	logo          *string
+	description   *string
+	status        *string
+	clearedFields map[string]struct{}
+	teams         map[uuid.UUID]struct{}
+	removedteams  map[uuid.UUID]struct{}
+	clearedteams  bool
+	done          bool
+	oldValue      func(context.Context) (*Plugins, error)
+	predicates    []predicate.Plugins
+}
+
+var _ ent.Mutation = (*PluginsMutation)(nil)
+
+// pluginsOption allows management of the mutation configuration using functional options.
+type pluginsOption func(*PluginsMutation)
+
+// newPluginsMutation creates new mutation for the Plugins entity.
+func newPluginsMutation(c config, op Op, opts ...pluginsOption) *PluginsMutation {
+	m := &PluginsMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePlugins,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPluginsID sets the ID field of the mutation.
+func withPluginsID(id uuid.UUID) pluginsOption {
+	return func(m *PluginsMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Plugins
+		)
+		m.oldValue = func(ctx context.Context) (*Plugins, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Plugins.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPlugins sets the old Plugins of the mutation.
+func withPlugins(node *Plugins) pluginsOption {
+	return func(m *PluginsMutation) {
+		m.oldValue = func(context.Context) (*Plugins, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PluginsMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PluginsMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Plugins entities.
+func (m *PluginsMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *PluginsMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *PluginsMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Plugins.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *PluginsMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *PluginsMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Plugins entity.
+// If the Plugins object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PluginsMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *PluginsMutation) ResetName() {
+	m.name = nil
+}
+
+// SetCategory sets the "category" field.
+func (m *PluginsMutation) SetCategory(s string) {
+	m.category = &s
+}
+
+// Category returns the value of the "category" field in the mutation.
+func (m *PluginsMutation) Category() (r string, exists bool) {
+	v := m.category
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCategory returns the old "category" field's value of the Plugins entity.
+// If the Plugins object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PluginsMutation) OldCategory(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCategory is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCategory requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCategory: %w", err)
+	}
+	return oldValue.Category, nil
+}
+
+// ResetCategory resets all changes to the "category" field.
+func (m *PluginsMutation) ResetCategory() {
+	m.category = nil
+}
+
+// SetLogo sets the "logo" field.
+func (m *PluginsMutation) SetLogo(s string) {
+	m.logo = &s
+}
+
+// Logo returns the value of the "logo" field in the mutation.
+func (m *PluginsMutation) Logo() (r string, exists bool) {
+	v := m.logo
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLogo returns the old "logo" field's value of the Plugins entity.
+// If the Plugins object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PluginsMutation) OldLogo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLogo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLogo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLogo: %w", err)
+	}
+	return oldValue.Logo, nil
+}
+
+// ResetLogo resets all changes to the "logo" field.
+func (m *PluginsMutation) ResetLogo() {
+	m.logo = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *PluginsMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *PluginsMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Plugins entity.
+// If the Plugins object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PluginsMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *PluginsMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *PluginsMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *PluginsMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Plugins entity.
+// If the Plugins object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PluginsMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *PluginsMutation) ResetStatus() {
+	m.status = nil
+}
+
+// AddTeamIDs adds the "teams" edge to the Teams entity by ids.
+func (m *PluginsMutation) AddTeamIDs(ids ...uuid.UUID) {
+	if m.teams == nil {
+		m.teams = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.teams[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTeams clears the "teams" edge to the Teams entity.
+func (m *PluginsMutation) ClearTeams() {
+	m.clearedteams = true
+}
+
+// TeamsCleared reports if the "teams" edge to the Teams entity was cleared.
+func (m *PluginsMutation) TeamsCleared() bool {
+	return m.clearedteams
+}
+
+// RemoveTeamIDs removes the "teams" edge to the Teams entity by IDs.
+func (m *PluginsMutation) RemoveTeamIDs(ids ...uuid.UUID) {
+	if m.removedteams == nil {
+		m.removedteams = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.teams, ids[i])
+		m.removedteams[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTeams returns the removed IDs of the "teams" edge to the Teams entity.
+func (m *PluginsMutation) RemovedTeamsIDs() (ids []uuid.UUID) {
+	for id := range m.removedteams {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TeamsIDs returns the "teams" edge IDs in the mutation.
+func (m *PluginsMutation) TeamsIDs() (ids []uuid.UUID) {
+	for id := range m.teams {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTeams resets all changes to the "teams" edge.
+func (m *PluginsMutation) ResetTeams() {
+	m.teams = nil
+	m.clearedteams = false
+	m.removedteams = nil
+}
+
+// Where appends a list predicates to the PluginsMutation builder.
+func (m *PluginsMutation) Where(ps ...predicate.Plugins) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the PluginsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PluginsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Plugins, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *PluginsMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PluginsMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Plugins).
+func (m *PluginsMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PluginsMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.name != nil {
+		fields = append(fields, plugins.FieldName)
+	}
+	if m.category != nil {
+		fields = append(fields, plugins.FieldCategory)
+	}
+	if m.logo != nil {
+		fields = append(fields, plugins.FieldLogo)
+	}
+	if m.description != nil {
+		fields = append(fields, plugins.FieldDescription)
+	}
+	if m.status != nil {
+		fields = append(fields, plugins.FieldStatus)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PluginsMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case plugins.FieldName:
+		return m.Name()
+	case plugins.FieldCategory:
+		return m.Category()
+	case plugins.FieldLogo:
+		return m.Logo()
+	case plugins.FieldDescription:
+		return m.Description()
+	case plugins.FieldStatus:
+		return m.Status()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PluginsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case plugins.FieldName:
+		return m.OldName(ctx)
+	case plugins.FieldCategory:
+		return m.OldCategory(ctx)
+	case plugins.FieldLogo:
+		return m.OldLogo(ctx)
+	case plugins.FieldDescription:
+		return m.OldDescription(ctx)
+	case plugins.FieldStatus:
+		return m.OldStatus(ctx)
+	}
+	return nil, fmt.Errorf("unknown Plugins field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PluginsMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case plugins.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case plugins.FieldCategory:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCategory(v)
+		return nil
+	case plugins.FieldLogo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLogo(v)
+		return nil
+	case plugins.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case plugins.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Plugins field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PluginsMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PluginsMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PluginsMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Plugins numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PluginsMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PluginsMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PluginsMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Plugins nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PluginsMutation) ResetField(name string) error {
+	switch name {
+	case plugins.FieldName:
+		m.ResetName()
+		return nil
+	case plugins.FieldCategory:
+		m.ResetCategory()
+		return nil
+	case plugins.FieldLogo:
+		m.ResetLogo()
+		return nil
+	case plugins.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case plugins.FieldStatus:
+		m.ResetStatus()
+		return nil
+	}
+	return fmt.Errorf("unknown Plugins field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PluginsMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.teams != nil {
+		edges = append(edges, plugins.EdgeTeams)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PluginsMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case plugins.EdgeTeams:
+		ids := make([]ent.Value, 0, len(m.teams))
+		for id := range m.teams {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PluginsMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedteams != nil {
+		edges = append(edges, plugins.EdgeTeams)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PluginsMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case plugins.EdgeTeams:
+		ids := make([]ent.Value, 0, len(m.removedteams))
+		for id := range m.removedteams {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PluginsMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedteams {
+		edges = append(edges, plugins.EdgeTeams)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PluginsMutation) EdgeCleared(name string) bool {
+	switch name {
+	case plugins.EdgeTeams:
+		return m.clearedteams
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PluginsMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Plugins unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PluginsMutation) ResetEdge(name string) error {
+	switch name {
+	case plugins.EdgeTeams:
+		m.ResetTeams()
+		return nil
+	}
+	return fmt.Errorf("unknown Plugins edge %s", name)
 }
 
 // ProwJobsMutation represents an operation that mutates the ProwJobs nodes in the graph.
@@ -6284,6 +6927,9 @@ type TeamsMutation struct {
 	failures            map[uuid.UUID]struct{}
 	removedfailures     map[uuid.UUID]struct{}
 	clearedfailures     bool
+	plugins             map[uuid.UUID]struct{}
+	removedplugins      map[uuid.UUID]struct{}
+	clearedplugins      bool
 	done                bool
 	oldValue            func(context.Context) (*Teams, error)
 	predicates          []predicate.Teams
@@ -6663,6 +7309,60 @@ func (m *TeamsMutation) ResetFailures() {
 	m.removedfailures = nil
 }
 
+// AddPluginIDs adds the "plugins" edge to the Plugins entity by ids.
+func (m *TeamsMutation) AddPluginIDs(ids ...uuid.UUID) {
+	if m.plugins == nil {
+		m.plugins = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.plugins[ids[i]] = struct{}{}
+	}
+}
+
+// ClearPlugins clears the "plugins" edge to the Plugins entity.
+func (m *TeamsMutation) ClearPlugins() {
+	m.clearedplugins = true
+}
+
+// PluginsCleared reports if the "plugins" edge to the Plugins entity was cleared.
+func (m *TeamsMutation) PluginsCleared() bool {
+	return m.clearedplugins
+}
+
+// RemovePluginIDs removes the "plugins" edge to the Plugins entity by IDs.
+func (m *TeamsMutation) RemovePluginIDs(ids ...uuid.UUID) {
+	if m.removedplugins == nil {
+		m.removedplugins = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.plugins, ids[i])
+		m.removedplugins[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPlugins returns the removed IDs of the "plugins" edge to the Plugins entity.
+func (m *TeamsMutation) RemovedPluginsIDs() (ids []uuid.UUID) {
+	for id := range m.removedplugins {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PluginsIDs returns the "plugins" edge IDs in the mutation.
+func (m *TeamsMutation) PluginsIDs() (ids []uuid.UUID) {
+	for id := range m.plugins {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPlugins resets all changes to the "plugins" edge.
+func (m *TeamsMutation) ResetPlugins() {
+	m.plugins = nil
+	m.clearedplugins = false
+	m.removedplugins = nil
+}
+
 // Where appends a list predicates to the TeamsMutation builder.
 func (m *TeamsMutation) Where(ps ...predicate.Teams) {
 	m.predicates = append(m.predicates, ps...)
@@ -6830,7 +7530,7 @@ func (m *TeamsMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TeamsMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.repositories != nil {
 		edges = append(edges, teams.EdgeRepositories)
 	}
@@ -6839,6 +7539,9 @@ func (m *TeamsMutation) AddedEdges() []string {
 	}
 	if m.failures != nil {
 		edges = append(edges, teams.EdgeFailures)
+	}
+	if m.plugins != nil {
+		edges = append(edges, teams.EdgePlugins)
 	}
 	return edges
 }
@@ -6865,13 +7568,19 @@ func (m *TeamsMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case teams.EdgePlugins:
+		ids := make([]ent.Value, 0, len(m.plugins))
+		for id := range m.plugins {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TeamsMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedrepositories != nil {
 		edges = append(edges, teams.EdgeRepositories)
 	}
@@ -6880,6 +7589,9 @@ func (m *TeamsMutation) RemovedEdges() []string {
 	}
 	if m.removedfailures != nil {
 		edges = append(edges, teams.EdgeFailures)
+	}
+	if m.removedplugins != nil {
+		edges = append(edges, teams.EdgePlugins)
 	}
 	return edges
 }
@@ -6906,13 +7618,19 @@ func (m *TeamsMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case teams.EdgePlugins:
+		ids := make([]ent.Value, 0, len(m.removedplugins))
+		for id := range m.removedplugins {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TeamsMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedrepositories {
 		edges = append(edges, teams.EdgeRepositories)
 	}
@@ -6921,6 +7639,9 @@ func (m *TeamsMutation) ClearedEdges() []string {
 	}
 	if m.clearedfailures {
 		edges = append(edges, teams.EdgeFailures)
+	}
+	if m.clearedplugins {
+		edges = append(edges, teams.EdgePlugins)
 	}
 	return edges
 }
@@ -6935,6 +7656,8 @@ func (m *TeamsMutation) EdgeCleared(name string) bool {
 		return m.clearedbugs
 	case teams.EdgeFailures:
 		return m.clearedfailures
+	case teams.EdgePlugins:
+		return m.clearedplugins
 	}
 	return false
 }
@@ -6959,6 +7682,9 @@ func (m *TeamsMutation) ResetEdge(name string) error {
 		return nil
 	case teams.EdgeFailures:
 		m.ResetFailures()
+		return nil
+	case teams.EdgePlugins:
+		m.ResetPlugins()
 		return nil
 	}
 	return fmt.Errorf("unknown Teams edge %s", name)

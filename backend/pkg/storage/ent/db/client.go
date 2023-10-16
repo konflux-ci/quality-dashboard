@@ -14,6 +14,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/failure"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/plugins"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
@@ -37,6 +38,8 @@ type Client struct {
 	CodeCov *CodeCovClient
 	// Failure is the client for interacting with the Failure builders.
 	Failure *FailureClient
+	// Plugins is the client for interacting with the Plugins builders.
+	Plugins *PluginsClient
 	// ProwJobs is the client for interacting with the ProwJobs builders.
 	ProwJobs *ProwJobsClient
 	// ProwSuites is the client for interacting with the ProwSuites builders.
@@ -65,6 +68,7 @@ func (c *Client) init() {
 	c.Bugs = NewBugsClient(c.config)
 	c.CodeCov = NewCodeCovClient(c.config)
 	c.Failure = NewFailureClient(c.config)
+	c.Plugins = NewPluginsClient(c.config)
 	c.ProwJobs = NewProwJobsClient(c.config)
 	c.ProwSuites = NewProwSuitesClient(c.config)
 	c.PullRequests = NewPullRequestsClient(c.config)
@@ -107,6 +111,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Bugs:         NewBugsClient(cfg),
 		CodeCov:      NewCodeCovClient(cfg),
 		Failure:      NewFailureClient(cfg),
+		Plugins:      NewPluginsClient(cfg),
 		ProwJobs:     NewProwJobsClient(cfg),
 		ProwSuites:   NewProwSuitesClient(cfg),
 		PullRequests: NewPullRequestsClient(cfg),
@@ -135,6 +140,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Bugs:         NewBugsClient(cfg),
 		CodeCov:      NewCodeCovClient(cfg),
 		Failure:      NewFailureClient(cfg),
+		Plugins:      NewPluginsClient(cfg),
 		ProwJobs:     NewProwJobsClient(cfg),
 		ProwSuites:   NewProwSuitesClient(cfg),
 		PullRequests: NewPullRequestsClient(cfg),
@@ -172,6 +178,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.Bugs.Use(hooks...)
 	c.CodeCov.Use(hooks...)
 	c.Failure.Use(hooks...)
+	c.Plugins.Use(hooks...)
 	c.ProwJobs.Use(hooks...)
 	c.ProwSuites.Use(hooks...)
 	c.PullRequests.Use(hooks...)
@@ -186,6 +193,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Bugs.Intercept(interceptors...)
 	c.CodeCov.Intercept(interceptors...)
 	c.Failure.Intercept(interceptors...)
+	c.Plugins.Intercept(interceptors...)
 	c.ProwJobs.Intercept(interceptors...)
 	c.ProwSuites.Intercept(interceptors...)
 	c.PullRequests.Intercept(interceptors...)
@@ -203,6 +211,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.CodeCov.mutate(ctx, m)
 	case *FailureMutation:
 		return c.Failure.mutate(ctx, m)
+	case *PluginsMutation:
+		return c.Plugins.mutate(ctx, m)
 	case *ProwJobsMutation:
 		return c.ProwJobs.mutate(ctx, m)
 	case *ProwSuitesMutation:
@@ -619,6 +629,140 @@ func (c *FailureClient) mutate(ctx context.Context, m *FailureMutation) (Value, 
 		return (&FailureDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown Failure mutation op: %q", m.Op())
+	}
+}
+
+// PluginsClient is a client for the Plugins schema.
+type PluginsClient struct {
+	config
+}
+
+// NewPluginsClient returns a client for the Plugins from the given config.
+func NewPluginsClient(c config) *PluginsClient {
+	return &PluginsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `plugins.Hooks(f(g(h())))`.
+func (c *PluginsClient) Use(hooks ...Hook) {
+	c.hooks.Plugins = append(c.hooks.Plugins, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `plugins.Intercept(f(g(h())))`.
+func (c *PluginsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Plugins = append(c.inters.Plugins, interceptors...)
+}
+
+// Create returns a builder for creating a Plugins entity.
+func (c *PluginsClient) Create() *PluginsCreate {
+	mutation := newPluginsMutation(c.config, OpCreate)
+	return &PluginsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Plugins entities.
+func (c *PluginsClient) CreateBulk(builders ...*PluginsCreate) *PluginsCreateBulk {
+	return &PluginsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Plugins.
+func (c *PluginsClient) Update() *PluginsUpdate {
+	mutation := newPluginsMutation(c.config, OpUpdate)
+	return &PluginsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PluginsClient) UpdateOne(pl *Plugins) *PluginsUpdateOne {
+	mutation := newPluginsMutation(c.config, OpUpdateOne, withPlugins(pl))
+	return &PluginsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PluginsClient) UpdateOneID(id uuid.UUID) *PluginsUpdateOne {
+	mutation := newPluginsMutation(c.config, OpUpdateOne, withPluginsID(id))
+	return &PluginsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Plugins.
+func (c *PluginsClient) Delete() *PluginsDelete {
+	mutation := newPluginsMutation(c.config, OpDelete)
+	return &PluginsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PluginsClient) DeleteOne(pl *Plugins) *PluginsDeleteOne {
+	return c.DeleteOneID(pl.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PluginsClient) DeleteOneID(id uuid.UUID) *PluginsDeleteOne {
+	builder := c.Delete().Where(plugins.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PluginsDeleteOne{builder}
+}
+
+// Query returns a query builder for Plugins.
+func (c *PluginsClient) Query() *PluginsQuery {
+	return &PluginsQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePlugins},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Plugins entity by its id.
+func (c *PluginsClient) Get(ctx context.Context, id uuid.UUID) (*Plugins, error) {
+	return c.Query().Where(plugins.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PluginsClient) GetX(ctx context.Context, id uuid.UUID) *Plugins {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTeams queries the teams edge of a Plugins.
+func (c *PluginsClient) QueryTeams(pl *Plugins) *TeamsQuery {
+	query := (&TeamsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pl.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(plugins.Table, plugins.FieldID, id),
+			sqlgraph.To(teams.Table, teams.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, plugins.TeamsTable, plugins.TeamsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(pl.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PluginsClient) Hooks() []Hook {
+	return c.hooks.Plugins
+}
+
+// Interceptors returns the client interceptors.
+func (c *PluginsClient) Interceptors() []Interceptor {
+	return c.inters.Plugins
+}
+
+func (c *PluginsClient) mutate(ctx context.Context, m *PluginsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PluginsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PluginsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PluginsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PluginsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Plugins mutation op: %q", m.Op())
 	}
 }
 
@@ -1372,6 +1516,22 @@ func (c *TeamsClient) QueryFailures(t *Teams) *FailureQuery {
 			sqlgraph.From(teams.Table, teams.FieldID, id),
 			sqlgraph.To(failure.Table, failure.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, teams.FailuresTable, teams.FailuresColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryPlugins queries the plugins edge of a Teams.
+func (c *TeamsClient) QueryPlugins(t *Teams) *PluginsQuery {
+	query := (&PluginsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(teams.Table, teams.FieldID, id),
+			sqlgraph.To(plugins.Table, plugins.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, teams.PluginsTable, teams.PluginsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil
