@@ -8,10 +8,13 @@ import {
   Text,
   Grid, GridItem,
   Toolbar, ToolbarItem, SearchInput
+  
 } from '@patternfly/react-core'
-import { TableComposable, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
+import { TableComposable, Thead, Tr, Th, Tbody, Td,
+  ActionsColumn, IAction
+} from '@patternfly/react-table';
 import CheckCircleIcon from '@patternfly/react-icons/dist/esm/icons/check-circle-icon';
-import { listInstalledPlugins} from '@app/utils/APIService';
+import { listInstalledPlugins, deleteInApi } from '@app/utils/APIService';
 
 function importAll(r) {
   let images = {};
@@ -100,6 +103,21 @@ export const PInstalled: FC<HubProps> = ({/* destructured props */}): ReactEleme
     })
   };
 
+  const defaultActions = (team: string, plugin: string):IAction[] => [
+    {
+        title: 'Uninstall',
+        onClick: () => { 
+          deleteInApi({team_name: team, plugin_name: plugin}, "/api/quality/plugins/hub/delete/team").then(res => {
+            if(res.code == 200){
+              listAllPlugins();
+            } else {
+              throw("Error uninstalling plugins list")
+            }
+          })
+        }
+    }
+  ];
+
   useEffect(() => {
     if(currentTeam != ''){ listAllPlugins() }
   }, [currentTeam]);
@@ -133,9 +151,10 @@ export const PInstalled: FC<HubProps> = ({/* destructured props */}): ReactEleme
                   <Tr>
                     <Th></Th>
                     <Th>{columnNames.name}</Th>
-                    <Th width={70}>{columnNames.description}</Th>
+                    <Th width={50}>{columnNames.description}</Th>
                     <Th>{columnNames.category}</Th>
                     <Th>{columnNames.status}</Th>
+                    <Th></Th>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -148,6 +167,13 @@ export const PInstalled: FC<HubProps> = ({/* destructured props */}): ReactEleme
                       <Td style={{verticalAlign:'top', textTransform: 'capitalize'}} dataLabel={columnNames.status}>
                         { product.status.installed && <span><Icon status="success"><CheckCircleIcon /></Icon> &nbsp; Installed </span> }
                       </Td>
+                      <Td isActionCell>
+                                    {defaultActions ? (
+                                        <ActionsColumn
+                                            items={defaultActions(currentTeam, product.plugin.name)}
+                                        />
+                                    ) : null}
+                                </Td>
                     </Tr>
                   ))}
                 </Tbody>

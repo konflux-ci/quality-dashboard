@@ -679,5 +679,5 @@ export {
   bugExists,
   listPlugins,
   installPlugin,
-  listInstalledPlugins
+  listInstalledPlugins,
 };
