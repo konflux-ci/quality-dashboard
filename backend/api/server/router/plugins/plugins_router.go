@@ -18,6 +18,7 @@ func NewRouter(s storage.Storage) router.Router {
 		router.NewPostRoute("/plugins/hub/create", r.createPlugin),
 		router.NewPostRoute("/plugins/hub/install", r.installTeamPlugin),
 		router.NewGetRoute("/plugins/hub/get/team", r.getPluginsByTeam),
+		router.NewGetRoute("/plugins/hub/delete/team", r.deleteTeamPlugin),
 	}
 
 	return r
