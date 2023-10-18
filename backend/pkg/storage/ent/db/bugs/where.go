@@ -141,6 +141,11 @@ func Labels(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldEQ(FieldLabels, v))
 }
 
+// Component applies equality check predicate on the "component" field. It's identical to ComponentEQ.
+func Component(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldComponent, v))
+}
+
 // JiraKeyEQ applies the EQ predicate on the "jira_key" field.
 func JiraKeyEQ(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldEQ(FieldJiraKey, v))
@@ -1034,6 +1039,81 @@ func LabelsEqualFold(v string) predicate.Bugs {
 // LabelsContainsFold applies the ContainsFold predicate on the "labels" field.
 func LabelsContainsFold(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldContainsFold(FieldLabels, v))
+}
+
+// ComponentEQ applies the EQ predicate on the "component" field.
+func ComponentEQ(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldComponent, v))
+}
+
+// ComponentNEQ applies the NEQ predicate on the "component" field.
+func ComponentNEQ(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNEQ(FieldComponent, v))
+}
+
+// ComponentIn applies the In predicate on the "component" field.
+func ComponentIn(vs ...string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldIn(FieldComponent, vs...))
+}
+
+// ComponentNotIn applies the NotIn predicate on the "component" field.
+func ComponentNotIn(vs ...string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotIn(FieldComponent, vs...))
+}
+
+// ComponentGT applies the GT predicate on the "component" field.
+func ComponentGT(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGT(FieldComponent, v))
+}
+
+// ComponentGTE applies the GTE predicate on the "component" field.
+func ComponentGTE(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGTE(FieldComponent, v))
+}
+
+// ComponentLT applies the LT predicate on the "component" field.
+func ComponentLT(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLT(FieldComponent, v))
+}
+
+// ComponentLTE applies the LTE predicate on the "component" field.
+func ComponentLTE(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLTE(FieldComponent, v))
+}
+
+// ComponentContains applies the Contains predicate on the "component" field.
+func ComponentContains(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldContains(FieldComponent, v))
+}
+
+// ComponentHasPrefix applies the HasPrefix predicate on the "component" field.
+func ComponentHasPrefix(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldHasPrefix(FieldComponent, v))
+}
+
+// ComponentHasSuffix applies the HasSuffix predicate on the "component" field.
+func ComponentHasSuffix(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldHasSuffix(FieldComponent, v))
+}
+
+// ComponentIsNil applies the IsNil predicate on the "component" field.
+func ComponentIsNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldIsNull(FieldComponent))
+}
+
+// ComponentNotNil applies the NotNil predicate on the "component" field.
+func ComponentNotNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotNull(FieldComponent))
+}
+
+// ComponentEqualFold applies the EqualFold predicate on the "component" field.
+func ComponentEqualFold(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEqualFold(FieldComponent, v))
+}
+
+// ComponentContainsFold applies the ContainsFold predicate on the "component" field.
+func ComponentContainsFold(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldContainsFold(FieldComponent, v))
 }
 
 // HasBugs applies the HasEdge predicate on the "bugs" edge.

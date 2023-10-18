@@ -156,6 +156,12 @@ func GetBugSLIs(bugs []*db.Bugs) BugSlisInfo {
 			new.Labels = ""
 		}
 
+		if bug.Component != nil {
+			new.Component = *bug.Component
+		} else {
+			new.Component = ""
+		}
+
 		if GlobalSLI == "green" {
 			info.GlobalSLI.GreenSLI++
 			continue

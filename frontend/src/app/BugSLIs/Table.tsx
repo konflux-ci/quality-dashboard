@@ -35,6 +35,7 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
         jira_key: 'Jira Key',
         summary: 'Summary',
         priority: 'Priority',
+        component: 'Component',
         labels: 'Labels',
         status: 'Status',
         days_without_assignee: 'Days Without Assignment',
@@ -83,6 +84,7 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
         { column: 'jira_key', label: 'Project Key' },
         { column: 'summary', label: 'Summary' },
         { column: 'priority', label: 'Priority' },
+        { column: 'component', label: 'Component' },
         { column: 'labels', label: 'Labels' },
         { column: 'status', label: 'Status' },
     ]
@@ -137,15 +139,15 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
     // Sort helpers
     const getSortableRowValues = (bug: any): (string | number)[] => {
         if (selected == "resolution") {
-            const { jira_key, summary, priority, labels, status, days_without_resolution } = bug;
-            return [jira_key, summary, priority, labels, status, days_without_resolution]
+            const { jira_key, summary, priority, component, labels, status, days_without_resolution } = bug;
+            return [jira_key, summary, priority, component, labels, status, days_without_resolution]
         } else if (selected == "response") {
-            const { jira_key, summary, priority, labels, status, days_without_assignee } = bug;
-            return [jira_key, summary, priority, labels, status, days_without_assignee]
+            const { jira_key, summary, priority, component, labels, status, days_without_assignee } = bug;
+            return [jira_key, summary, priority, component, labels, status, days_without_assignee]
         }
         
-        const { jira_key, summary, priority, labels, status, days_without_priority } = bug;
-        return [jira_key, summary, priority, labels, status, days_without_priority];
+        const { jira_key, summary, priority, component, labels, status, days_without_priority } = bug;
+        return [jira_key, summary, priority, component, labels, status, days_without_priority];
 
     };
 
@@ -259,6 +261,7 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
                                 </Td>
                                 <Td dataLabel={columnNames.summary}>{bug.summary}</Td>
                                 <Td dataLabel={columnNames.priority}>{bug.priority}</Td>
+                                <Td dataLabel={columnNames.component}>{bug.component}</Td>
                                 <Td dataLabel={columnNames.labels}>{bug.labels}</Td>
                                 <Td dataLabel={columnNames.status}>{bug.status}</Td>
                                 {selected == "response" && <Td dataLabel={columnNames.days_without_assignee}>{bug.days_without_assignee}</Td>}

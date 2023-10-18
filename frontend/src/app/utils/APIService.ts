@@ -521,22 +521,6 @@ async function getFailures(team: string, rangeDateTime: Date[]) {
     '&end_date=' +
     end_date;
 
-<<<<<<< HEAD
-  const response = await axios.get(
-    API_URL +
-    '/api/quality/failures/get?team_name=' + team +
-    '&start_date=' +
-    start_date +
-    '&end_date=' +
-    end_date
-  );
-
-  if (response.status != 200) {
-    throw 'Error fetching data from server. ';
-  }
-
-  return response.data;
-=======
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
@@ -549,7 +533,6 @@ async function getFailures(team: string, rangeDateTime: Date[]) {
     });
   return result;
 
->>>>>>> main
 }
 
 async function createFailure(team: string, jiraKey: string, errorMessage: string) {

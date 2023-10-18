@@ -199,6 +199,20 @@ func (bc *BugsCreate) SetNillableLabels(s *string) *BugsCreate {
 	return bc
 }
 
+// SetComponent sets the "component" field.
+func (bc *BugsCreate) SetComponent(s string) *BugsCreate {
+	bc.mutation.SetComponent(s)
+	return bc
+}
+
+// SetNillableComponent sets the "component" field if the given value is not nil.
+func (bc *BugsCreate) SetNillableComponent(s *string) *BugsCreate {
+	if s != nil {
+		bc.SetComponent(*s)
+	}
+	return bc
+}
+
 // SetID sets the "id" field.
 func (bc *BugsCreate) SetID(u uuid.UUID) *BugsCreate {
 	bc.mutation.SetID(u)
@@ -427,6 +441,10 @@ func (bc *BugsCreate) createSpec() (*Bugs, *sqlgraph.CreateSpec) {
 	if value, ok := bc.mutation.Labels(); ok {
 		_spec.SetField(bugs.FieldLabels, field.TypeString, value)
 		_node.Labels = &value
+	}
+	if value, ok := bc.mutation.Component(); ok {
+		_spec.SetField(bugs.FieldComponent, field.TypeString, value)
+		_node.Component = &value
 	}
 	if nodes := bc.mutation.BugsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -779,6 +797,24 @@ func (u *BugsUpsert) UpdateLabels() *BugsUpsert {
 // ClearLabels clears the value of the "labels" field.
 func (u *BugsUpsert) ClearLabels() *BugsUpsert {
 	u.SetNull(bugs.FieldLabels)
+	return u
+}
+
+// SetComponent sets the "component" field.
+func (u *BugsUpsert) SetComponent(v string) *BugsUpsert {
+	u.Set(bugs.FieldComponent, v)
+	return u
+}
+
+// UpdateComponent sets the "component" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateComponent() *BugsUpsert {
+	u.SetExcluded(bugs.FieldComponent)
+	return u
+}
+
+// ClearComponent clears the value of the "component" field.
+func (u *BugsUpsert) ClearComponent() *BugsUpsert {
+	u.SetNull(bugs.FieldComponent)
 	return u
 }
 
@@ -1156,6 +1192,27 @@ func (u *BugsUpsertOne) UpdateLabels() *BugsUpsertOne {
 func (u *BugsUpsertOne) ClearLabels() *BugsUpsertOne {
 	return u.Update(func(s *BugsUpsert) {
 		s.ClearLabels()
+	})
+}
+
+// SetComponent sets the "component" field.
+func (u *BugsUpsertOne) SetComponent(v string) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetComponent(v)
+	})
+}
+
+// UpdateComponent sets the "component" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateComponent() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateComponent()
+	})
+}
+
+// ClearComponent clears the value of the "component" field.
+func (u *BugsUpsertOne) ClearComponent() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearComponent()
 	})
 }
 
@@ -1696,6 +1753,27 @@ func (u *BugsUpsertBulk) UpdateLabels() *BugsUpsertBulk {
 func (u *BugsUpsertBulk) ClearLabels() *BugsUpsertBulk {
 	return u.Update(func(s *BugsUpsert) {
 		s.ClearLabels()
+	})
+}
+
+// SetComponent sets the "component" field.
+func (u *BugsUpsertBulk) SetComponent(v string) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetComponent(v)
+	})
+}
+
+// UpdateComponent sets the "component" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateComponent() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateComponent()
+	})
+}
+
+// ClearComponent clears the value of the "component" field.
+func (u *BugsUpsertBulk) ClearComponent() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearComponent()
 	})
 }
 

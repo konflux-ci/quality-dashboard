@@ -288,6 +288,26 @@ func (bu *BugsUpdate) ClearLabels() *BugsUpdate {
 	return bu
 }
 
+// SetComponent sets the "component" field.
+func (bu *BugsUpdate) SetComponent(s string) *BugsUpdate {
+	bu.mutation.SetComponent(s)
+	return bu
+}
+
+// SetNillableComponent sets the "component" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableComponent(s *string) *BugsUpdate {
+	if s != nil {
+		bu.SetComponent(*s)
+	}
+	return bu
+}
+
+// ClearComponent clears the value of the "component" field.
+func (bu *BugsUpdate) ClearComponent() *BugsUpdate {
+	bu.mutation.ClearComponent()
+	return bu
+}
+
 // SetBugsID sets the "bugs" edge to the Teams entity by ID.
 func (bu *BugsUpdate) SetBugsID(id uuid.UUID) *BugsUpdate {
 	bu.mutation.SetBugsID(id)
@@ -465,6 +485,12 @@ func (bu *BugsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if bu.mutation.LabelsCleared() {
 		_spec.ClearField(bugs.FieldLabels, field.TypeString)
+	}
+	if value, ok := bu.mutation.Component(); ok {
+		_spec.SetField(bugs.FieldComponent, field.TypeString, value)
+	}
+	if bu.mutation.ComponentCleared() {
+		_spec.ClearField(bugs.FieldComponent, field.TypeString)
 	}
 	if bu.mutation.BugsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -779,6 +805,26 @@ func (buo *BugsUpdateOne) ClearLabels() *BugsUpdateOne {
 	return buo
 }
 
+// SetComponent sets the "component" field.
+func (buo *BugsUpdateOne) SetComponent(s string) *BugsUpdateOne {
+	buo.mutation.SetComponent(s)
+	return buo
+}
+
+// SetNillableComponent sets the "component" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableComponent(s *string) *BugsUpdateOne {
+	if s != nil {
+		buo.SetComponent(*s)
+	}
+	return buo
+}
+
+// ClearComponent clears the value of the "component" field.
+func (buo *BugsUpdateOne) ClearComponent() *BugsUpdateOne {
+	buo.mutation.ClearComponent()
+	return buo
+}
+
 // SetBugsID sets the "bugs" edge to the Teams entity by ID.
 func (buo *BugsUpdateOne) SetBugsID(id uuid.UUID) *BugsUpdateOne {
 	buo.mutation.SetBugsID(id)
@@ -980,6 +1026,12 @@ func (buo *BugsUpdateOne) sqlSave(ctx context.Context) (_node *Bugs, err error) 
 	}
 	if buo.mutation.LabelsCleared() {
 		_spec.ClearField(bugs.FieldLabels, field.TypeString)
+	}
+	if value, ok := buo.mutation.Component(); ok {
+		_spec.SetField(bugs.FieldComponent, field.TypeString, value)
+	}
+	if buo.mutation.ComponentCleared() {
+		_spec.ClearField(bugs.FieldComponent, field.TypeString)
 	}
 	if buo.mutation.BugsCleared() {
 		edge := &sqlgraph.EdgeSpec{

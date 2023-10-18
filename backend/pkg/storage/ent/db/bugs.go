@@ -52,6 +52,8 @@ type Bugs struct {
 	DaysWithoutResolution *float64 `json:"days_without_resolution,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels *string `json:"labels,omitempty"`
+	// Component holds the value of the "component" field.
+	Component *string `json:"component,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the BugsQuery when eager-loading is set.
 	Edges      BugsEdges `json:"edges"`
@@ -89,7 +91,7 @@ func (*Bugs) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case bugs.FieldResolutionTime, bugs.FieldAssignmentTime, bugs.FieldPrioritizationTime, bugs.FieldDaysWithoutAssignee, bugs.FieldDaysWithoutPriority, bugs.FieldDaysWithoutResolution:
 			values[i] = new(sql.NullFloat64)
-		case bugs.FieldJiraKey, bugs.FieldPriority, bugs.FieldStatus, bugs.FieldSummary, bugs.FieldURL, bugs.FieldProjectKey, bugs.FieldLabels:
+		case bugs.FieldJiraKey, bugs.FieldPriority, bugs.FieldStatus, bugs.FieldSummary, bugs.FieldURL, bugs.FieldProjectKey, bugs.FieldLabels, bugs.FieldComponent:
 			values[i] = new(sql.NullString)
 		case bugs.FieldCreatedAt, bugs.FieldUpdatedAt, bugs.FieldResolvedAt:
 			values[i] = new(sql.NullTime)
@@ -228,6 +230,13 @@ func (b *Bugs) assignValues(columns []string, values []any) error {
 				b.Labels = new(string)
 				*b.Labels = value.String
 			}
+		case bugs.FieldComponent:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field component", values[i])
+			} else if value.Valid {
+				b.Component = new(string)
+				*b.Component = value.String
+			}
 		case bugs.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field teams_bugs", values[i])
@@ -332,6 +341,11 @@ func (b *Bugs) String() string {
 	builder.WriteString(", ")
 	if v := b.Labels; v != nil {
 		builder.WriteString("labels=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := b.Component; v != nil {
+		builder.WriteString("component=")
 		builder.WriteString(*v)
 	}
 	builder.WriteByte(')')

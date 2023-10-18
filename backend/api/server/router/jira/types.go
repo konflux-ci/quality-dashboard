@@ -12,6 +12,7 @@ type Bug struct {
 	Summary               string   `json:"summary"`
 	Priority              string   `json:"priority"`
 	Labels                string   `json:"labels"`
+	Component             string   `json:"component"`
 	TriageSLI             *Alert   `json:"triage_sli"`
 	ResponseSLI           *Alert   `json:"response_sli"`
 	ResolutionSLI         *Alert   `json:"resolution_sli"`

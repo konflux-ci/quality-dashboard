@@ -38,6 +38,14 @@ type JiraBugMetricsInfo struct {
 	BugIsResolved bool
 }
 
+func getComponent(components []*jira.Component) string {
+	if len(components) != 0 {
+		return components[0].Name
+	}
+
+	return "None"
+}
+
 // CreateJiraBug saves provided jira bugs information in database.
 func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 	create := false
@@ -66,6 +74,7 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetDaysWithoutPriority(jiraBugMetricsInfo.DaysWithoutPriority).
 				SetDaysWithoutResolution(jiraBugMetricsInfo.DaysWithoutResolution).
 				SetLabels(strings.Join(bug.Fields.Labels, ",")).
+				SetComponent(getComponent(bug.Fields.Components)).
 				Save(context.TODO())
 			if err != nil {
 				return convertDBError("failed to create bug: %w", err)
@@ -89,7 +98,8 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetDaysWithoutAssignee(jiraBugMetricsInfo.DaysWithoutAssignee).
 				SetDaysWithoutPriority(jiraBugMetricsInfo.DaysWithoutPriority).
 				SetDaysWithoutResolution(jiraBugMetricsInfo.DaysWithoutResolution).
-				SetLabels(strings.Join(bug.Fields.Labels, ","))
+				SetLabels(strings.Join(bug.Fields.Labels, ",")).
+				SetComponent(getComponent(bug.Fields.Components))
 			createBulk = append(createBulk, createBulkByBug)
 			create = true
 		}

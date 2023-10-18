@@ -74,6 +74,7 @@ type BugsMutation struct {
 	days_without_resolution    *float64
 	adddays_without_resolution *float64
 	labels                     *string
+	component                  *string
 	clearedFields              map[string]struct{}
 	bugs                       *uuid.UUID
 	clearedbugs                bool
@@ -1014,6 +1015,55 @@ func (m *BugsMutation) ResetLabels() {
 	delete(m.clearedFields, bugs.FieldLabels)
 }
 
+// SetComponent sets the "component" field.
+func (m *BugsMutation) SetComponent(s string) {
+	m.component = &s
+}
+
+// Component returns the value of the "component" field in the mutation.
+func (m *BugsMutation) Component() (r string, exists bool) {
+	v := m.component
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldComponent returns the old "component" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldComponent(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldComponent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldComponent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldComponent: %w", err)
+	}
+	return oldValue.Component, nil
+}
+
+// ClearComponent clears the value of the "component" field.
+func (m *BugsMutation) ClearComponent() {
+	m.component = nil
+	m.clearedFields[bugs.FieldComponent] = struct{}{}
+}
+
+// ComponentCleared returns if the "component" field was cleared in this mutation.
+func (m *BugsMutation) ComponentCleared() bool {
+	_, ok := m.clearedFields[bugs.FieldComponent]
+	return ok
+}
+
+// ResetComponent resets all changes to the "component" field.
+func (m *BugsMutation) ResetComponent() {
+	m.component = nil
+	delete(m.clearedFields, bugs.FieldComponent)
+}
+
 // SetBugsID sets the "bugs" edge to the Teams entity by id.
 func (m *BugsMutation) SetBugsID(id uuid.UUID) {
 	m.bugs = &id
@@ -1087,7 +1137,7 @@ func (m *BugsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BugsMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 18)
 	if m.jira_key != nil {
 		fields = append(fields, bugs.FieldJiraKey)
 	}
@@ -1139,6 +1189,9 @@ func (m *BugsMutation) Fields() []string {
 	if m.labels != nil {
 		fields = append(fields, bugs.FieldLabels)
 	}
+	if m.component != nil {
+		fields = append(fields, bugs.FieldComponent)
+	}
 	return fields
 }
 
@@ -1181,6 +1234,8 @@ func (m *BugsMutation) Field(name string) (ent.Value, bool) {
 		return m.DaysWithoutResolution()
 	case bugs.FieldLabels:
 		return m.Labels()
+	case bugs.FieldComponent:
+		return m.Component()
 	}
 	return nil, false
 }
@@ -1224,6 +1279,8 @@ func (m *BugsMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDaysWithoutResolution(ctx)
 	case bugs.FieldLabels:
 		return m.OldLabels(ctx)
+	case bugs.FieldComponent:
+		return m.OldComponent(ctx)
 	}
 	return nil, fmt.Errorf("unknown Bugs field %s", name)
 }
@@ -1352,6 +1409,13 @@ func (m *BugsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLabels(v)
 		return nil
+	case bugs.FieldComponent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetComponent(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Bugs field %s", name)
 }
@@ -1478,6 +1542,9 @@ func (m *BugsMutation) ClearedFields() []string {
 	if m.FieldCleared(bugs.FieldLabels) {
 		fields = append(fields, bugs.FieldLabels)
 	}
+	if m.FieldCleared(bugs.FieldComponent) {
+		fields = append(fields, bugs.FieldComponent)
+	}
 	return fields
 }
 
@@ -1512,6 +1579,9 @@ func (m *BugsMutation) ClearField(name string) error {
 		return nil
 	case bugs.FieldLabels:
 		m.ClearLabels()
+		return nil
+	case bugs.FieldComponent:
+		m.ClearComponent()
 		return nil
 	}
 	return fmt.Errorf("unknown Bugs nullable field %s", name)
@@ -1571,6 +1641,9 @@ func (m *BugsMutation) ResetField(name string) error {
 		return nil
 	case bugs.FieldLabels:
 		m.ResetLabels()
+		return nil
+	case bugs.FieldComponent:
+		m.ResetComponent()
 		return nil
 	}
 	return fmt.Errorf("unknown Bugs field %s", name)

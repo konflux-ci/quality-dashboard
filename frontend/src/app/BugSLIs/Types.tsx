@@ -8,6 +8,7 @@ export interface Bug {
     summary: string,
     status: string,
     labels: string,
+    component: string,
     priority: string,
     jira_url: string,
     triage_sli: Alert,

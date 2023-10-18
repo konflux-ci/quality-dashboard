@@ -45,6 +45,8 @@ const (
 	FieldDaysWithoutResolution = "days_without_resolution"
 	// FieldLabels holds the string denoting the labels field in the database.
 	FieldLabels = "labels"
+	// FieldComponent holds the string denoting the component field in the database.
+	FieldComponent = "component"
 	// EdgeBugs holds the string denoting the bugs edge name in mutations.
 	EdgeBugs = "bugs"
 	// TeamsFieldID holds the string denoting the ID field of the Teams.
@@ -80,6 +82,7 @@ var Columns = []string{
 	FieldDaysWithoutPriority,
 	FieldDaysWithoutResolution,
 	FieldLabels,
+	FieldComponent,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "bugs"
