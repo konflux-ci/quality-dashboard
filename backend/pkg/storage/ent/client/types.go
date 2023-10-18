@@ -2,7 +2,9 @@ package client
 
 import (
 	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
+
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
+	v1alphaPlugins "github.com/redhat-appstudio/quality-studio/api/apis/plugins/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 )
@@ -16,6 +18,21 @@ func toStorageRepository(p *db.Repository) repoV1Alpha1.Repository {
 		Description: p.Description,
 		URL:         p.GitURL,
 		ID:          p.ID,
+	}
+}
+
+func installedPlugin(plugin *db.Plugins, installed bool) *v1alphaPlugins.Plugin {
+	return &v1alphaPlugins.Plugin{
+		Spec: v1alphaPlugins.PluginSpec{
+			Name:        plugin.Name,
+			Logo:        plugin.Logo,
+			Category:    plugin.Category,
+			Description: plugin.Description,
+			Reason:      plugin.Reason,
+		},
+		Status: v1alphaPlugins.PluginStatus{
+			Installed: installed,
+		},
 	}
 }
 

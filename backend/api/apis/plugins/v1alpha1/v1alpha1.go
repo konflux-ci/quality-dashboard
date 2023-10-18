@@ -1,7 +1,7 @@
 package plugins
 
 // Desired definition of a Plugin object
-type Plugin struct {
+type PluginSpec struct {
 	// Indicate the name of the desired plugin
 	Name string `json:"name"`
 
@@ -14,6 +14,16 @@ type Plugin struct {
 	// Information about what is to suposed to do the plugin
 	Description string `json:"description"`
 
-	// Desired status of the plugin. Can be "Available or Deprecated"
-	Status string `json:"status"`
+	// Return if a plugin is available or not. Can be "Available or Deprecated"
+	Reason string `json:"reason"`
+}
+
+type PluginStatus struct {
+	// Indicate if the plugin is installed by a team
+	Installed bool `json:"installed"`
+}
+
+type Plugin struct {
+	Spec   PluginSpec   `json:"plugin"`
+	Status PluginStatus `json:"status"`
 }

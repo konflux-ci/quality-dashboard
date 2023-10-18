@@ -19,8 +19,8 @@ const (
 	FieldLogo = "logo"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
+	// FieldReason holds the string denoting the reason field in the database.
+	FieldReason = "reason"
 	// EdgeTeams holds the string denoting the teams edge name in mutations.
 	EdgeTeams = "teams"
 	// TeamsFieldID holds the string denoting the ID field of the Teams.
@@ -41,7 +41,7 @@ var Columns = []string{
 	FieldCategory,
 	FieldLogo,
 	FieldDescription,
-	FieldStatus,
+	FieldReason,
 }
 
 var (
@@ -67,8 +67,8 @@ var (
 	CategoryValidator func(string) error
 	// LogoValidator is a validator for the "logo" field. It is called by the builders before save.
 	LogoValidator func(string) error
-	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
-	StatusValidator func(string) error
+	// ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
+	ReasonValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )

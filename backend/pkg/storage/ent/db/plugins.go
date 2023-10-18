@@ -24,8 +24,8 @@ type Plugins struct {
 	Logo string `json:"logo,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Status holds the value of the "status" field.
-	Status string `json:"status,omitempty"`
+	// Reason holds the value of the "reason" field.
+	Reason string `json:"reason,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PluginsQuery when eager-loading is set.
 	Edges PluginsEdges `json:"edges"`
@@ -54,7 +54,7 @@ func (*Plugins) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case plugins.FieldName, plugins.FieldCategory, plugins.FieldLogo, plugins.FieldDescription, plugins.FieldStatus:
+		case plugins.FieldName, plugins.FieldCategory, plugins.FieldLogo, plugins.FieldDescription, plugins.FieldReason:
 			values[i] = new(sql.NullString)
 		case plugins.FieldID:
 			values[i] = new(uuid.UUID)
@@ -103,11 +103,11 @@ func (pl *Plugins) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pl.Description = value.String
 			}
-		case plugins.FieldStatus:
+		case plugins.FieldReason:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
+				return fmt.Errorf("unexpected type %T for field reason", values[i])
 			} else if value.Valid {
-				pl.Status = value.String
+				pl.Reason = value.String
 			}
 		}
 	}
@@ -154,8 +154,8 @@ func (pl *Plugins) String() string {
 	builder.WriteString("description=")
 	builder.WriteString(pl.Description)
 	builder.WriteString(", ")
-	builder.WriteString("status=")
-	builder.WriteString(pl.Status)
+	builder.WriteString("reason=")
+	builder.WriteString(pl.Reason)
 	builder.WriteByte(')')
 	return builder.String()
 }

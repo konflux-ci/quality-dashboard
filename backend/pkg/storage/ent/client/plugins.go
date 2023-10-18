@@ -9,13 +9,13 @@ import (
 )
 
 // CreatePlugin populate database with a new given plugin.
-func (d *Database) CreatePlugin(plugin *v1alphaPlugins.Plugin) (*db.Plugins, error) {
+func (d *Database) CreatePlugin(plugin *v1alphaPlugins.PluginSpec) (*db.Plugins, error) {
 	pluginCreated, err := d.client.Plugins.Create().
 		SetName(plugin.Name).
 		SetCategory(plugin.Category).
 		SetLogo(plugin.Logo).
 		SetDescription(plugin.Description).
-		SetStatus(plugin.Status).
+		SetReason(plugin.Reason).
 		Save(context.Background())
 	if err != nil {
 		return nil, convertDBError("create plugins status: %w", err)
@@ -45,14 +45,32 @@ func (d *Database) GetPluginByName(pluginName string) (*db.Plugins, error) {
 }
 
 // GetPluginsByTeam extract all plugins which belong to a given name in database.
-func (d *Database) GetPluginsByTeam(team *db.Teams) ([]*db.Plugins, error) {
-	plugins, err := d.client.Teams.QueryPlugins(team).All(context.Background())
+func (d *Database) GetPluginsByTeam(team *db.Teams) (storagePlugin []*v1alphaPlugins.Plugin, err error) {
+	allPlugins, err := d.client.Plugins.Query().All(context.TODO())
+	if err != nil {
+		return nil, convertDBError("list plugins: %w", err)
+	}
+
+	pluginTeam, err := d.client.Teams.QueryPlugins(team).All(context.Background())
 
 	if err != nil {
 		return nil, convertDBError("get plugin: %w", err)
 	}
 
-	return plugins, nil
+	for _, plugin := range allPlugins {
+		storagePlugin = append(storagePlugin, installedPlugin(plugin, pluginInstalled(plugin, pluginTeam)))
+	}
+
+	return storagePlugin, nil
+}
+
+func pluginInstalled(plugin *db.Plugins, installedPlugins []*db.Plugins) bool {
+	for _, pg := range installedPlugins {
+		if pg.Name == plugin.Name {
+			return true
+		}
+	}
+	return false
 }
 
 // InstallPlugin assign a plugin to a team in database

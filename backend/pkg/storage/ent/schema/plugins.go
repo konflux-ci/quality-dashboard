@@ -31,7 +31,7 @@ func (Plugins) Fields() []ent.Field {
 			NotEmpty(),
 		field.Text("description").
 			SchemaType(textSchema),
-		field.Text("status").
+		field.Text("reason").
 			SchemaType(textSchema).
 			NotEmpty(),
 	}

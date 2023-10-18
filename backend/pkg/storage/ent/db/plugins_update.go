@@ -53,9 +53,9 @@ func (pu *PluginsUpdate) SetDescription(s string) *PluginsUpdate {
 	return pu
 }
 
-// SetStatus sets the "status" field.
-func (pu *PluginsUpdate) SetStatus(s string) *PluginsUpdate {
-	pu.mutation.SetStatus(s)
+// SetReason sets the "reason" field.
+func (pu *PluginsUpdate) SetReason(s string) *PluginsUpdate {
+	pu.mutation.SetReason(s)
 	return pu
 }
 
@@ -144,9 +144,9 @@ func (pu *PluginsUpdate) check() error {
 			return &ValidationError{Name: "logo", err: fmt.Errorf(`db: validator failed for field "Plugins.logo": %w`, err)}
 		}
 	}
-	if v, ok := pu.mutation.Status(); ok {
-		if err := plugins.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`db: validator failed for field "Plugins.status": %w`, err)}
+	if v, ok := pu.mutation.Reason(); ok {
+		if err := plugins.ReasonValidator(v); err != nil {
+			return &ValidationError{Name: "reason", err: fmt.Errorf(`db: validator failed for field "Plugins.reason": %w`, err)}
 		}
 	}
 	return nil
@@ -185,8 +185,8 @@ func (pu *PluginsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pu.mutation.Description(); ok {
 		_spec.SetField(plugins.FieldDescription, field.TypeString, value)
 	}
-	if value, ok := pu.mutation.Status(); ok {
-		_spec.SetField(plugins.FieldStatus, field.TypeString, value)
+	if value, ok := pu.mutation.Reason(); ok {
+		_spec.SetField(plugins.FieldReason, field.TypeString, value)
 	}
 	if pu.mutation.TeamsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -286,9 +286,9 @@ func (puo *PluginsUpdateOne) SetDescription(s string) *PluginsUpdateOne {
 	return puo
 }
 
-// SetStatus sets the "status" field.
-func (puo *PluginsUpdateOne) SetStatus(s string) *PluginsUpdateOne {
-	puo.mutation.SetStatus(s)
+// SetReason sets the "reason" field.
+func (puo *PluginsUpdateOne) SetReason(s string) *PluginsUpdateOne {
+	puo.mutation.SetReason(s)
 	return puo
 }
 
@@ -384,9 +384,9 @@ func (puo *PluginsUpdateOne) check() error {
 			return &ValidationError{Name: "logo", err: fmt.Errorf(`db: validator failed for field "Plugins.logo": %w`, err)}
 		}
 	}
-	if v, ok := puo.mutation.Status(); ok {
-		if err := plugins.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`db: validator failed for field "Plugins.status": %w`, err)}
+	if v, ok := puo.mutation.Reason(); ok {
+		if err := plugins.ReasonValidator(v); err != nil {
+			return &ValidationError{Name: "reason", err: fmt.Errorf(`db: validator failed for field "Plugins.reason": %w`, err)}
 		}
 	}
 	return nil
@@ -442,8 +442,8 @@ func (puo *PluginsUpdateOne) sqlSave(ctx context.Context) (_node *Plugins, err e
 	if value, ok := puo.mutation.Description(); ok {
 		_spec.SetField(plugins.FieldDescription, field.TypeString, value)
 	}
-	if value, ok := puo.mutation.Status(); ok {
-		_spec.SetField(plugins.FieldStatus, field.TypeString, value)
+	if value, ok := puo.mutation.Reason(); ok {
+		_spec.SetField(plugins.FieldReason, field.TypeString, value)
 	}
 	if puo.mutation.TeamsCleared() {
 		edge := &sqlgraph.EdgeSpec{

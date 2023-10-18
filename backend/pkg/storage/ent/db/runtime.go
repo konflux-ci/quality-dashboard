@@ -71,10 +71,10 @@ func init() {
 	pluginsDescLogo := pluginsFields[3].Descriptor()
 	// plugins.LogoValidator is a validator for the "logo" field. It is called by the builders before save.
 	plugins.LogoValidator = pluginsDescLogo.Validators[0].(func(string) error)
-	// pluginsDescStatus is the schema descriptor for status field.
-	pluginsDescStatus := pluginsFields[5].Descriptor()
-	// plugins.StatusValidator is a validator for the "status" field. It is called by the builders before save.
-	plugins.StatusValidator = pluginsDescStatus.Validators[0].(func(string) error)
+	// pluginsDescReason is the schema descriptor for reason field.
+	pluginsDescReason := pluginsFields[5].Descriptor()
+	// plugins.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
+	plugins.ReasonValidator = pluginsDescReason.Validators[0].(func(string) error)
 	// pluginsDescID is the schema descriptor for id field.
 	pluginsDescID := pluginsFields[0].Descriptor()
 	// plugins.DefaultID holds the default value on creation for the id field.

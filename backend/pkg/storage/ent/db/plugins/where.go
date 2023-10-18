@@ -74,9 +74,9 @@ func Description(v string) predicate.Plugins {
 	return predicate.Plugins(sql.FieldEQ(FieldDescription, v))
 }
 
-// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
-func Status(v string) predicate.Plugins {
-	return predicate.Plugins(sql.FieldEQ(FieldStatus, v))
+// Reason applies equality check predicate on the "reason" field. It's identical to ReasonEQ.
+func Reason(v string) predicate.Plugins {
+	return predicate.Plugins(sql.FieldEQ(FieldReason, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -339,69 +339,69 @@ func DescriptionContainsFold(v string) predicate.Plugins {
 	return predicate.Plugins(sql.FieldContainsFold(FieldDescription, v))
 }
 
-// StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v string) predicate.Plugins {
-	return predicate.Plugins(sql.FieldEQ(FieldStatus, v))
+// ReasonEQ applies the EQ predicate on the "reason" field.
+func ReasonEQ(v string) predicate.Plugins {
+	return predicate.Plugins(sql.FieldEQ(FieldReason, v))
 }
 
-// StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v string) predicate.Plugins {
-	return predicate.Plugins(sql.FieldNEQ(FieldStatus, v))
+// ReasonNEQ applies the NEQ predicate on the "reason" field.
+func ReasonNEQ(v string) predicate.Plugins {
+	return predicate.Plugins(sql.FieldNEQ(FieldReason, v))
 }
 
-// StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...string) predicate.Plugins {
-	return predicate.Plugins(sql.FieldIn(FieldStatus, vs...))
+// ReasonIn applies the In predicate on the "reason" field.
+func ReasonIn(vs ...string) predicate.Plugins {
+	return predicate.Plugins(sql.FieldIn(FieldReason, vs...))
 }
 
-// StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...string) predicate.Plugins {
-	return predicate.Plugins(sql.FieldNotIn(FieldStatus, vs...))
+// ReasonNotIn applies the NotIn predicate on the "reason" field.
+func ReasonNotIn(vs ...string) predicate.Plugins {
+	return predicate.Plugins(sql.FieldNotIn(FieldReason, vs...))
 }
 
-// StatusGT applies the GT predicate on the "status" field.
-func StatusGT(v string) predicate.Plugins {
-	return predicate.Plugins(sql.FieldGT(FieldStatus, v))
+// ReasonGT applies the GT predicate on the "reason" field.
+func ReasonGT(v string) predicate.Plugins {
+	return predicate.Plugins(sql.FieldGT(FieldReason, v))
 }
 
-// StatusGTE applies the GTE predicate on the "status" field.
-func StatusGTE(v string) predicate.Plugins {
-	return predicate.Plugins(sql.FieldGTE(FieldStatus, v))
+// ReasonGTE applies the GTE predicate on the "reason" field.
+func ReasonGTE(v string) predicate.Plugins {
+	return predicate.Plugins(sql.FieldGTE(FieldReason, v))
 }
 
-// StatusLT applies the LT predicate on the "status" field.
-func StatusLT(v string) predicate.Plugins {
-	return predicate.Plugins(sql.FieldLT(FieldStatus, v))
+// ReasonLT applies the LT predicate on the "reason" field.
+func ReasonLT(v string) predicate.Plugins {
+	return predicate.Plugins(sql.FieldLT(FieldReason, v))
 }
 
-// StatusLTE applies the LTE predicate on the "status" field.
-func StatusLTE(v string) predicate.Plugins {
-	return predicate.Plugins(sql.FieldLTE(FieldStatus, v))
+// ReasonLTE applies the LTE predicate on the "reason" field.
+func ReasonLTE(v string) predicate.Plugins {
+	return predicate.Plugins(sql.FieldLTE(FieldReason, v))
 }
 
-// StatusContains applies the Contains predicate on the "status" field.
-func StatusContains(v string) predicate.Plugins {
-	return predicate.Plugins(sql.FieldContains(FieldStatus, v))
+// ReasonContains applies the Contains predicate on the "reason" field.
+func ReasonContains(v string) predicate.Plugins {
+	return predicate.Plugins(sql.FieldContains(FieldReason, v))
 }
 
-// StatusHasPrefix applies the HasPrefix predicate on the "status" field.
-func StatusHasPrefix(v string) predicate.Plugins {
-	return predicate.Plugins(sql.FieldHasPrefix(FieldStatus, v))
+// ReasonHasPrefix applies the HasPrefix predicate on the "reason" field.
+func ReasonHasPrefix(v string) predicate.Plugins {
+	return predicate.Plugins(sql.FieldHasPrefix(FieldReason, v))
 }
 
-// StatusHasSuffix applies the HasSuffix predicate on the "status" field.
-func StatusHasSuffix(v string) predicate.Plugins {
-	return predicate.Plugins(sql.FieldHasSuffix(FieldStatus, v))
+// ReasonHasSuffix applies the HasSuffix predicate on the "reason" field.
+func ReasonHasSuffix(v string) predicate.Plugins {
+	return predicate.Plugins(sql.FieldHasSuffix(FieldReason, v))
 }
 
-// StatusEqualFold applies the EqualFold predicate on the "status" field.
-func StatusEqualFold(v string) predicate.Plugins {
-	return predicate.Plugins(sql.FieldEqualFold(FieldStatus, v))
+// ReasonEqualFold applies the EqualFold predicate on the "reason" field.
+func ReasonEqualFold(v string) predicate.Plugins {
+	return predicate.Plugins(sql.FieldEqualFold(FieldReason, v))
 }
 
-// StatusContainsFold applies the ContainsFold predicate on the "status" field.
-func StatusContainsFold(v string) predicate.Plugins {
-	return predicate.Plugins(sql.FieldContainsFold(FieldStatus, v))
+// ReasonContainsFold applies the ContainsFold predicate on the "reason" field.
+func ReasonContainsFold(v string) predicate.Plugins {
+	return predicate.Plugins(sql.FieldContainsFold(FieldReason, v))
 }
 
 // HasTeams applies the HasEdge predicate on the "teams" edge.

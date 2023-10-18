@@ -2287,7 +2287,7 @@ type PluginsMutation struct {
 	category      *string
 	logo          *string
 	description   *string
-	status        *string
+	reason        *string
 	clearedFields map[string]struct{}
 	teams         map[uuid.UUID]struct{}
 	removedteams  map[uuid.UUID]struct{}
@@ -2545,40 +2545,40 @@ func (m *PluginsMutation) ResetDescription() {
 	m.description = nil
 }
 
-// SetStatus sets the "status" field.
-func (m *PluginsMutation) SetStatus(s string) {
-	m.status = &s
+// SetReason sets the "reason" field.
+func (m *PluginsMutation) SetReason(s string) {
+	m.reason = &s
 }
 
-// Status returns the value of the "status" field in the mutation.
-func (m *PluginsMutation) Status() (r string, exists bool) {
-	v := m.status
+// Reason returns the value of the "reason" field in the mutation.
+func (m *PluginsMutation) Reason() (r string, exists bool) {
+	v := m.reason
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldStatus returns the old "status" field's value of the Plugins entity.
+// OldReason returns the old "reason" field's value of the Plugins entity.
 // If the Plugins object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PluginsMutation) OldStatus(ctx context.Context) (v string, err error) {
+func (m *PluginsMutation) OldReason(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+		return v, errors.New("OldReason is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
+		return v, errors.New("OldReason requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+		return v, fmt.Errorf("querying old value for OldReason: %w", err)
 	}
-	return oldValue.Status, nil
+	return oldValue.Reason, nil
 }
 
-// ResetStatus resets all changes to the "status" field.
-func (m *PluginsMutation) ResetStatus() {
-	m.status = nil
+// ResetReason resets all changes to the "reason" field.
+func (m *PluginsMutation) ResetReason() {
+	m.reason = nil
 }
 
 // AddTeamIDs adds the "teams" edge to the Teams entity by ids.
@@ -2682,8 +2682,8 @@ func (m *PluginsMutation) Fields() []string {
 	if m.description != nil {
 		fields = append(fields, plugins.FieldDescription)
 	}
-	if m.status != nil {
-		fields = append(fields, plugins.FieldStatus)
+	if m.reason != nil {
+		fields = append(fields, plugins.FieldReason)
 	}
 	return fields
 }
@@ -2701,8 +2701,8 @@ func (m *PluginsMutation) Field(name string) (ent.Value, bool) {
 		return m.Logo()
 	case plugins.FieldDescription:
 		return m.Description()
-	case plugins.FieldStatus:
-		return m.Status()
+	case plugins.FieldReason:
+		return m.Reason()
 	}
 	return nil, false
 }
@@ -2720,8 +2720,8 @@ func (m *PluginsMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldLogo(ctx)
 	case plugins.FieldDescription:
 		return m.OldDescription(ctx)
-	case plugins.FieldStatus:
-		return m.OldStatus(ctx)
+	case plugins.FieldReason:
+		return m.OldReason(ctx)
 	}
 	return nil, fmt.Errorf("unknown Plugins field %s", name)
 }
@@ -2759,12 +2759,12 @@ func (m *PluginsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDescription(v)
 		return nil
-	case plugins.FieldStatus:
+	case plugins.FieldReason:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetStatus(v)
+		m.SetReason(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Plugins field %s", name)
@@ -2827,8 +2827,8 @@ func (m *PluginsMutation) ResetField(name string) error {
 	case plugins.FieldDescription:
 		m.ResetDescription()
 		return nil
-	case plugins.FieldStatus:
-		m.ResetStatus()
+	case plugins.FieldReason:
+		m.ResetReason()
 		return nil
 	}
 	return fmt.Errorf("unknown Plugins field %s", name)
