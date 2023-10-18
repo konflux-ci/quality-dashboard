@@ -8,7 +8,7 @@ import {
   CardTitle,
   CardBody,
   Card,
-  CardFooter,
+  Spinner,
   Gallery,
   Button,
   Text,
@@ -34,7 +34,14 @@ type CProps = {
 }
 
 export const CardWithImageAndActions: React.FunctionComponent<CProps> = (props:CProps) => {
-  const [isOpen, setIsOpen] = React.useState<boolean>(false);
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const onInstallClick = (e) => {
+    setIsLoading(true)
+    setTimeout(() => {
+      props.onInstall(e)
+      setIsLoading(false)
+    }, 1000);
+  }
   return (
     <>
       <Card style={{minHeight: '25vh'}}>
@@ -44,9 +51,13 @@ export const CardWithImageAndActions: React.FunctionComponent<CProps> = (props:C
               <img src={props.logo.default} height={50} style={{width:'50px'}}/>
             </GridItem>
             <GridItem span={8} style={{width: '100%', textAlign: "right"}}>
-              { !props.installed && props.reason == 'Available' && <Button variant="primary" onClick={props.onInstall}> Install </Button> }
-              { props.reason == 'Unavailable' && <Button variant="tertiary" isDisabled ouiaId="Primary"> Unavailable </Button> }
-              { props.installed && <Button variant="secondary" readOnly ouiaId="Primary"> Installed </Button> }
+              { !props.installed && props.reason == 'Available' && <Button variant="secondary" onClick={onInstallClick}> 
+                  {isLoading && <span><Spinner size="md" aria-label="Installing..." />&nbsp;</span>}
+                  Install 
+                </Button> 
+              }
+              { props.reason == 'Unavailable' && <Button variant="tertiary" isDisabled ouiaId="tertiary"> Unavailable </Button> }
+              { props.installed && <Button variant="tertiary" readOnly ouiaId="tertiary"> Installed </Button> }
             </GridItem>
           </Grid>
         </CardHeader>
@@ -138,7 +149,7 @@ export const PHub: FC<HubProps> = ({/* destructured props */}): ReactElement => 
     return true
   };
 
-  const installTeamPlugin = (team_name: string, plugin_name:string) =>  {
+  const installTeamPlugin = (team_name: string, plugin_name:string) => {
     console.log(team_name, plugin_name)
     installPlugin(team_name, plugin_name).then(res => {
       if(res.code == 200){
