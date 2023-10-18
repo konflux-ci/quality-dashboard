@@ -40,6 +40,8 @@ type PullRequests struct {
 	Title string `json:"title,omitempty"`
 	// MergeCommit holds the value of the "merge_commit" field.
 	MergeCommit *string `json:"merge_commit,omitempty"`
+	// RetestCount holds the value of the "retest_count" field.
+	RetestCount *float64 `json:"retest_count,omitempty"`
 	// RetestBeforeMergeCount holds the value of the "retest_before_merge_count" field.
 	RetestBeforeMergeCount *float64 `json:"retest_before_merge_count,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -75,7 +77,7 @@ func (*PullRequests) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case pullrequests.FieldRetestBeforeMergeCount:
+		case pullrequests.FieldRetestCount, pullrequests.FieldRetestBeforeMergeCount:
 			values[i] = new(sql.NullFloat64)
 		case pullrequests.FieldID, pullrequests.FieldNumber:
 			values[i] = new(sql.NullInt64)
@@ -175,6 +177,13 @@ func (pr *PullRequests) assignValues(columns []string, values []any) error {
 				pr.MergeCommit = new(string)
 				*pr.MergeCommit = value.String
 			}
+		case pullrequests.FieldRetestCount:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field retest_count", values[i])
+			} else if value.Valid {
+				pr.RetestCount = new(float64)
+				*pr.RetestCount = value.Float64
+			}
 		case pullrequests.FieldRetestBeforeMergeCount:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field retest_before_merge_count", values[i])
@@ -255,6 +264,11 @@ func (pr *PullRequests) String() string {
 	if v := pr.MergeCommit; v != nil {
 		builder.WriteString("merge_commit=")
 		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := pr.RetestCount; v != nil {
+		builder.WriteString("retest_count=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
 	if v := pr.RetestBeforeMergeCount; v != nil {

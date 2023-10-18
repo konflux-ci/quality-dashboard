@@ -106,6 +106,20 @@ func (prc *PullRequestsCreate) SetNillableMergeCommit(s *string) *PullRequestsCr
 	return prc
 }
 
+// SetRetestCount sets the "retest_count" field.
+func (prc *PullRequestsCreate) SetRetestCount(f float64) *PullRequestsCreate {
+	prc.mutation.SetRetestCount(f)
+	return prc
+}
+
+// SetNillableRetestCount sets the "retest_count" field if the given value is not nil.
+func (prc *PullRequestsCreate) SetNillableRetestCount(f *float64) *PullRequestsCreate {
+	if f != nil {
+		prc.SetRetestCount(*f)
+	}
+	return prc
+}
+
 // SetRetestBeforeMergeCount sets the "retest_before_merge_count" field.
 func (prc *PullRequestsCreate) SetRetestBeforeMergeCount(f float64) *PullRequestsCreate {
 	prc.mutation.SetRetestBeforeMergeCount(f)
@@ -288,6 +302,10 @@ func (prc *PullRequestsCreate) createSpec() (*PullRequests, *sqlgraph.CreateSpec
 	if value, ok := prc.mutation.MergeCommit(); ok {
 		_spec.SetField(pullrequests.FieldMergeCommit, field.TypeString, value)
 		_node.MergeCommit = &value
+	}
+	if value, ok := prc.mutation.RetestCount(); ok {
+		_spec.SetField(pullrequests.FieldRetestCount, field.TypeFloat64, value)
+		_node.RetestCount = &value
 	}
 	if value, ok := prc.mutation.RetestBeforeMergeCount(); ok {
 		_spec.SetField(pullrequests.FieldRetestBeforeMergeCount, field.TypeFloat64, value)
@@ -494,6 +512,30 @@ func (u *PullRequestsUpsert) UpdateMergeCommit() *PullRequestsUpsert {
 // ClearMergeCommit clears the value of the "merge_commit" field.
 func (u *PullRequestsUpsert) ClearMergeCommit() *PullRequestsUpsert {
 	u.SetNull(pullrequests.FieldMergeCommit)
+	return u
+}
+
+// SetRetestCount sets the "retest_count" field.
+func (u *PullRequestsUpsert) SetRetestCount(v float64) *PullRequestsUpsert {
+	u.Set(pullrequests.FieldRetestCount, v)
+	return u
+}
+
+// UpdateRetestCount sets the "retest_count" field to the value that was provided on create.
+func (u *PullRequestsUpsert) UpdateRetestCount() *PullRequestsUpsert {
+	u.SetExcluded(pullrequests.FieldRetestCount)
+	return u
+}
+
+// AddRetestCount adds v to the "retest_count" field.
+func (u *PullRequestsUpsert) AddRetestCount(v float64) *PullRequestsUpsert {
+	u.Add(pullrequests.FieldRetestCount, v)
+	return u
+}
+
+// ClearRetestCount clears the value of the "retest_count" field.
+func (u *PullRequestsUpsert) ClearRetestCount() *PullRequestsUpsert {
+	u.SetNull(pullrequests.FieldRetestCount)
 	return u
 }
 
@@ -717,6 +759,34 @@ func (u *PullRequestsUpsertOne) UpdateMergeCommit() *PullRequestsUpsertOne {
 func (u *PullRequestsUpsertOne) ClearMergeCommit() *PullRequestsUpsertOne {
 	return u.Update(func(s *PullRequestsUpsert) {
 		s.ClearMergeCommit()
+	})
+}
+
+// SetRetestCount sets the "retest_count" field.
+func (u *PullRequestsUpsertOne) SetRetestCount(v float64) *PullRequestsUpsertOne {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.SetRetestCount(v)
+	})
+}
+
+// AddRetestCount adds v to the "retest_count" field.
+func (u *PullRequestsUpsertOne) AddRetestCount(v float64) *PullRequestsUpsertOne {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.AddRetestCount(v)
+	})
+}
+
+// UpdateRetestCount sets the "retest_count" field to the value that was provided on create.
+func (u *PullRequestsUpsertOne) UpdateRetestCount() *PullRequestsUpsertOne {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.UpdateRetestCount()
+	})
+}
+
+// ClearRetestCount clears the value of the "retest_count" field.
+func (u *PullRequestsUpsertOne) ClearRetestCount() *PullRequestsUpsertOne {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.ClearRetestCount()
 	})
 }
 
@@ -1106,6 +1176,34 @@ func (u *PullRequestsUpsertBulk) UpdateMergeCommit() *PullRequestsUpsertBulk {
 func (u *PullRequestsUpsertBulk) ClearMergeCommit() *PullRequestsUpsertBulk {
 	return u.Update(func(s *PullRequestsUpsert) {
 		s.ClearMergeCommit()
+	})
+}
+
+// SetRetestCount sets the "retest_count" field.
+func (u *PullRequestsUpsertBulk) SetRetestCount(v float64) *PullRequestsUpsertBulk {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.SetRetestCount(v)
+	})
+}
+
+// AddRetestCount adds v to the "retest_count" field.
+func (u *PullRequestsUpsertBulk) AddRetestCount(v float64) *PullRequestsUpsertBulk {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.AddRetestCount(v)
+	})
+}
+
+// UpdateRetestCount sets the "retest_count" field to the value that was provided on create.
+func (u *PullRequestsUpsertBulk) UpdateRetestCount() *PullRequestsUpsertBulk {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.UpdateRetestCount()
+	})
+}
+
+// ClearRetestCount clears the value of the "retest_count" field.
+func (u *PullRequestsUpsertBulk) ClearRetestCount() *PullRequestsUpsertBulk {
+	return u.Update(func(s *PullRequestsUpsert) {
+		s.ClearRetestCount()
 	})
 }
 

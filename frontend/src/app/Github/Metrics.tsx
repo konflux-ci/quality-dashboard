@@ -77,6 +77,18 @@ export const GetMetrics = () => {
 
                     <GridItem span={2} rowSpan={1}>
                         <PullRequestCard
+                            title="Retest Avg"
+                            subtitle="Selected Time Range"
+                            total={prs?.summary?.retest_avg}
+                        ></PullRequestCard>
+                    </GridItem>
+
+                    <GridItem span={3} rowSpan={1}>
+                        <PullRequestCard title="Open PRs" subtitle="Total" total={prs?.summary?.open_prs}></PullRequestCard>
+                    </GridItem>
+
+                    <GridItem span={2} rowSpan={1}>
+                        <PullRequestCard
                             title="Retest Before Merge Avg"
                             subtitle="Selected Time Range"
                             // edge case of service-provider-integration-operator
@@ -86,19 +98,15 @@ export const GetMetrics = () => {
                     </GridItem>
 
                     <GridItem span={3} rowSpan={1}>
-                        <PullRequestCard title="Open PRs" subtitle="Total" total={prs?.summary?.open_prs}></PullRequestCard>
-                    </GridItem>
-
-                    <GridItem span={2} rowSpan={2}>
-                        <CodeCov repo={repo}></CodeCov>
-                    </GridItem>
-
-                    <GridItem span={3} rowSpan={1}>
                         <PullRequestCard
                             title="Merged PRs"
                             subtitle="Total"
                             total={prs?.summary?.merged_prs}
                         ></PullRequestCard>
+                    </GridItem>
+
+                    <GridItem span={2} rowSpan={1}>
+                        <CodeCov repo={repo}></CodeCov>
                     </GridItem>
 
                     {workflows?.length > 0 && (

@@ -43,6 +43,7 @@ export interface RepositoryInfo {
   workflows: Workflows[];
   code_cov: string;
   coverage_trend: string,
+  retest_avg: string;
   retest_before_merge_avg: string;
   open_prs: string;
   merged_prs: string;
@@ -86,6 +87,7 @@ let GitHub = () => {
           coverage_trend: repository.coverage.coverage_trend,
           // edge case of service-provider-integration-operator
           // https://github.com/redhat-appstudio/service-provider-integration-operator/pull/548#issuecomment-1494149514
+          retest_avg: repository.prs?.summary.retest_avg == 0 || repository.prs?.summary.retest_avg == 0.01 ? 'N/A' : repository.prs?.summary.retest_avg,
           retest_before_merge_avg: repository.prs?.summary.retest_before_merge_avg == 0 || repository.prs?.summary.retest_before_merge_avg == 0.01 ? 'N/A' : repository.prs?.summary.retest_before_merge_avg,
           open_prs: repository.prs?.summary?.open_prs,
           merged_prs: repository.prs?.summary?.merged_prs,
@@ -139,6 +141,7 @@ let GitHub = () => {
               coverage_trend: repository.coverage.coverage_trend,
               // edge case of service-provider-integration-operator
               // https://github.com/redhat-appstudio/service-provider-integration-operator/pull/548#issuecomment-1494149514
+              retest_avg: repository.prs?.summary.retes_avg == 0 || repository.prs?.summary.retest_avg == 0.01 ? 'N/A' : repository.prs?.summary.retest_avg,
               retest_before_merge_avg: repository.prs?.summary.retest_before_merge_avg == 0 || repository.prs?.summary.retest_before_merge_avg == 0.01 ? 'N/A' : repository.prs?.summary.retest_before_merge_avg,
               open_prs: repository.prs?.summary?.open_prs,
               merged_prs: repository.prs?.summary?.merged_prs,

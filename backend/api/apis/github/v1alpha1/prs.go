@@ -76,7 +76,10 @@ type Summary struct {
 	// Average time to merge a pull request.
 	MergeAvg float64 `json:"merge_avg"`
 
-	// Average time of how many /test and /retest comments were issued after the last code push.
+	// Average count of how many /test and /retest comments were issued per open pull request.
+	RetestAvg float64 `json:"retest_avg"`
+
+	// Average count of how many /test and /retest comments were issued after the last code push.
 	RetestBeforeMergeAvg float64 `json:"retest_before_merge_avg"`
 }
 
@@ -100,7 +103,10 @@ type Metrics struct {
 	// Number of pull requests merged on the target day.
 	MergedPullRequestsCount int `json:"merged_prs_count"`
 
-	// Average of /test and /retest comments were issued after the last code push.
+	// Average count of how many /test and /retest comments were issued per open pull request.
+	RetestAvg float64 `json:"retest_avg"`
+
+	// Average count of how many /test and /retest comments were issued after the last code push.
 	RetestBeforeMergeAvg float64 `json:"retest_before_merge_avg"`
 }
 

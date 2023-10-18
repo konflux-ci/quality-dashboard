@@ -80,6 +80,7 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
         git_organization: "Organization",
         description: "Description",
         code_cov: "CodeCov",
+        retest_avg: "Retest Avg",
         retest_before_merge_avg: "Retest Before Merge Avg",
         open_prs: "Open PRs",
         merged_prs: "Merged PRs",
@@ -128,6 +129,7 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
         { column: 'git_organization', label: 'Organization' },
         { column: 'description', label: 'Description' },
         { column: 'code_cov', label: 'Code Cov' },
+        { column: 'retest_avg', label: 'Retest Avg' },
         { column: 'retest_before_merge_avg', label: 'Retest Before Merge Avg' },
         { column: 'open_prs', label: 'Total Open PRs' },
         { column: 'merged_prs', label: 'Total Merged PRs' },
@@ -176,8 +178,8 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
 
     // Sort helpers
     const getSortableRowValues = (repo: RepositoryInfo): (string | number)[] => {
-        const { repository_name, git_organization, description, code_cov, retest_before_merge_avg, open_prs, merged_prs, time_to_merge_pr_avg_days } = repo;
-        return [repository_name, git_organization, description, code_cov, retest_before_merge_avg, open_prs, merged_prs, time_to_merge_pr_avg_days];
+        const { repository_name, git_organization, description, code_cov, retest_avg, retest_before_merge_avg, open_prs, merged_prs, time_to_merge_pr_avg_days } = repo;
+        return [repository_name, git_organization, description, code_cov, retest_avg, retest_before_merge_avg, open_prs, merged_prs, time_to_merge_pr_avg_days];
     };
 
     const sortRows = (rows) => {
@@ -317,6 +319,7 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
                                     <Td dataLabel={columnNames.git_organization}>{repo.git_organization}</Td>
                                     <Td dataLabel={columnNames.description}>{repo.description}</Td>
                                     <Td dataLabel={columnNames.code_cov}>{repo.code_cov == 'N/A' ? "N/A" : GetCodeCovInfo(repo, 'left')}</Td>
+                                    <Td dataLabel={columnNames.retest_avg}>{repo.retest_avg}</Td>
                                     <Td dataLabel={columnNames.retest_before_merge_avg}>{repo.retest_before_merge_avg}</Td>
                                     <Td dataLabel={columnNames.open_prs}>{repo.open_prs}</Td>
                                     <Td dataLabel={columnNames.merged_prs}>{repo.merged_prs}</Td>

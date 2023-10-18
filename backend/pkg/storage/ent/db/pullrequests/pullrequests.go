@@ -33,6 +33,8 @@ const (
 	FieldTitle = "title"
 	// FieldMergeCommit holds the string denoting the merge_commit field in the database.
 	FieldMergeCommit = "merge_commit"
+	// FieldRetestCount holds the string denoting the retest_count field in the database.
+	FieldRetestCount = "retest_count"
 	// FieldRetestBeforeMergeCount holds the string denoting the retest_before_merge_count field in the database.
 	FieldRetestBeforeMergeCount = "retest_before_merge_count"
 	// EdgePrs holds the string denoting the prs edge name in mutations.
@@ -62,6 +64,7 @@ var Columns = []string{
 	FieldAuthor,
 	FieldTitle,
 	FieldMergeCommit,
+	FieldRetestCount,
 	FieldRetestBeforeMergeCount,
 }
 
