@@ -91,7 +91,7 @@ var (
 		{Name: "category", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "logo", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "description", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
-		{Name: "status", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "reason", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 	}
 	// PluginsTable holds the schema information for the "plugins" table.
 	PluginsTable = &schema.Table{

@@ -52,7 +52,7 @@ func (s *pluginsRouter) getAllPlugins(ctx context.Context, w http.ResponseWriter
 // @Failure 400 {object} types.ErrorResponse
 // @Failure 500 {object} types.ErrorResponse
 func (s *pluginsRouter) createPlugin(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
-	var plugin *v1alphaPlugins.Plugin
+	var plugin *v1alphaPlugins.PluginSpec
 	if err := json.NewDecoder(r.Body).Decode(&plugin); err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    "Error reading plugin object from body",
@@ -131,7 +131,7 @@ func (s *pluginsRouter) installTeamPlugin(ctx context.Context, w http.ResponseWr
 // @Produce json
 // @Router /plugins/hub/get/team [post]
 // @Param   team_name     query     string     true  "string example"   example(string)
-// @Success 200 {object} db.Plugins
+// @Success 200 {object} v1alphaPlugins.Plugin
 // @Failure 400 {object} types.ErrorResponse
 func (s *pluginsRouter) getPluginsByTeam(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	teamName := r.URL.Query()["team_name"]

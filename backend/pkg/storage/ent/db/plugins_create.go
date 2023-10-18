@@ -48,9 +48,9 @@ func (pc *PluginsCreate) SetDescription(s string) *PluginsCreate {
 	return pc
 }
 
-// SetStatus sets the "status" field.
-func (pc *PluginsCreate) SetStatus(s string) *PluginsCreate {
-	pc.mutation.SetStatus(s)
+// SetReason sets the "reason" field.
+func (pc *PluginsCreate) SetReason(s string) *PluginsCreate {
+	pc.mutation.SetReason(s)
 	return pc
 }
 
@@ -153,12 +153,12 @@ func (pc *PluginsCreate) check() error {
 	if _, ok := pc.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New(`db: missing required field "Plugins.description"`)}
 	}
-	if _, ok := pc.mutation.Status(); !ok {
-		return &ValidationError{Name: "status", err: errors.New(`db: missing required field "Plugins.status"`)}
+	if _, ok := pc.mutation.Reason(); !ok {
+		return &ValidationError{Name: "reason", err: errors.New(`db: missing required field "Plugins.reason"`)}
 	}
-	if v, ok := pc.mutation.Status(); ok {
-		if err := plugins.StatusValidator(v); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf(`db: validator failed for field "Plugins.status": %w`, err)}
+	if v, ok := pc.mutation.Reason(); ok {
+		if err := plugins.ReasonValidator(v); err != nil {
+			return &ValidationError{Name: "reason", err: fmt.Errorf(`db: validator failed for field "Plugins.reason": %w`, err)}
 		}
 	}
 	return nil
@@ -219,9 +219,9 @@ func (pc *PluginsCreate) createSpec() (*Plugins, *sqlgraph.CreateSpec) {
 		_spec.SetField(plugins.FieldDescription, field.TypeString, value)
 		_node.Description = value
 	}
-	if value, ok := pc.mutation.Status(); ok {
-		_spec.SetField(plugins.FieldStatus, field.TypeString, value)
-		_node.Status = value
+	if value, ok := pc.mutation.Reason(); ok {
+		_spec.SetField(plugins.FieldReason, field.TypeString, value)
+		_node.Reason = value
 	}
 	if nodes := pc.mutation.TeamsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -342,15 +342,15 @@ func (u *PluginsUpsert) UpdateDescription() *PluginsUpsert {
 	return u
 }
 
-// SetStatus sets the "status" field.
-func (u *PluginsUpsert) SetStatus(v string) *PluginsUpsert {
-	u.Set(plugins.FieldStatus, v)
+// SetReason sets the "reason" field.
+func (u *PluginsUpsert) SetReason(v string) *PluginsUpsert {
+	u.Set(plugins.FieldReason, v)
 	return u
 }
 
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *PluginsUpsert) UpdateStatus() *PluginsUpsert {
-	u.SetExcluded(plugins.FieldStatus)
+// UpdateReason sets the "reason" field to the value that was provided on create.
+func (u *PluginsUpsert) UpdateReason() *PluginsUpsert {
+	u.SetExcluded(plugins.FieldReason)
 	return u
 }
 
@@ -458,17 +458,17 @@ func (u *PluginsUpsertOne) UpdateDescription() *PluginsUpsertOne {
 	})
 }
 
-// SetStatus sets the "status" field.
-func (u *PluginsUpsertOne) SetStatus(v string) *PluginsUpsertOne {
+// SetReason sets the "reason" field.
+func (u *PluginsUpsertOne) SetReason(v string) *PluginsUpsertOne {
 	return u.Update(func(s *PluginsUpsert) {
-		s.SetStatus(v)
+		s.SetReason(v)
 	})
 }
 
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *PluginsUpsertOne) UpdateStatus() *PluginsUpsertOne {
+// UpdateReason sets the "reason" field to the value that was provided on create.
+func (u *PluginsUpsertOne) UpdateReason() *PluginsUpsertOne {
 	return u.Update(func(s *PluginsUpsert) {
-		s.UpdateStatus()
+		s.UpdateReason()
 	})
 }
 
@@ -739,17 +739,17 @@ func (u *PluginsUpsertBulk) UpdateDescription() *PluginsUpsertBulk {
 	})
 }
 
-// SetStatus sets the "status" field.
-func (u *PluginsUpsertBulk) SetStatus(v string) *PluginsUpsertBulk {
+// SetReason sets the "reason" field.
+func (u *PluginsUpsertBulk) SetReason(v string) *PluginsUpsertBulk {
 	return u.Update(func(s *PluginsUpsert) {
-		s.SetStatus(v)
+		s.SetReason(v)
 	})
 }
 
-// UpdateStatus sets the "status" field to the value that was provided on create.
-func (u *PluginsUpsertBulk) UpdateStatus() *PluginsUpsertBulk {
+// UpdateReason sets the "reason" field to the value that was provided on create.
+func (u *PluginsUpsertBulk) UpdateReason() *PluginsUpsertBulk {
 	return u.Update(func(s *PluginsUpsert) {
-		s.UpdateStatus()
+		s.UpdateReason()
 	})
 }
 

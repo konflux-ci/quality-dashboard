@@ -49,7 +49,7 @@ type Storage interface {
 	GetAllFailures(team *db.Teams) ([]*db.Failure, error)
 	BugExists(projectKey string, t *db.Teams) (bool, error)
 	GetPluginByName(pluginName string) (*db.Plugins, error)
-	GetPluginsByTeam(team *db.Teams) ([]*db.Plugins, error)
+	GetPluginsByTeam(team *db.Teams) (storagePlugin []*v1alphaPlugins.Plugin, err error)
 
 	// POST
 	CreateRepository(p repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error)
@@ -67,7 +67,7 @@ type Storage interface {
 	CreateFailure(f failureV1Alpha1.Failure, team_id uuid.UUID) error
 	UpdateBuildLogErrors(jobID, buildErrorLogs string) error
 	GetAllProwJobs(startDate, endDate string) ([]*db.ProwJobs, error)
-	CreatePlugin(plugin *v1alphaPlugins.Plugin) (*db.Plugins, error)
+	CreatePlugin(plugin *v1alphaPlugins.PluginSpec) (*db.Plugins, error)
 	InstallPlugin(team *db.Teams, plugin *db.Plugins) (db *db.Teams, err error)
 
 	// Delete
