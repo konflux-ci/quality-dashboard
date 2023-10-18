@@ -14,7 +14,7 @@
   - [Features](#features)
     - [Teams](#teams)
     - [Config](#config)
-    - [RHTAP Bug SLOs](#rhtap-bug-slos)
+    - [RHTAP Bug SLIs](#rhtap-bug-slis)
   - [Connectors](#connectors)
     - [Openshift CI and Prow Jobs](#openshift-ci-and-prow-jobs)
     - [Github](#github)
