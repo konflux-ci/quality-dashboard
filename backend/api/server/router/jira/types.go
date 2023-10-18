@@ -5,29 +5,43 @@ type Alert struct {
 	Signal       string  `json:"signal"`
 }
 
-type BugSLO struct {
+type Bug struct {
 	JiraKey               string   `json:"jira_key"`
 	JiraURL               string   `json:"jira_url"`
+	Status                string   `json:"status"`
+	Summary               string   `json:"summary"`
+	Priority              string   `json:"priority"`
+	Labels                string   `json:"labels"`
 	TriageSLI             *Alert   `json:"triage_sli"`
 	ResponseSLI           *Alert   `json:"response_sli"`
 	ResolutionSLI         *Alert   `json:"resolution_sli"`
+	GlobalSLI             string   `json:"global_sli"`
 	DaysWithoutAssignee   *float64 `json:"days_without_assignee"`
 	DaysWithoutPriority   *float64 `json:"days_without_priority"`
 	DaysWithoutResolution *float64 `json:"days_without_resolution"`
 }
 
-type BugSLOInfo struct {
+type Metric struct {
 	Average float64 `json:"average"`
 	Sum     float64 `json:"sum"`
 	Total   int     `json:"total"`
 }
 
-type Project struct {
-	ProjectKey                     string     `json:"project_key"`
-	BugSLOs                        []BugSLO   `json:"bug_slos"`
-	RedTriageTimeBugSLOInfo        BugSLOInfo `json:"red_triage_time_bug_slo_info"`
-	YellowTriageTimeBugSLOInfo     BugSLOInfo `json:"yellow_triage_time_bug_slo_info"`
-	RedResponseTimeBugSLOInfo      BugSLOInfo `json:"red_response_time_bug_slo_info"`
-	RedResolutionTimeBugSLOInfo    BugSLOInfo `json:"red_resolution_time_bug_slo_info"`
-	YellowResolutionTimeBugSLOInfo BugSLOInfo `json:"yellow_resolution_time_bug_slo_info"`
+type GlobalSLI struct {
+	GreenSLI  int `json:"green_sli"`
+	RedSLI    int `json:"red_sli"`
+	YellowSLI int `json:"yellow_sli"`
+}
+
+type SLI struct {
+	Bugs   []Bug `json:"bugs"`
+	Red    Metric
+	Yellow Metric
+}
+
+type BugSlisInfo struct {
+	GlobalSLI         GlobalSLI `json:"global_sli"`
+	TriageTimeSLI     SLI       `json:"triage_time_sli"`
+	ResponseTimeSLI   SLI       `json:"response_time_sli"`
+	ResolutionTimeSLI SLI       `json:"resolution_time_sli"`
 }

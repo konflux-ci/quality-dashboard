@@ -2,7 +2,7 @@
 import axios, { AxiosResponse } from 'axios';
 import _ from 'lodash';
 import { JobsStatistics } from '@app/utils/sharedComponents';
-import { teamIsNotEmpty } from '@app/utils/utils';
+import { sortGlobalSLI, teamIsNotEmpty } from '@app/utils/utils';
 import { formatDate } from '@app/Reports/utils';
 import { PrsStatistics } from '@app/Github/PullRequests';
 import { Job } from '@app/Reports/FailedE2ETests';
@@ -514,7 +514,7 @@ async function getFailures(team: string, rangeDateTime: Date[]) {
   const start_date = formatDate(rangeDateTime[0]);
   const end_date = formatDate(rangeDateTime[1]);
 
-  const response = await fetch(
+  const response = await axios.get(
     API_URL +
     '/api/quality/failures/get?team_name=' + team +
     '&start_date=' +
@@ -522,11 +522,12 @@ async function getFailures(team: string, rangeDateTime: Date[]) {
     '&end_date=' +
     end_date
   );
-  if (!response.ok) {
+
+  if (response.status != 200) {
     throw 'Error fetching data from server. ';
   }
-  const data = await response.json();
-  return data;
+
+  return response.data;
 }
 
 async function createFailure(team: string, jiraKey: string, errorMessage: string) {
@@ -577,12 +578,12 @@ async function bugExists(jiraKey: string, teamName: string) {
   return data;
 }
 
-async function getBugSLOsByProject(team: string, rangeDateTime: Date[]) {
+async function getBugSLIs(team: string, rangeDateTime: Date[]) {
   const result: ApiResponse = { code: 0, data: {} };
   const start_date = formatDate(rangeDateTime[0]);
   const end_date = formatDate(rangeDateTime[1]);
 
-  const subPath = '/api/quality/jira/slos/list?team_name=' + team +
+  const subPath = '/api/quality/jira/slis/list?team_name=' + team +
     '&start_date=' +
     start_date +
     '&end_date=' +
@@ -599,6 +600,10 @@ async function getBugSLOsByProject(team: string, rangeDateTime: Date[]) {
       result.code = err.response.status;
       result.data = err.response.data;
     });
+
+  sortGlobalSLI(result.data.resolution_time_sli.bugs)
+  sortGlobalSLI(result.data.response_time_sli.bugs)
+  sortGlobalSLI(result.data.triage_time_sli.bugs)
 
   return result;
 }
@@ -628,5 +633,5 @@ export {
   createFailure,
   deleteFailureByJiraKey,
   bugExists,
-  getBugSLOsByProject
+  getBugSLIs
 };

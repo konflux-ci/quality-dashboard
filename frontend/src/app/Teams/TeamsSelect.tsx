@@ -63,8 +63,8 @@ export const BasicMasthead = () => {
       history.push('/home/rhtapbugs-impact?team=' + event.target.dataset.value)
     }
 
-    if (history.location.pathname == "/home/bug-slos" && team != null && team != event.target.dataset.value) {
-      history.push('/home/bug-slos?team=' + event.target.dataset.value)
+    if (history.location.pathname == "/home/bug-slis" && team != null && team != event.target.dataset.value) {
+      history.push('/home/bug-slis?team=' + event.target.dataset.value)
     }
   }
 

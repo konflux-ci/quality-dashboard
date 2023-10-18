@@ -460,17 +460,13 @@ func (d *Database) getJiraBugMetrics(bug jira.Issue) JiraBugMetricsInfo {
 	return jiraBugMetric
 }
 
-// GetAllOpenBugSLOs gets all the bugs that are open and meeting the defined Bug SLOs
-// You can find more information regarding them here:
-// https://github.com/redhat-appstudio/quality-dashboard/blob/main/README.md
-func (d *Database) GetAllOpenBugSLOs(dateFrom, dateTo string, t *db.Teams) ([]*db.Bugs, error) {
-	bugs, err := d.client.Teams.QueryBugs(t).
+// GetAllOpenRHTAPBUGS gets all the RHTAPBUGS that are open
+func (d *Database) GetAllOpenRHTAPBUGS(dateFrom, dateTo string) ([]*db.Bugs, error) {
+	b, err := d.client.Bugs.Query().
 		Where(predicate.Bugs(bugs.Resolved(false))).
+		Where(predicate.Bugs(bugs.ProjectKey("RHTAPBUGS"))).
 		Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", dateFrom, dateTo)))
-		}).
-		Where(func(s *sql.Selector) {
-			s.Where(sql.Or(sql.GT("days_without_priority", 1), sql.GT("days_without_assignee", 2), sql.GT("days_without_resolution", 5)))
 		}).
 		All(context.TODO())
 
@@ -478,5 +474,5 @@ func (d *Database) GetAllOpenBugSLOs(dateFrom, dateTo string, t *db.Teams) ([]*d
 		return nil, convertDBError("failed to return bugs: %w", err)
 	}
 
-	return bugs, nil
+	return b, nil
 }

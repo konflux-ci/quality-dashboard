@@ -3,13 +3,10 @@ import {
     Card,
     CardTitle,
     CardBody,
-    Text,
     PageSection,
     Title,
     Grid,
     GridItem,
-    TextContent,
-    PageSectionVariants,
     Pagination,
     Chip,
     ChipGroup,
@@ -601,6 +598,7 @@ const ComposableTableStripedTr: React.FC<{ bugs: any, longVersion: boolean }> = 
     // Filters helpers
     const columns = [
         { column: 'jira_key', label: 'ID' },
+        { column: 'labels', label: 'Labels' },
         { column: 'summary', label: 'Summary' },
         { column: 'status', label: 'Status' },
         { column: 'created_at', label: 'Created at' },
@@ -737,6 +735,7 @@ const ComposableTableStripedTr: React.FC<{ bugs: any, longVersion: boolean }> = 
                     {bugsPage.map((bug, index) => (
                         <Tr key={bug.jira_key} {...(index % 2 === 0 && { isStriped: true })}>
                             <Td dataLabel={columnNames.jira_key}><a href={bug.url} target={bug.url}>{bug.jira_key}</a></Td>
+                            <Td dataLabel={columnNames.labels}>{bug.labels}</Td>
                             <Td dataLabel={columnNames.summary}>{bug.summary}</Td>
                             <Td dataLabel={columnNames.status}>{bug.status ? bug.status : "-"}</Td>
                             <Td dataLabel={columnNames.created_at}>{formatDate(new Date(bug.created_at))}</Td>

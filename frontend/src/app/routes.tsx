@@ -12,7 +12,7 @@ import { GitHub } from './Github/Github';
 import { Config } from './Config/Config';
 import { initOauthFlow, completeOauthFlow, OauthData, refreshTokenFlow } from '@app/utils/oauth'
 import { CiFailures } from './CiFailures/CiFailures';
-import { BugSLOs } from './BugSLOs/MainPage';
+import { BugSLIs } from './BugSLIs/MainPage';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -90,13 +90,13 @@ const routes: AppRouteConfig[] = [
         title: 'Jira  | Quality Studio',
       },
       {
-        component: BugSLOs,
+        component: BugSLIs,
         exact: true,
         isAsync: true,
         isProtected: true,
-        label: 'Bug SLOs',
-        path: '/home/bug-slos',
-        title: 'Bug SLOs | Quality Studio',
+        label: 'RHTAP Bug SLIs',
+        path: '/home/bug-slis',
+        title: 'RHTAP Bug SLIs | Quality Studio',
       },
       {
         component: Reports,
@@ -111,6 +111,7 @@ const routes: AppRouteConfig[] = [
         component: CiFailures,
         exact: true,
         isAsync: true,
+        isProtected: true,
         label: 'RHTAPBUGS Impact on CI',
         path: '/home/rhtapbugs-impact',
         title: 'RHTAPBUGS Impact on CI | Quality Studio',
@@ -180,7 +181,6 @@ const AppRoutes = (): React.ReactElement => {
             dispatch({ type: "SET_ID_TOKEN", data: data.IDT });
             dispatch({ type: "SET_AT_EXPIRATION", data: data.AT_EXPIRATION });
           } catch (err) {
-            console.log("error refreshing token")
             dispatch({ type: "SET_REFRESH_TOKEN", data: "" });
             dispatch({ type: "SET_ACCESS_TOKEN", data: "data.AT" });
             dispatch({ type: "SET_ID_TOKEN", data: "" });

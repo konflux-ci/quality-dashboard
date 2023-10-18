@@ -55,8 +55,6 @@ func (s *Server) rotate() error {
 		}
 	}
 
-	// temporary (just for testing)
-	s.SendBugSLOAlerts()
 	s.UpdateProwStatusByTeam()
 	s.UpdateFailuresByTeam()
 	err = s.UpdateDataBaseRepoByTeam()
@@ -70,8 +68,7 @@ func (s *Server) rotate() error {
 
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
-		// temporary set to 5
-		rotationFrequency: time.Minute * 5,
+		rotationFrequency: time.Minute * 15,
 	}
 }
 
@@ -119,7 +116,7 @@ func (s *Server) CacheRepositoriesInformation(storageRepos []repoV1Alpha1.Reposi
 			return err
 		}
 
-		//update coverage info
+		// update coverage info
 		coverage, covTrend, err := s.getCodeCoverage(repo.Owner.Login, repo.Name)
 		if err != nil {
 			return err

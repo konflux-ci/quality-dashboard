@@ -235,6 +235,7 @@ func (s *Server) createMux() *mux.Router {
 
 	str := staticRotationStrategy()
 	s.startUpdateStorage(context.TODO(), str, time.Now)
+	s.SendBugSLIAlerts()
 
 	return m
 }

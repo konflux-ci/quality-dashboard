@@ -8,13 +8,13 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 )
 
-// GetTriageSLI should return red when priority is not defined for more than 2 days
-// GetTriageSLI should return yellow when priority is not defined for more than 1 day but less than 2 days
+// GetTriageSLI should return red when priority is not defined for more than 2 days on untriaged bugs
+// GetTriageSLI should return yellow when priority is not defined for more than 1 day but less than 2 days on untriaged bugs
 func GetTriageSLI(bug *db.Bugs) *Alert {
 	alert := &Alert{Signal: "green"}
 
 	if bug.Labels != nil && strings.Contains(*bug.Labels, "untriaged") {
-		msg := fmt.Sprintf("Issue <%s|%s> is meeting defined Bug SLO for Triage Time. Priority should be defined between a maximum of 2 days. This issue has priority undefined for %.2f days. Please, take a time to resolve it.\n\n",
+		msg := fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for Triage Time. Priority should be defined between a maximum of 2 days. This issue has priority undefined for %.2f days. Please, take a time to resolve it.\n\n",
 			bug.URL,
 			bug.JiraKey,
 			*bug.DaysWithoutResolution,
@@ -37,7 +37,7 @@ func GetResponseSLI(bug *db.Bugs) *Alert {
 	alert := &Alert{Signal: "green"}
 	if bug.Priority == "Blocker" || bug.Priority == "Critical" {
 		if *bug.DaysWithoutAssignee > 2 {
-			msg := fmt.Sprintf("Issue <%s|%s> is meeting defined Bug SLO for Blocker or Critical Bug Response Time. Blocker or Critical bugs should be assigned between a maximum of 2 days. This issue has assignee undefined for %.2f days. Please, take a time to assign it.\n\n",
+			msg := fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for Blocker and Critical Bug Response Time. Blocker and Critical bugs should be assigned between a maximum of 2 days. This issue has assignee undefined for %.2f days. Please, take a time to assign it.\n\n",
 				bug.URL,
 				bug.JiraKey,
 				*bug.DaysWithoutAssignee,
@@ -54,15 +54,13 @@ func measureBugResolutionSLI(redThreshold, yellowThreshold float64, bug *db.Bugs
 	alert := &Alert{Signal: "green"}
 	daysWithoutResolution := *bug.DaysWithoutResolution
 
-	msg := fmt.Sprintf("Issue <%s|%s> is meeting defined Bug SLO for %s Bug Resolution Time. %s bugs should not take more than 10 days to be resolved. This issue is not resolved for %.2f days. Please, take a time to resolve it.\n\n",
+	msg := fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for %s Bug Resolution Time. %s bugs should not take more than 10 days to be resolved. This issue is not resolved for %.2f days. Please, take a time to resolve it.\n\n",
 		bug.URL,
 		bug.JiraKey,
 		bug.Priority,
 		bug.Priority,
 		daysWithoutResolution,
 	)
-
-	fmt.Println("*bug.DaysWithoutPriority", daysWithoutResolution)
 
 	if daysWithoutResolution > redThreshold {
 		alert.Signal = "red"
@@ -75,8 +73,6 @@ func measureBugResolutionSLI(redThreshold, yellowThreshold float64, bug *db.Bugs
 	return alert
 }
 
-// GetBugResolutionSLI should return:
-// red
 func GetResolutionSLI(bug *db.Bugs) *Alert {
 	alert := &Alert{Signal: "green"}
 
@@ -92,16 +88,7 @@ func GetResolutionSLI(bug *db.Bugs) *Alert {
 	}
 }
 
-func projectExists(projects []Project, project string) int {
-	for idx, p := range projects {
-		if p.ProjectKey == project {
-			return idx
-		}
-	}
-	return -1
-}
-
-func GetBugSLOInfo(currentInfo BugSLOInfo, currentSignal, targetSignal string, value float64) BugSLOInfo {
+func GetMetric(currentInfo Metric, currentSignal, targetSignal string, value float64) Metric {
 	if currentSignal == targetSignal {
 		currentInfo.Total++
 		currentInfo.Sum += value
@@ -112,58 +99,82 @@ func GetBugSLOInfo(currentInfo BugSLOInfo, currentSignal, targetSignal string, v
 	return currentInfo
 }
 
-func GetBugSLOsByProject(bugs []*db.Bugs) []Project {
-	Projects := make([]Project, 0)
+func GetGlobalSLI(triageSLI, responseSLI, resolutionSLI string) string {
+	if triageSLI == "red" || responseSLI == "red" || resolutionSLI == "red" {
+		return "red"
+	} else if triageSLI == "yellow" || responseSLI == "yellow" || resolutionSLI == "yellow" {
+		return "yellow"
+	}
+
+	return "green"
+}
+
+func GetSLI(info GlobalSLI, targetSLI string) GlobalSLI {
+	switch targetSLI {
+	case "red":
+		info.RedSLI++
+	case "yellow":
+		info.YellowSLI++
+	default:
+		info.GreenSLI++
+	}
+	return info
+}
+
+func GetBugSLIs(bugs []*db.Bugs) BugSlisInfo {
+	info := BugSlisInfo{
+		GlobalSLI:         GlobalSLI{GreenSLI: 0, YellowSLI: 0, RedSLI: 0},
+		TriageTimeSLI:     SLI{Bugs: []Bug{}, Red: Metric{}, Yellow: Metric{}},
+		ResponseTimeSLI:   SLI{Bugs: []Bug{}, Red: Metric{}, Yellow: Metric{}},
+		ResolutionTimeSLI: SLI{Bugs: []Bug{}, Red: Metric{}, Yellow: Metric{}},
+	}
 
 	for _, bug := range bugs {
 		TriageSLI := GetTriageSLI(bug)
 		ResponseSLI := GetResponseSLI(bug)
 		ResolutionSLI := GetResolutionSLI(bug)
+		GlobalSLI := GetGlobalSLI(TriageSLI.Signal, ResponseSLI.Signal, ResolutionSLI.Signal)
 
-		if TriageSLI.Signal == "green" &&
-			ResponseSLI.Signal == "green" &&
-			ResolutionSLI.Signal == "green" {
-			continue
-		}
-
-		new := BugSLO{
+		new := Bug{
 			JiraKey:               bug.JiraKey,
 			JiraURL:               bug.URL,
+			Priority:              bug.Priority,
+			Status:                bug.Status,
+			Summary:               bug.Summary,
 			TriageSLI:             TriageSLI,
 			ResponseSLI:           ResponseSLI,
 			ResolutionSLI:         ResolutionSLI,
+			GlobalSLI:             GlobalSLI,
 			DaysWithoutAssignee:   bug.DaysWithoutAssignee,
 			DaysWithoutPriority:   bug.DaysWithoutPriority,
 			DaysWithoutResolution: bug.DaysWithoutResolution,
 		}
 
-		idx := projectExists(Projects, *bug.ProjectKey)
-
-		if idx != -1 {
-			Projects[idx].BugSLOs = append(Projects[idx].BugSLOs, new)
-			Projects[idx].RedTriageTimeBugSLOInfo = GetBugSLOInfo(Projects[idx].RedTriageTimeBugSLOInfo, new.TriageSLI.Signal, "red", *new.DaysWithoutPriority)
-			Projects[idx].YellowTriageTimeBugSLOInfo = GetBugSLOInfo(Projects[idx].YellowTriageTimeBugSLOInfo, new.TriageSLI.Signal, "yellow", *new.DaysWithoutPriority)
-			Projects[idx].RedResponseTimeBugSLOInfo = GetBugSLOInfo(Projects[idx].RedResponseTimeBugSLOInfo, new.ResponseSLI.Signal, "red", *new.DaysWithoutAssignee)
-			Projects[idx].RedResolutionTimeBugSLOInfo = GetBugSLOInfo(Projects[idx].RedResolutionTimeBugSLOInfo, new.ResolutionSLI.Signal, "red", *new.DaysWithoutResolution)
-			Projects[idx].YellowResolutionTimeBugSLOInfo = GetBugSLOInfo(Projects[idx].YellowResolutionTimeBugSLOInfo, new.ResolutionSLI.Signal, "yellow", *new.DaysWithoutResolution)
+		if bug.Labels != nil {
+			new.Labels = *bug.Labels
 		} else {
-			bugSLOInfo := BugSLOInfo{
-				Total:   0,
-				Sum:     0,
-				Average: 0,
-			}
-			Projects = append(Projects, Project{
-				ProjectKey:                     *bug.ProjectKey,
-				RedTriageTimeBugSLOInfo:        GetBugSLOInfo(bugSLOInfo, new.TriageSLI.Signal, "red", *new.DaysWithoutPriority),
-				YellowTriageTimeBugSLOInfo:     GetBugSLOInfo(bugSLOInfo, new.TriageSLI.Signal, "yellow", *new.DaysWithoutPriority),
-				RedResponseTimeBugSLOInfo:      GetBugSLOInfo(bugSLOInfo, new.ResponseSLI.Signal, "red", *new.DaysWithoutAssignee),
-				RedResolutionTimeBugSLOInfo:    GetBugSLOInfo(bugSLOInfo, new.ResolutionSLI.Signal, "red", *new.DaysWithoutResolution),
-				YellowResolutionTimeBugSLOInfo: GetBugSLOInfo(bugSLOInfo, new.ResolutionSLI.Signal, "yellow", *new.DaysWithoutResolution),
-				BugSLOs:                        []BugSLO{new},
-			})
+			new.Labels = ""
 		}
 
+		if GlobalSLI == "green" {
+			info.GlobalSLI.GreenSLI++
+			continue
+		}
+
+		if TriageSLI.Signal != "green" {
+			info.TriageTimeSLI.Bugs = append(info.TriageTimeSLI.Bugs, new)
+		}
+
+		if ResponseSLI.Signal != "green" {
+			info.ResponseTimeSLI.Bugs = append(info.ResponseTimeSLI.Bugs, new)
+		}
+
+		if ResolutionSLI.Signal != "green" {
+			info.ResolutionTimeSLI.Bugs = append(info.ResolutionTimeSLI.Bugs, new)
+		}
+
+		info.GlobalSLI = GetSLI(info.GlobalSLI, GlobalSLI)
 	}
 
-	return Projects
+	return info
 }
