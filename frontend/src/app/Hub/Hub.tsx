@@ -17,6 +17,8 @@ import {
 } from '@patternfly/react-core'
 import { listInstalledPlugins, installPlugin } from '@app/utils/APIService';
 import { Tabs, Tab } from '@patternfly/react-core';
+import { useHistory } from 'react-router-dom';
+
 function importAll(r) {
   let images = {};
    r.keys().forEach((item, index) => { images[item.replace('./', '')] = r(item); });
@@ -35,6 +37,8 @@ type CProps = {
 
 export const CardWithImageAndActions: React.FunctionComponent<CProps> = (props:CProps) => {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const history = useHistory();
+
   const onInstallClick = (e) => {
     setIsLoading(true)
     setTimeout(() => {
@@ -42,9 +46,18 @@ export const CardWithImageAndActions: React.FunctionComponent<CProps> = (props:C
       setIsLoading(false)
     }, 1000);
   }
+
+  const onCardClick = ()=>{
+    if(props.installed) history.push('/home/installedplugins');
+  }
+
   return (
     <>
-      <Card style={{minHeight: '25vh'}}>
+      <Card
+        style={{minHeight: '25vh'}}
+        onClick={onCardClick}
+        isSelectableRaised={props.installed}
+      >
         <CardHeader >
           <Grid style={{width: '100%'}}>
             <GridItem span={4}>
