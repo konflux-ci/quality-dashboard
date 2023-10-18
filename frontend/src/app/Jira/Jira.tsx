@@ -111,7 +111,7 @@ export const Jira = () => {
                         affects_versions: "",
                         fix_versions: "",
                         components: "",
-                        labels: "",
+                        labels: bug.fields.labels.join(","),
                         url: "https://issues.redhat.com/browse/" + bug.key,
                         teams_bugs: "",
                     });
