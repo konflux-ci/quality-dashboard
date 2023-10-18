@@ -145,7 +145,7 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
             const { jira_key, summary, priority, component, labels, status, days_without_assignee } = bug;
             return [jira_key, summary, priority, component, labels, status, days_without_assignee]
         }
-        
+
         const { jira_key, summary, priority, component, labels, status, days_without_priority } = bug;
         return [jira_key, summary, priority, component, labels, status, days_without_priority];
 

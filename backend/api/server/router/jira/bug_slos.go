@@ -127,6 +127,7 @@ func GetBugSLIs(bugs []*db.Bugs) BugSlisInfo {
 		TriageTimeSLI:     SLI{Bugs: []Bug{}, Red: Metric{}, Yellow: Metric{}},
 		ResponseTimeSLI:   SLI{Bugs: []Bug{}, Red: Metric{}, Yellow: Metric{}},
 		ResolutionTimeSLI: SLI{Bugs: []Bug{}, Red: Metric{}, Yellow: Metric{}},
+		Bugs:              []Bug{},
 	}
 
 	for _, bug := range bugs {
@@ -166,6 +167,8 @@ func GetBugSLIs(bugs []*db.Bugs) BugSlisInfo {
 			info.GlobalSLI.GreenSLI++
 			continue
 		}
+
+		info.Bugs = append(info.Bugs, new)
 
 		if TriageSLI.Signal != "green" {
 			info.TriageTimeSLI.Bugs = append(info.TriageTimeSLI.Bugs, new)

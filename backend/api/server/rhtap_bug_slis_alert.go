@@ -114,11 +114,7 @@ func slisByTeam(bugs []jira.Bug) []Team {
 }
 
 func (s *Server) sendAlerts(slis jira.BugSlisInfo) {
-	bugs := slis.ResolutionTimeSLI.Bugs
-	bugs = append(bugs, slis.ResponseTimeSLI.Bugs...)
-	bugs = append(bugs, slis.TriageTimeSLI.Bugs...)
-
-	teams := slisByTeam(bugs)
+	teams := slisByTeam(slis.Bugs)
 
 	for _, team := range teams {
 		redMsg := ""

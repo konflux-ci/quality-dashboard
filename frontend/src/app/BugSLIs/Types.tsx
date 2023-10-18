@@ -35,4 +35,5 @@ export interface Info {
     response_time_sli: SLI;
     triage_time_sli: SLI;
     resolution_time_sli: SLI;
+    bugs: Bug[];
 }

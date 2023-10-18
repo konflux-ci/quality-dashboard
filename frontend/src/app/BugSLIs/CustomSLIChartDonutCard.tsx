@@ -15,7 +15,6 @@ export const CustomSLIChartDonutCard = (props) => {
     let donutChartData = [{}]
     let donutChartLegend = [{}]
 
-
     switch (donutChartColorScale.length) {
         case 2:
             red_count = data?.filter(x => x[type].signal == "red").length

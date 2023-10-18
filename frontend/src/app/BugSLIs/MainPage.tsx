@@ -25,6 +25,7 @@ import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 import { Header } from '@app/utils/Header';
 import { InfoBanner } from './InfoBanner';
 import { CustomSLIChartDonutCard } from './CustomSLIChartDonutCard';
+import { SLIsStackChart } from './SLIsStackChart';
 
 // eslint-disable-next-line prefer-const
 export const BugSLIs = () => {
@@ -70,7 +71,7 @@ export const BugSLIs = () => {
                     setBugsTable(bugSLIs.triage_time_sli.bugs)
                     break;
             }
-            
+
         }
     }, [isSelected, bugSLIs]);
 
@@ -217,6 +218,17 @@ export const BugSLIs = () => {
                                 >
                                 </CustomSLIChartDonutCard>
                             </GridItem>
+                            <GridItem>
+                                <Card style={{ textAlign: 'center' }}>
+                                    <CardTitle>
+                                        Component's Bug SLIs
+                                    </CardTitle>
+                                    <CardBody>
+                                    <SLIsStackChart bugSLIs={bugSLIs}></SLIsStackChart>
+                                    </CardBody>
+                                </Card>
+                            </GridItem>
+
                             <GridItem>
                                 <Card>
                                     <CardTitle>

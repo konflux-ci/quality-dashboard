@@ -45,4 +45,5 @@ type BugSlisInfo struct {
 	TriageTimeSLI     SLI       `json:"triage_time_sli"`
 	ResponseTimeSLI   SLI       `json:"response_time_sli"`
 	ResolutionTimeSLI SLI       `json:"resolution_time_sli"`
+	Bugs              []Bug     `json:"bugs"`
 }
