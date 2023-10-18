@@ -1,4 +1,5 @@
-import React, { FC, ReactElement, useState } from 'react';
+import React, { FC, ReactElement, useEffect, useState } from 'react';
+import { ReactReduxContext, useSelector } from 'react-redux';
 import {
   Title,
   PageSectionVariants,
@@ -14,9 +15,8 @@ import {
   Grid, GridItem,
   Toolbar, ToolbarItem, SearchInput
 } from '@patternfly/react-core'
-import { Flex, FlexItem } from '@patternfly/react-core';
+import { listInstalledPlugins, installPlugin } from '@app/utils/APIService';
 import { Tabs, Tab } from '@patternfly/react-core';
-
 function importAll(r) {
   let images = {};
    r.keys().forEach((item, index) => { images[item.replace('./', '')] = r(item); });
@@ -28,12 +28,13 @@ type CProps = {
   description: string,
   logo: any,
   category: string,
-  status: string,
+  installed: boolean,
+  reason: string,
+  onInstall: React.MouseEventHandler,
 }
 
 export const CardWithImageAndActions: React.FunctionComponent<CProps> = (props:CProps) => {
   const [isOpen, setIsOpen] = React.useState<boolean>(false);
-
   return (
     <>
       <Card style={{minHeight: '25vh'}}>
@@ -43,9 +44,9 @@ export const CardWithImageAndActions: React.FunctionComponent<CProps> = (props:C
               <img src={props.logo.default} height={50} style={{width:'50px'}}/>
             </GridItem>
             <GridItem span={8} style={{width: '100%', textAlign: "right"}}>
-              { props.status == 'available' && <Button variant="primary" ouiaId="Primary"> Install </Button> }
-              { props.status == 'unavailable' && <Button variant="tertiary" isDisabled ouiaId="Primary"> Unavailable </Button> }
-              { props.status == 'installed' && <Button variant="secondary" readOnly ouiaId="Primary"> Installed </Button> }
+              { !props.installed && props.reason == 'Available' && <Button variant="primary" onClick={props.onInstall}> Install </Button> }
+              { props.reason == 'Unavailable' && <Button variant="tertiary" isDisabled ouiaId="Primary"> Unavailable </Button> }
+              { props.installed && <Button variant="secondary" readOnly ouiaId="Primary"> Installed </Button> }
             </GridItem>
           </Grid>
         </CardHeader>
@@ -64,24 +65,36 @@ type HubProps = {
   bio?: string,
 }
 
+interface PluginResponse {
+  plugin: Plugin, 
+  status:{
+    installed: boolean
+  }
+}
 type Plugin = {
   name: string,
   description: string,
   logo: string,
   category: string,
-  status: string,
+  reason: string,
 }
 
 export const PHub: FC<HubProps> = ({/* destructured props */}): ReactElement => { 
   const images = importAll(require.context('../../images', false, /\.(png|jpe?g|svg)$/));
   const [activeTabKey, setActiveTabKey] = React.useState<string | number>(0);
   const [isBox, setIsBox] = React.useState<boolean>(false);
+  const currentTeam = useSelector((state: any) => state.teams.Team);
+  let [cards, setCards] = useState<Array<PluginResponse>>([])
+  let [categories, setCategories] = useState<Array<string>>([])
+  const [searchValue, setSearchValue] = React.useState('');
+
   const handleTabClick = (
     event: React.MouseEvent<any> | React.KeyboardEvent | MouseEvent,
     tabIndex: string | number
   ) => {
     setActiveTabKey(tabIndex);
   };
+
   const widths = {
     default: '100px',
     sm: '80px',
@@ -90,52 +103,12 @@ export const PHub: FC<HubProps> = ({/* destructured props */}): ReactElement => 
     xl: '250px',
     '2xl': '300px'
   };
-  let c:Array<Plugin> = [
-    {
-      name: "Github",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. ",
-      logo: "github-mark.png",
-      category: "github",
-      status: "available",
-    },
-    {
-      name: "Openshift CI",
-      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. ",
-      logo: "github-mark.png",
-      category: "openshift",
-      status: "unavailable",
-    },
-    {
-      name: "Codecov",
-      description: "some description here",
-      logo: "codecov-square.png",
-      category: "codecov",
-      status: "available",
-    },
-    {
-      name: "Some Plugin",
-      description: "some description here",
-      logo: "github-mark.png",
-      category: "github",
-      status: "installed",
-    },
-    {
-      name: "Jira Issues",
-      description: "some description here for jira yeeeeeeeeeeeeee",
-      logo: "jira.png",
-      category: "jira",
-      status: "available",
-    }
-  ]
-  const categories:string[] = ['all', ...c.map(item => item.category).filter((value, index, self) => self.indexOf(value) === index)]
 
-  let [cards, setCards] = useState<Array<Plugin>>(c)
-  const [searchValue, setSearchValue] = React.useState('');
   const onChange = (value: string) => {
     setSearchValue(value);
   };
 
-  const onFilter = (card: Plugin) => {
+  const onFilter = (card: PluginResponse) => {
     
     if(activeTabKey != null && categories[activeTabKey] == 'all'){
 
@@ -145,12 +118,12 @@ export const PHub: FC<HubProps> = ({/* destructured props */}): ReactElement => 
       } catch (err) {
         input = new RegExp(searchValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
       }
-      return card.name.search(input) >= 0;
+      return card.plugin.name.search(input) >= 0;
 
     } else if (activeTabKey && categories[activeTabKey]){
 
       if (searchValue === '') {
-        return true && card.category == categories[activeTabKey]
+        return true && card.plugin.category == categories[activeTabKey]
       }
   
       let input: RegExp;
@@ -159,13 +132,44 @@ export const PHub: FC<HubProps> = ({/* destructured props */}): ReactElement => 
       } catch (err) {
         input = new RegExp(searchValue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
       }
-      return card.name.search(input) >= 0 && categories[activeTabKey] == card.category
+      return card.plugin.name.search(input) >= 0 && categories[activeTabKey] == card.plugin.category
 
     }
     return true
   };
 
-  const filteredCards = cards.filter(onFilter);
+  const installTeamPlugin = (team_name: string, plugin_name:string) =>  {
+    console.log(team_name, plugin_name)
+    installPlugin(team_name, plugin_name).then(res => {
+      if(res.code == 200){
+        listAllPlugins();
+      } else {
+        throw("Error installing plugins list")
+      }
+    })
+  };
+
+  const listAllPlugins = () =>  {
+    if(currentTeam == ''){
+      console.error( "team is empty. cannot get plugins")
+      return
+    }
+    listInstalledPlugins(currentTeam).then(res => {
+      if(res.code == 200){
+        setCards(res.data)
+        console.log("response", res)
+        let categories:string[] = ['all', ...res.data.map(item => item.plugin.category).filter((value, index, self) => self.indexOf(value) === index)]
+        setCategories(categories)
+      } else {
+        throw("Error getting plugins list")
+      }
+    })
+  };
+
+  useEffect(() => {
+    console.log(currentTeam)
+    if(currentTeam != ''){ listAllPlugins() }
+  }, [currentTeam]);
 
   return (
     <React.Fragment>
@@ -207,8 +211,8 @@ export const PHub: FC<HubProps> = ({/* destructured props */}): ReactElement => 
               </Toolbar>
             </PageSection>
             <Gallery hasGutter style={{margin: '1em'}}>
-              {filteredCards.map((product, key) => (
-                <CardWithImageAndActions name={product.name} description={product.description} category={product.category} logo={images[product.logo]} status={product.status} key={key}></CardWithImageAndActions>
+              {cards.filter(onFilter).map((product, key) => (
+                <CardWithImageAndActions onInstall={()=>{installTeamPlugin(currentTeam, product.plugin.name)}} name={product.plugin.name} description={product.plugin.description} category={product.plugin.category} logo={images[product.plugin.logo]} reason={product.plugin.reason} installed={product.status.installed} key={key}></CardWithImageAndActions>
               ))}
             </Gallery>
         </GridItem>

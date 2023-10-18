@@ -593,6 +593,65 @@ async function bugExists(jiraKey: string, teamName: string) {
 
 }
 
+async function listPlugins() {
+  const uri = API_URL + '/api/quality/plugins/hub/list'
+  const result: ApiResponse = { code: 0, data: {} };
+  
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.status;
+      result.data = err.data;
+    });
+
+  return result;
+
+}
+
+async function installPlugin(team: string, plugin: string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/plugins/hub/install';
+  const uri = API_URL + subPath;
+  await axios
+    .post(uri, {
+      team_name: team,
+      plugin_name: plugin,
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  return result;
+}
+
+async function listInstalledPlugins(team_name:string) {
+  const uri = API_URL + '/api/quality/plugins/hub/get/team?team_name='+team_name
+  const result: ApiResponse = { code: 0, data: {} };
+  
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.status;
+      result.data = err.data;
+    });
+
+  return result;
+
+}
+
 export {
   getVersion,
   getRepositories,
@@ -617,5 +676,8 @@ export {
   getFailures,
   createFailure,
   deleteFailureByJiraKey,
-  bugExists
+  bugExists,
+  listPlugins,
+  installPlugin,
+  listInstalledPlugins
 };
