@@ -75,6 +75,7 @@ type Storage interface {
 	DeleteTeam(teamName string) (bool, error)
 	DeleteJiraBugsByProject(projectKey string, team *db.Teams) error
 	DeleteFailure(jiraKey string) error
+	RemovePlugin(team *db.Teams, plugin *db.Plugins) (*db.Plugins, error)
 
 	ListPlugins() ([]*db.Plugins, error)
 }

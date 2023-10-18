@@ -77,3 +77,8 @@ func pluginInstalled(plugin *db.Plugins, installedPlugins []*db.Plugins) bool {
 func (d *Database) InstallPlugin(team *db.Teams, plugin *db.Plugins) (db *db.Teams, err error) {
 	return d.client.Teams.UpdateOne(team).AddPlugins(plugin).Save(context.Background())
 }
+
+// RemovePlugin means that an assigned plugin to a team will be removed
+func (d *Database) RemovePlugin(team *db.Teams, plugin *db.Plugins) (*db.Teams, error) {
+	return d.client.Teams.UpdateOne(team).RemovePlugins(plugin).Save(context.Background())
+}

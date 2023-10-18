@@ -114,7 +114,6 @@ func (s *pluginsRouter) installTeamPlugin(ctx context.Context, w http.ResponseWr
 	}
 
 	if _, err := s.Storage.InstallPlugin(team, plugin); err != nil {
-		fmt.Println(err)
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    "error installing plugin",
 			StatusCode: http.StatusBadRequest,
@@ -129,7 +128,7 @@ func (s *pluginsRouter) installTeamPlugin(ctx context.Context, w http.ResponseWr
 // @Description Get a plugin from a given team_name in params
 // @Tags Plugins API Info
 // @Produce json
-// @Router /plugins/hub/get/team [post]
+// @Router /plugins/hub/get/team [get]
 // @Param   team_name     query     string     true  "string example"   example(string)
 // @Success 200 {object} v1alphaPlugins.Plugin
 // @Failure 400 {object} types.ErrorResponse
@@ -158,4 +157,63 @@ func (s *pluginsRouter) getPluginsByTeam(ctx context.Context, w http.ResponseWri
 		})
 	}
 	return httputils.WriteJSON(w, http.StatusOK, plugins)
+}
+
+type DeletePluginRequest struct {
+	TeamName   string `json:"team_name"`
+	PluginName string `json:"plugin_name"`
+}
+
+// Plugins godoc
+// @Summary Delete plugin by team
+// @Description Delete a plugin from a given team_name in params
+// @Tags Plugins API Info
+// @Produce json
+// @Router /plugins/hub/delete/team [post]
+// @Param request body DeletePluginRequest true "Body json params"
+// @Success 200 {object} Plugin
+// @Failure 400 {object} types.ErrorResponse
+func (s *pluginsRouter) deleteTeamPlugin(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	var pluginRequest = DeletePluginRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&pluginRequest); err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "incorrect data received to server",
+			StatusCode: 400,
+		})
+	}
+
+	if pluginRequest.TeamName == "" || pluginRequest.PluginName == "" {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "Failed to remove repository. Field 'team_name' or 'plugin_name' missing",
+			StatusCode: 400,
+		})
+	}
+	team, err := s.Storage.GetTeamByName(pluginRequest.TeamName)
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	dbPlugin, err := s.Storage.GetPluginByName(pluginRequest.PluginName)
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	_, err = s.Storage.RemovePlugin(team, dbPlugin)
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, &types.SuccessResponse{
+		Message:    fmt.Sprintf("successfully uninstalled plugin %s", dbPlugin.Name),
+		StatusCode: 200,
+	})
 }
