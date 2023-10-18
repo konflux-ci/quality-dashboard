@@ -182,9 +182,9 @@ teams:
           organization: redhat-appstudio
 ```
 
-### RHTAP Bug SLOs
+### RHTAP Bug SLIs
 
-With the RHTAP Bug SLOs plugin, you can observe which JIRA Projects are meeting the defined RHTAP Bug SLOs. 
+With the RHTAP Bug SLIs plugin, you can observe which RHTAPBUGS are not meeting the defined RHTAP Bug SLOs. 
 
 | **SLO**             | **Target Value**                                                                                                                                    | **SLIs**                                                                                                                                                                                                                                                   |
 |---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
