@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// nolint:all
 var RegexpCompiler = regexp.MustCompile("(-main-|-master-)(.*?)(\\/)")
 
 // rotationStrategy describes a strategy for generating server configuration from a file.

@@ -63,6 +63,7 @@ func main() {
 	}
 
 	// bind flags and environment variables
+	// nolint:all
 	viper.BindPFlags(fs)
 
 	// validate port
@@ -72,7 +73,9 @@ func main() {
 	}
 
 	logger, _ := logger.InitZap("level")
+	//nolint:all
 	defer logger.Sync()
+
 	stdLog := zap.RedirectStdLog(logger)
 	defer stdLog()
 
@@ -90,12 +93,13 @@ func main() {
 	}
 
 	jiraAPI := jiraAPI.NewJiraConfig()
+	githubClient := github.NewGithubClient(util.GetEnv(DefaultGithubTokenEnv, ""))
 
 	server := server.New(&server.Config{
 		Logger:  logger,
 		Version: version.ServerVersion,
 		Storage: newKeyCacher(storage, time.Now),
-		Github:  github.NewGithubClient(util.GetEnv(DefaultGithubTokenEnv, "")),
+		Github:  githubClient,
 		CodeCov: codecov.NewCodeCoverageClient(),
 		Jira:    jiraAPI,
 		Db:      db,

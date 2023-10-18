@@ -165,13 +165,15 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 
 	workflows, err := rp.Github.GetRepositoryWorkflows(githubRepo.Owner.GetLogin(), githubRepo.GetName())
 	for _, w := range workflows.Workflows {
-		rp.Storage.CreateWorkflows(repoV1Alpha1.Workflow{
+		if err := rp.Storage.CreateWorkflows(repoV1Alpha1.Workflow{
 			Name:     w.GetName(),
 			BadgeURL: w.GetBadgeURL(),
 			HTMLURL:  w.GetHTMLURL(),
 			JobURL:   w.GetURL(),
 			State:    w.GetState(),
-		}, createdRepo.ID)
+		}, createdRepo.ID); err != nil {
+			rp.Logger.Error("failed to save repository in database", zap.String("repository", repository.GitRepository), zap.String("git_organization", repository.GitOrganization), zap.Error(err))
+		}
 	}
 
 	if err != nil {
@@ -223,7 +225,12 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 // @Success 200 {object} types.SuccessResponse
 // @Failure 400 {object} types.ErrorResponse
 func (rp *repositoryRouter) deleteRepositoryHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
-	json.NewDecoder(r.Body).Decode(&repository)
+	if err := json.NewDecoder(r.Body).Decode(&repository); err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "incorrect data received to server",
+			StatusCode: 400,
+		})
+	}
 
 	if repository.GitRepository == "" {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{

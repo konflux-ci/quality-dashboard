@@ -92,7 +92,12 @@ func (s *teamsRouter) createQualityStudioTeam(ctx context.Context, w http.Respon
 // @Failure 400 {object} types.ErrorResponse
 func (rp *teamsRouter) deleteTeamHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	var team TeamsRequest
-	json.NewDecoder(r.Body).Decode(&team)
+	if err := json.NewDecoder(r.Body).Decode(&team); err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "incorrect data received to server",
+			StatusCode: 400,
+		})
+	}
 
 	if team.TeamName == "" {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
@@ -125,7 +130,13 @@ func (rp *teamsRouter) deleteTeamHandler(ctx context.Context, w http.ResponseWri
 // @Failure 400 {object} types.ErrorResponse
 func (rp *teamsRouter) updateTeamHandler(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	var team UpdateTeamsRequest
-	json.NewDecoder(r.Body).Decode(&team)
+
+	if err := json.NewDecoder(r.Body).Decode(&team); err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "incorrect data received to server",
+			StatusCode: 400,
+		})
+	}
 
 	if team.TeamName == "" {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{

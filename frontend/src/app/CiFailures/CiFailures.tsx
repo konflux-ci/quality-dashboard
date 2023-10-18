@@ -54,8 +54,8 @@ let CiFailures = () => {
 
   useEffect(() => {
     if (state.teams.Team != '') {
-      getFailures(state.teams.Team, rangeDateTime).then((data: any) => {
-        setFailures(data)
+      getFailures(state.teams.Team, rangeDateTime).then((res: any) => {
+        setFailures(res.data)
       });
     }
   }, [rangeDateTime]);
@@ -79,13 +79,13 @@ let CiFailures = () => {
       const start = params.get('start');
       const end = params.get('end');
 
-      getFailures(state.teams.Team, rangeDateTime).then((data: any) => {
-        if (data.length < 1 && (team == state.teams.Team || team == null)) {
+      getFailures(state.teams.Team, rangeDateTime).then((res: any) => {
+        if (res.data.length < 1 && (team == state.teams.Team || team == null)) {
           setLoadingState(false)
           history.push('/home/rhtapbugs-impact?team=' + currentTeam);
         }
 
-        if (data.length > 0 && (team == state.teams.Team || team == null)) {
+        if (res.data.length > 0 && (team == state.teams.Team || team == null)) {
           if (start == null || end == null) {
             // first click on page or team
             const start_date = formatDate(rangeDateTime[0]);

@@ -513,7 +513,15 @@ async function listE2EBugsKnown() {
 async function getFailures(team: string, rangeDateTime: Date[]) {
   const start_date = formatDate(rangeDateTime[0]);
   const end_date = formatDate(rangeDateTime[1]);
+  const result: ApiResponse = { code: 0, data: {} };
+  const uri = API_URL +
+    '/api/quality/failures/get?team_name=' + team +
+    '&start_date=' +
+    start_date +
+    '&end_date=' +
+    end_date;
 
+<<<<<<< HEAD
   const response = await axios.get(
     API_URL +
     '/api/quality/failures/get?team_name=' + team +
@@ -528,6 +536,20 @@ async function getFailures(team: string, rangeDateTime: Date[]) {
   }
 
   return response.data;
+=======
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.statusCode;
+      result.data = err.data;
+    });
+  return result;
+
+>>>>>>> main
 }
 
 async function createFailure(team: string, jiraKey: string, errorMessage: string) {
@@ -553,29 +575,38 @@ async function createFailure(team: string, jiraKey: string, errorMessage: string
 }
 
 async function deleteFailureByJiraKey(jiraKey: string) {
-  const response = await fetch(
-    API_URL +
-    '/api/quality/failures/delete?jira_key=' + jiraKey
-  );
-  if (!response.ok) {
-    throw 'Error fetching data from server.';
-  }
-  const data = await response.json();
-  return data;
+  const uri = API_URL + '/api/quality/failures/delete?jira_key=' + jiraKey
+  const result: ApiResponse = { code: 0, data: {} };
+
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.status;
+      result.data = err.data;
+    });
+  return result;
 }
 
 async function bugExists(jiraKey: string, teamName: string) {
-  const response = await fetch(
-    API_URL +
-    '/api/quality/jira/bugs/exist?team_name=' + teamName +
-    '&jira_key=' + jiraKey
-  );
-  if (!response.ok) {
-    throw 'Error fetching data from server.';
-  }
-  const data = await response.json();
+  const uri = API_URL + '/api/quality/jira/bugs/exist?team_name=' + teamName + '&jira_key=' + jiraKey
+  const result: ApiResponse = { code: 0, data: {} };
 
-  return data;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.status;
+      result.data = err.data;
+    });
+
+  return result;
 }
 
 async function getBugSLIs(team: string, rangeDateTime: Date[]) {
