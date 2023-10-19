@@ -29,7 +29,8 @@ type QueryListPullRequests struct {
 			PullRequest githubV1Alhpa1.PullRequest `graphql:"... on PullRequest"`
 		}
 		PageInfo githubV1Alhpa1.PageInfo
-	} `graphql:"search(query: $query, type: ISSUE, first: 100, after: $cursor)"`
+		// Do not set the number of PRs per page too high to avoid query timeout
+	} `graphql:"search(query: $query, type: ISSUE, first: 50, after: $cursor)"`
 }
 
 // GetAllPullRequests uses the graphql search endpoint API to search all pull requests in the repository
@@ -49,7 +50,6 @@ func (gh *Github) GetAllPullRequests(ctx context.Context, opts githubV1Alhpa1.Li
 			return nil, errors.WithStack(err)
 		}
 		prs := make([]githubV1Alhpa1.PullRequest, len(q.Search.Nodes))
-
 		for i, v := range q.Search.Nodes {
 			prs[i] = v.PullRequest
 		}
