@@ -14,7 +14,7 @@
   - [Features](#features)
     - [Teams](#teams)
     - [Config](#config)
-    - [RHTAP Bug SLIs](#rhtap-bug-slis)
+    - [Bug SLIs](#bug-slis)
   - [Connectors](#connectors)
     - [Openshift CI and Prow Jobs](#openshift-ci-and-prow-jobs)
     - [Github](#github)
@@ -182,9 +182,9 @@ teams:
           organization: redhat-appstudio
 ```
 
-### RHTAP Bug SLIs
+### Bug SLIs
 
-With the RHTAP Bug SLIs plugin, you can observe which RHTAPBUGS are not meeting the defined RHTAP Bug SLOs. 
+With the Bug SLIs plugin, you can observe which Jira issues are not meeting the defined Bug SLOs. 
 
 | **SLO**             | **Target Value**                                                                                                                                    | **SLIs**                                                                                                                                                                                                                                                   |
 |---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

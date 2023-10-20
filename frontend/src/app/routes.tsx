@@ -94,9 +94,9 @@ const routes: AppRouteConfig[] = [
         exact: true,
         isAsync: true,
         isProtected: true,
-        label: 'RHTAP Bug SLIs',
+        label: 'Bug SLIs',
         path: '/home/bug-slis',
-        title: 'RHTAP Bug SLIs | Quality Studio',
+        title: 'Bug SLIs | Quality Studio',
       },
       {
         component: Reports,
