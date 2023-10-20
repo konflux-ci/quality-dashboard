@@ -3,13 +3,10 @@ import {
     Card,
     CardTitle,
     CardBody,
-    Text,
     PageSection,
     Title,
     Grid,
     GridItem,
-    TextContent,
-    PageSectionVariants,
     Pagination,
     Chip,
     ChipGroup,
@@ -34,6 +31,7 @@ import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 import { useHistory } from 'react-router-dom';
 import { getLabels } from '@app/utils/utils';
 import { help } from '@app/Github/PullRequests';
+import { Header } from '@app/utils/Header';
 
 interface Bugs {
     jira_key: string;
@@ -113,7 +111,7 @@ export const Jira = () => {
                         affects_versions: "",
                         fix_versions: "",
                         components: "",
-                        labels: "",
+                        labels: bug.fields.labels.join(","),
                         url: "https://issues.redhat.com/browse/" + bug.key,
                         teams_bugs: "",
                     });
@@ -251,21 +249,7 @@ export const Jira = () => {
 
     return (
         <React.Fragment>
-            <PageSection style={{
-                minHeight: "12%",
-                background: "url(https://console.redhat.com/apps/frontend-assets/background-images/new-landing-page/estate_section_banner.svg)",
-                backgroundSize: "cover",
-                backgroundColor: "black",
-                opacity: '0.9'
-            }} variant={PageSectionVariants.light}
-            >
-                <TextContent style={{ color: "white", display: "inline" }}>
-                    <div style={{ float: "left", }}>
-                        <Text component="h2">Get Started with Red Hat Quality Studio</Text>
-                        <Text component="p">Observe which Jira Issues are affecting the CI pass rate.</Text>
-                    </div>
-                </TextContent>
-            </PageSection>
+            <Header info="Observe which Jira Issues are affecting the CI pass rate."></Header>
             <PageSection>
                 {loadingState && <div style={{ width: '100%', textAlign: "center" }}>
                     <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />
@@ -614,6 +598,7 @@ const ComposableTableStripedTr: React.FC<{ bugs: any, longVersion: boolean }> = 
     // Filters helpers
     const columns = [
         { column: 'jira_key', label: 'ID' },
+        { column: 'labels', label: 'Labels' },
         { column: 'summary', label: 'Summary' },
         { column: 'status', label: 'Status' },
         { column: 'created_at', label: 'Created at' },
@@ -750,6 +735,7 @@ const ComposableTableStripedTr: React.FC<{ bugs: any, longVersion: boolean }> = 
                     {bugsPage.map((bug, index) => (
                         <Tr key={bug.jira_key} {...(index % 2 === 0 && { isStriped: true })}>
                             <Td dataLabel={columnNames.jira_key}><a href={bug.url} target={bug.url}>{bug.jira_key}</a></Td>
+                            <Td dataLabel={columnNames.labels}>{bug.labels}</Td>
                             <Td dataLabel={columnNames.summary}>{bug.summary}</Td>
                             <Td dataLabel={columnNames.status}>{bug.status ? bug.status : "-"}</Td>
                             <Td dataLabel={columnNames.created_at}>{formatDate(new Date(bug.created_at))}</Td>
