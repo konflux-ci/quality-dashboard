@@ -67,11 +67,17 @@ type ListPullRequestsOptions struct {
 
 // Summary represents all the collected information regarding all the pull requests of a repository.
 type Summary struct {
-	// Number of merged pull requests.
-	MergedPrsCount int `json:"merged_prs"`
+	// Number of open pull requests.
+	CreatedPrsCountInTimeRange int `json:"created_prs_in_time_range"`
 
 	// Number of open pull requests.
 	OpenPrsCount int `json:"open_prs"`
+
+	// Number of merged pull requests.
+	MergedPrsCount int `json:"merged_prs"`
+
+	// Number of merged pull requests.
+	MergedPrsCountInTimeRange int `json:"merged_prs_in_time_range"`
 
 	// Average time to merge a pull request.
 	MergeAvg float64 `json:"merge_avg"`
