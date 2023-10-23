@@ -18,11 +18,11 @@ var (
 
 func (g *Github) GetGithubRepositoryInformation(organization string, repository string) (*github.Repository, error) {
 	repo, resp, err := g.client.Repositories.Get(context.Background(), organization, repository)
-	if resp.StatusCode != 200 {
-		return nil, GENERIC_ERROR_GIT_RESPONSE
-	}
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, GENERIC_ERROR_GIT_RESPONSE
 	}
 	return repo, nil
 }
