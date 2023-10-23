@@ -13,11 +13,11 @@ import (
 func GetTriageSLI(bug *db.Bugs) *Alert {
 	alert := &Alert{Signal: "green"}
 
-	if bug.Labels != nil && strings.Contains(*bug.Labels, "untriaged") {
+	if bug.Labels != nil && bug.DaysWithoutPriority != nil && strings.Contains(*bug.Labels, "untriaged") {
 		msg := fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for Triage Time. Priority should be defined between a maximum of 2 days. This issue has priority undefined for %.2f days. Please, take a time to resolve it.\n\n",
 			bug.URL,
 			bug.JiraKey,
-			*bug.DaysWithoutResolution,
+			*bug.DaysWithoutPriority,
 		)
 
 		if *bug.DaysWithoutPriority > 2 {
@@ -35,7 +35,8 @@ func GetTriageSLI(bug *db.Bugs) *Alert {
 // GetResponseSLI should return red if there is no assignee for more than 2 days on Blocker and Critical bugs
 func GetResponseSLI(bug *db.Bugs) *Alert {
 	alert := &Alert{Signal: "green"}
-	if bug.Priority == "Blocker" || bug.Priority == "Critical" {
+
+	if bug.DaysWithoutAssignee != nil && (bug.Priority == "Blocker" || bug.Priority == "Critical") {
 		if *bug.DaysWithoutAssignee > 2 {
 			msg := fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for Blocker and Critical Bug Response Time. Blocker and Critical bugs should be assigned between a maximum of 2 days. This issue has assignee undefined for %.2f days. Please, take a time to assign it.\n\n",
 				bug.URL,
@@ -52,22 +53,25 @@ func GetResponseSLI(bug *db.Bugs) *Alert {
 
 func measureBugResolutionSLI(redThreshold, yellowThreshold float64, bug *db.Bugs) *Alert {
 	alert := &Alert{Signal: "green"}
-	daysWithoutResolution := *bug.DaysWithoutResolution
 
-	msg := fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for %s Bug Resolution Time. %s bugs should not take more than 10 days to be resolved. This issue is not resolved for %.2f days. Please, take a time to resolve it.\n\n",
-		bug.URL,
-		bug.JiraKey,
-		bug.Priority,
-		bug.Priority,
-		daysWithoutResolution,
-	)
+	if bug.DaysWithoutResolution != nil {
+		daysWithoutResolution := *bug.DaysWithoutResolution
 
-	if daysWithoutResolution > redThreshold {
-		alert.Signal = "red"
-		alert.AlertMessage = &msg
-	} else if daysWithoutResolution > yellowThreshold {
-		alert.Signal = "yellow"
-		alert.AlertMessage = &msg
+		msg := fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for %s Bug Resolution Time. %s bugs should not take more than 10 days to be resolved. This issue is not resolved for %.2f days. Please, take a time to resolve it.\n\n",
+			bug.URL,
+			bug.JiraKey,
+			bug.Priority,
+			bug.Priority,
+			daysWithoutResolution,
+		)
+
+		if daysWithoutResolution > redThreshold {
+			alert.Signal = "red"
+			alert.AlertMessage = &msg
+		} else if daysWithoutResolution > yellowThreshold {
+			alert.Signal = "yellow"
+			alert.AlertMessage = &msg
+		}
 	}
 
 	return alert
