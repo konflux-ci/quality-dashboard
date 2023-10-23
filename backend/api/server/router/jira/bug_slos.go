@@ -37,7 +37,6 @@ func GetResponseSLI(bug *db.Bugs) *Alert {
 	alert := &Alert{Signal: "green"}
 
 	if bug.DaysWithoutAssignee != nil && (bug.Priority == "Blocker" || bug.Priority == "Critical") {
-		fmt.Println(bug.DaysWithoutAssignee)
 		if *bug.DaysWithoutAssignee > 2 {
 			msg := fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for Blocker and Critical Bug Response Time. Blocker and Critical bugs should be assigned between a maximum of 2 days. This issue has assignee undefined for %.2f days. Please, take a time to assign it.\n\n",
 				bug.URL,
