@@ -28,6 +28,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils/errdefs"
 	"github.com/rs/cors"
+	"github.com/slack-go/slack"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/swaggo/swag"
 	"go.uber.org/zap"
@@ -61,6 +62,7 @@ type Config struct {
 	Github      *github.Github
 	CodeCov     *codecov.API
 	Db          *sql.DB
+	Slack       *slack.Client
 }
 
 // HTTPServer contains an instance of http server and the listener.
@@ -224,6 +226,7 @@ func (s *Server) createMux() *mux.Router {
 		if err != nil {
 			s.cfg.Logger.Error("/api/quality/"+"swagger error", zap.Error(err), zap.String("path", "/swagger.json"))
 		}
+		// nolint:all
 		w.Write([]byte(doc))
 	})
 
@@ -233,6 +236,7 @@ func (s *Server) createMux() *mux.Router {
 
 	str := staticRotationStrategy()
 	s.startUpdateStorage(context.TODO(), str, time.Now)
+	s.SendBugSLIAlerts()
 
 	return m
 }

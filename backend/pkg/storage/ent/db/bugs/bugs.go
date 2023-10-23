@@ -33,6 +33,20 @@ const (
 	FieldURL = "url"
 	// FieldProjectKey holds the string denoting the project_key field in the database.
 	FieldProjectKey = "project_key"
+	// FieldAssignmentTime holds the string denoting the assignment_time field in the database.
+	FieldAssignmentTime = "assignment_time"
+	// FieldPrioritizationTime holds the string denoting the prioritization_time field in the database.
+	FieldPrioritizationTime = "prioritization_time"
+	// FieldDaysWithoutAssignee holds the string denoting the days_without_assignee field in the database.
+	FieldDaysWithoutAssignee = "days_without_assignee"
+	// FieldDaysWithoutPriority holds the string denoting the days_without_priority field in the database.
+	FieldDaysWithoutPriority = "days_without_priority"
+	// FieldDaysWithoutResolution holds the string denoting the days_without_resolution field in the database.
+	FieldDaysWithoutResolution = "days_without_resolution"
+	// FieldLabels holds the string denoting the labels field in the database.
+	FieldLabels = "labels"
+	// FieldComponent holds the string denoting the component field in the database.
+	FieldComponent = "component"
 	// EdgeBugs holds the string denoting the bugs edge name in mutations.
 	EdgeBugs = "bugs"
 	// TeamsFieldID holds the string denoting the ID field of the Teams.
@@ -62,6 +76,13 @@ var Columns = []string{
 	FieldSummary,
 	FieldURL,
 	FieldProjectKey,
+	FieldAssignmentTime,
+	FieldPrioritizationTime,
+	FieldDaysWithoutAssignee,
+	FieldDaysWithoutPriority,
+	FieldDaysWithoutResolution,
+	FieldLabels,
+	FieldComponent,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "bugs"

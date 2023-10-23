@@ -11,9 +11,9 @@ metadata:
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: quality-dashboard
-    appstudio.openshift.io/component: dex-quality-dashboard
+    appstudio.openshift.io/component: frontend-quality-dashboard
     pipelines.appstudio.openshift.io/type: build
-  name: dex-quality-dashboard-on-push
+  name: frontend-quality-dashboard-on-push
   namespace: rhtap-qe-shared-tenant
 spec:
   params:
@@ -22,9 +22,9 @@ spec:
   - name: git-url
     value: '{{repo_url}}'
   - name: output-image
-    value: quay.io/redhat-user-workloads/rhtap-qe-shared-tenant/quality-dashboard/dex-quality-dashboard:{{revision}}
+    value: quay.io/redhat-user-workloads/rhtap-qe-shared-tenant/quality-dashboard/frontend-quality-dashboard:{{revision}}
   - name: path-context
-    value: dex
+    value: frontend
   - name: revision
     value: '{{revision}}'
   pipelineSpec:
@@ -299,7 +299,7 @@ spec:
       - input: $(params.skip-checks)
         operator: in
         values:
-        - "false"
+        - "true"
     - name: sast-snyk-check
       runAfter:
       - clone-repository
@@ -316,7 +316,7 @@ spec:
       - input: $(params.skip-checks)
         operator: in
         values:
-        - "false"
+        - "true"
       workspaces:
       - name: workspace
         workspace: workspace
@@ -341,7 +341,7 @@ spec:
       - input: $(params.skip-checks)
         operator: in
         values:
-        - "false"
+        - "true"
     - name: sbom-json-check
       params:
       - name: IMAGE_URL

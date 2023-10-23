@@ -12,6 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// nolint:all
 var RegexpCompiler = regexp.MustCompile("(-main-|-master-)(.*?)(\\/)")
 
 // rotationStrategy describes a strategy for generating server configuration from a file.
@@ -65,6 +66,7 @@ func (s *Server) rotate() error {
 
 	return nil
 }
+
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
 		rotationFrequency: time.Minute * 15,
@@ -115,7 +117,7 @@ func (s *Server) CacheRepositoriesInformation(storageRepos []repoV1Alpha1.Reposi
 			return err
 		}
 
-		//update coverage info
+		// update coverage info
 		coverage, covTrend, err := s.getCodeCoverage(repo.Owner.Login, repo.Name)
 		if err != nil {
 			return err

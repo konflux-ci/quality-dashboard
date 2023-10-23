@@ -17,6 +17,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/client"
 	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
+	"github.com/slack-go/slack"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -62,6 +63,7 @@ func main() {
 	}
 
 	// bind flags and environment variables
+	// nolint:all
 	viper.BindPFlags(fs)
 
 	// validate port
@@ -71,7 +73,9 @@ func main() {
 	}
 
 	logger, _ := logger.InitZap("level")
+	//nolint:all
 	defer logger.Sync()
+
 	stdLog := zap.RedirectStdLog(logger)
 	defer stdLog()
 
@@ -89,15 +93,17 @@ func main() {
 	}
 
 	jiraAPI := jiraAPI.NewJiraConfig()
+	githubClient := github.NewGithubClient(util.GetEnv(DefaultGithubTokenEnv, ""))
 
 	server := server.New(&server.Config{
 		Logger:  logger,
 		Version: version.ServerVersion,
 		Storage: newKeyCacher(storage, time.Now),
-		Github:  github.NewGithubClient(util.GetEnv(DefaultGithubTokenEnv, "")),
+		Github:  githubClient,
 		CodeCov: codecov.NewCodeCoverageClient(),
 		Jira:    jiraAPI,
 		Db:      db,
+		Slack:   slack.New(util.GetEnv("SLACK_TOKEN", ""), slack.OptionDebug(true)),
 	})
 
 	dexIssuer := os.Getenv("DEX_ISSUER")

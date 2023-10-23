@@ -33,7 +33,6 @@ func TestGetGithubRepositoryInformation(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
 			got, err := gh.GetGithubRepositoryInformation(c.GitOrganization, c.RepositoryName)
-
 			if err != nil || c.ExpectedError != "" {
 				assert.EqualError(t, err, c.ExpectedError)
 				return

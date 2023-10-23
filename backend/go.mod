@@ -26,6 +26,8 @@ require (
 	k8s.io/apimachinery v0.26.0
 )
 
+require github.com/gorilla/websocket v1.5.0 // indirect
+
 require (
 	ariga.io/atlas v0.9.1-0.20230119145809-92243f7c55cb // indirect
 	github.com/KyleBanks/depth v1.2.1 // indirect
@@ -105,6 +107,7 @@ require (
 	github.com/rivo/uniseg v0.1.0 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shurcooL/graphql v0.0.0-20220606043923-3cf50f8a0a29 // indirect
+	github.com/slack-go/slack v0.12.3
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

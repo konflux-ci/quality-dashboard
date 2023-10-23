@@ -10,7 +10,7 @@ module.exports = merge(common('development'), {
   devServer: {
     contentBase: "./dist",
     port: PORT,
-    host: '0.0.0.0',
+    host: 'localhost',
     disableHostCheck: true,   // That solved it
     compress: true,
     inline: true,

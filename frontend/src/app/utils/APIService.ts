@@ -2,7 +2,7 @@
 import axios, { AxiosResponse } from 'axios';
 import _ from 'lodash';
 import { JobsStatistics } from '@app/utils/sharedComponents';
-import { teamIsNotEmpty } from '@app/utils/utils';
+import { sortGlobalSLI, teamIsNotEmpty } from '@app/utils/utils';
 import { formatDate } from '@app/Reports/utils';
 import { PrsStatistics } from '@app/Github/PullRequests';
 import { Job } from '@app/Reports/FailedE2ETests';
@@ -18,7 +18,7 @@ type RepositoriesApiResponse = {
   all: any;
 };
 
-const API_URL = process.env.REACT_APP_API_SERVER_URL || 'https://backend-quality-dashboardvmre-rhtap-qe-shared-tenant.apps.stone-prd-m01.84db.p1.openshiftapps.com';
+const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898';
 
 async function getVersion() {
   const result: ApiResponse = { code: 0, data: {} };
@@ -281,7 +281,7 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
   const start_date = formatDate(rangeDateTime[0]);
   const end_date = formatDate(rangeDateTime[1]);
 
-  const response = await axios.get(
+  const response = await fetch(
     API_URL +
     '/api/quality/prow/metrics/get?repository_name=' +
     repoName +
@@ -294,10 +294,10 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
     '&end_date=' +
     end_date
   );
-  if (response.status >= 300) {
+  if (!response.ok) {
     throw 'Error fetching data from server. ';
   }
-  const statistics: JobsStatistics = response.data;
+  const statistics: JobsStatistics = await response.json();
   if (statistics.jobs == null) {
     throw 'No jobs detected in OpenShift CI';
   }
@@ -513,20 +513,26 @@ async function listE2EBugsKnown() {
 async function getFailures(team: string, rangeDateTime: Date[]) {
   const start_date = formatDate(rangeDateTime[0]);
   const end_date = formatDate(rangeDateTime[1]);
-
-  const response = await fetch(
-    API_URL +
+  const result: ApiResponse = { code: 0, data: {} };
+  const uri = API_URL +
     '/api/quality/failures/get?team_name=' + team +
     '&start_date=' +
     start_date +
     '&end_date=' +
-    end_date
-  );
-  if (!response.ok) {
-    throw 'Error fetching data from server. ';
-  }
-  const data = await response.json();
-  return data;
+    end_date;
+
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.statusCode;
+      result.data = err.data;
+    });
+  return result;
+
 }
 
 async function createFailure(team: string, jiraKey: string, errorMessage: string) {
@@ -552,30 +558,68 @@ async function createFailure(team: string, jiraKey: string, errorMessage: string
 }
 
 async function deleteFailureByJiraKey(jiraKey: string) {
-  const response = await fetch(
-    API_URL +
-    '/api/quality/failures/delete?jira_key=' + jiraKey
-  );
-  if (!response.ok) {
-    throw 'Error fetching data from server.';
-  }
-  const data = await response.json();
-  return data;
+  const uri = API_URL + '/api/quality/failures/delete?jira_key=' + jiraKey
+  const result: ApiResponse = { code: 0, data: {} };
+
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.status;
+      result.data = err.data;
+    });
+  return result;
 }
 
 async function bugExists(jiraKey: string, teamName: string) {
-  const response = await fetch(
-    API_URL +
-    '/api/quality/jira/bugs/exist?team_name=' + teamName +
-    '&jira_key=' + jiraKey
-  );
-  if (!response.ok) {
-    throw 'Error fetching data from server.';
-  }
-  const data = await response.json();
+  const uri = API_URL + '/api/quality/jira/bugs/exist?team_name=' + teamName + '&jira_key=' + jiraKey
+  const result: ApiResponse = { code: 0, data: {} };
 
-  console.log("data", response)
-  return data;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.status;
+      result.data = err.data;
+    });
+
+  return result;
+}
+
+async function getBugSLIs(team: string, rangeDateTime: Date[]) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const start_date = formatDate(rangeDateTime[0]);
+  const end_date = formatDate(rangeDateTime[1]);
+
+  const subPath = '/api/quality/jira/slis/list?team_name=' + team +
+    '&start_date=' +
+    start_date +
+    '&end_date=' +
+    end_date
+
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  sortGlobalSLI(result.data.resolution_time_sli.bugs)
+  sortGlobalSLI(result.data.response_time_sli.bugs)
+  sortGlobalSLI(result.data.triage_time_sli.bugs)
+
+  return result;
 }
 
 export {
@@ -602,5 +646,6 @@ export {
   getFailures,
   createFailure,
   deleteFailureByJiraKey,
-  bugExists
+  bugExists,
+  getBugSLIs
 };
