@@ -203,6 +203,75 @@ spec:
       workspaces:
       - name: source
         workspace: workspace
+    - name: backend-linter
+      params:
+      - name: url
+        value: $(params.git-url)
+      - name: revision
+        value: $(params.revision)
+      workspaces:
+      - name: source
+        workspace: workspace
+      runAfter:
+      - prefetch-dependencies
+      taskSpec:
+        steps:
+        - name: lint
+          image: registry.redhat.io/rhel8/go-toolset:1.19.10-16.1695267225
+          script: |
+            # binary will be $(go env GOPATH)/bin/golangci-lint
+            curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/v1.54.2/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.54.2
+            alias golangci-lint=$(go env GOPATH)/bin/golangci-lint
+            cd /workspace/source/$(params.path-context)
+            golangci-lint cache clean && go clean -modcache -cache -i
+            golangci-lint run -v --timeout=10m
+    - name: backend-unit-tests
+      params:
+      - name: url
+        value: $(params.git-url)
+      - name: revision
+        value: $(params.revision)
+      workspaces:
+      - name: source
+        workspace: workspace
+      runAfter:
+      - backend-linter
+      taskSpec:
+        steps:
+          - image: registry.redhat.io/rhel8/go-toolset:1.19.10-16.1695267225
+            name: client
+            env:
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: quality-dashboard-secrets
+                  key: github-token
+            script: |
+              set -ex
+              echo "[INFO] Waiting for database to be ready for connection"
+              timeout 5m bash -c 'until echo > /dev/tcp/localhost/5432; do sleep 2s; done'
+              cd /workspace/source/$(params.path-context) && go test -v ./...
+            volumeMounts:
+              - mountPath: /work
+                name: data
+        sidecars:
+          - image: quay.io/redhat-appstudio-qe/postgres:14
+            name: database-test
+            env:
+            - name: PGDATA
+              value: /work/data
+            - name: POSTGRES_DB
+              value: quality
+            - name: POSTGRES_PASSWORD
+              value: postgres
+            - name: POSTGRES_USER
+              value: postgres
+            volumeMounts:
+              - mountPath: /work
+                name: data
+        volumes:
+          - name: data
+            emptyDir: {}
     - name: build-container
       params:
       - name: IMAGE
@@ -220,7 +289,7 @@ spec:
       - name: COMMIT_SHA
         value: $(tasks.clone-repository.results.commit)
       runAfter:
-      - prefetch-dependencies
+      - backend-unit-tests
       taskRef:
         params:
         - name: name
