@@ -13,11 +13,11 @@ import (
 func GetTriageSLI(bug *db.Bugs) *Alert {
 	alert := &Alert{Signal: "green"}
 
-	msg := fmt.Sprintf("Priority should be defined between a maximum of 2 days. This issue has priority undefined for %.2f days. Please, take a time to prioritize it.\n\n",
-		*bug.DaysWithoutPriority,
-	)
-
 	if bug.Labels != nil && bug.DaysWithoutPriority != nil && strings.Contains(*bug.Labels, "untriaged") {
+		msg := fmt.Sprintf("Priority should be defined between a maximum of 2 days. This issue has priority undefined for %.2f days. Please, take a time to prioritize it.\n\n",
+			*bug.DaysWithoutPriority,
+		)
+
 		if *bug.DaysWithoutPriority > 2 {
 			alert.Signal = "red"
 			msg = fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for Triage Time. %s",
