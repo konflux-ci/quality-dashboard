@@ -114,7 +114,7 @@ Please note that these are general steps, and the exact steps may vary based on 
 
 ### Backend
 
-First, you need to have a PostgreSQL instance running to host local data. You can start one with your favourite container engine (docker or podman)
+First, you need to have a PostgreSQL instance running to host local data. You can start one with your favorite container engine (docker or podman)
 
 ```bash
     podman run -p 5432:5432 --name some-postgres -e POSTGRES_PASSWORD=postgres -d postgres:14
