@@ -13,18 +13,26 @@ import (
 func GetTriageSLI(bug *db.Bugs) *Alert {
 	alert := &Alert{Signal: "green"}
 
-	if bug.Labels != nil && bug.DaysWithoutPriority != nil && strings.Contains(*bug.Labels, "untriaged") {
-		msg := fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for Triage Time. Priority should be defined between a maximum of 2 days. This issue has priority undefined for %.2f days. Please, take a time to resolve it.\n\n",
-			bug.URL,
-			bug.JiraKey,
-			*bug.DaysWithoutPriority,
-		)
+	msg := fmt.Sprintf("Priority should be defined between a maximum of 2 days. This issue has priority undefined for %.2f days. Please, take a time to prioritize it.\n\n",
+		*bug.DaysWithoutPriority,
+	)
 
+	if bug.Labels != nil && bug.DaysWithoutPriority != nil && strings.Contains(*bug.Labels, "untriaged") {
 		if *bug.DaysWithoutPriority > 2 {
 			alert.Signal = "red"
+			msg = fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for Triage Time. %s",
+				bug.URL,
+				bug.JiraKey,
+				msg,
+			)
 			alert.AlertMessage = &msg
 		} else if *bug.DaysWithoutPriority > 1 {
 			alert.Signal = "yellow"
+			msg = fmt.Sprintf("Issue <%s|%s> is almost not meeting defined Bug SLO for Triage Time. %s",
+				bug.URL,
+				bug.JiraKey,
+				msg,
+			)
 			alert.AlertMessage = &msg
 		}
 	}
@@ -57,19 +65,29 @@ func measureBugResolutionSLI(redThreshold, yellowThreshold float64, bug *db.Bugs
 	if bug.DaysWithoutResolution != nil {
 		daysWithoutResolution := *bug.DaysWithoutResolution
 
-		msg := fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for %s Bug Resolution Time. %s bugs should not take more than 10 days to be resolved. This issue is not resolved for %.2f days. Please, take a time to resolve it.\n\n",
-			bug.URL,
-			bug.JiraKey,
+		msg := fmt.Sprintf("%s bugs should not take more than %g days to be resolved. This issue is not resolved for %.2f days. Please, take a time to resolve it.\n\n",
 			bug.Priority,
-			bug.Priority,
+			redThreshold,
 			daysWithoutResolution,
 		)
 
 		if daysWithoutResolution > redThreshold {
 			alert.Signal = "red"
+			msg = fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for %s Bug Resolution Time. %s",
+				bug.URL,
+				bug.JiraKey,
+				bug.Priority,
+				msg,
+			)
 			alert.AlertMessage = &msg
 		} else if daysWithoutResolution > yellowThreshold {
 			alert.Signal = "yellow"
+			msg = fmt.Sprintf("Issue <%s|%s> is almost not meeting defined Bug SLO for %s Bug Resolution Time. %s",
+				bug.URL,
+				bug.JiraKey,
+				bug.Priority,
+				msg,
+			)
 			alert.AlertMessage = &msg
 		}
 	}

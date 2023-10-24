@@ -144,10 +144,10 @@ export const BugSLIs = () => {
     return (
         <React.Fragment>
             {/* page title bar */}
-            <Header info="Observe which Jira issues are not meeting the defined Bug SLOs."></Header>
+            <Header info="Observe which RHTAPBUGS issues are not meeting the defined Bug SLOs."></Header>
             <PageSection variant={PageSectionVariants.light}>
                 <Title headingLevel="h3" size={TitleSizes['2xl']}>
-                    Bug SLIs
+                    Bug SLIs (RHTAPBUGS only)
                     <Button
                         onClick={() => navigator.clipboard.writeText(window.location.href)}
                         variant="link"
