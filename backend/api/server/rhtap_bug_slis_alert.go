@@ -66,7 +66,7 @@ func getMessage(alert jira.Alert, alertType string) string {
 
 func (s *Server) sendAlert(team, msg, color string) {
 	// channel: rhtap-bug-slis-alerts
-	channelID := "C05S0USDKNE"
+	channelID := "C062AF1RFK8"
 
 	// get team mention
 	mention := getMention(team)
