@@ -1,12 +1,12 @@
 package server
 
 import (
-	"context"
 	"fmt"
 	"time"
 
 	"github.com/redhat-appstudio/quality-studio/api/server/router/jira"
 	"github.com/redhat-appstudio/quality-studio/pkg/constants"
+	"github.com/robfig/cron"
 	"github.com/slack-go/slack"
 	"go.uber.org/zap"
 )
@@ -65,8 +65,8 @@ func getMessage(alert jira.Alert, alertType string) string {
 }
 
 func (s *Server) sendAlert(team, msg, color string) {
-	// channel: rhtap-bug-slis-alert
-	channelID := "C061N8AL2SW"
+	// channel: rhtap-bug-slis-alerts
+	channelID := "C062AF1RFK8"
 
 	// get team mention
 	mention := getMention(team)
@@ -149,19 +149,17 @@ func (s *Server) SendBugSLIAlerts() {
 		s.cfg.Logger.Sugar().Errorf("Failed to get all open RHTAP Bug SLOs", zap.Error(err))
 	}
 
-	ctx := context.TODO()
 	slis := jira.GetBugSLIs(bugs)
 
-	go func() {
-		s.sendAlerts(slis)
+	cron := cron.New()
 
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-time.After(time.Hour * 24):
-				s.sendAlerts(slis)
-			}
-		}
-	}()
+	// every day at 9am
+	err = cron.AddFunc("0 0 9 * * *", func() {
+		s.sendAlerts(slis)
+	})
+	if err != nil {
+		s.cfg.Logger.Sugar().Errorf("Failed to add cron", zap.Error(err))
+	}
+
+	cron.Start()
 }

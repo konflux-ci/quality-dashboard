@@ -185,8 +185,9 @@ async function getAllRepositoriesWithOrgs(team: string, openshift: boolean, rang
       result.code = err.response.status;
       result.data = err.response.data;
     });
+
   if (result.code != 200) {
-    throw 'Error fetching data from server';
+    throw 'Error fetching data from server.';
   } else {
     result.data.sort((a, b) => (a.repository_name < b.repository_name ? -1 : 1));
     repoAndOrgs = result.data.map((row, index) => {
@@ -280,10 +281,8 @@ async function getLatestProwJob(repoName: string, repoOrg: string, jobType: stri
 async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: string, rangeDateTime: Date[]) {
   const start_date = formatDate(rangeDateTime[0]);
   const end_date = formatDate(rangeDateTime[1]);
-
-  const response = await fetch(
-    API_URL +
-    '/api/quality/prow/metrics/get?repository_name=' +
+  const result: ApiResponse = { code: 0, data: {} };
+  const uri = API_URL + '/api/quality/prow/metrics/get?repository_name=' +
     repoName +
     '&git_organization=' +
     repoOrg +
@@ -292,12 +291,24 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
     '&start_date=' +
     start_date +
     '&end_date=' +
-    end_date
-  );
-  if (!response.ok) {
+    end_date;
+
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  if (result.code != 200) {
     throw 'Error fetching data from server. ';
   }
-  const statistics: JobsStatistics = await response.json();
+
+  const statistics: JobsStatistics = result.data;
   if (statistics.jobs == null) {
     throw 'No jobs detected in OpenShift CI';
   }
