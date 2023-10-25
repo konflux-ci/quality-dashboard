@@ -11,7 +11,6 @@ import (
 )
 
 func (g *Github) CheckIfRepoExistsInOpenshiftCI(organization string, repository string) bool {
-	fmt.Println("checking if repo exists in Openshift CI")
 	if _, _, _, err := g.client.Repositories.GetContents(context.Background(), "openshift", "release", fmt.Sprintf("ci-operator/config/%s/%s", organization, repository), &github.RepositoryContentGetOptions{
 		Ref: "master",
 	}); err != nil {
