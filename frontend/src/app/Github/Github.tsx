@@ -192,7 +192,7 @@ let GitHub = () => {
     <ModalContext.Provider value={defaultModalContext}>
       <React.Fragment>
         {/* page title bar */}
-        <Header info="Observe the GitHub metrics overview of all your team's repositories."></Header>
+        <Header info="Analyze the GitHub metrics overview of all your team's repositories."></Header>
         <PageSection variant={PageSectionVariants.light}>
           <Title headingLevel="h3" size={TitleSizes['2xl']}>
             GitHub metrics
