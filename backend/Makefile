@@ -1,7 +1,7 @@
 GO := GOFLAGS="-mod=vendor" go
 SERVER_RUNTIME := $(addprefix bin/, server-runtime)
 PKG := github.com/redhat-appstudio/quality-studio
-GIT_COMMIT := $(or $(SOURCE_COMMIT_SHA),$(shell git rev-parse --short HEAD))
+GIT_COMMIT := $(or $(SOURCE_GIT_COMMIT),$(shell git rev-parse --short HEAD))
 BUILD_DATE := $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 TAGS := -tags "json1"
 
