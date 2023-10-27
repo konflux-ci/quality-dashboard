@@ -24,18 +24,19 @@ export interface JobsEntity {
 }
 
 export interface MetricsSummary {
-  success_rate_avg: string;
-  failure_rate_avg: string;
-  ci_failed_rate_avg: string;
+  success_count: number;
+  failure_count: number;
+  ci_failed_count: number;
   date_from: string;
   date_to: string;
   total_jobs: number;
 }
 
 export interface MetricsEntity {
-  success_rate: string;
-  failure_rate: string;
-  ci_failed_rate: string;
+  success_count: number;
+  failure_count: number;
+  ci_failed_count: number;
+  total_jobs: number;
   date: string;
 }
 
@@ -222,9 +223,10 @@ export type DashboardCardProps = {
   cardType?: 'default' | 'danger' | 'success' | 'warning' | 'primary' | 'help';
   title: string;
   body: string;
+  subtext: string;
 };
 
-export const DashboardCard = ({ cardType, title, body }: DashboardCardProps) => {
+export const DashboardCard = ({ cardType, title, body, subtext}: DashboardCardProps) => {
   const cardStyle = new Map();
   cardStyle.set('title-danger', { color: "#A30000", fontWeight: "semibold", fontSize: "0.8em" });
   cardStyle.set('title-success', { color: "#1E4F18", fontWeight: "semibold", fontSize: "0.8em" });
@@ -238,6 +240,12 @@ export const DashboardCard = ({ cardType, title, body }: DashboardCardProps) => 
   cardStyle.set('body-default', { color: "black", fontWeight: "bold", fontSize: "1.8em", textAlign: "center" });
   cardStyle.set('body-help', { color: "grey", fontWeight: "normal", fontSize: "0.8em", textAlign: "left" });
   cardStyle.set('body-primary', { color: "#0066CC", fontWeight: "bold", fontSize: "2em", textAlign: "center" });
+  cardStyle.set('subtext-danger', { color: "#A30000", fontWeight: "normal", fontSize: "0.7em", textAlign: "center" });
+  cardStyle.set('subtext-success', { color: "#1E4F18", fontWeight: "normal", fontSize: "0.7em", textAlign: "center" });
+  cardStyle.set('subtext-warning', { color: "#F0AB00", fontWeight: "normal", fontSize: "0.7em", textAlign: "center" });
+  cardStyle.set('subtext-default', { color: "black", fontWeight: "normal", fontSize: "0.7em", textAlign: "center" });
+  cardStyle.set('subtext-help', { color: "grey", fontWeight: "normal", fontSize: "0.8em", textAlign: "left" });
+  cardStyle.set('subtext-primary', { color: "#0066CC", fontWeight: "bold", fontSize: "1em", textAlign: "center" });
 
   return (
     <Card style={{ width: "100%", height: "100%" }}>
@@ -249,6 +257,10 @@ export const DashboardCard = ({ cardType, title, body }: DashboardCardProps) => 
         {body}
         {cardType == 'danger' && <ExclamationCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></ExclamationCircleIcon>}
         {cardType == 'success' && <OkIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></OkIcon>}
+
+        <div style={cardStyle.get("subtext-" + cardType)}>
+          {subtext}
+        </div>
       </CardBody>
     </Card>
   )
