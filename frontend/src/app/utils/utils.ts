@@ -80,3 +80,7 @@ export const getLabels = (datum, prefix) => {
 
   return `${datum.x} \n ${datum.name} : ${datum.y}`;
 };
+
+export function sortGlobalSLI(bugs) {
+  bugs.sort((a, b) => (a.global_sli > b.global_sli ? 1 : -1));
+}

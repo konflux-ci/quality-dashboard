@@ -28,6 +28,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils/errdefs"
 	"github.com/rs/cors"
+	"github.com/slack-go/slack"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/swaggo/swag"
 	"go.uber.org/zap"
@@ -61,6 +62,7 @@ type Config struct {
 	Github      *github.Github
 	CodeCov     *codecov.API
 	Db          *sql.DB
+	Slack       *slack.Client
 }
 
 // HTTPServer contains an instance of http server and the listener.
@@ -233,7 +235,10 @@ func (s *Server) createMux() *mux.Router {
 	m.MethodNotAllowedHandler = notFoundHandler
 
 	str := staticRotationStrategy()
+	s.cfg.Logger.Info("updating db")
 	s.startUpdateStorage(context.TODO(), str, time.Now)
+	s.cfg.Logger.Info("sending slis alerts")
+	s.SendBugSLIAlerts()
 
 	return m
 }

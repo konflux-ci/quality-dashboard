@@ -15,36 +15,52 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
 )
 
+type JiraBugMetricsInfo struct {
+	// number of days that took to a bug to be assigned (for closed bugs)
+	AssignmentTime float64
+
+	// number of days that took to a bug to be prioritized (for closed bugs)
+	PrioritizationTime float64
+
+	// number of days that took to a bug to be resolved (for closed bugs)
+	ResolutionTime float64
+
+	// current number of days that a bug is not assigned (for open bugs)
+	DaysWithoutAssignee float64
+
+	// current number of days that a bug is not prioritized (for open bugs)
+	DaysWithoutPriority float64
+
+	// current number of days that a bug is not resolved (for open bugs)
+	DaysWithoutResolution float64
+
+	// if the bub is resolved
+	BugIsResolved bool
+}
+
+func getComponent(components []*jira.Component) string {
+	if len(components) != 0 {
+		return components[0].Name
+	}
+
+	return "component-undefined"
+}
+
 // CreateJiraBug saves provided jira bugs information in database.
 func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 	create := false
 	createBulk := make([]*db.BugsCreate, 0)
 	for _, bug := range bugsArr {
 		bugAlreadyExists := d.client.Bugs.Query().Where(bugs.JiraKey(bug.Key)).ExistX(context.TODO())
-
-		var bugIsResolved bool
-		var diff float64
-		if bug.Fields.Status.Name == "Closed" || bug.Fields.Status.Name == "Resolved" || bug.Fields.Status.Name == "Done" {
-			resolvedTime := time.Time(bug.Fields.Resolutiondate).UTC()
-			createdTime := time.Time(bug.Fields.Created).UTC()
-
-			// diff in hours
-			diff = resolvedTime.Sub(createdTime).Hours()
-			// diff in days
-			diff = diff / 24
-			// round diff to 2 decimal places
-			diff = math.Round(diff*100) / 100
-
-			bugIsResolved = true
-		}
+		jiraBugMetricsInfo := d.getJiraBugMetrics(bug)
 
 		if bugAlreadyExists {
 			_, err := d.client.Bugs.Update().Where(predicate.Bugs(bugs.JiraKey(bug.Key))).
 				SetCreatedAt(time.Time(bug.Fields.Created)).
 				SetUpdatedAt(time.Time(bug.Fields.Updated)).
 				SetResolvedAt(time.Time(bug.Fields.Resolutiondate)).
-				SetResolved(bugIsResolved).
-				SetResolutionTime(diff).
+				SetResolved(jiraBugMetricsInfo.BugIsResolved).
+				SetResolutionTime(jiraBugMetricsInfo.ResolutionTime).
 				SetJiraKey(bug.Key).
 				SetPriority(bug.Fields.Priority.Name).
 				SetSummary(bug.Fields.Summary).
@@ -52,6 +68,13 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetStatus(bug.Fields.Status.Description).
 				SetBugs(team).
 				SetProjectKey(getProjectKey(bug.Key)).
+				SetAssignmentTime(jiraBugMetricsInfo.AssignmentTime).
+				SetPrioritizationTime(jiraBugMetricsInfo.PrioritizationTime).
+				SetDaysWithoutAssignee(jiraBugMetricsInfo.DaysWithoutAssignee).
+				SetDaysWithoutPriority(jiraBugMetricsInfo.DaysWithoutPriority).
+				SetDaysWithoutResolution(jiraBugMetricsInfo.DaysWithoutResolution).
+				SetLabels(strings.Join(bug.Fields.Labels, ",")).
+				SetComponent(getComponent(bug.Fields.Components)).
 				Save(context.TODO())
 			if err != nil {
 				return convertDBError("failed to create bug: %w", err)
@@ -61,15 +84,22 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetCreatedAt(time.Time(bug.Fields.Created)).
 				SetUpdatedAt(time.Time(bug.Fields.Updated)).
 				SetResolvedAt(time.Time(bug.Fields.Resolutiondate)).
-				SetResolved(bugIsResolved).
-				SetResolutionTime(diff).
+				SetResolved(jiraBugMetricsInfo.BugIsResolved).
+				SetResolutionTime(jiraBugMetricsInfo.ResolutionTime).
 				SetJiraKey(bug.Key).
 				SetPriority(bug.Fields.Priority.Name).
 				SetSummary(bug.Fields.Summary).
 				SetURL(fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key)).
 				SetStatus(bug.Fields.Status.Description).
 				SetBugs(team).
-				SetProjectKey(getProjectKey(bug.Key))
+				SetProjectKey(getProjectKey(bug.Key)).
+				SetAssignmentTime(jiraBugMetricsInfo.AssignmentTime).
+				SetPrioritizationTime(jiraBugMetricsInfo.PrioritizationTime).
+				SetDaysWithoutAssignee(jiraBugMetricsInfo.DaysWithoutAssignee).
+				SetDaysWithoutPriority(jiraBugMetricsInfo.DaysWithoutPriority).
+				SetDaysWithoutResolution(jiraBugMetricsInfo.DaysWithoutResolution).
+				SetLabels(strings.Join(bug.Fields.Labels, ",")).
+				SetComponent(getComponent(bug.Fields.Components))
 			createBulk = append(createBulk, createBulkByBug)
 			create = true
 		}
@@ -367,4 +397,92 @@ func (d *Database) BugExists(projectKey string, t *db.Teams) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (d *Database) getJiraBugMetrics(bug jira.Issue) JiraBugMetricsInfo {
+	jiraBugMetric := JiraBugMetricsInfo{
+		AssignmentTime:        -1,
+		PrioritizationTime:    -1,
+		ResolutionTime:        -1,
+		DaysWithoutAssignee:   -1,
+		DaysWithoutPriority:   -1,
+		DaysWithoutResolution: -1,
+		BugIsResolved:         false,
+	}
+
+	createdTime := time.Time(bug.Fields.Created).UTC()
+	daysSinceCreation := getDaysBetweenDates(createdTime, time.Now().UTC())
+
+	if bug.Fields.Status.Name == "Closed" || bug.Fields.Status.Name == "Resolved" || bug.Fields.Status.Name == "Done" {
+		// issue was closed
+		jiraBugMetric.ResolutionTime = getDaysBetweenDates(createdTime, time.Time(bug.Fields.Resolutiondate).UTC())
+		jiraBugMetric.BugIsResolved = true
+	} else {
+		// issue was not resolved
+		jiraBugMetric.DaysWithoutResolution = daysSinceCreation
+	}
+
+	foundFirstAssignee := false
+	foundFirstPriority := false
+	for _, history := range bug.Changelog.Histories {
+		for _, item := range history.Items {
+			if item.Field == "assignee" && item.FromString == "Undefined" && bug.Fields.Assignee != nil && !foundFirstAssignee {
+				historyTime, err := history.CreatedTime()
+				if err != nil {
+					fmt.Println("error getting the CreatedTime of Jira bug's history")
+				}
+
+				jiraBugMetric.AssignmentTime = getDaysBetweenDates(createdTime, historyTime.UTC())
+				foundFirstAssignee = true
+			}
+			if item.Field == "priority" && item.FromString == "Undefined" && bug.Fields.Priority != nil && !foundFirstPriority {
+				historyTime, err := history.CreatedTime()
+				if err != nil {
+					fmt.Println("error getting the CreatedTime of Jira bug's history")
+				}
+
+				jiraBugMetric.PrioritizationTime = getDaysBetweenDates(createdTime, historyTime.UTC())
+				foundFirstPriority = true
+			}
+		}
+	}
+
+	// assignee was defined during the issue creation
+	if jiraBugMetric.AssignmentTime == -1 && bug.Fields.Assignee != nil {
+		jiraBugMetric.AssignmentTime = 0
+	}
+
+	// priority was defined during the issue creation
+	if jiraBugMetric.PrioritizationTime == -1 && bug.Fields.Priority != nil && bug.Fields.Priority.Name != "Undefined" {
+		jiraBugMetric.PrioritizationTime = 0
+	}
+
+	// assignee was not defined
+	if bug.Fields.Assignee == nil {
+		jiraBugMetric.DaysWithoutAssignee = daysSinceCreation
+	}
+
+	// priority was not defined
+	if bug.Fields.Priority == nil || bug.Fields.Priority.Name == "Undefined" {
+		jiraBugMetric.DaysWithoutPriority = daysSinceCreation
+	}
+
+	return jiraBugMetric
+}
+
+// GetAllOpenRHTAPBUGS gets all the RHTAPBUGS that are open
+func (d *Database) GetAllOpenRHTAPBUGS(dateFrom, dateTo string) ([]*db.Bugs, error) {
+	b, err := d.client.Bugs.Query().
+		Where(predicate.Bugs(bugs.Resolved(false))).
+		Where(predicate.Bugs(bugs.ProjectKey("RHTAPBUGS"))).
+		Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
+			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", dateFrom, dateTo)))
+		}).
+		All(context.TODO())
+
+	if err != nil {
+		return nil, convertDBError("failed to return bugs: %w", err)
+	}
+
+	return b, nil
 }

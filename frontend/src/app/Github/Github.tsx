@@ -32,6 +32,7 @@ import { formatDate, getRangeDates } from '@app/Reports/utils';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 import { ComposableTable } from './Table';
 import { Coverage } from './CodeCov';
+import { Header } from '@app/utils/Header';
 
 export interface RepositoryInfo {
   repository_name: string;
@@ -191,6 +192,7 @@ let GitHub = () => {
     <ModalContext.Provider value={defaultModalContext}>
       <React.Fragment>
         {/* page title bar */}
+        <Header info="Analyze the GitHub metrics overview of all your team's repositories."></Header>
         <PageSection variant={PageSectionVariants.light}>
           <Title headingLevel="h3" size={TitleSizes['2xl']}>
             GitHub metrics

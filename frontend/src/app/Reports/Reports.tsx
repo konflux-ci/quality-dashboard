@@ -30,6 +30,7 @@ import { formatDate, getRangeDates } from './utils';
 import { DateTimeRangePicker } from '../utils/DateTimeRangePicker';
 import { FailedE2ETests, Job, getFailedProwJobsInE2ETests } from './FailedE2ETests';
 import { validateRepositoryParams, validateParam } from '@app/utils/utils';
+import { Header } from '@app/utils/Header';
 
 // eslint-disable-next-line prefer-const
 let Reports = () => {
@@ -347,6 +348,7 @@ let Reports = () => {
 
     <React.Fragment>
       {/* page title bar */}
+      <Header info="Observe the CI metrics of all your ci's jobs."></Header>
       <PageSection variant={PageSectionVariants.light}>
         <Title headingLevel="h3" size={TitleSizes['2xl']}>
           Tests Reports

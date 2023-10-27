@@ -115,6 +115,104 @@ func (bc *BugsCreate) SetNillableProjectKey(s *string) *BugsCreate {
 	return bc
 }
 
+// SetAssignmentTime sets the "assignment_time" field.
+func (bc *BugsCreate) SetAssignmentTime(f float64) *BugsCreate {
+	bc.mutation.SetAssignmentTime(f)
+	return bc
+}
+
+// SetNillableAssignmentTime sets the "assignment_time" field if the given value is not nil.
+func (bc *BugsCreate) SetNillableAssignmentTime(f *float64) *BugsCreate {
+	if f != nil {
+		bc.SetAssignmentTime(*f)
+	}
+	return bc
+}
+
+// SetPrioritizationTime sets the "prioritization_time" field.
+func (bc *BugsCreate) SetPrioritizationTime(f float64) *BugsCreate {
+	bc.mutation.SetPrioritizationTime(f)
+	return bc
+}
+
+// SetNillablePrioritizationTime sets the "prioritization_time" field if the given value is not nil.
+func (bc *BugsCreate) SetNillablePrioritizationTime(f *float64) *BugsCreate {
+	if f != nil {
+		bc.SetPrioritizationTime(*f)
+	}
+	return bc
+}
+
+// SetDaysWithoutAssignee sets the "days_without_assignee" field.
+func (bc *BugsCreate) SetDaysWithoutAssignee(f float64) *BugsCreate {
+	bc.mutation.SetDaysWithoutAssignee(f)
+	return bc
+}
+
+// SetNillableDaysWithoutAssignee sets the "days_without_assignee" field if the given value is not nil.
+func (bc *BugsCreate) SetNillableDaysWithoutAssignee(f *float64) *BugsCreate {
+	if f != nil {
+		bc.SetDaysWithoutAssignee(*f)
+	}
+	return bc
+}
+
+// SetDaysWithoutPriority sets the "days_without_priority" field.
+func (bc *BugsCreate) SetDaysWithoutPriority(f float64) *BugsCreate {
+	bc.mutation.SetDaysWithoutPriority(f)
+	return bc
+}
+
+// SetNillableDaysWithoutPriority sets the "days_without_priority" field if the given value is not nil.
+func (bc *BugsCreate) SetNillableDaysWithoutPriority(f *float64) *BugsCreate {
+	if f != nil {
+		bc.SetDaysWithoutPriority(*f)
+	}
+	return bc
+}
+
+// SetDaysWithoutResolution sets the "days_without_resolution" field.
+func (bc *BugsCreate) SetDaysWithoutResolution(f float64) *BugsCreate {
+	bc.mutation.SetDaysWithoutResolution(f)
+	return bc
+}
+
+// SetNillableDaysWithoutResolution sets the "days_without_resolution" field if the given value is not nil.
+func (bc *BugsCreate) SetNillableDaysWithoutResolution(f *float64) *BugsCreate {
+	if f != nil {
+		bc.SetDaysWithoutResolution(*f)
+	}
+	return bc
+}
+
+// SetLabels sets the "labels" field.
+func (bc *BugsCreate) SetLabels(s string) *BugsCreate {
+	bc.mutation.SetLabels(s)
+	return bc
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (bc *BugsCreate) SetNillableLabels(s *string) *BugsCreate {
+	if s != nil {
+		bc.SetLabels(*s)
+	}
+	return bc
+}
+
+// SetComponent sets the "component" field.
+func (bc *BugsCreate) SetComponent(s string) *BugsCreate {
+	bc.mutation.SetComponent(s)
+	return bc
+}
+
+// SetNillableComponent sets the "component" field if the given value is not nil.
+func (bc *BugsCreate) SetNillableComponent(s *string) *BugsCreate {
+	if s != nil {
+		bc.SetComponent(*s)
+	}
+	return bc
+}
+
 // SetID sets the "id" field.
 func (bc *BugsCreate) SetID(u uuid.UUID) *BugsCreate {
 	bc.mutation.SetID(u)
@@ -319,6 +417,34 @@ func (bc *BugsCreate) createSpec() (*Bugs, *sqlgraph.CreateSpec) {
 	if value, ok := bc.mutation.ProjectKey(); ok {
 		_spec.SetField(bugs.FieldProjectKey, field.TypeString, value)
 		_node.ProjectKey = &value
+	}
+	if value, ok := bc.mutation.AssignmentTime(); ok {
+		_spec.SetField(bugs.FieldAssignmentTime, field.TypeFloat64, value)
+		_node.AssignmentTime = &value
+	}
+	if value, ok := bc.mutation.PrioritizationTime(); ok {
+		_spec.SetField(bugs.FieldPrioritizationTime, field.TypeFloat64, value)
+		_node.PrioritizationTime = &value
+	}
+	if value, ok := bc.mutation.DaysWithoutAssignee(); ok {
+		_spec.SetField(bugs.FieldDaysWithoutAssignee, field.TypeFloat64, value)
+		_node.DaysWithoutAssignee = &value
+	}
+	if value, ok := bc.mutation.DaysWithoutPriority(); ok {
+		_spec.SetField(bugs.FieldDaysWithoutPriority, field.TypeFloat64, value)
+		_node.DaysWithoutPriority = &value
+	}
+	if value, ok := bc.mutation.DaysWithoutResolution(); ok {
+		_spec.SetField(bugs.FieldDaysWithoutResolution, field.TypeFloat64, value)
+		_node.DaysWithoutResolution = &value
+	}
+	if value, ok := bc.mutation.Labels(); ok {
+		_spec.SetField(bugs.FieldLabels, field.TypeString, value)
+		_node.Labels = &value
+	}
+	if value, ok := bc.mutation.Component(); ok {
+		_spec.SetField(bugs.FieldComponent, field.TypeString, value)
+		_node.Component = &value
 	}
 	if nodes := bc.mutation.BugsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -536,6 +662,162 @@ func (u *BugsUpsert) ClearProjectKey() *BugsUpsert {
 	return u
 }
 
+// SetAssignmentTime sets the "assignment_time" field.
+func (u *BugsUpsert) SetAssignmentTime(v float64) *BugsUpsert {
+	u.Set(bugs.FieldAssignmentTime, v)
+	return u
+}
+
+// UpdateAssignmentTime sets the "assignment_time" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateAssignmentTime() *BugsUpsert {
+	u.SetExcluded(bugs.FieldAssignmentTime)
+	return u
+}
+
+// AddAssignmentTime adds v to the "assignment_time" field.
+func (u *BugsUpsert) AddAssignmentTime(v float64) *BugsUpsert {
+	u.Add(bugs.FieldAssignmentTime, v)
+	return u
+}
+
+// ClearAssignmentTime clears the value of the "assignment_time" field.
+func (u *BugsUpsert) ClearAssignmentTime() *BugsUpsert {
+	u.SetNull(bugs.FieldAssignmentTime)
+	return u
+}
+
+// SetPrioritizationTime sets the "prioritization_time" field.
+func (u *BugsUpsert) SetPrioritizationTime(v float64) *BugsUpsert {
+	u.Set(bugs.FieldPrioritizationTime, v)
+	return u
+}
+
+// UpdatePrioritizationTime sets the "prioritization_time" field to the value that was provided on create.
+func (u *BugsUpsert) UpdatePrioritizationTime() *BugsUpsert {
+	u.SetExcluded(bugs.FieldPrioritizationTime)
+	return u
+}
+
+// AddPrioritizationTime adds v to the "prioritization_time" field.
+func (u *BugsUpsert) AddPrioritizationTime(v float64) *BugsUpsert {
+	u.Add(bugs.FieldPrioritizationTime, v)
+	return u
+}
+
+// ClearPrioritizationTime clears the value of the "prioritization_time" field.
+func (u *BugsUpsert) ClearPrioritizationTime() *BugsUpsert {
+	u.SetNull(bugs.FieldPrioritizationTime)
+	return u
+}
+
+// SetDaysWithoutAssignee sets the "days_without_assignee" field.
+func (u *BugsUpsert) SetDaysWithoutAssignee(v float64) *BugsUpsert {
+	u.Set(bugs.FieldDaysWithoutAssignee, v)
+	return u
+}
+
+// UpdateDaysWithoutAssignee sets the "days_without_assignee" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateDaysWithoutAssignee() *BugsUpsert {
+	u.SetExcluded(bugs.FieldDaysWithoutAssignee)
+	return u
+}
+
+// AddDaysWithoutAssignee adds v to the "days_without_assignee" field.
+func (u *BugsUpsert) AddDaysWithoutAssignee(v float64) *BugsUpsert {
+	u.Add(bugs.FieldDaysWithoutAssignee, v)
+	return u
+}
+
+// ClearDaysWithoutAssignee clears the value of the "days_without_assignee" field.
+func (u *BugsUpsert) ClearDaysWithoutAssignee() *BugsUpsert {
+	u.SetNull(bugs.FieldDaysWithoutAssignee)
+	return u
+}
+
+// SetDaysWithoutPriority sets the "days_without_priority" field.
+func (u *BugsUpsert) SetDaysWithoutPriority(v float64) *BugsUpsert {
+	u.Set(bugs.FieldDaysWithoutPriority, v)
+	return u
+}
+
+// UpdateDaysWithoutPriority sets the "days_without_priority" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateDaysWithoutPriority() *BugsUpsert {
+	u.SetExcluded(bugs.FieldDaysWithoutPriority)
+	return u
+}
+
+// AddDaysWithoutPriority adds v to the "days_without_priority" field.
+func (u *BugsUpsert) AddDaysWithoutPriority(v float64) *BugsUpsert {
+	u.Add(bugs.FieldDaysWithoutPriority, v)
+	return u
+}
+
+// ClearDaysWithoutPriority clears the value of the "days_without_priority" field.
+func (u *BugsUpsert) ClearDaysWithoutPriority() *BugsUpsert {
+	u.SetNull(bugs.FieldDaysWithoutPriority)
+	return u
+}
+
+// SetDaysWithoutResolution sets the "days_without_resolution" field.
+func (u *BugsUpsert) SetDaysWithoutResolution(v float64) *BugsUpsert {
+	u.Set(bugs.FieldDaysWithoutResolution, v)
+	return u
+}
+
+// UpdateDaysWithoutResolution sets the "days_without_resolution" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateDaysWithoutResolution() *BugsUpsert {
+	u.SetExcluded(bugs.FieldDaysWithoutResolution)
+	return u
+}
+
+// AddDaysWithoutResolution adds v to the "days_without_resolution" field.
+func (u *BugsUpsert) AddDaysWithoutResolution(v float64) *BugsUpsert {
+	u.Add(bugs.FieldDaysWithoutResolution, v)
+	return u
+}
+
+// ClearDaysWithoutResolution clears the value of the "days_without_resolution" field.
+func (u *BugsUpsert) ClearDaysWithoutResolution() *BugsUpsert {
+	u.SetNull(bugs.FieldDaysWithoutResolution)
+	return u
+}
+
+// SetLabels sets the "labels" field.
+func (u *BugsUpsert) SetLabels(v string) *BugsUpsert {
+	u.Set(bugs.FieldLabels, v)
+	return u
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateLabels() *BugsUpsert {
+	u.SetExcluded(bugs.FieldLabels)
+	return u
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *BugsUpsert) ClearLabels() *BugsUpsert {
+	u.SetNull(bugs.FieldLabels)
+	return u
+}
+
+// SetComponent sets the "component" field.
+func (u *BugsUpsert) SetComponent(v string) *BugsUpsert {
+	u.Set(bugs.FieldComponent, v)
+	return u
+}
+
+// UpdateComponent sets the "component" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateComponent() *BugsUpsert {
+	u.SetExcluded(bugs.FieldComponent)
+	return u
+}
+
+// ClearComponent clears the value of the "component" field.
+func (u *BugsUpsert) ClearComponent() *BugsUpsert {
+	u.SetNull(bugs.FieldComponent)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -749,6 +1031,188 @@ func (u *BugsUpsertOne) UpdateProjectKey() *BugsUpsertOne {
 func (u *BugsUpsertOne) ClearProjectKey() *BugsUpsertOne {
 	return u.Update(func(s *BugsUpsert) {
 		s.ClearProjectKey()
+	})
+}
+
+// SetAssignmentTime sets the "assignment_time" field.
+func (u *BugsUpsertOne) SetAssignmentTime(v float64) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetAssignmentTime(v)
+	})
+}
+
+// AddAssignmentTime adds v to the "assignment_time" field.
+func (u *BugsUpsertOne) AddAssignmentTime(v float64) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.AddAssignmentTime(v)
+	})
+}
+
+// UpdateAssignmentTime sets the "assignment_time" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateAssignmentTime() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateAssignmentTime()
+	})
+}
+
+// ClearAssignmentTime clears the value of the "assignment_time" field.
+func (u *BugsUpsertOne) ClearAssignmentTime() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearAssignmentTime()
+	})
+}
+
+// SetPrioritizationTime sets the "prioritization_time" field.
+func (u *BugsUpsertOne) SetPrioritizationTime(v float64) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetPrioritizationTime(v)
+	})
+}
+
+// AddPrioritizationTime adds v to the "prioritization_time" field.
+func (u *BugsUpsertOne) AddPrioritizationTime(v float64) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.AddPrioritizationTime(v)
+	})
+}
+
+// UpdatePrioritizationTime sets the "prioritization_time" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdatePrioritizationTime() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdatePrioritizationTime()
+	})
+}
+
+// ClearPrioritizationTime clears the value of the "prioritization_time" field.
+func (u *BugsUpsertOne) ClearPrioritizationTime() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearPrioritizationTime()
+	})
+}
+
+// SetDaysWithoutAssignee sets the "days_without_assignee" field.
+func (u *BugsUpsertOne) SetDaysWithoutAssignee(v float64) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetDaysWithoutAssignee(v)
+	})
+}
+
+// AddDaysWithoutAssignee adds v to the "days_without_assignee" field.
+func (u *BugsUpsertOne) AddDaysWithoutAssignee(v float64) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.AddDaysWithoutAssignee(v)
+	})
+}
+
+// UpdateDaysWithoutAssignee sets the "days_without_assignee" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateDaysWithoutAssignee() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateDaysWithoutAssignee()
+	})
+}
+
+// ClearDaysWithoutAssignee clears the value of the "days_without_assignee" field.
+func (u *BugsUpsertOne) ClearDaysWithoutAssignee() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearDaysWithoutAssignee()
+	})
+}
+
+// SetDaysWithoutPriority sets the "days_without_priority" field.
+func (u *BugsUpsertOne) SetDaysWithoutPriority(v float64) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetDaysWithoutPriority(v)
+	})
+}
+
+// AddDaysWithoutPriority adds v to the "days_without_priority" field.
+func (u *BugsUpsertOne) AddDaysWithoutPriority(v float64) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.AddDaysWithoutPriority(v)
+	})
+}
+
+// UpdateDaysWithoutPriority sets the "days_without_priority" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateDaysWithoutPriority() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateDaysWithoutPriority()
+	})
+}
+
+// ClearDaysWithoutPriority clears the value of the "days_without_priority" field.
+func (u *BugsUpsertOne) ClearDaysWithoutPriority() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearDaysWithoutPriority()
+	})
+}
+
+// SetDaysWithoutResolution sets the "days_without_resolution" field.
+func (u *BugsUpsertOne) SetDaysWithoutResolution(v float64) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetDaysWithoutResolution(v)
+	})
+}
+
+// AddDaysWithoutResolution adds v to the "days_without_resolution" field.
+func (u *BugsUpsertOne) AddDaysWithoutResolution(v float64) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.AddDaysWithoutResolution(v)
+	})
+}
+
+// UpdateDaysWithoutResolution sets the "days_without_resolution" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateDaysWithoutResolution() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateDaysWithoutResolution()
+	})
+}
+
+// ClearDaysWithoutResolution clears the value of the "days_without_resolution" field.
+func (u *BugsUpsertOne) ClearDaysWithoutResolution() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearDaysWithoutResolution()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *BugsUpsertOne) SetLabels(v string) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateLabels() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *BugsUpsertOne) ClearLabels() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearLabels()
+	})
+}
+
+// SetComponent sets the "component" field.
+func (u *BugsUpsertOne) SetComponent(v string) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetComponent(v)
+	})
+}
+
+// UpdateComponent sets the "component" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateComponent() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateComponent()
+	})
+}
+
+// ClearComponent clears the value of the "component" field.
+func (u *BugsUpsertOne) ClearComponent() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearComponent()
 	})
 }
 
@@ -1128,6 +1592,188 @@ func (u *BugsUpsertBulk) UpdateProjectKey() *BugsUpsertBulk {
 func (u *BugsUpsertBulk) ClearProjectKey() *BugsUpsertBulk {
 	return u.Update(func(s *BugsUpsert) {
 		s.ClearProjectKey()
+	})
+}
+
+// SetAssignmentTime sets the "assignment_time" field.
+func (u *BugsUpsertBulk) SetAssignmentTime(v float64) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetAssignmentTime(v)
+	})
+}
+
+// AddAssignmentTime adds v to the "assignment_time" field.
+func (u *BugsUpsertBulk) AddAssignmentTime(v float64) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.AddAssignmentTime(v)
+	})
+}
+
+// UpdateAssignmentTime sets the "assignment_time" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateAssignmentTime() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateAssignmentTime()
+	})
+}
+
+// ClearAssignmentTime clears the value of the "assignment_time" field.
+func (u *BugsUpsertBulk) ClearAssignmentTime() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearAssignmentTime()
+	})
+}
+
+// SetPrioritizationTime sets the "prioritization_time" field.
+func (u *BugsUpsertBulk) SetPrioritizationTime(v float64) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetPrioritizationTime(v)
+	})
+}
+
+// AddPrioritizationTime adds v to the "prioritization_time" field.
+func (u *BugsUpsertBulk) AddPrioritizationTime(v float64) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.AddPrioritizationTime(v)
+	})
+}
+
+// UpdatePrioritizationTime sets the "prioritization_time" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdatePrioritizationTime() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdatePrioritizationTime()
+	})
+}
+
+// ClearPrioritizationTime clears the value of the "prioritization_time" field.
+func (u *BugsUpsertBulk) ClearPrioritizationTime() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearPrioritizationTime()
+	})
+}
+
+// SetDaysWithoutAssignee sets the "days_without_assignee" field.
+func (u *BugsUpsertBulk) SetDaysWithoutAssignee(v float64) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetDaysWithoutAssignee(v)
+	})
+}
+
+// AddDaysWithoutAssignee adds v to the "days_without_assignee" field.
+func (u *BugsUpsertBulk) AddDaysWithoutAssignee(v float64) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.AddDaysWithoutAssignee(v)
+	})
+}
+
+// UpdateDaysWithoutAssignee sets the "days_without_assignee" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateDaysWithoutAssignee() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateDaysWithoutAssignee()
+	})
+}
+
+// ClearDaysWithoutAssignee clears the value of the "days_without_assignee" field.
+func (u *BugsUpsertBulk) ClearDaysWithoutAssignee() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearDaysWithoutAssignee()
+	})
+}
+
+// SetDaysWithoutPriority sets the "days_without_priority" field.
+func (u *BugsUpsertBulk) SetDaysWithoutPriority(v float64) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetDaysWithoutPriority(v)
+	})
+}
+
+// AddDaysWithoutPriority adds v to the "days_without_priority" field.
+func (u *BugsUpsertBulk) AddDaysWithoutPriority(v float64) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.AddDaysWithoutPriority(v)
+	})
+}
+
+// UpdateDaysWithoutPriority sets the "days_without_priority" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateDaysWithoutPriority() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateDaysWithoutPriority()
+	})
+}
+
+// ClearDaysWithoutPriority clears the value of the "days_without_priority" field.
+func (u *BugsUpsertBulk) ClearDaysWithoutPriority() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearDaysWithoutPriority()
+	})
+}
+
+// SetDaysWithoutResolution sets the "days_without_resolution" field.
+func (u *BugsUpsertBulk) SetDaysWithoutResolution(v float64) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetDaysWithoutResolution(v)
+	})
+}
+
+// AddDaysWithoutResolution adds v to the "days_without_resolution" field.
+func (u *BugsUpsertBulk) AddDaysWithoutResolution(v float64) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.AddDaysWithoutResolution(v)
+	})
+}
+
+// UpdateDaysWithoutResolution sets the "days_without_resolution" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateDaysWithoutResolution() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateDaysWithoutResolution()
+	})
+}
+
+// ClearDaysWithoutResolution clears the value of the "days_without_resolution" field.
+func (u *BugsUpsertBulk) ClearDaysWithoutResolution() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearDaysWithoutResolution()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *BugsUpsertBulk) SetLabels(v string) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateLabels() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *BugsUpsertBulk) ClearLabels() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearLabels()
+	})
+}
+
+// SetComponent sets the "component" field.
+func (u *BugsUpsertBulk) SetComponent(v string) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetComponent(v)
+	})
+}
+
+// UpdateComponent sets the "component" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateComponent() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateComponent()
+	})
+}
+
+// ClearComponent clears the value of the "component" field.
+func (u *BugsUpsertBulk) ClearComponent() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearComponent()
 	})
 }
 
