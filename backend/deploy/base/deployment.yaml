@@ -80,6 +80,11 @@ spec:
                 secretKeyRef:
                   name: quality-dashboard-secrets
                   key: dex-application-id
+            - name: SLACK_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: quality-dashboard-secrets
+                  key: slack_token
           args:
             - "--port=8000"
           securityContext:

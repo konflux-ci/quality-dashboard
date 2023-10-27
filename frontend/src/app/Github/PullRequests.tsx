@@ -31,7 +31,7 @@ export interface Metrics {
   merged_prs_count: number;
 }
 
-export const help = (desc: string) => {
+export const help = (desc) => {
   return (
     <Popover
       bodyContent={

@@ -81,3 +81,16 @@ func handleNaN(nr float64) float64 {
 	}
 	return nr
 }
+
+// getDaysBetweenDates gets the number of days between two dates
+func getDaysBetweenDates(firstDate, secondDate time.Time) float64 {
+	diff := secondDate.Sub(firstDate).Hours()
+
+	// diff in days
+	diff = diff / 24
+
+	// round diff to 2 decimal places
+	diff = math.Round(diff*100) / 100
+
+	return diff
+}

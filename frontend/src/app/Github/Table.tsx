@@ -17,6 +17,16 @@ import { useHistory } from 'react-router-dom';
 import { RepositoryInfo } from './Github';
 import { GetMetrics, MetricsModalContext, useMetricsModalContext, useMetricsModalContextState } from './Metrics';
 
+export const fillPopOver = (title, description) => {
+    return {
+        popover: (description),
+        ariaLabel: 'More information on' + title,
+        popoverProps: {
+            headerContent: title,
+        }
+
+    }
+}
 
 export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, modal }) => {
     const [reposPage, setReposPage] = useState<Array<RepositoryInfo>>([]);
@@ -227,18 +237,6 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
     });
     // End of sort helpers
 
-
-    const fillPopOver = (title, description) => {
-        return {
-            popover: (description),
-            ariaLabel: 'More information on' + title,
-            popoverProps: {
-                headerContent: title,
-            }
-
-        }
-    }
-
     const getInfo = (label) => {
         if (label == "Retest Before Merge Avg") {
             return fillPopOver("Retest Before Merge Avg", "Calculates an average how many /test and /retest comments were issued after the last code push (in the selected time range)")
@@ -249,7 +247,7 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
         if (label == "Code Cov") {
             return fillPopOver("Code Cov", "The coverage trend is calculated through the two last commits. No trend arrow means that the coverage trend is stable")
         }
-       return
+        return
     }
 
     return (
