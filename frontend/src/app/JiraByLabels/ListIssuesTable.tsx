@@ -33,8 +33,6 @@ export const ListIssues: React.FC<{ issues: any }> = ({ issues }) => {
     const [filters, setFilters] = useState({});
     const [activeSortIndex, setActiveSortIndex] = React.useState<number | null>(null);
     const [activeSortDirection, setActiveSortDirection] = React.useState<'asc' | 'desc' | null>(null);
-    
-    console.log("table issues", issues)
 
     useEffect(() => {
         if (issues.length == 0) {

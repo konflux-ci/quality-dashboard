@@ -632,7 +632,6 @@ async function getBugSLIs(team: string, rangeDateTime: Date[]) {
 }
 
 async function getJiraIssuesByJQLQuery(query: string) {
-  console.log("begin")
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/jira/issues/custom-query?query=' + query
 
@@ -647,8 +646,6 @@ async function getJiraIssuesByJQLQuery(query: string) {
       result.code = err.response.status;
       result.data = err.response.data;
     });
-
-  console.log("result", result)
 
   return result;
 }

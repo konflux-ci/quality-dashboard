@@ -94,8 +94,6 @@ export const Jira = () => {
     }
 
     useEffect(() => {
-        console.log("entteeretti")
-        console.log(window.location.pathname + '?' + params.toString())
         if (currentTeam != "") {
             listE2EBugsKnown().then(res => {
                 const bugs = new Array<Bugs>
