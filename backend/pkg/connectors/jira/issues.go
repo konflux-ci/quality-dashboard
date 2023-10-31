@@ -22,6 +22,7 @@ func (t *clientFactory) GetIssueByJQLQuery(JQLQuery string) []jira.Issue {
 		logger, _ := logger.InitZap("info")
 		logger.Error("Failed to search pages", zap.Error(err))
 	}
+
 	return issues
 }
 

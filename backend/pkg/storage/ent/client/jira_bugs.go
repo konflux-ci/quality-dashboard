@@ -43,7 +43,7 @@ func getComponent(components []*jira.Component) string {
 		return components[0].Name
 	}
 
-	return "component-undefined"
+	return "undefined"
 }
 
 // CreateJiraBug saves provided jira bugs information in database.

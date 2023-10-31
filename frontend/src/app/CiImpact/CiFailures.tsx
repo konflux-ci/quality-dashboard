@@ -33,7 +33,7 @@ export interface FailureInfo {
 }
 
 // eslint-disable-next-line prefer-const
-let CiFailures = () => {
+let CiImpact = () => {
   const [loadingState, setLoadingState] = useState(false);
   const defaultModalContext = useDefaultModalContextState();
   const modalContext = useModalContext();
@@ -207,4 +207,4 @@ let CiFailures = () => {
   );
 };
 
-export { CiFailures };
+export { CiImpact };

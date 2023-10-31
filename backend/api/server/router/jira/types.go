@@ -47,3 +47,14 @@ type BugSlisInfo struct {
 	ResolutionTimeSLI SLI       `json:"resolution_time_sli"`
 	Bugs              []Bug     `json:"bugs"`
 }
+
+type Issue struct {
+	Key       string `json:"key"`
+	Summary   string `json:"summary"`
+	Status    string `json:"status"`
+	Priority  string `json:"priority"`
+	Labels    string `json:"labels"`
+	Component string `json:"component"`
+	Age       string `json:"age"`
+	Assignee  string `json:"assignee"`
+}

@@ -33,7 +33,7 @@ import { getLabels } from '@app/utils/utils';
 import { help } from '@app/Github/PullRequests';
 import { Header } from '@app/utils/Header';
 
-interface Bugs {
+export interface Bugs {
     jira_key: string;
     created_at: string;
     deleted_at: string;
@@ -94,6 +94,8 @@ export const Jira = () => {
     }
 
     useEffect(() => {
+        console.log("entteeretti")
+        console.log(window.location.pathname + '?' + params.toString())
         if (currentTeam != "") {
             listE2EBugsKnown().then(res => {
                 const bugs = new Array<Bugs>
@@ -521,7 +523,7 @@ const BugsChart: React.FC<{ chartTitle: string, data: any, onBarClick: any }> = 
     );
 }
 
-const ComposableTableStripedTr: React.FC<{ bugs: any, longVersion: boolean }> = ({ bugs, longVersion }) => {
+export const ComposableTableStripedTr: React.FC<{ bugs: any, longVersion: boolean }> = ({ bugs, longVersion }) => {
     const [bugsPage, setBugsPage] = useState<Array<Bugs>>([]);
     const [page, setPage] = React.useState(1);
     const [perPage, setPerPage] = React.useState(10);
@@ -704,12 +706,12 @@ const ComposableTableStripedTr: React.FC<{ bugs: any, longVersion: boolean }> = 
                 onPerPageSelect={onPerPageSelect}
             />
 
-            <TableComposable aria-label="Simple table" >
+            <TableComposable aria-label="Simple table" width="50">
                 <Thead>
                     <Tr>
                         {columns.map((column, idx) => {
                             return (
-                                <Th width={10} sort={getSortParams(idx)} key={idx}>
+                                <Th sort={getSortParams(idx)} key={idx}>
                                     {column.label}
                                 </Th>
                             )
@@ -719,7 +721,7 @@ const ComposableTableStripedTr: React.FC<{ bugs: any, longVersion: boolean }> = 
                         {columns.map(c => {
                             return (
                                 <Th key={c.column}>
-                                    <input style={{ width: '100%' }}
+                                    <input
                                         key={`${c.column}-search`}
                                         type="search"
                                         placeholder={`Search`}

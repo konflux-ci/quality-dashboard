@@ -3,8 +3,13 @@ package jira
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"math"
 	"net/http"
+	"strings"
+	"time"
 
+	"github.com/andygrunwald/go-jira"
 	"github.com/redhat-appstudio/quality-studio/api/types"
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
 )
@@ -316,4 +321,66 @@ func (s *jiraRouter) getBugSLIs(ctx context.Context, w http.ResponseWriter, r *h
 	slis := GetBugSLIs(bugs)
 
 	return httputils.WriteJSON(w, http.StatusOK, slis)
+}
+
+func (s *jiraRouter) getJiraIssuesByJQLQuery(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	query := r.URL.Query()["query"]
+
+	if len(query) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "query value not present in query",
+			StatusCode: 400,
+		})
+	}
+	issues := make([]Issue, 0)
+
+	for _, issue := range s.Jira.GetIssueByJQLQuery(query[0]) {
+		issues = append(issues, Issue{
+			Key:       issue.Key,
+			Summary:   issue.Fields.Summary,
+			Status:    issue.Fields.Status.Name,
+			Priority:  issue.Fields.Priority.Name,
+			Labels:    strings.Join(issue.Fields.Labels, ","),
+			Component: getComponent(issue.Fields.Components),
+			Age:       getDays(issue.Fields.Created, issue.Fields.Resolutiondate, issue.Fields.Status.Name),
+			Assignee:  getAssignee(issue.Fields.Assignee),
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, issues)
+}
+
+func getAssignee(user *jira.User) string {
+	if user != nil {
+		return user.Key
+	}
+
+	return "unassigned"
+}
+
+func getComponent(components []*jira.Component) string {
+	if len(components) != 0 {
+		return components[0].Name
+	}
+
+	return "undefined"
+}
+
+func getDays(createdDate, resolutionDate jira.Time, status string) string {
+	firstDate := time.Time(createdDate)
+	secondDate := time.Now()
+
+	if status == "Closed" {
+		firstDate = time.Time(resolutionDate)
+	}
+
+	diff := secondDate.Sub(firstDate).Hours()
+
+	// diff in days
+	diff = diff / 24
+
+	// round diff to 2 decimal places
+	diff = math.Round(diff*100) / 100
+
+	return fmt.Sprintf("%.2f", diff)
 }

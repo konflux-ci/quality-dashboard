@@ -35,6 +35,7 @@ func NewRouter(s storage.Storage) router.Router {
 		router.NewPostRoute("/jira/bugs/metrics/open", r.openBugsMetrics),
 		router.NewGetRoute("/jira/bugs/exist", r.bugExists),
 		router.NewGetRoute("/jira/slis/list", r.getBugSLIs),
+		router.NewGetRoute("/jira/issues/custom-query", r.getJiraIssuesByJQLQuery),
 	}
 
 	return r

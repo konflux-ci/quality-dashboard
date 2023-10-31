@@ -10,9 +10,10 @@ import { ReactReduxContext } from 'react-redux';
 import { Jira } from './Jira/Jira';
 import { GitHub } from './Github/Github';
 import { Config } from './Config/Config';
-import { initOauthFlow, completeOauthFlow, OauthData, refreshTokenFlow } from '@app/utils/oauth'
-import { CiFailures } from './CiFailures/CiFailures';
+import { refreshTokenFlow } from '@app/utils/oauth'
+import { CiImpact } from './CiImpact/CiFailures';
 import { BugSLIs } from './BugSLIs/MainPage';
+import { JiraByLabels } from './JiraByLabels/JiraByLabels';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -90,6 +91,15 @@ const routes: AppRouteConfig[] = [
         title: 'Jira  | Quality Studio',
       },
       {
+        component: JiraByLabels,
+        exact: true,
+        isAsync: true,
+        isProtected: true,
+        label: 'Jira By Labels',
+        path: '/home/jira-by-labels',
+        title: 'Jira By Labels | Quality Studio',
+      },
+      {
         component: BugSLIs,
         exact: true,
         isAsync: true,
@@ -108,7 +118,7 @@ const routes: AppRouteConfig[] = [
         title: 'Openshift CI | Quality Studio',
       },
       {
-        component: CiFailures,
+        component: CiImpact,
         exact: true,
         isAsync: true,
         isProtected: true,

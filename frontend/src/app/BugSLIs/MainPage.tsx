@@ -224,7 +224,7 @@ export const BugSLIs = () => {
                                         Component's Bug SLIs
                                     </CardTitle>
                                     <CardBody>
-                                    <SLIsStackChart bugSLIs={bugSLIs}></SLIsStackChart>
+                                        <SLIsStackChart bugSLIs={bugSLIs}></SLIsStackChart>
                                     </CardBody>
                                 </Card>
                             </GridItem>
@@ -266,4 +266,3 @@ export const BugSLIs = () => {
         </React.Fragment >
     );
 };
-

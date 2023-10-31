@@ -22,7 +22,7 @@ const client: oauth2.Client = {
 
 const redirect_uri = process.env.FRONTEND_REDIRECT_URI || 'https://frontend-quality-dashboar0esw-rhtap-qe-shared-tenant.apps.stone-prd-m01.84db.p1.openshiftapps.com/login'
 
-export async function initOauthFlow():Promise<URL> {
+export async function initOauthFlow(): Promise<URL> {
   let authorizationUrl: URL
   let as = await oauth2.discoveryRequest(issuer).then((response) => oauth2.processDiscoveryResponse(issuer, response))
 
@@ -41,13 +41,13 @@ export async function initOauthFlow():Promise<URL> {
   authorizationUrl.searchParams.set('code_challenge_method', code_challenge_method)
   authorizationUrl.searchParams.set('redirect_uri', redirect_uri)
   authorizationUrl.searchParams.set('response_type', 'code')
-  authorizationUrl.searchParams.set('scope', 'openid email offline_access profile groups', )
+  authorizationUrl.searchParams.set('scope', 'openid email offline_access profile groups',)
   authorizationUrl.searchParams.set('state', state)
 
   return authorizationUrl
 }
 
-export async function completeOauthFlow():Promise<OauthData> {
+export async function completeOauthFlow(): Promise<OauthData> {
   const d = new Date().toDateString()
   const code_verifier = btoa(d);
   let as = await oauth2.discoveryRequest(issuer).then((response) => oauth2.processDiscoveryResponse(issuer, response))
@@ -100,11 +100,11 @@ export async function completeOauthFlow():Promise<OauthData> {
     throw new Error() // Handle www-authenticate challenges as needed
   }
   const res = await oauth2.processUserInfoResponse(as, client, sub, resp)
-  if(result.email){
+  if (result.email) {
     username = result.email as string
   }
 
-  let Data:OauthData = {
+  let Data: OauthData = {
     AT: access_token,
     IDT: id_token,
     AT_EXPIRATION: expiration,
@@ -115,7 +115,7 @@ export async function completeOauthFlow():Promise<OauthData> {
   return Data
 }
 
-export async function refreshTokenFlow(rt:string):Promise<OauthData> {
+export async function refreshTokenFlow(rt: string): Promise<OauthData> {
   const d = new Date().toDateString()
   const code_verifier = btoa(d);
   let as = await oauth2.discoveryRequest(issuer).then((response) => oauth2.processDiscoveryResponse(issuer, response))
@@ -152,7 +152,7 @@ export async function refreshTokenFlow(rt:string):Promise<OauthData> {
   expiration = claims?.exp ? claims.exp : -1
   username = ""
 
-  let Data:OauthData = {
+  let Data: OauthData = {
     AT: access_token,
     IDT: id_token,
     AT_EXPIRATION: expiration,
@@ -161,4 +161,3 @@ export async function refreshTokenFlow(rt:string):Promise<OauthData> {
   }
   return Data
 }
-

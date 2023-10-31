@@ -4,8 +4,6 @@ import _ from 'lodash';
 import { JobsStatistics } from '@app/utils/sharedComponents';
 import { sortGlobalSLI, teamIsNotEmpty } from '@app/utils/utils';
 import { formatDate } from '@app/Reports/utils';
-import { PrsStatistics } from '@app/Github/PullRequests';
-import { Job } from '@app/Reports/FailedE2ETests';
 
 type ApiResponse = {
   code: number;
@@ -633,6 +631,28 @@ async function getBugSLIs(team: string, rangeDateTime: Date[]) {
   return result;
 }
 
+async function getJiraIssuesByJQLQuery(query: string) {
+  console.log("begin")
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/jira/issues/custom-query?query=' + query
+
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  console.log("result", result)
+
+  return result;
+}
+
 export {
   getVersion,
   getRepositories,
@@ -658,5 +678,6 @@ export {
   createFailure,
   deleteFailureByJiraKey,
   bugExists,
-  getBugSLIs
+  getBugSLIs,
+  getJiraIssuesByJQLQuery
 };
