@@ -77,7 +77,7 @@ export const GetMetrics = () => {
 
                     <GridItem span={2} rowSpan={1}>
                         <PullRequestCard
-                            title="Retest Avg"
+                            title="Retest Avg in Open PRs"
                             subtitle="Selected Time Range"
                             total={prs?.summary?.retest_avg}
                         ></PullRequestCard>

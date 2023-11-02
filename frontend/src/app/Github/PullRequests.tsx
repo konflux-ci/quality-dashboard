@@ -61,8 +61,8 @@ export const PullRequestCard = (props) => {
         <div>{props.title}</div>
         <div style={{ color: 'grey', fontSize: 12 }}>
           {props.subtitle}
-          {props.title == 'Retest Avg' && (
-            help("Retests: calculate an average how many /test and /retest comments were in total issued for pull requests opened in selected time range")
+          {props.title == 'Retest Avg in Open PRs' && (
+            help("Average retests in open PRs: calculate an average how many /test and /retest comments were in total issued for pull requests opened in selected time range")
           )}
           {props.title == 'Retest Before Merge Avg' && (
             help("Retests to merge: calculate an average how many /test and /retest comments were issued after the last code push")
@@ -107,7 +107,7 @@ export const PullRequestsGraphic = (props) => {
   const legendData = [
     { childName: 'created prs', name: 'Created PRs' },
     { childName: 'merged prs', name: 'Merged PRs' },
-    { childName: 'retest avg', name: 'Retest Avg' },
+    { childName: 'retest avg in open prs', name: 'Retest Avg in Open PRs' },
     { childName: 'retest before merge avg', name: 'Retest Before Merge Avg' },
   ];
   const ref = useRef<HTMLDivElement>(null);
@@ -141,7 +141,7 @@ export const PullRequestsGraphic = (props) => {
       y: metric.merged_prs_count,
     });
     beautifiedData['RETEST_AVG'].data.push({
-      name: 'retest_avg',
+      name: 'retest_avg_in_open_prs',
       x: new Date(metric.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: '2-digit' }),
       y: props.summary.retest_avg > 0.01 ? metric.retest_avg : 0,
     });
