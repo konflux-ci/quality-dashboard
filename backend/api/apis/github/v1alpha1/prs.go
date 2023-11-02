@@ -36,7 +36,7 @@ type PullRequest struct {
 	MergedBy      *PullRequestAuthor
 	Repository    Repository
 	MergeCommit   Commit
-	TimelineItems `graphql:"timelineItems(first:100, itemTypes:[ISSUE_COMMENT])"`
+	TimelineItems `graphql:"timelineItems(first:100, itemTypes:[ISSUE_COMMENT, PULL_REQUEST_COMMIT])"`
 }
 
 // PullRequests is a list of GitHub Pull Requests
