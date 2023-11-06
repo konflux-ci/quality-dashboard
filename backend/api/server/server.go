@@ -235,9 +235,7 @@ func (s *Server) createMux() *mux.Router {
 	m.MethodNotAllowedHandler = notFoundHandler
 
 	str := staticRotationStrategy()
-	s.cfg.Logger.Info("updating db")
 	s.startUpdateStorage(context.TODO(), str, time.Now)
-	s.cfg.Logger.Info("sending slis alerts")
 	s.SendBugSLIAlerts()
 
 	return m
