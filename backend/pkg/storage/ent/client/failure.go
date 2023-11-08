@@ -111,6 +111,9 @@ func (d *Database) GetFailuresByDate(team *db.Teams, startDate, endDate string) 
 		}
 
 		failures = append(failures, &failureV1Alpha1.Failure{
+			TeamID:       team.ID,
+			TeamName:     team.TeamName,
+			JiraID:       failure.ID,
 			JiraKey:      failure.JiraKey,
 			JiraStatus:   failure.JiraStatus,
 			ErrorMessage: failure.ErrorMessage,
@@ -130,13 +133,12 @@ func (d *Database) GetAllFailures(team *db.Teams) ([]*db.Failure, error) {
 	return failures, nil
 }
 
-func (d *Database) DeleteFailure(jiraKey string) error {
-	_, err := d.client.Failure.Delete().
-		Where(failure.JiraKey(jiraKey)).
-		Exec(context.TODO())
+func (d *Database) DeleteFailure(teamID, failureID uuid.UUID) error {
+	_, err := d.client.Teams.UpdateOneID(teamID).RemoveFailureIDs(failureID).Save(context.TODO())
 
 	if err != nil {
-		return convertDBError("delete failure: %w", err)
+		return convertDBError("create failure: %w", err)
 	}
+
 	return nil
 }

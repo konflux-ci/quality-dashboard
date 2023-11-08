@@ -16,7 +16,7 @@ import {
 import { Button } from '@patternfly/react-core';
 import { Grid, GridItem } from '@patternfly/react-core';
 import { ComposableTable } from './Table';
-import { FormModal, ModalContext, useDefaultModalContextState, useModalContext } from './CreateFailure';
+import { ModalContext, useDefaultModalContextState, useModalContext } from './CreateFailure';
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { getFailures, getTeams } from '@app/utils/APIService';
 import { validateParam } from '@app/utils/utils';
@@ -24,6 +24,7 @@ import { formatDate, getRangeDates } from '@app/Reports/utils';
 import { useHistory } from 'react-router-dom';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 import { Header } from '@app/utils/Header';
+import { FormModal } from './CreateFailure';
 
 export interface FailureInfo {
   jira_key: string;
@@ -91,7 +92,7 @@ let CiFailures = () => {
             const start_date = formatDate(rangeDateTime[0]);
             const end_date = formatDate(rangeDateTime[1]);
 
-            // setFailures(data)
+            setFailures(res.data)
             setLoadingState(false)
 
             history.push(

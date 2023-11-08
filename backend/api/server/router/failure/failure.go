@@ -12,7 +12,7 @@ import (
 )
 
 func (f *failureRouter) createFailure(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
-	var fr FailureRequest
+	var fr failureV1Alpha1.Failure
 	if err := json.NewDecoder(r.Body).Decode(&fr); err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    "Error reading team/error_message/jira_key value from body",
@@ -20,9 +20,9 @@ func (f *failureRouter) createFailure(ctx context.Context, w http.ResponseWriter
 		})
 	}
 
-	team, err := f.Storage.GetTeamByName(fr.Team)
+	team, err := f.Storage.GetTeamByName(fr.TeamName)
 	if err != nil {
-		f.Logger.Error("Failed to fetch team. Make sure the team exists", zap.String("team", fr.Team), zap.Error(err))
+		f.Logger.Error("Failed to fetch team. Make sure the team exists", zap.String("team", fr.TeamName), zap.Error(err))
 
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
@@ -97,7 +97,7 @@ func (f *failureRouter) getFailures(ctx context.Context, w http.ResponseWriter, 
 }
 
 func (f *failureRouter) deleteFailure(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
-	var fr FailureRequest
+	var fr failureV1Alpha1.Failure
 	if err := json.NewDecoder(r.Body).Decode(&fr); err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    "Error reading team/error_message/jira_key value from body",
@@ -105,7 +105,7 @@ func (f *failureRouter) deleteFailure(ctx context.Context, w http.ResponseWriter
 		})
 	}
 
-	err := f.Storage.DeleteFailure(fr.JiraKey)
+	err := f.Storage.DeleteFailure(fr.TeamID, fr.JiraID)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "Failed to delete failure",
