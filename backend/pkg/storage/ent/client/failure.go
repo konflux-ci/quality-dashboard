@@ -137,7 +137,7 @@ func (d *Database) DeleteFailure(teamID, failureID uuid.UUID) error {
 	_, err := d.client.Teams.UpdateOneID(teamID).RemoveFailureIDs(failureID).Save(context.TODO())
 
 	if err != nil {
-		return convertDBError("create failure: %w", err)
+		return convertDBError("delete failure: %w", err)
 	}
 
 	return nil
