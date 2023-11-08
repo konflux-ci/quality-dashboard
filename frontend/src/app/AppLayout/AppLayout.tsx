@@ -59,7 +59,6 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
   const [areTeamsEmpty, setAreTeamsEmpty] = React.useState(false);
   const [serverUnavailable, setServerUnavailable] = React.useState(false);
   const [dbUnavailable, setDbUnavailable] = React.useState(false);
-  const [alerts, setAlerts] = React.useState<React.ReactNode[]>([]);
   const [Navigation, setNavigation] = React.useState<JSX.Element>();
 
   const Header = (

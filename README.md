@@ -14,6 +14,7 @@
   - [Features](#features)
     - [Teams](#teams)
     - [Config](#config)
+    - [Bug SLIs](#bug-slis)
   - [Connectors](#connectors)
     - [Openshift CI and Prow Jobs](#openshift-ci-and-prow-jobs)
     - [Github](#github)
@@ -113,7 +114,7 @@ Please note that these are general steps, and the exact steps may vary based on 
 
 ### Backend
 
-First, you need to have a PostgreSQL instance running to host local data. You can start one with your favourite container engine (docker or podman)
+First, you need to have a PostgreSQL instance running to host local data. You can start one with your favorite container engine (docker or podman)
 
 ```bash
     podman run -p 5432:5432 --name some-postgres -e POSTGRES_PASSWORD=postgres -d postgres:14
@@ -181,6 +182,15 @@ teams:
           organization: redhat-appstudio
 ```
 
+### Bug SLIs
+
+With the Bug SLIs plugin, you can observe which Jira issues are not meeting the defined Bug SLOs. 
+
+| **SLO**             | **Target Value**                                                                                                                                    | **SLIs**                                                                                                                                                                                                                                                   |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Bug Resolution Time | Resolve blocker bug in < 10 days<br><br><br><br><br><br>Resolve critical bug in < 20 days<br><br><br><br><br><br><br>Resolve major bug in < 40 days | Green:  age < 5 days<br>Yellow: age  > 5 days<br>Red:    age > 10 days<br><br><br><br>Green:  age < 10 days<br>Yellow: age  > 10 days<br>Red:    age > 20 days<br><br><br><br><br>Green:  age < 20 days<br>Yellow: age  > 20 days<br>Red:    age > 40 days |
+| Bug Response Time   | Blocker and Critical bugs will get assigned in < 2 days                                                                                               | Red:    unassigned > 2 days                                                                                                                                                                                                                                |
+| Triage Time         | Bug will get assigned priority in < 2 day                                                                                                           | Yellow: age > 1 days & untriaged<br>Red:    age > 2 days & untriaged           
 
 ## Connectors
 

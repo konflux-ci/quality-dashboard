@@ -11,11 +11,15 @@ import (
 )
 
 func (g *Github) CheckIfRepoExistsInOpenshiftCI(organization string, repository string) bool {
-	if _, _, _, err := g.client.Repositories.GetContents(context.Background(), "openshift", "release", fmt.Sprintf("ci-operator/config/%s/%s", organization, repository), &github.RepositoryContentGetOptions{
+	if _, _, resp, err := g.client.Repositories.GetContents(context.Background(), "openshift", "release", fmt.Sprintf("ci-operator/config/%s/%s", organization, repository), &github.RepositoryContentGetOptions{
 		Ref: "master",
 	}); err != nil {
 		logger, _ := logger.InitZap("info")
-		logger.Error("repository does not exist in OpenShift CI", zap.String("repository", repository), zap.Error(err))
+		if resp.StatusCode == 404 {
+			logger.Warn(fmt.Sprintf("repository %s/%s does not exist in OpenShift CI", repository, organization))
+		} else {
+			logger.Error("repository does not exist in OpenShift CI", zap.String("repository", repository), zap.Error(err))
+		}
 		return false
 	}
 
