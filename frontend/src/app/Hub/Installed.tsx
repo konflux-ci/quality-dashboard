@@ -15,6 +15,7 @@ import { TableComposable, Thead, Tr, Th, Tbody, Td,
 } from '@patternfly/react-table';
 import CheckCircleIcon from '@patternfly/react-icons/dist/esm/icons/check-circle-icon';
 import { listInstalledPlugins, deleteInApi } from '@app/utils/APIService';
+import {Empty} from '@app/Common/Empty'
 
 function importAll(r) {
   const images = {};
@@ -53,7 +54,6 @@ const columnNames = {
 export const PInstalled: FC<HubProps> = (): ReactElement => { 
   const images = importAll(require.context('../../images', false, /\.(png|jpe?g|svg)$/));
   const currentTeam = useSelector((state: any) => state.teams.Team);
-  const { store } = React.useContext(ReactReduxContext);
   const widths = {
     default: '100px',
     sm: '80px',
@@ -87,15 +87,15 @@ export const PInstalled: FC<HubProps> = (): ReactElement => {
 
   };
 
+  console.log(cards)
   const filteredCards = cards.filter(onFilter);
 
   const listAllPlugins = () =>  {
     if(currentTeam == ''){
-      console.error( "team is empty. cannot get plugins")
       return
     }
     listInstalledPlugins(currentTeam).then(res => {
-      if(res.code == 200){
+      if(res.code == 200 && res.data){
         setCards(res.data)
       } else {
         throw("Error getting plugins list")
@@ -120,10 +120,6 @@ export const PInstalled: FC<HubProps> = (): ReactElement => {
 
   useEffect(() => {
     listAllPlugins();
-  }, []);
-
-  useEffect(() => {
-    listAllPlugins();
   }, [currentTeam]);
   
   return (
@@ -136,7 +132,7 @@ export const PInstalled: FC<HubProps> = (): ReactElement => {
         </Text>
       </PageSection>
       <Grid>
-          <GridItem span={12} >
+        <GridItem span={12} >
             <PageSection variant={PageSectionVariants.light}>
               <Toolbar id="toolbar-items-example">
                 <ToolbarItem variant="search-filter" widths={widths}>
@@ -183,6 +179,11 @@ export const PInstalled: FC<HubProps> = (): ReactElement => {
                 </Tbody>
               </TableComposable>
             </PageSection>
+            {filteredCards.length==0  && 
+              <PageSection variant={PageSectionVariants.light}>
+                <Empty title="No plugins found" body="No plugins are available at the moment in our Hub."></Empty>
+              </PageSection>
+            }
         </GridItem>
       </Grid>
     </React.Fragment>

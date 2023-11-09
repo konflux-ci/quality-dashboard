@@ -20,6 +20,8 @@ import { Tabs, Tab } from '@patternfly/react-core';
 import { useHistory } from 'react-router-dom';
 import { Modal, ModalVariant } from '@patternfly/react-core';
 import { CodeEditor, Language } from '@patternfly/react-code-editor';
+import {Empty} from '@app/Common/Empty'
+
 
 type InstallWizardProps = {
   show: boolean, 
@@ -275,11 +277,10 @@ xmas-fifth-day:
 
   const listAllPlugins = () =>  {
     if(currentTeam == ''){
-      console.error( "team is empty. cannot get plugins")
       return
     }
     listInstalledPlugins(currentTeam).then(res => {
-      if(res.code == 200){
+      if(res.code == 200 && res.data){
         setCards(res.data)
         const categories:string[] = ['all', ...res.data.map(item => item.plugin.category).filter((value, index, self) => self.indexOf(value) === index)]
         setCategories(categories)
@@ -302,42 +303,51 @@ xmas-fifth-day:
           Et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
         </Text>
       </PageSection>
-      <Grid>
-          <GridItem span={3} style={{minHeight: '100%', background: 'white', padding: "1vw"}}>
-            <Tabs
-              style={{height: '100%'}}
-              activeKey={activeTabKey}
-              onSelect={handleTabClick}
-              isVertical
-              isBox={isBox}
-              aria-label="Tabs in the vertical example"
-              role="region"
-            >
-              { categories.map((cat, key) => (
-                  <Tab style={{padding: "0.5em 1em"}} key={key} eventKey={key} title={<CardTitle style={{textTransform: 'capitalize'}}>{cat.toString()}</CardTitle>}></Tab>
-                ))
-              }
-            </Tabs>
-          </GridItem>
-          <GridItem span={9} >
-            <PageSection variant={PageSectionVariants.light}>
-              <Toolbar id="toolbar-items-example">
-                <ToolbarItem variant="search-filter"  widths={widths}>
-                  <SearchInput
-                    placeholder="Find by name"
-                    value={searchValue}
-                    onChange={(_event, value) => onChange(value)}
-                    onClear={() => onChange('')}
-                  />
-                </ToolbarItem>
-              </Toolbar>
-            </PageSection>
-            <Gallery hasGutter style={{margin: '1em'}}>
-              {cards.filter(onFilter).map((product, key) => (
-                <CardWithImageAndActions onInstall={()=>{startInstallWizard(currentTeam, product.plugin.name)}} name={product.plugin.name} description={product.plugin.description} category={product.plugin.category} logo={images[product.plugin.logo]} reason={product.plugin.reason} installed={product.status.installed} key={key}></CardWithImageAndActions>
-              ))}
-            </Gallery>
-        </GridItem>
+      <Grid style={{height: '100%', minHeight: '70vh'}}>
+          {cards.length==0  && 
+            <GridItem span={12} style={{ }}>
+              <Empty title="No plugins found" body="No plugins are available at the moment in our Hub."></Empty>
+            </GridItem>
+          }
+          {cards.length>0 &&
+          <React.Fragment>
+            <GridItem span={3} style={{minHeight: '100%', background: 'white', padding: "1vw"}}>
+              <Tabs
+                style={{height: '100%'}}
+                activeKey={activeTabKey}
+                onSelect={handleTabClick}
+                isVertical
+                isBox={isBox}
+                aria-label="Tabs in the vertical example"
+                role="region"
+              >
+                { categories.map((cat, key) => (
+                    <Tab style={{padding: "0.5em 1em"}} key={key} eventKey={key} title={<CardTitle style={{textTransform: 'capitalize'}}>{cat.toString()}</CardTitle>}></Tab>
+                  ))
+                }
+              </Tabs>
+            </GridItem>
+            <GridItem span={9} >
+              <PageSection variant={PageSectionVariants.light}>
+                <Toolbar id="toolbar-items-example">
+                  <ToolbarItem variant="search-filter"  widths={widths}>
+                    <SearchInput
+                      placeholder="Find by name"
+                      value={searchValue}
+                      onChange={(_event, value) => onChange(value)}
+                      onClear={() => onChange('')}
+                    />
+                  </ToolbarItem>
+                </Toolbar>
+              </PageSection>
+              <Gallery hasGutter style={{margin: '1em'}}>
+                {cards && cards.filter(onFilter).map((product, key) => (
+                  <CardWithImageAndActions onInstall={()=>{startInstallWizard(currentTeam, product.plugin.name)}} name={product.plugin.name} description={product.plugin.description} category={product.plugin.category} logo={images[product.plugin.logo]} reason={product.plugin.reason} installed={product.status.installed} key={key}></CardWithImageAndActions>
+                ))}
+              </Gallery>
+            </GridItem>
+          </React.Fragment>
+          }
       </Grid>
       <InstallWizard wizard={modal} ></InstallWizard>
     </React.Fragment>

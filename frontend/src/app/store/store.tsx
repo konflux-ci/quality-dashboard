@@ -75,7 +75,7 @@ const Store = ({ children }) => {
 
                     if(defaultTeam != ''){
                         listInstalledPlugins(defaultTeam).then(res => {
-                            if(res.code == 200){
+                            if(res.code == 200 && res.data){
                               dispatch({ type: "SET_INSTALLED_PLUGINS", data: res.data }) 
                             } else {
                               throw("Error getting plugins list for team")

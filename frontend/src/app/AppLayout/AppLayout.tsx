@@ -45,23 +45,15 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
     setIsMobileView(props.mobileView);
   };
 
-  useEffect(() => {
-    if (locationHistory.pathname === '/') {
-      history.push('/home/overview');
-    }
-    listAllPlugins();
-  }, [currentTeam]);
-
   const params = new URLSearchParams(window.location.search);
   const team = params.get('team');
 
   const listAllPlugins = () =>  {
     if(currentTeam == ''){
-      console.error( "team is empty. cannot get plugins")
       return
     }
     listInstalledPlugins(currentTeam).then(res => {
-      if(res.code == 200){
+      if(res.code == 200 && res.data){
         dispatch({ type: "SET_INSTALLED_PLUGINS", data: res.data }) 
       } else {
         throw("Error getting plugins list for team")
@@ -199,7 +191,12 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
     setNavigation(N)
   }, [currentTeam, pluginList]);
 
-
+  useEffect(() => {
+    if (locationHistory.pathname === '/') {
+      history.push('/home/overview');
+    }
+    listAllPlugins();
+  }, [currentTeam]);
 
   const Sidebar = <PageSidebar theme="dark" nav={Navigation} isNavOpen={isMobileView ? isNavOpenMobile : isNavOpen} />;
 

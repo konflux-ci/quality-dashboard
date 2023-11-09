@@ -117,13 +117,22 @@ const teamsReducer = (state, action) => {
                 ...state,
                 TeamsAvailable: action.data
             };
-        case 'SET_INSTALLED_PLUGINS':
-            const flPlugins= action.data.filter((plugin, plIndex)=>{return plugin.status.installed}).map((plugin, plIndex)=>{return plugin.plugin.name})
+        case 'SET_INSTALLED_PLUGINS': {
+            if(!action.data){
+                return
+            }
+            const flPlugins = action.data.filter((plugin) => { 
+                return plugin.status.installed
+            }).map((plugin)=>{
+                return plugin.plugin.name
+            })
+
             return {
                 ...state,
                 InstalledPlugins: action.data,
                 FlattenedPlugins: flPlugins
             };
+        }
         default: return state || null;
     }
 };
