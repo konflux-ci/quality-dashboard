@@ -75,7 +75,6 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetDaysWithoutResolution(jiraBugMetricsInfo.DaysWithoutResolution).
 				SetLabels(strings.Join(bug.Fields.Labels, ",")).
 				SetComponent(getComponent(bug.Fields.Components)).
-				SetLabels(strings.Join(bug.Fields.Labels, ",")).
 				SetAssignee(getAssignee(bug.Fields.Assignee)).
 				SetAge(getDays(bug.Fields.Created, bug.Fields.Resolutiondate, bug.Fields.Status.Name)).
 				Save(context.TODO())
