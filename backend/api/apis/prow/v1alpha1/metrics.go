@@ -29,15 +29,19 @@ type Jobs struct {
 
 // Set of Metrics for a specific job
 type Metrics struct {
-	// Return the percentage of success
-	SuccessRate float64 `json:"success_rate"`
+	// Return the count of successful jobs
+	SuccessCount float64 `json:"success_count"`
 
-	// Return a percentage about how much fail a job
-	FailureRate float64 `json:"failure_rate"`
+	// Return the count of failed jobs
+	FailureCount float64 `json:"failure_count"`
 
-	// Return percentage of prow ci failures
-	CiFailedRate float64 `json:"ci_failed_rate"`
+	// Return the count of prow ci failures
+	CiFailedCount float64 `json:"ci_failed_count"`
 
+	// Return the total number of jobs
+	TotalJobs float64 `json:"total_jobs"`
+
+	// Return the date
 	Date string `json:"date"`
 }
 
@@ -46,11 +50,11 @@ type Summary struct {
 
 	DateTo string `json:"date_to"`
 
-	SuccessRateAvg float64 `json:"success_rate_avg"`
+	SuccessCount float64 `json:"success_count"`
 
-	JobFailedAvg float64 `json:"failure_rate_avg"`
+	JobFailedCount float64 `json:"failure_count"`
 
-	CIFailedAvg float64 `json:"ci_failed_rate_avg"`
+	CIFailedCount float64 `json:"ci_failed_count"`
 
-	TotalJobs int `json:"total_jobs"`
+	TotalJobs float64 `json:"total_jobs"`
 }
