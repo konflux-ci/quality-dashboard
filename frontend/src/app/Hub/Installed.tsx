@@ -118,6 +118,10 @@ export const PInstalled: FC<HubProps> = (): ReactElement => {
     }
   ];
 
+  useEffect(() => {
+    listAllPlugins();
+  }, []);
+  
   return (
     <React.Fragment>
       <PageSection variant={PageSectionVariants.light}>

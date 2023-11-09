@@ -189,6 +189,10 @@ export const PHub: FC<HubProps> = (): ReactElement => {
     })
   };
 
+  useEffect(() => {
+    listAllPlugins();
+  }, []);
+
   return (
     <React.Fragment>
       <PageSection variant={PageSectionVariants.light}>
