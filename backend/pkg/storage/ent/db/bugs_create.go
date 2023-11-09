@@ -213,6 +213,34 @@ func (bc *BugsCreate) SetNillableComponent(s *string) *BugsCreate {
 	return bc
 }
 
+// SetAssignee sets the "assignee" field.
+func (bc *BugsCreate) SetAssignee(s string) *BugsCreate {
+	bc.mutation.SetAssignee(s)
+	return bc
+}
+
+// SetNillableAssignee sets the "assignee" field if the given value is not nil.
+func (bc *BugsCreate) SetNillableAssignee(s *string) *BugsCreate {
+	if s != nil {
+		bc.SetAssignee(*s)
+	}
+	return bc
+}
+
+// SetAge sets the "age" field.
+func (bc *BugsCreate) SetAge(s string) *BugsCreate {
+	bc.mutation.SetAge(s)
+	return bc
+}
+
+// SetNillableAge sets the "age" field if the given value is not nil.
+func (bc *BugsCreate) SetNillableAge(s *string) *BugsCreate {
+	if s != nil {
+		bc.SetAge(*s)
+	}
+	return bc
+}
+
 // SetID sets the "id" field.
 func (bc *BugsCreate) SetID(u uuid.UUID) *BugsCreate {
 	bc.mutation.SetID(u)
@@ -445,6 +473,14 @@ func (bc *BugsCreate) createSpec() (*Bugs, *sqlgraph.CreateSpec) {
 	if value, ok := bc.mutation.Component(); ok {
 		_spec.SetField(bugs.FieldComponent, field.TypeString, value)
 		_node.Component = &value
+	}
+	if value, ok := bc.mutation.Assignee(); ok {
+		_spec.SetField(bugs.FieldAssignee, field.TypeString, value)
+		_node.Assignee = &value
+	}
+	if value, ok := bc.mutation.Age(); ok {
+		_spec.SetField(bugs.FieldAge, field.TypeString, value)
+		_node.Age = &value
 	}
 	if nodes := bc.mutation.BugsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -815,6 +851,42 @@ func (u *BugsUpsert) UpdateComponent() *BugsUpsert {
 // ClearComponent clears the value of the "component" field.
 func (u *BugsUpsert) ClearComponent() *BugsUpsert {
 	u.SetNull(bugs.FieldComponent)
+	return u
+}
+
+// SetAssignee sets the "assignee" field.
+func (u *BugsUpsert) SetAssignee(v string) *BugsUpsert {
+	u.Set(bugs.FieldAssignee, v)
+	return u
+}
+
+// UpdateAssignee sets the "assignee" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateAssignee() *BugsUpsert {
+	u.SetExcluded(bugs.FieldAssignee)
+	return u
+}
+
+// ClearAssignee clears the value of the "assignee" field.
+func (u *BugsUpsert) ClearAssignee() *BugsUpsert {
+	u.SetNull(bugs.FieldAssignee)
+	return u
+}
+
+// SetAge sets the "age" field.
+func (u *BugsUpsert) SetAge(v string) *BugsUpsert {
+	u.Set(bugs.FieldAge, v)
+	return u
+}
+
+// UpdateAge sets the "age" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateAge() *BugsUpsert {
+	u.SetExcluded(bugs.FieldAge)
+	return u
+}
+
+// ClearAge clears the value of the "age" field.
+func (u *BugsUpsert) ClearAge() *BugsUpsert {
+	u.SetNull(bugs.FieldAge)
 	return u
 }
 
@@ -1213,6 +1285,48 @@ func (u *BugsUpsertOne) UpdateComponent() *BugsUpsertOne {
 func (u *BugsUpsertOne) ClearComponent() *BugsUpsertOne {
 	return u.Update(func(s *BugsUpsert) {
 		s.ClearComponent()
+	})
+}
+
+// SetAssignee sets the "assignee" field.
+func (u *BugsUpsertOne) SetAssignee(v string) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetAssignee(v)
+	})
+}
+
+// UpdateAssignee sets the "assignee" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateAssignee() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateAssignee()
+	})
+}
+
+// ClearAssignee clears the value of the "assignee" field.
+func (u *BugsUpsertOne) ClearAssignee() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearAssignee()
+	})
+}
+
+// SetAge sets the "age" field.
+func (u *BugsUpsertOne) SetAge(v string) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetAge(v)
+	})
+}
+
+// UpdateAge sets the "age" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateAge() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateAge()
+	})
+}
+
+// ClearAge clears the value of the "age" field.
+func (u *BugsUpsertOne) ClearAge() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearAge()
 	})
 }
 
@@ -1774,6 +1888,48 @@ func (u *BugsUpsertBulk) UpdateComponent() *BugsUpsertBulk {
 func (u *BugsUpsertBulk) ClearComponent() *BugsUpsertBulk {
 	return u.Update(func(s *BugsUpsert) {
 		s.ClearComponent()
+	})
+}
+
+// SetAssignee sets the "assignee" field.
+func (u *BugsUpsertBulk) SetAssignee(v string) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetAssignee(v)
+	})
+}
+
+// UpdateAssignee sets the "assignee" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateAssignee() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateAssignee()
+	})
+}
+
+// ClearAssignee clears the value of the "assignee" field.
+func (u *BugsUpsertBulk) ClearAssignee() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearAssignee()
+	})
+}
+
+// SetAge sets the "age" field.
+func (u *BugsUpsertBulk) SetAge(v string) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetAge(v)
+	})
+}
+
+// UpdateAge sets the "age" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateAge() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateAge()
+	})
+}
+
+// ClearAge clears the value of the "age" field.
+func (u *BugsUpsertBulk) ClearAge() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearAge()
 	})
 }
 

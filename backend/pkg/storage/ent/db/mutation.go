@@ -75,6 +75,8 @@ type BugsMutation struct {
 	adddays_without_resolution *float64
 	labels                     *string
 	component                  *string
+	assignee                   *string
+	age                        *string
 	clearedFields              map[string]struct{}
 	bugs                       *uuid.UUID
 	clearedbugs                bool
@@ -1064,6 +1066,104 @@ func (m *BugsMutation) ResetComponent() {
 	delete(m.clearedFields, bugs.FieldComponent)
 }
 
+// SetAssignee sets the "assignee" field.
+func (m *BugsMutation) SetAssignee(s string) {
+	m.assignee = &s
+}
+
+// Assignee returns the value of the "assignee" field in the mutation.
+func (m *BugsMutation) Assignee() (r string, exists bool) {
+	v := m.assignee
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAssignee returns the old "assignee" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldAssignee(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAssignee is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAssignee requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAssignee: %w", err)
+	}
+	return oldValue.Assignee, nil
+}
+
+// ClearAssignee clears the value of the "assignee" field.
+func (m *BugsMutation) ClearAssignee() {
+	m.assignee = nil
+	m.clearedFields[bugs.FieldAssignee] = struct{}{}
+}
+
+// AssigneeCleared returns if the "assignee" field was cleared in this mutation.
+func (m *BugsMutation) AssigneeCleared() bool {
+	_, ok := m.clearedFields[bugs.FieldAssignee]
+	return ok
+}
+
+// ResetAssignee resets all changes to the "assignee" field.
+func (m *BugsMutation) ResetAssignee() {
+	m.assignee = nil
+	delete(m.clearedFields, bugs.FieldAssignee)
+}
+
+// SetAge sets the "age" field.
+func (m *BugsMutation) SetAge(s string) {
+	m.age = &s
+}
+
+// Age returns the value of the "age" field in the mutation.
+func (m *BugsMutation) Age() (r string, exists bool) {
+	v := m.age
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAge returns the old "age" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldAge(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAge is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAge requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAge: %w", err)
+	}
+	return oldValue.Age, nil
+}
+
+// ClearAge clears the value of the "age" field.
+func (m *BugsMutation) ClearAge() {
+	m.age = nil
+	m.clearedFields[bugs.FieldAge] = struct{}{}
+}
+
+// AgeCleared returns if the "age" field was cleared in this mutation.
+func (m *BugsMutation) AgeCleared() bool {
+	_, ok := m.clearedFields[bugs.FieldAge]
+	return ok
+}
+
+// ResetAge resets all changes to the "age" field.
+func (m *BugsMutation) ResetAge() {
+	m.age = nil
+	delete(m.clearedFields, bugs.FieldAge)
+}
+
 // SetBugsID sets the "bugs" edge to the Teams entity by id.
 func (m *BugsMutation) SetBugsID(id uuid.UUID) {
 	m.bugs = &id
@@ -1137,7 +1237,7 @@ func (m *BugsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BugsMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 20)
 	if m.jira_key != nil {
 		fields = append(fields, bugs.FieldJiraKey)
 	}
@@ -1192,6 +1292,12 @@ func (m *BugsMutation) Fields() []string {
 	if m.component != nil {
 		fields = append(fields, bugs.FieldComponent)
 	}
+	if m.assignee != nil {
+		fields = append(fields, bugs.FieldAssignee)
+	}
+	if m.age != nil {
+		fields = append(fields, bugs.FieldAge)
+	}
 	return fields
 }
 
@@ -1236,6 +1342,10 @@ func (m *BugsMutation) Field(name string) (ent.Value, bool) {
 		return m.Labels()
 	case bugs.FieldComponent:
 		return m.Component()
+	case bugs.FieldAssignee:
+		return m.Assignee()
+	case bugs.FieldAge:
+		return m.Age()
 	}
 	return nil, false
 }
@@ -1281,6 +1391,10 @@ func (m *BugsMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldLabels(ctx)
 	case bugs.FieldComponent:
 		return m.OldComponent(ctx)
+	case bugs.FieldAssignee:
+		return m.OldAssignee(ctx)
+	case bugs.FieldAge:
+		return m.OldAge(ctx)
 	}
 	return nil, fmt.Errorf("unknown Bugs field %s", name)
 }
@@ -1416,6 +1530,20 @@ func (m *BugsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetComponent(v)
 		return nil
+	case bugs.FieldAssignee:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAssignee(v)
+		return nil
+	case bugs.FieldAge:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAge(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Bugs field %s", name)
 }
@@ -1545,6 +1673,12 @@ func (m *BugsMutation) ClearedFields() []string {
 	if m.FieldCleared(bugs.FieldComponent) {
 		fields = append(fields, bugs.FieldComponent)
 	}
+	if m.FieldCleared(bugs.FieldAssignee) {
+		fields = append(fields, bugs.FieldAssignee)
+	}
+	if m.FieldCleared(bugs.FieldAge) {
+		fields = append(fields, bugs.FieldAge)
+	}
 	return fields
 }
 
@@ -1582,6 +1716,12 @@ func (m *BugsMutation) ClearField(name string) error {
 		return nil
 	case bugs.FieldComponent:
 		m.ClearComponent()
+		return nil
+	case bugs.FieldAssignee:
+		m.ClearAssignee()
+		return nil
+	case bugs.FieldAge:
+		m.ClearAge()
 		return nil
 	}
 	return fmt.Errorf("unknown Bugs nullable field %s", name)
@@ -1644,6 +1784,12 @@ func (m *BugsMutation) ResetField(name string) error {
 		return nil
 	case bugs.FieldComponent:
 		m.ResetComponent()
+		return nil
+	case bugs.FieldAssignee:
+		m.ResetAssignee()
+		return nil
+	case bugs.FieldAge:
+		m.ResetAge()
 		return nil
 	}
 	return fmt.Errorf("unknown Bugs field %s", name)

@@ -146,6 +146,16 @@ func Component(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldEQ(FieldComponent, v))
 }
 
+// Assignee applies equality check predicate on the "assignee" field. It's identical to AssigneeEQ.
+func Assignee(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldAssignee, v))
+}
+
+// Age applies equality check predicate on the "age" field. It's identical to AgeEQ.
+func Age(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldAge, v))
+}
+
 // JiraKeyEQ applies the EQ predicate on the "jira_key" field.
 func JiraKeyEQ(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldEQ(FieldJiraKey, v))
@@ -1114,6 +1124,156 @@ func ComponentEqualFold(v string) predicate.Bugs {
 // ComponentContainsFold applies the ContainsFold predicate on the "component" field.
 func ComponentContainsFold(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldContainsFold(FieldComponent, v))
+}
+
+// AssigneeEQ applies the EQ predicate on the "assignee" field.
+func AssigneeEQ(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldAssignee, v))
+}
+
+// AssigneeNEQ applies the NEQ predicate on the "assignee" field.
+func AssigneeNEQ(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNEQ(FieldAssignee, v))
+}
+
+// AssigneeIn applies the In predicate on the "assignee" field.
+func AssigneeIn(vs ...string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldIn(FieldAssignee, vs...))
+}
+
+// AssigneeNotIn applies the NotIn predicate on the "assignee" field.
+func AssigneeNotIn(vs ...string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotIn(FieldAssignee, vs...))
+}
+
+// AssigneeGT applies the GT predicate on the "assignee" field.
+func AssigneeGT(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGT(FieldAssignee, v))
+}
+
+// AssigneeGTE applies the GTE predicate on the "assignee" field.
+func AssigneeGTE(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGTE(FieldAssignee, v))
+}
+
+// AssigneeLT applies the LT predicate on the "assignee" field.
+func AssigneeLT(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLT(FieldAssignee, v))
+}
+
+// AssigneeLTE applies the LTE predicate on the "assignee" field.
+func AssigneeLTE(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLTE(FieldAssignee, v))
+}
+
+// AssigneeContains applies the Contains predicate on the "assignee" field.
+func AssigneeContains(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldContains(FieldAssignee, v))
+}
+
+// AssigneeHasPrefix applies the HasPrefix predicate on the "assignee" field.
+func AssigneeHasPrefix(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldHasPrefix(FieldAssignee, v))
+}
+
+// AssigneeHasSuffix applies the HasSuffix predicate on the "assignee" field.
+func AssigneeHasSuffix(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldHasSuffix(FieldAssignee, v))
+}
+
+// AssigneeIsNil applies the IsNil predicate on the "assignee" field.
+func AssigneeIsNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldIsNull(FieldAssignee))
+}
+
+// AssigneeNotNil applies the NotNil predicate on the "assignee" field.
+func AssigneeNotNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotNull(FieldAssignee))
+}
+
+// AssigneeEqualFold applies the EqualFold predicate on the "assignee" field.
+func AssigneeEqualFold(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEqualFold(FieldAssignee, v))
+}
+
+// AssigneeContainsFold applies the ContainsFold predicate on the "assignee" field.
+func AssigneeContainsFold(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldContainsFold(FieldAssignee, v))
+}
+
+// AgeEQ applies the EQ predicate on the "age" field.
+func AgeEQ(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldAge, v))
+}
+
+// AgeNEQ applies the NEQ predicate on the "age" field.
+func AgeNEQ(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNEQ(FieldAge, v))
+}
+
+// AgeIn applies the In predicate on the "age" field.
+func AgeIn(vs ...string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldIn(FieldAge, vs...))
+}
+
+// AgeNotIn applies the NotIn predicate on the "age" field.
+func AgeNotIn(vs ...string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotIn(FieldAge, vs...))
+}
+
+// AgeGT applies the GT predicate on the "age" field.
+func AgeGT(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGT(FieldAge, v))
+}
+
+// AgeGTE applies the GTE predicate on the "age" field.
+func AgeGTE(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGTE(FieldAge, v))
+}
+
+// AgeLT applies the LT predicate on the "age" field.
+func AgeLT(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLT(FieldAge, v))
+}
+
+// AgeLTE applies the LTE predicate on the "age" field.
+func AgeLTE(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLTE(FieldAge, v))
+}
+
+// AgeContains applies the Contains predicate on the "age" field.
+func AgeContains(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldContains(FieldAge, v))
+}
+
+// AgeHasPrefix applies the HasPrefix predicate on the "age" field.
+func AgeHasPrefix(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldHasPrefix(FieldAge, v))
+}
+
+// AgeHasSuffix applies the HasSuffix predicate on the "age" field.
+func AgeHasSuffix(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldHasSuffix(FieldAge, v))
+}
+
+// AgeIsNil applies the IsNil predicate on the "age" field.
+func AgeIsNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldIsNull(FieldAge))
+}
+
+// AgeNotNil applies the NotNil predicate on the "age" field.
+func AgeNotNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotNull(FieldAge))
+}
+
+// AgeEqualFold applies the EqualFold predicate on the "age" field.
+func AgeEqualFold(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEqualFold(FieldAge, v))
+}
+
+// AgeContainsFold applies the ContainsFold predicate on the "age" field.
+func AgeContainsFold(v string) predicate.Bugs {
+	return predicate.Bugs(sql.FieldContainsFold(FieldAge, v))
 }
 
 // HasBugs applies the HasEdge predicate on the "bugs" edge.

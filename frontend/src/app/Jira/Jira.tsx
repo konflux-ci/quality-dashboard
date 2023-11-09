@@ -13,6 +13,12 @@ import {
     ToggleGroup,
     ToggleGroupItem,
     Spinner,
+    FormGroup,
+    Form,
+    TextInput,
+    Button,
+    Modal,
+    Popover,
 } from '@patternfly/react-core';
 import {
     TableComposable,
@@ -29,9 +35,13 @@ import { ReactReduxContext, useSelector } from 'react-redux';
 import { formatDate, getRangeDates } from '@app/Reports/utils';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 import { useHistory } from 'react-router-dom';
-import { getLabels } from '@app/utils/utils';
 import { help } from '@app/Github/PullRequests';
 import { Header } from '@app/utils/Header';
+import { CustomStackChart } from './CustomStackChart';
+import { ListIssues } from './ListIssuesTable';
+import { getIssuesByFields, getIssuesByLabels, getLegend } from './utils';
+import { getLabels } from '@app/utils/utils';
+import { HelpIcon } from '@patternfly/react-icons';
 
 interface Bugs {
     jira_key: string;
@@ -51,6 +61,8 @@ interface Bugs {
     teams_bugs: string;
 }
 
+export const defaultLabels = ["all", "ci-fail", "test_bug", "product_bug", "untriaged", "infra_bug", "to_investigate"]
+
 export const Jira = () => {
     const { store } = useContext(ReactReduxContext);
     const state = store.getState();
@@ -61,6 +73,9 @@ export const Jira = () => {
     const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(30));
     const priorities = ["Global", "Major", "Critical", "Blocker", "Normal", "Undefined", "Minor"]
     const [loadingState, setLoadingState] = useState(false);
+    const [labels, setLabels] = useState<string[]>(defaultLabels);
+    const [openIssuesTable, setOpenIssuesTable] = useState<any>({});
+    const [closedIssuesTable, setClosedIssuesTable] = useState<any>({});
 
     const getJiraData = (ID) => {
         setLoadingState(true)
@@ -120,17 +135,39 @@ export const Jira = () => {
             })
 
             const selected = params.get("selected")
-            const ID =  selected != null ? selected : "Global"
+            const ID = selected != null ? selected : "Global"
             getJiraData(ID)
 
             const start = params.get("start")
             const end = params.get("end")
+            const labelsParam = params.get("labels")
+            const labelParam = params.get("label_selected")
 
-            if (start == null || end == null) {
-                history.push('/home/jira?team=' + currentTeam + '&selected=' + ID + '&start=' + formatDate(rangeDateTime[0]) + '&end=' + formatDate(rangeDateTime[1]))
+            if (start == null || end == null || labelsParam == null || labelParam == null) {
+                setIsLabelSelected(labels[0])
+
+                history.push(
+                    '/home/jira?team=' + currentTeam +
+                    '&selected=' + ID +
+                    '&start=' + formatDate(rangeDateTime[0]) +
+                    '&end=' + formatDate(rangeDateTime[1]) +
+                    '&labels=' + labels +
+                    '&label_selected=' + labels[0]
+                )
             } else {
                 setRangeDateTime([new Date(start), new Date(end)])
-                history.push('/home/jira?team=' + currentTeam + '&selected=' + ID + '&start=' + start + '&end=' + end)
+                const lbls = labelsParam.split(",")
+                setLabels(lbls);
+                setIsLabelSelected(labelParam)
+
+                history.push(
+                    '/home/jira?team=' + currentTeam +
+                    '&selected=' + ID +
+                    '&start=' + start +
+                    '&end=' + end +
+                    '&labels=' + labels +
+                    '&label_selected=' + labelParam
+                )
             }
         }
     }, [currentTeam]);
@@ -147,6 +184,7 @@ export const Jira = () => {
     const params = new URLSearchParams(window.location.search);
 
     const [isSelected, setIsSelected] = React.useState('open');
+    const [isLabelSelected, setIsLabelSelected] = React.useState('');
 
     const handleItemClick = (isSelected: boolean, event: React.MouseEvent<any> | React.KeyboardEvent | MouseEvent) => {
         const id = event.currentTarget.id;
@@ -247,6 +285,75 @@ export const Jira = () => {
         history.push(window.location.pathname + '?' + params.toString());
     }
 
+    useEffect(() => {
+        if (bugsTable.length > 0) {
+            let issuesSelected = bugsTable
+
+            if (isLabelSelected != "all") {
+                issuesSelected = bugsTable?.filter((x) => {
+                    if (x.labels.includes(isLabelSelected)) {
+                        return x
+                    }
+                })
+            }
+
+            setOpenIssuesTable(issuesSelected.filter((x) => {
+                if (x.status != "Closed") {
+                    return x
+                }
+            }))
+
+            setClosedIssuesTable(issuesSelected.filter((x) => {
+                if (x.status == "Closed") {
+                    return x
+                }
+            }))
+        }
+    }, [isLabelSelected, bugsTable]);
+
+
+    const handleLabelClick = (isLabelSelected: boolean, event: React.MouseEvent<any> | React.KeyboardEvent | MouseEvent) => {
+        const id = event.currentTarget.id;
+        setOpenIssuesTable([])
+        setClosedIssuesTable([])
+        setIsLabelSelected(id)
+
+        params.set("label_selected", id)
+        history.push(window.location.pathname + '?' + params.toString());
+    };
+
+    const [isModalOpen, setIsModalOpen] = React.useState(false);
+    const [labelsValue, setLabelsValue] = React.useState("");
+    type validate = 'success' | 'warning' | 'error' | 'default';
+    const [labelsValidated, setLabelsValidated] = React.useState<validate>('error');
+    const regexp = new RegExp('^[a-zA-Z_-]+(,[0-9a-zA-Z_-]+)*$')
+
+
+    const handleModalToggle = () => {
+        setIsModalOpen(!isModalOpen);
+    };
+
+    const handleLabelsInput = async (value) => {
+        setLabelsValidated('error');
+        setLabelsValue(value);
+        if (regexp.test(value)) {
+            setLabelsValidated('success');
+        } else {
+            setLabelsValidated('error');
+        }
+    };
+
+    const submit = () => {
+        const ls = labelsValue.split(",")
+        setIsModalOpen(!isModalOpen);
+        setLabels(ls)
+        setIsLabelSelected(ls[0])
+
+        params.set("labels", labelsValue)
+        params.set("label_selected", ls[0])
+        history.push(window.location.pathname + '?' + params.toString());
+    };
+
     return (
         <React.Fragment>
             <Header info="Observe which Jira Issues are affecting the CI pass rate."></Header>
@@ -265,9 +372,110 @@ export const Jira = () => {
                             >
                             </DateTimeRangePicker>
                         </GridItem>
-                        {graphicsVisible && <GridItem order={{ default: "2" }}>
+                        <GridItem>
+                            <Grid hasGutter span={3}>
+                                <GridItem>
+                                    <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes('Global')} id="Global">
+                                        <CardTitle>Global</CardTitle>
+                                        <CardBody>
+                                            <Title headingLevel='h1' size="2xl">
+                                                {apiDataCache["Global"] ? <span>{apiDataCache["Global"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
+                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
+                                                {apiDataCache["Global"] ? <span>{apiDataCache["Global"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
+                                            </Title>
+                                        </CardBody>
+                                    </Card>
+                                </GridItem>
+                                <GridItem>
+                                    <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes('Blocker')} id="Blocker">
+                                        <CardTitle>Blockers</CardTitle>
+                                        <CardBody>
+                                            <Title headingLevel='h1' size="2xl">
+                                                {apiDataCache["Blocker"] ? <span>{apiDataCache["Blocker"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
+                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
+                                                {apiDataCache["Blocker"] ? <span>{apiDataCache["Blocker"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
+                                            </Title>
+                                        </CardBody>
+                                    </Card>
+                                </GridItem>
+                                <GridItem>
+                                    <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes('Critical')} id="Critical">
+                                        <CardTitle>Critical Bugs</CardTitle>
+                                        <CardBody>
+                                            <Title headingLevel='h1' size="2xl">
+                                                {apiDataCache["Critical"] ? <span>{apiDataCache["Critical"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
+                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
+                                                {apiDataCache["Critical"] ? <span>{apiDataCache["Critical"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
+                                            </Title>
+                                        </CardBody>
+                                    </Card>
+                                </GridItem>
+                                <GridItem>
+                                    <Card isSelectable style={{ textAlign: 'center' }} onClick={onClick} isSelected={selected.includes('Major')} id="Major">
+                                        <CardTitle>Major Bugs</CardTitle>
+                                        <CardBody>
+                                            <Title headingLevel='h1' size="2xl">
+                                                {apiDataCache["Major"] ? <span>{apiDataCache["Major"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
+                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
+                                                {apiDataCache["Major"] ? <span>{apiDataCache["Major"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
+                                            </Title>
+                                        </CardBody>
+                                    </Card>
+                                </GridItem>
+                                <GridItem>
+                                    <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes('Normal')} id="Normal">
+                                        <CardTitle>Normal Bugs</CardTitle>
+                                        <CardBody>
+                                            <Title headingLevel='h1' size="2xl">
+                                                {apiDataCache["Normal"] ? <span>{apiDataCache["Normal"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
+                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
+                                                {apiDataCache["Normal"] ? <span>{apiDataCache["Normal"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
+                                            </Title>
+                                        </CardBody>
+                                    </Card>
+                                </GridItem>
+                                <GridItem>
+                                    <Card isSelectable style={{ textAlign: 'center' }} onClick={onClick} isSelected={selected.includes('Minor')} id="Minor">
+                                        <CardTitle>Minor Bugs</CardTitle>
+                                        <CardBody>
+                                            <Title headingLevel='h1' size="2xl">
+                                                {apiDataCache["Minor"] ? <span>{apiDataCache["Minor"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
+                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
+                                                {apiDataCache["Minor"] ? <span>{apiDataCache["Minor"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
+                                            </Title>
+                                        </CardBody>
+                                    </Card>
+                                </GridItem>
+                                <GridItem>
+                                    <Card isSelectable style={{ textAlign: 'center' }} onClick={onClick} isSelected={selected.includes('Undefined')} id="Undefined">
+                                        <CardTitle>Undefined Bugs</CardTitle>
+                                        <CardBody>
+                                            <Title headingLevel='h1' size="2xl">
+                                                {apiDataCache["Undefined"] ? <span>{apiDataCache["Undefined"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
+                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
+                                                {apiDataCache["Undefined"] ? <span>{apiDataCache["Undefined"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
+                                            </Title>
+                                        </CardBody>
+                                    </Card>
+                                </GridItem>
+                                <GridItem>
+                                    <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes(BugsAffectingCI)} id={BugsAffectingCI}>
+                                        <CardTitle>
+                                            Bugs affecting CI
+                                            {help("Bugs affecting CI in the projects DEVHAS, SRVKP, GITOPSRVCE, HACBS, RHTAP, and RHTAPBUGS.")}
+                                        </CardTitle>
+                                        <CardBody>
+                                            <Title headingLevel='h1' size="2xl">
+                                                {bugsKnown ? <span>{bugsKnown.length} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
+                                            </Title>
+                                        </CardBody>
+                                    </Card>
+                                </GridItem>
+                            </Grid>
+                        </GridItem>
+                        {graphicsVisible && <GridItem>
                             <Grid hasGutter sm={6} md={6} lg={6} xl={6}>
-                                <GridItem order={{ default: "1" }}>
+                                <GridItem>
                                     <Card style={{ textAlign: 'center' }}>
                                         <CardTitle style={{ textAlign: 'center' }}>Average Resolution Time</CardTitle>
                                         <CardBody>
@@ -284,7 +492,7 @@ export const Jira = () => {
                                         </CardBody>
                                     </Card>
                                 </GridItem>
-                                <GridItem order={{ default: "2" }}>
+                                <GridItem>
                                     <Card style={{ textAlign: 'center' }}>
                                         <CardTitle>Bugs</CardTitle>
                                         <CardBody>
@@ -305,140 +513,184 @@ export const Jira = () => {
                                 </GridItem>
                             </Grid>
                         </GridItem>}
-                        <GridItem order={{ default: "1" }}>
-                            <Grid hasGutter span={3}>
-                                <GridItem order={{ default: "1" }}>
-                                    <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes('Global')} id="Global">
-                                        <CardTitle>Global</CardTitle>
-                                        <CardBody>
-                                            <Title headingLevel='h1' size="2xl">
-                                                {apiDataCache["Global"] ? <span>{apiDataCache["Global"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
-                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
-                                                {apiDataCache["Global"] ? <span>{apiDataCache["Global"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
-                                            </Title>
-                                        </CardBody>
-                                    </Card>
-                                </GridItem>
-                                <GridItem order={{ default: "2" }}>
-                                    <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes('Blocker')} id="Blocker">
-                                        <CardTitle>Blockers</CardTitle>
-                                        <CardBody>
-                                            <Title headingLevel='h1' size="2xl">
-                                                {apiDataCache["Blocker"] ? <span>{apiDataCache["Blocker"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
-                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
-                                                {apiDataCache["Blocker"] ? <span>{apiDataCache["Blocker"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
-                                            </Title>
-                                        </CardBody>
-                                    </Card>
-                                </GridItem>
-                                <GridItem order={{ default: "3" }}>
-                                    <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes('Critical')} id="Critical">
-                                        <CardTitle>Critical Bugs</CardTitle>
-                                        <CardBody>
-                                            <Title headingLevel='h1' size="2xl">
-                                                {apiDataCache["Critical"] ? <span>{apiDataCache["Critical"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
-                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
-                                                {apiDataCache["Critical"] ? <span>{apiDataCache["Critical"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
-                                            </Title>
-                                        </CardBody>
-                                    </Card>
-                                </GridItem>
-                                <GridItem order={{ default: "4" }}>
-                                    <Card isSelectable style={{ textAlign: 'center' }} onClick={onClick} isSelected={selected.includes('Major')} id="Major">
-                                        <CardTitle>Major Bugs</CardTitle>
-                                        <CardBody>
-                                            <Title headingLevel='h1' size="2xl">
-                                                {apiDataCache["Major"] ? <span>{apiDataCache["Major"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
-                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
-                                                {apiDataCache["Major"] ? <span>{apiDataCache["Major"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
-                                            </Title>
-                                        </CardBody>
-                                    </Card>
-                                </GridItem>
-                                <GridItem order={{ default: "5" }}>
-                                    <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes('Normal')} id="Normal">
-                                        <CardTitle>Normal Bugs</CardTitle>
-                                        <CardBody>
-                                            <Title headingLevel='h1' size="2xl">
-                                                {apiDataCache["Normal"] ? <span>{apiDataCache["Normal"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
-                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
-                                                {apiDataCache["Normal"] ? <span>{apiDataCache["Normal"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
-                                            </Title>
-                                        </CardBody>
-                                    </Card>
-                                </GridItem>
-                                <GridItem order={{ default: "6" }}>
-                                    <Card isSelectable style={{ textAlign: 'center' }} onClick={onClick} isSelected={selected.includes('Minor')} id="Minor">
-                                        <CardTitle>Minor Bugs</CardTitle>
-                                        <CardBody>
-                                            <Title headingLevel='h1' size="2xl">
-                                                {apiDataCache["Minor"] ? <span>{apiDataCache["Minor"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
-                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
-                                                {apiDataCache["Minor"] ? <span>{apiDataCache["Minor"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
-                                            </Title>
-                                        </CardBody>
-                                    </Card>
-                                </GridItem>
-                                <GridItem order={{ default: "7" }}>
-                                    <Card isSelectable style={{ textAlign: 'center' }} onClick={onClick} isSelected={selected.includes('Undefined')} id="Undefined">
-                                        <CardTitle>Undefined Bugs</CardTitle>
-                                        <CardBody>
-                                            <Title headingLevel='h1' size="2xl">
-                                                {apiDataCache["Undefined"] ? <span>{apiDataCache["Undefined"].open.open_bugs} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
-                                                <span style={{ marginLeft: '20px' }}>&nbsp;</span>
-                                                {apiDataCache["Undefined"] ? <span>{apiDataCache["Undefined"].resolved.resolved_bugs} <span style={{ fontSize: '10px' }}>resolved</span></span> : "-"}
-                                            </Title>
-                                        </CardBody>
-                                    </Card>
-                                </GridItem>
-                                <GridItem order={{ default: "8" }}>
-                                    <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes(BugsAffectingCI)} id={BugsAffectingCI}>
-                                        <CardTitle>
-                                            Bugs affecting CI
-                                            {help("Bugs affecting CI in the projects DEVHAS, SRVKP, GITOPSRVCE, HACBS, RHTAP, and RHTAPBUGS.")}
-                                        </CardTitle>
-                                        <CardBody>
-                                            <Title headingLevel='h1' size="2xl">
-                                                {bugsKnown ? <span>{bugsKnown.length} <span style={{ fontSize: '10px' }}>open</span></span> : "-"}
-                                            </Title>
-                                        </CardBody>
-                                    </Card>
-                                </GridItem>
-                            </Grid>
-                        </GridItem>
-                        <GridItem order={{ default: "3" }}>
-                            <Card style={{ fontSize: "12px" }}>
-                                <CardTitle>Bugs</CardTitle>
-                                <CardBody>
-                                    <Grid hasGutter span={2}>
-                                        {(selected != BugsAffectingCI) && <GridItem order={{ default: "1" }}>
-                                            <ToggleGroup aria-label="Default with single selectable">
-                                                <ToggleGroupItem
-                                                    text="Open bugs"
-                                                    buttonId="open"
-                                                    isSelected={isSelected === 'open'}
-                                                    onChange={handleItemClick}
-                                                />
-                                                <ToggleGroupItem
-                                                    text="Resolved bugs"
-                                                    buttonId="resolved"
-                                                    isSelected={isSelected === 'resolved'}
-                                                    onChange={handleItemClick}
-                                                />
-                                            </ToggleGroup>
-                                        </GridItem>}
-                                        <GridItem order={{ default: "2" }}>
-                                            <ChipGroup categoryName="Active filters: " numChips={5}>
-                                                <Chip key={selected} isReadOnly style={{ fontSize: '15px' }}>
-                                                    {selected} bugs
-                                                </Chip>
-                                            </ChipGroup>
-                                        </GridItem>
-                                    </Grid>
-                                    <ComposableTableStripedTr bugs={bugsTable} longVersion={longVersionVisible}></ComposableTableStripedTr>
+                        <Button variant="primary" onClick={handleModalToggle}>
+                            Configure labels
+                        </Button>
+                        <Modal
+                            width={800}
+                            title="Configure your own tables"
+                            isOpen={isModalOpen}
+                            onClose={handleModalToggle}
+                            actions={[
+                                <Button key="confirm" variant="primary" onClick={submit} isDisabled={labelsValidated == "error"}>
+                                    Confirm
+                                </Button>,
+                                <Button key="cancel" variant="link" onClick={handleModalToggle}>
+                                    Cancel
+                                </Button>
+                            ]}
+                        >
+                            <Form isHorizontal id="modal-with-form-form">
+                                <FormGroup
+                                    label="Labels"
+                                    labelIcon={
+                                        <Popover headerContent={<div></div>} bodyContent={<div>Add a list of labels separated by comma. Example: test_bug,product_bug,to_investigate</div>}>
+                                            <button
+                                                type="button"
+                                                aria-label="More info for name field"
+                                                onClick={(e) => e.preventDefault()}
+                                                aria-describedby="modal-with-form-form-name"
+                                                className="pf-c-form__group-label-help"
+                                            >
+                                                <HelpIcon noVerticalAlign />
+                                            </button>
+                                        </Popover>
+                                    }
+                                    isRequired
+                                    fieldId="modal-with-form-form-name"
+                                    helperTextInvalid="Must be a valid JIRA key"
+                                >
+                                    <TextInput
+                                        validated={labelsValidated}
+                                        isRequired
+                                        type="email"
+                                        id="modal-with-form-form-name"
+                                        name="modal-with-form-form-name"
+                                        value={labelsValue}
+                                        onChange={handleLabelsInput}
+                                    />
+                                </FormGroup>
+                            </Form>
+                        </Modal>
+                        {(openIssuesTable.length > 0) && getIssuesByLabels(openIssuesTable, labels).filter((x) => {
+                            if (x.y != 0) {
+                                return x
+                            }
+                        }).length > 0 &&
+                            <GridItem span={4} rows={12}>
+                                <Card style={{ textAlign: 'center', alignContent: 'center' }}>
+                                    <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>Open Issues by Labels</CardTitle>
+                                </Card>
+                                <CardBody style={{ backgroundColor: 'white' }}>
+                                    <CustomStackChart data={[getIssuesByLabels(openIssuesTable, labels)]} legend={getLegend(labels)} />
+                                </CardBody>
+                            </GridItem>
+                        }
+                        {(openIssuesTable.length > 0) && getIssuesByFields(openIssuesTable, labels, "component").filter((x) => {
+                           let exists = false
+                           x.filter((x) => {
+                                if (x.y != 0) {
+                                    exists = true
+                                }
+                            })
+                           return exists
+                        }).length > 0 &&
+                            <GridItem span={4} rows={12}>
+                                <Card style={{ textAlign: 'center', alignContent: 'center' }}>
+                                    <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>Open Issues by Labels and Component</CardTitle>
+                                </Card>
+                                <CardBody style={{ backgroundColor: 'white' }}>
+                                    <CustomStackChart data={getIssuesByFields(openIssuesTable, labels, "component")} legend={getLegend(labels)} />
+                                </CardBody>
+                            </GridItem>
+                        }
+                        
+                        {(openIssuesTable.length > 0) && getIssuesByFields(openIssuesTable, labels, "status").filter((x) => {
+                            let exists = false
+                            x.filter((x) => {
+                                if (x.y != 0) {
+                                    exists = true
+                                }
+                            })
+                            return exists
+                        }).length > 0  &&
+                            <GridItem span={4} rows={12}>
+                                <Card style={{ textAlign: 'center', alignContent: 'center' }}>
+                                    <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>Open Issues by Labels and Status</CardTitle>
+                                </Card>
+                                <CardBody style={{ backgroundColor: 'white' }} >
+                                    <CustomStackChart data={getIssuesByFields(openIssuesTable, labels, "status")} legend={[{ name: 'ci-fail' }, { name: 'test_bug' }, { name: 'product_bug' }, { name: 'untriaged' }, { name: 'infra_bug' }, { name: 'to_investigate' }]} />
+                                </CardBody>
+                            </GridItem>
+                        }
+                        {(closedIssuesTable.length > 0) &&
+                            <GridItem span={4} rows={12}>
+                                <Card style={{ textAlign: 'center', alignContent: 'center' }}>
+                                    <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>Closed Issues by Labels</CardTitle>
+                                </Card>
+                                <CardBody style={{ backgroundColor: 'white' }}>
+                                    <CustomStackChart data={[getIssuesByLabels(closedIssuesTable, labels)]} legend={[{ name: 'Issues' }]} />
+                                </CardBody>
+                            </GridItem>
+                        }
+                        {(closedIssuesTable.length > 0) &&
+                            <GridItem span={4} rows={12}>
+                                <Card style={{ textAlign: 'center', alignContent: 'center' }}>
+                                    <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>Closed Issues by Labels and Component</CardTitle>
+                                </Card>
+                                <CardBody style={{ backgroundColor: 'white' }}>
+                                    <CustomStackChart data={getIssuesByFields(closedIssuesTable, labels, "component")} legend={[{ name: 'ci-fail' }, { name: 'test_bug' }, { name: 'product_bug' }, { name: 'untriaged' }, { name: 'infra_bug' }, { name: 'to_investigate' }]} />
+                                </CardBody>
+                            </GridItem>
+                        }
+                        {(closedIssuesTable.length > 0) &&
+                            <GridItem span={4} rows={12}>
+                                <Card style={{ textAlign: 'center', alignContent: 'center' }}>
+                                    <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>Closed Issues by Labels and Status</CardTitle>
+                                </Card>
+                                <CardBody style={{ backgroundColor: 'white' }} >
+                                    <CustomStackChart data={getIssuesByFields(closedIssuesTable, labels, "status")} legend={[{ name: 'ci-fail' }, { name: 'test_bug' }, { name: 'product_bug' }, { name: 'untriaged' }, { name: 'infra_bug' }, { name: 'to_investigate' }]} />
+                                </CardBody>
+                            </GridItem>
+                        }
+                        <Card>
+                                <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>
+                                    List of open issues
+                                </CardTitle>
+                                <CardBody style={{ backgroundColor: 'white' }}>
+                                    <div style={{ marginTop: 10 }}>
+                                        <ToggleGroup aria-label="Default with single selectable">
+                                            {labels?.map((label, idx) => {
+                                                return (
+                                                    <ToggleGroupItem
+                                                        key={idx}
+                                                        text={label}
+                                                        buttonId={label}
+                                                        isSelected={isLabelSelected === label}
+                                                        onChange={handleLabelClick}
+                                                    />
+                                                )
+                                            })}
+                                        </ToggleGroup>
+                                    </div>
+                                    <ListIssues issues={openIssuesTable}></ListIssues>
                                 </CardBody>
                             </Card>
-                        </GridItem>
+                        {(closedIssuesTable.length > 0) &&
+                            <Card>
+                                <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>
+                                    List of closed issues
+                                </CardTitle>
+                                <CardBody style={{ backgroundColor: 'white' }}>
+                                    <div style={{ marginTop: 10 }}>
+                                        <ToggleGroup aria-label="Default with single selectable">
+                                            {labels?.map((label, idx) => {
+                                                return (
+                                                    <ToggleGroupItem
+                                                        key={idx}
+                                                        text={label}
+                                                        buttonId={label}
+                                                        isSelected={isLabelSelected === label}
+                                                        onChange={handleLabelClick}
+                                                    />
+                                                )
+                                            })}
+                                        </ToggleGroup>
+                                    </div>
+                                    <ListIssues issues={closedIssuesTable}></ListIssues>
+                                </CardBody>
+                            </Card>
+                        }
                     </Grid>
                 </React.Fragment>}
             </PageSection>

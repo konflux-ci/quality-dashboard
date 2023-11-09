@@ -308,6 +308,46 @@ func (bu *BugsUpdate) ClearComponent() *BugsUpdate {
 	return bu
 }
 
+// SetAssignee sets the "assignee" field.
+func (bu *BugsUpdate) SetAssignee(s string) *BugsUpdate {
+	bu.mutation.SetAssignee(s)
+	return bu
+}
+
+// SetNillableAssignee sets the "assignee" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableAssignee(s *string) *BugsUpdate {
+	if s != nil {
+		bu.SetAssignee(*s)
+	}
+	return bu
+}
+
+// ClearAssignee clears the value of the "assignee" field.
+func (bu *BugsUpdate) ClearAssignee() *BugsUpdate {
+	bu.mutation.ClearAssignee()
+	return bu
+}
+
+// SetAge sets the "age" field.
+func (bu *BugsUpdate) SetAge(s string) *BugsUpdate {
+	bu.mutation.SetAge(s)
+	return bu
+}
+
+// SetNillableAge sets the "age" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableAge(s *string) *BugsUpdate {
+	if s != nil {
+		bu.SetAge(*s)
+	}
+	return bu
+}
+
+// ClearAge clears the value of the "age" field.
+func (bu *BugsUpdate) ClearAge() *BugsUpdate {
+	bu.mutation.ClearAge()
+	return bu
+}
+
 // SetBugsID sets the "bugs" edge to the Teams entity by ID.
 func (bu *BugsUpdate) SetBugsID(id uuid.UUID) *BugsUpdate {
 	bu.mutation.SetBugsID(id)
@@ -491,6 +531,18 @@ func (bu *BugsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if bu.mutation.ComponentCleared() {
 		_spec.ClearField(bugs.FieldComponent, field.TypeString)
+	}
+	if value, ok := bu.mutation.Assignee(); ok {
+		_spec.SetField(bugs.FieldAssignee, field.TypeString, value)
+	}
+	if bu.mutation.AssigneeCleared() {
+		_spec.ClearField(bugs.FieldAssignee, field.TypeString)
+	}
+	if value, ok := bu.mutation.Age(); ok {
+		_spec.SetField(bugs.FieldAge, field.TypeString, value)
+	}
+	if bu.mutation.AgeCleared() {
+		_spec.ClearField(bugs.FieldAge, field.TypeString)
 	}
 	if bu.mutation.BugsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -825,6 +877,46 @@ func (buo *BugsUpdateOne) ClearComponent() *BugsUpdateOne {
 	return buo
 }
 
+// SetAssignee sets the "assignee" field.
+func (buo *BugsUpdateOne) SetAssignee(s string) *BugsUpdateOne {
+	buo.mutation.SetAssignee(s)
+	return buo
+}
+
+// SetNillableAssignee sets the "assignee" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableAssignee(s *string) *BugsUpdateOne {
+	if s != nil {
+		buo.SetAssignee(*s)
+	}
+	return buo
+}
+
+// ClearAssignee clears the value of the "assignee" field.
+func (buo *BugsUpdateOne) ClearAssignee() *BugsUpdateOne {
+	buo.mutation.ClearAssignee()
+	return buo
+}
+
+// SetAge sets the "age" field.
+func (buo *BugsUpdateOne) SetAge(s string) *BugsUpdateOne {
+	buo.mutation.SetAge(s)
+	return buo
+}
+
+// SetNillableAge sets the "age" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableAge(s *string) *BugsUpdateOne {
+	if s != nil {
+		buo.SetAge(*s)
+	}
+	return buo
+}
+
+// ClearAge clears the value of the "age" field.
+func (buo *BugsUpdateOne) ClearAge() *BugsUpdateOne {
+	buo.mutation.ClearAge()
+	return buo
+}
+
 // SetBugsID sets the "bugs" edge to the Teams entity by ID.
 func (buo *BugsUpdateOne) SetBugsID(id uuid.UUID) *BugsUpdateOne {
 	buo.mutation.SetBugsID(id)
@@ -1032,6 +1124,18 @@ func (buo *BugsUpdateOne) sqlSave(ctx context.Context) (_node *Bugs, err error) 
 	}
 	if buo.mutation.ComponentCleared() {
 		_spec.ClearField(bugs.FieldComponent, field.TypeString)
+	}
+	if value, ok := buo.mutation.Assignee(); ok {
+		_spec.SetField(bugs.FieldAssignee, field.TypeString, value)
+	}
+	if buo.mutation.AssigneeCleared() {
+		_spec.ClearField(bugs.FieldAssignee, field.TypeString)
+	}
+	if value, ok := buo.mutation.Age(); ok {
+		_spec.SetField(bugs.FieldAge, field.TypeString, value)
+	}
+	if buo.mutation.AgeCleared() {
+		_spec.ClearField(bugs.FieldAge, field.TypeString)
 	}
 	if buo.mutation.BugsCleared() {
 		edge := &sqlgraph.EdgeSpec{
