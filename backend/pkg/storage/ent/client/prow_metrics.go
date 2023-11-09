@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"fmt"
-	"math"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -90,12 +89,11 @@ func (d *Database) getMetricsSummaryByDay(repo *db.Repository, job, jobType, sta
 }
 
 func getProwMetricsByDay(jobs []*db.ProwJobs, date string) prowV1Alpha1.Metrics {
-	job_nums := float64(len(jobs))
-	var success_rate_total, failed_rate_total, ci_failed_total float64
+	var success_total, failed_total, ci_failed_total float64
 
 	for _, j := range jobs {
 		if j.State == string(prow.SuccessState) {
-			success_rate_total++
+			success_total++
 		}
 
 		if j.State == string(prow.ErrorState) {
@@ -103,40 +101,26 @@ func getProwMetricsByDay(jobs []*db.ProwJobs, date string) prowV1Alpha1.Metrics 
 		}
 
 		if j.State == string(prow.FailureState) {
-			failed_rate_total++
+			failed_total++
 		}
 	}
 
-	success_rate := success_rate_total / job_nums * 100
-	if math.IsNaN(success_rate) {
-		success_rate = 0
-	}
-
-	failed_rate := failed_rate_total / job_nums * 100
-	if math.IsNaN(failed_rate) {
-		failed_rate = 0
-	}
-
-	ci_failed_rate := ci_failed_total / job_nums * 100
-	if math.IsNaN(ci_failed_rate) {
-		ci_failed_rate = 0
-	}
-
 	return prowV1Alpha1.Metrics{
-		Date:         date,
-		SuccessRate:  success_rate,
-		FailureRate:  failed_rate,
-		CiFailedRate: ci_failed_rate,
+		Date:          date,
+		SuccessCount:  success_total,
+		FailureCount:  failed_total,
+		CiFailedCount: ci_failed_total,
+		TotalJobs:     success_total + ci_failed_total + failed_total,
 	}
 
 }
 
 func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, jobName, jobType, startDate, endDate string) prowV1Alpha1.Jobs {
-	var success_rate_total, failed_rate_total, ci_failed_total float64
+	var success_total, failed_rate_total, ci_failed_total float64
 
 	for _, j := range jobs {
 		if j.State == string(prow.SuccessState) {
-			success_rate_total++
+			success_total++
 		}
 
 		if j.State == string(prow.ErrorState) {
@@ -147,7 +131,6 @@ func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, j
 			failed_rate_total++
 		}
 	}
-	job_nums := float64(len(jobs))
 	metricsByDat := d.getMetricsSummaryByDay(repo, jobName, jobType, startDate, endDate)
 
 	return prowV1Alpha1.Jobs{
@@ -156,10 +139,10 @@ func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, j
 		Summary: prowV1Alpha1.Summary{
 			DateFrom:       startDate,
 			DateTo:         endDate,
-			SuccessRateAvg: handleNaN(success_rate_total / job_nums * 100),
-			JobFailedAvg:   handleNaN(failed_rate_total / job_nums * 100),
-			CIFailedAvg:    handleNaN(ci_failed_total / job_nums * 100),
-			TotalJobs:      int(success_rate_total + failed_rate_total + ci_failed_total),
+			SuccessCount:   success_total,
+			JobFailedCount: failed_rate_total,
+			CIFailedCount:  ci_failed_total,
+			TotalJobs:      success_total + failed_rate_total + ci_failed_total,
 		},
 	}
 }
