@@ -121,6 +121,10 @@ export const PInstalled: FC<HubProps> = (): ReactElement => {
   useEffect(() => {
     listAllPlugins();
   }, []);
+
+  useEffect(() => {
+    listAllPlugins();
+  }, [currentTeam]);
   
   return (
     <React.Fragment>
