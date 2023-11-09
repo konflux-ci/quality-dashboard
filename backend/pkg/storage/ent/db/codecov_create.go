@@ -42,6 +42,20 @@ func (ccc *CodeCovCreate) SetCoveragePercentage(f float64) *CodeCovCreate {
 	return ccc
 }
 
+// SetAverageRetests sets the "average_retests" field.
+func (ccc *CodeCovCreate) SetAverageRetests(f float64) *CodeCovCreate {
+	ccc.mutation.SetAverageRetests(f)
+	return ccc
+}
+
+// SetNillableAverageRetests sets the "average_retests" field if the given value is not nil.
+func (ccc *CodeCovCreate) SetNillableAverageRetests(f *float64) *CodeCovCreate {
+	if f != nil {
+		ccc.SetAverageRetests(*f)
+	}
+	return ccc
+}
+
 // SetAverageRetestsToMerge sets the "average_retests_to_merge" field.
 func (ccc *CodeCovCreate) SetAverageRetestsToMerge(f float64) *CodeCovCreate {
 	ccc.mutation.SetAverageRetestsToMerge(f)
@@ -214,6 +228,10 @@ func (ccc *CodeCovCreate) createSpec() (*CodeCov, *sqlgraph.CreateSpec) {
 		_spec.SetField(codecov.FieldCoveragePercentage, field.TypeFloat64, value)
 		_node.CoveragePercentage = value
 	}
+	if value, ok := ccc.mutation.AverageRetests(); ok {
+		_spec.SetField(codecov.FieldAverageRetests, field.TypeFloat64, value)
+		_node.AverageRetests = &value
+	}
 	if value, ok := ccc.mutation.AverageRetestsToMerge(); ok {
 		_spec.SetField(codecov.FieldAverageRetestsToMerge, field.TypeFloat64, value)
 		_node.AverageRetestsToMerge = &value
@@ -333,6 +351,30 @@ func (u *CodeCovUpsert) UpdateCoveragePercentage() *CodeCovUpsert {
 // AddCoveragePercentage adds v to the "coverage_percentage" field.
 func (u *CodeCovUpsert) AddCoveragePercentage(v float64) *CodeCovUpsert {
 	u.Add(codecov.FieldCoveragePercentage, v)
+	return u
+}
+
+// SetAverageRetests sets the "average_retests" field.
+func (u *CodeCovUpsert) SetAverageRetests(v float64) *CodeCovUpsert {
+	u.Set(codecov.FieldAverageRetests, v)
+	return u
+}
+
+// UpdateAverageRetests sets the "average_retests" field to the value that was provided on create.
+func (u *CodeCovUpsert) UpdateAverageRetests() *CodeCovUpsert {
+	u.SetExcluded(codecov.FieldAverageRetests)
+	return u
+}
+
+// AddAverageRetests adds v to the "average_retests" field.
+func (u *CodeCovUpsert) AddAverageRetests(v float64) *CodeCovUpsert {
+	u.Add(codecov.FieldAverageRetests, v)
+	return u
+}
+
+// ClearAverageRetests clears the value of the "average_retests" field.
+func (u *CodeCovUpsert) ClearAverageRetests() *CodeCovUpsert {
+	u.SetNull(codecov.FieldAverageRetests)
 	return u
 }
 
@@ -472,6 +514,34 @@ func (u *CodeCovUpsertOne) AddCoveragePercentage(v float64) *CodeCovUpsertOne {
 func (u *CodeCovUpsertOne) UpdateCoveragePercentage() *CodeCovUpsertOne {
 	return u.Update(func(s *CodeCovUpsert) {
 		s.UpdateCoveragePercentage()
+	})
+}
+
+// SetAverageRetests sets the "average_retests" field.
+func (u *CodeCovUpsertOne) SetAverageRetests(v float64) *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.SetAverageRetests(v)
+	})
+}
+
+// AddAverageRetests adds v to the "average_retests" field.
+func (u *CodeCovUpsertOne) AddAverageRetests(v float64) *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.AddAverageRetests(v)
+	})
+}
+
+// UpdateAverageRetests sets the "average_retests" field to the value that was provided on create.
+func (u *CodeCovUpsertOne) UpdateAverageRetests() *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.UpdateAverageRetests()
+	})
+}
+
+// ClearAverageRetests clears the value of the "average_retests" field.
+func (u *CodeCovUpsertOne) ClearAverageRetests() *CodeCovUpsertOne {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.ClearAverageRetests()
 	})
 }
 
@@ -781,6 +851,34 @@ func (u *CodeCovUpsertBulk) AddCoveragePercentage(v float64) *CodeCovUpsertBulk 
 func (u *CodeCovUpsertBulk) UpdateCoveragePercentage() *CodeCovUpsertBulk {
 	return u.Update(func(s *CodeCovUpsert) {
 		s.UpdateCoveragePercentage()
+	})
+}
+
+// SetAverageRetests sets the "average_retests" field.
+func (u *CodeCovUpsertBulk) SetAverageRetests(v float64) *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.SetAverageRetests(v)
+	})
+}
+
+// AddAverageRetests adds v to the "average_retests" field.
+func (u *CodeCovUpsertBulk) AddAverageRetests(v float64) *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.AddAverageRetests(v)
+	})
+}
+
+// UpdateAverageRetests sets the "average_retests" field to the value that was provided on create.
+func (u *CodeCovUpsertBulk) UpdateAverageRetests() *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.UpdateAverageRetests()
+	})
+}
+
+// ClearAverageRetests clears the value of the "average_retests" field.
+func (u *CodeCovUpsertBulk) ClearAverageRetests() *CodeCovUpsertBulk {
+	return u.Update(func(s *CodeCovUpsert) {
+		s.ClearAverageRetests()
 	})
 }
 

@@ -17,6 +17,8 @@ const (
 	FieldGitOrganization = "git_organization"
 	// FieldCoveragePercentage holds the string denoting the coverage_percentage field in the database.
 	FieldCoveragePercentage = "coverage_percentage"
+	// FieldAverageRetests holds the string denoting the average_retests field in the database.
+	FieldAverageRetests = "average_retests"
 	// FieldAverageRetestsToMerge holds the string denoting the average_retests_to_merge field in the database.
 	FieldAverageRetestsToMerge = "average_retests_to_merge"
 	// FieldCoverageTrend holds the string denoting the coverage_trend field in the database.
@@ -40,6 +42,7 @@ var Columns = []string{
 	FieldRepositoryName,
 	FieldGitOrganization,
 	FieldCoveragePercentage,
+	FieldAverageRetests,
 	FieldAverageRetestsToMerge,
 	FieldCoverageTrend,
 }

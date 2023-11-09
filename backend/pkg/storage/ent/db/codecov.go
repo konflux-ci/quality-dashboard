@@ -23,6 +23,8 @@ type CodeCov struct {
 	GitOrganization string `json:"git_organization,omitempty"`
 	// CoveragePercentage holds the value of the "coverage_percentage" field.
 	CoveragePercentage float64 `json:"coverage_percentage,omitempty"`
+	// AverageRetests holds the value of the "average_retests" field.
+	AverageRetests *float64 `json:"average_retests,omitempty"`
 	// AverageRetestsToMerge holds the value of the "average_retests_to_merge" field.
 	AverageRetestsToMerge *float64 `json:"average_retests_to_merge,omitempty"`
 	// CoverageTrend holds the value of the "coverage_trend" field.
@@ -60,7 +62,7 @@ func (*CodeCov) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case codecov.FieldCoveragePercentage, codecov.FieldAverageRetestsToMerge:
+		case codecov.FieldCoveragePercentage, codecov.FieldAverageRetests, codecov.FieldAverageRetestsToMerge:
 			values[i] = new(sql.NullFloat64)
 		case codecov.FieldRepositoryName, codecov.FieldGitOrganization, codecov.FieldCoverageTrend:
 			values[i] = new(sql.NullString)
@@ -106,6 +108,13 @@ func (cc *CodeCov) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field coverage_percentage", values[i])
 			} else if value.Valid {
 				cc.CoveragePercentage = value.Float64
+			}
+		case codecov.FieldAverageRetests:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field average_retests", values[i])
+			} else if value.Valid {
+				cc.AverageRetests = new(float64)
+				*cc.AverageRetests = value.Float64
 			}
 		case codecov.FieldAverageRetestsToMerge:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
@@ -169,6 +178,11 @@ func (cc *CodeCov) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("coverage_percentage=")
 	builder.WriteString(fmt.Sprintf("%v", cc.CoveragePercentage))
+	builder.WriteString(", ")
+	if v := cc.AverageRetests; v != nil {
+		builder.WriteString("average_retests=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	if v := cc.AverageRetestsToMerge; v != nil {
 		builder.WriteString("average_retests_to_merge=")
