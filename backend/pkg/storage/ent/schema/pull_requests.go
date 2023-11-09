@@ -41,6 +41,10 @@ func (PullRequests) Fields() []ent.Field {
 			SchemaType(textSchema).
 			Optional().
 			Nillable(),
+		field.Float("retest_count").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
 		field.Float("retest_before_merge_count").
 			SchemaType(textSchema).
 			Optional().

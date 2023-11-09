@@ -26,6 +26,10 @@ func (CodeCov) Fields() []ent.Field {
 			SchemaType(textSchema),
 		field.Float("coverage_percentage").
 			SchemaType(intSchema),
+		field.Float("average_retests").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
 		// average_retests_to_merge deprecated
 		// this info is now saved on each merged pr
 		field.Float("average_retests_to_merge").

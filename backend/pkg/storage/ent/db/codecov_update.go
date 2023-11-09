@@ -53,6 +53,33 @@ func (ccu *CodeCovUpdate) AddCoveragePercentage(f float64) *CodeCovUpdate {
 	return ccu
 }
 
+// SetAverageRetests sets the "average_retests" field.
+func (ccu *CodeCovUpdate) SetAverageRetests(f float64) *CodeCovUpdate {
+	ccu.mutation.ResetAverageRetests()
+	ccu.mutation.SetAverageRetests(f)
+	return ccu
+}
+
+// SetNillableAverageRetests sets the "average_retests" field if the given value is not nil.
+func (ccu *CodeCovUpdate) SetNillableAverageRetests(f *float64) *CodeCovUpdate {
+	if f != nil {
+		ccu.SetAverageRetests(*f)
+	}
+	return ccu
+}
+
+// AddAverageRetests adds f to the "average_retests" field.
+func (ccu *CodeCovUpdate) AddAverageRetests(f float64) *CodeCovUpdate {
+	ccu.mutation.AddAverageRetests(f)
+	return ccu
+}
+
+// ClearAverageRetests clears the value of the "average_retests" field.
+func (ccu *CodeCovUpdate) ClearAverageRetests() *CodeCovUpdate {
+	ccu.mutation.ClearAverageRetests()
+	return ccu
+}
+
 // SetAverageRetestsToMerge sets the "average_retests_to_merge" field.
 func (ccu *CodeCovUpdate) SetAverageRetestsToMerge(f float64) *CodeCovUpdate {
 	ccu.mutation.ResetAverageRetestsToMerge()
@@ -200,6 +227,15 @@ func (ccu *CodeCovUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ccu.mutation.AddedCoveragePercentage(); ok {
 		_spec.AddField(codecov.FieldCoveragePercentage, field.TypeFloat64, value)
 	}
+	if value, ok := ccu.mutation.AverageRetests(); ok {
+		_spec.SetField(codecov.FieldAverageRetests, field.TypeFloat64, value)
+	}
+	if value, ok := ccu.mutation.AddedAverageRetests(); ok {
+		_spec.AddField(codecov.FieldAverageRetests, field.TypeFloat64, value)
+	}
+	if ccu.mutation.AverageRetestsCleared() {
+		_spec.ClearField(codecov.FieldAverageRetests, field.TypeFloat64)
+	}
 	if value, ok := ccu.mutation.AverageRetestsToMerge(); ok {
 		_spec.SetField(codecov.FieldAverageRetestsToMerge, field.TypeFloat64, value)
 	}
@@ -292,6 +328,33 @@ func (ccuo *CodeCovUpdateOne) SetCoveragePercentage(f float64) *CodeCovUpdateOne
 // AddCoveragePercentage adds f to the "coverage_percentage" field.
 func (ccuo *CodeCovUpdateOne) AddCoveragePercentage(f float64) *CodeCovUpdateOne {
 	ccuo.mutation.AddCoveragePercentage(f)
+	return ccuo
+}
+
+// SetAverageRetests sets the "average_retests" field.
+func (ccuo *CodeCovUpdateOne) SetAverageRetests(f float64) *CodeCovUpdateOne {
+	ccuo.mutation.ResetAverageRetests()
+	ccuo.mutation.SetAverageRetests(f)
+	return ccuo
+}
+
+// SetNillableAverageRetests sets the "average_retests" field if the given value is not nil.
+func (ccuo *CodeCovUpdateOne) SetNillableAverageRetests(f *float64) *CodeCovUpdateOne {
+	if f != nil {
+		ccuo.SetAverageRetests(*f)
+	}
+	return ccuo
+}
+
+// AddAverageRetests adds f to the "average_retests" field.
+func (ccuo *CodeCovUpdateOne) AddAverageRetests(f float64) *CodeCovUpdateOne {
+	ccuo.mutation.AddAverageRetests(f)
+	return ccuo
+}
+
+// ClearAverageRetests clears the value of the "average_retests" field.
+func (ccuo *CodeCovUpdateOne) ClearAverageRetests() *CodeCovUpdateOne {
+	ccuo.mutation.ClearAverageRetests()
 	return ccuo
 }
 
@@ -465,6 +528,15 @@ func (ccuo *CodeCovUpdateOne) sqlSave(ctx context.Context) (_node *CodeCov, err 
 	}
 	if value, ok := ccuo.mutation.AddedCoveragePercentage(); ok {
 		_spec.AddField(codecov.FieldCoveragePercentage, field.TypeFloat64, value)
+	}
+	if value, ok := ccuo.mutation.AverageRetests(); ok {
+		_spec.SetField(codecov.FieldAverageRetests, field.TypeFloat64, value)
+	}
+	if value, ok := ccuo.mutation.AddedAverageRetests(); ok {
+		_spec.AddField(codecov.FieldAverageRetests, field.TypeFloat64, value)
+	}
+	if ccuo.mutation.AverageRetestsCleared() {
+		_spec.ClearField(codecov.FieldAverageRetests, field.TypeFloat64)
 	}
 	if value, ok := ccuo.mutation.AverageRetestsToMerge(); ok {
 		_spec.SetField(codecov.FieldAverageRetestsToMerge, field.TypeFloat64, value)

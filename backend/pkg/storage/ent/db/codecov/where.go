@@ -69,6 +69,11 @@ func CoveragePercentage(v float64) predicate.CodeCov {
 	return predicate.CodeCov(sql.FieldEQ(FieldCoveragePercentage, v))
 }
 
+// AverageRetests applies equality check predicate on the "average_retests" field. It's identical to AverageRetestsEQ.
+func AverageRetests(v float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldEQ(FieldAverageRetests, v))
+}
+
 // AverageRetestsToMerge applies equality check predicate on the "average_retests_to_merge" field. It's identical to AverageRetestsToMergeEQ.
 func AverageRetestsToMerge(v float64) predicate.CodeCov {
 	return predicate.CodeCov(sql.FieldEQ(FieldAverageRetestsToMerge, v))
@@ -247,6 +252,56 @@ func CoveragePercentageLT(v float64) predicate.CodeCov {
 // CoveragePercentageLTE applies the LTE predicate on the "coverage_percentage" field.
 func CoveragePercentageLTE(v float64) predicate.CodeCov {
 	return predicate.CodeCov(sql.FieldLTE(FieldCoveragePercentage, v))
+}
+
+// AverageRetestsEQ applies the EQ predicate on the "average_retests" field.
+func AverageRetestsEQ(v float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldEQ(FieldAverageRetests, v))
+}
+
+// AverageRetestsNEQ applies the NEQ predicate on the "average_retests" field.
+func AverageRetestsNEQ(v float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldNEQ(FieldAverageRetests, v))
+}
+
+// AverageRetestsIn applies the In predicate on the "average_retests" field.
+func AverageRetestsIn(vs ...float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldIn(FieldAverageRetests, vs...))
+}
+
+// AverageRetestsNotIn applies the NotIn predicate on the "average_retests" field.
+func AverageRetestsNotIn(vs ...float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldNotIn(FieldAverageRetests, vs...))
+}
+
+// AverageRetestsGT applies the GT predicate on the "average_retests" field.
+func AverageRetestsGT(v float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldGT(FieldAverageRetests, v))
+}
+
+// AverageRetestsGTE applies the GTE predicate on the "average_retests" field.
+func AverageRetestsGTE(v float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldGTE(FieldAverageRetests, v))
+}
+
+// AverageRetestsLT applies the LT predicate on the "average_retests" field.
+func AverageRetestsLT(v float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldLT(FieldAverageRetests, v))
+}
+
+// AverageRetestsLTE applies the LTE predicate on the "average_retests" field.
+func AverageRetestsLTE(v float64) predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldLTE(FieldAverageRetests, v))
+}
+
+// AverageRetestsIsNil applies the IsNil predicate on the "average_retests" field.
+func AverageRetestsIsNil() predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldIsNull(FieldAverageRetests))
+}
+
+// AverageRetestsNotNil applies the NotNil predicate on the "average_retests" field.
+func AverageRetestsNotNil() predicate.CodeCov {
+	return predicate.CodeCov(sql.FieldNotNull(FieldAverageRetests))
 }
 
 // AverageRetestsToMergeEQ applies the EQ predicate on the "average_retests_to_merge" field.

@@ -17,6 +17,23 @@ func (d *Database) getMetricByDay(repo *db.Repository, startDate, endDate string
 			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 		}).All(context.TODO())
 
+	openPrs, _ := d.client.Repository.QueryPrs(repo).Select().
+		Where(func(s *sql.Selector) {
+			// 0001-01-01 00:00:00 is the default value meaning the pull requests has not yet been closed.
+			s.Where(sql.ExprP(fmt.Sprintf("created_at <= '%s' AND (closed_at >= '%s' OR closed_at ='0001-01-01 00:00:00')", endDate, startDate)))
+		}).All(context.TODO())
+
+	var totalRetest, retestAvg float64
+	for _, openPr := range openPrs {
+		if openPr.RetestCount != nil {
+			totalRetest += *openPr.RetestCount
+		}
+	}
+
+	if len(openPrs) != 0 {
+		retestAvg = totalRetest / float64(len(openPrs))
+	}
+
 	mergedPrs, _ := d.client.Repository.QueryPrs(repo).Select().
 		Where(func(s *sql.Selector) { // "merged_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 			s.Where(sql.ExprP(fmt.Sprintf("merged_at BETWEEN '%s' AND '%s'", startDate, endDate)))
@@ -39,6 +56,7 @@ func (d *Database) getMetricByDay(repo *db.Repository, startDate, endDate string
 		Date:                     startDate,
 		CreatedPullRequestsCount: len(createdPrs),
 		MergedPullRequestsCount:  len(mergedPrs),
+		RetestAvg:                math.Round(retestAvg*100) / 100,
 		RetestBeforeMergeAvg:     math.Round(retestBeforeMergeAvg*100) / 100,
 	}
 }
