@@ -51,6 +51,7 @@ var (
 		{Name: "repository_name", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "git_organization", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "coverage_percentage", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "numeric"}},
+		{Name: "average_retests", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "average_retests_to_merge", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "coverage_trend", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "repository_codecov", Type: field.TypeString, Nullable: true, Size: 25},
@@ -63,7 +64,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "code_covs_repositories_codecov",
-				Columns:    []*schema.Column{CodeCovsColumns[6]},
+				Columns:    []*schema.Column{CodeCovsColumns[7]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -161,6 +162,7 @@ var (
 		{Name: "author", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "title", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "merge_commit", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "retest_count", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "retest_before_merge_count", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "repository_prs", Type: field.TypeString, Nullable: true, Size: 25},
 	}
@@ -172,7 +174,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "pull_requests_repositories_prs",
-				Columns:    []*schema.Column{PullRequestsColumns[13]},
+				Columns:    []*schema.Column{PullRequestsColumns[14]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

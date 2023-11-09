@@ -1733,6 +1733,8 @@ type CodeCovMutation struct {
 	git_organization            *string
 	coverage_percentage         *float64
 	addcoverage_percentage      *float64
+	average_retests             *float64
+	addaverage_retests          *float64
 	average_retests_to_merge    *float64
 	addaverage_retests_to_merge *float64
 	coverage_trend              *string
@@ -1976,6 +1978,76 @@ func (m *CodeCovMutation) ResetCoveragePercentage() {
 	m.addcoverage_percentage = nil
 }
 
+// SetAverageRetests sets the "average_retests" field.
+func (m *CodeCovMutation) SetAverageRetests(f float64) {
+	m.average_retests = &f
+	m.addaverage_retests = nil
+}
+
+// AverageRetests returns the value of the "average_retests" field in the mutation.
+func (m *CodeCovMutation) AverageRetests() (r float64, exists bool) {
+	v := m.average_retests
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAverageRetests returns the old "average_retests" field's value of the CodeCov entity.
+// If the CodeCov object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CodeCovMutation) OldAverageRetests(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAverageRetests is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAverageRetests requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAverageRetests: %w", err)
+	}
+	return oldValue.AverageRetests, nil
+}
+
+// AddAverageRetests adds f to the "average_retests" field.
+func (m *CodeCovMutation) AddAverageRetests(f float64) {
+	if m.addaverage_retests != nil {
+		*m.addaverage_retests += f
+	} else {
+		m.addaverage_retests = &f
+	}
+}
+
+// AddedAverageRetests returns the value that was added to the "average_retests" field in this mutation.
+func (m *CodeCovMutation) AddedAverageRetests() (r float64, exists bool) {
+	v := m.addaverage_retests
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearAverageRetests clears the value of the "average_retests" field.
+func (m *CodeCovMutation) ClearAverageRetests() {
+	m.average_retests = nil
+	m.addaverage_retests = nil
+	m.clearedFields[codecov.FieldAverageRetests] = struct{}{}
+}
+
+// AverageRetestsCleared returns if the "average_retests" field was cleared in this mutation.
+func (m *CodeCovMutation) AverageRetestsCleared() bool {
+	_, ok := m.clearedFields[codecov.FieldAverageRetests]
+	return ok
+}
+
+// ResetAverageRetests resets all changes to the "average_retests" field.
+func (m *CodeCovMutation) ResetAverageRetests() {
+	m.average_retests = nil
+	m.addaverage_retests = nil
+	delete(m.clearedFields, codecov.FieldAverageRetests)
+}
+
 // SetAverageRetestsToMerge sets the "average_retests_to_merge" field.
 func (m *CodeCovMutation) SetAverageRetestsToMerge(f float64) {
 	m.average_retests_to_merge = &f
@@ -2168,7 +2240,7 @@ func (m *CodeCovMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CodeCovMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.repository_name != nil {
 		fields = append(fields, codecov.FieldRepositoryName)
 	}
@@ -2177,6 +2249,9 @@ func (m *CodeCovMutation) Fields() []string {
 	}
 	if m.coverage_percentage != nil {
 		fields = append(fields, codecov.FieldCoveragePercentage)
+	}
+	if m.average_retests != nil {
+		fields = append(fields, codecov.FieldAverageRetests)
 	}
 	if m.average_retests_to_merge != nil {
 		fields = append(fields, codecov.FieldAverageRetestsToMerge)
@@ -2198,6 +2273,8 @@ func (m *CodeCovMutation) Field(name string) (ent.Value, bool) {
 		return m.GitOrganization()
 	case codecov.FieldCoveragePercentage:
 		return m.CoveragePercentage()
+	case codecov.FieldAverageRetests:
+		return m.AverageRetests()
 	case codecov.FieldAverageRetestsToMerge:
 		return m.AverageRetestsToMerge()
 	case codecov.FieldCoverageTrend:
@@ -2217,6 +2294,8 @@ func (m *CodeCovMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldGitOrganization(ctx)
 	case codecov.FieldCoveragePercentage:
 		return m.OldCoveragePercentage(ctx)
+	case codecov.FieldAverageRetests:
+		return m.OldAverageRetests(ctx)
 	case codecov.FieldAverageRetestsToMerge:
 		return m.OldAverageRetestsToMerge(ctx)
 	case codecov.FieldCoverageTrend:
@@ -2251,6 +2330,13 @@ func (m *CodeCovMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCoveragePercentage(v)
 		return nil
+	case codecov.FieldAverageRetests:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAverageRetests(v)
+		return nil
 	case codecov.FieldAverageRetestsToMerge:
 		v, ok := value.(float64)
 		if !ok {
@@ -2276,6 +2362,9 @@ func (m *CodeCovMutation) AddedFields() []string {
 	if m.addcoverage_percentage != nil {
 		fields = append(fields, codecov.FieldCoveragePercentage)
 	}
+	if m.addaverage_retests != nil {
+		fields = append(fields, codecov.FieldAverageRetests)
+	}
 	if m.addaverage_retests_to_merge != nil {
 		fields = append(fields, codecov.FieldAverageRetestsToMerge)
 	}
@@ -2289,6 +2378,8 @@ func (m *CodeCovMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case codecov.FieldCoveragePercentage:
 		return m.AddedCoveragePercentage()
+	case codecov.FieldAverageRetests:
+		return m.AddedAverageRetests()
 	case codecov.FieldAverageRetestsToMerge:
 		return m.AddedAverageRetestsToMerge()
 	}
@@ -2307,6 +2398,13 @@ func (m *CodeCovMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddCoveragePercentage(v)
 		return nil
+	case codecov.FieldAverageRetests:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddAverageRetests(v)
+		return nil
 	case codecov.FieldAverageRetestsToMerge:
 		v, ok := value.(float64)
 		if !ok {
@@ -2322,6 +2420,9 @@ func (m *CodeCovMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *CodeCovMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(codecov.FieldAverageRetests) {
+		fields = append(fields, codecov.FieldAverageRetests)
+	}
 	if m.FieldCleared(codecov.FieldAverageRetestsToMerge) {
 		fields = append(fields, codecov.FieldAverageRetestsToMerge)
 	}
@@ -2342,6 +2443,9 @@ func (m *CodeCovMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *CodeCovMutation) ClearField(name string) error {
 	switch name {
+	case codecov.FieldAverageRetests:
+		m.ClearAverageRetests()
+		return nil
 	case codecov.FieldAverageRetestsToMerge:
 		m.ClearAverageRetestsToMerge()
 		return nil
@@ -2364,6 +2468,9 @@ func (m *CodeCovMutation) ResetField(name string) error {
 		return nil
 	case codecov.FieldCoveragePercentage:
 		m.ResetCoveragePercentage()
+		return nil
+	case codecov.FieldAverageRetests:
+		m.ResetAverageRetests()
 		return nil
 	case codecov.FieldAverageRetestsToMerge:
 		m.ResetAverageRetestsToMerge()
@@ -4888,6 +4995,8 @@ type PullRequestsMutation struct {
 	author                       *string
 	title                        *string
 	merge_commit                 *string
+	retest_count                 *float64
+	addretest_count              *float64
 	retest_before_merge_count    *float64
 	addretest_before_merge_count *float64
 	clearedFields                map[string]struct{}
@@ -5425,6 +5534,76 @@ func (m *PullRequestsMutation) ResetMergeCommit() {
 	delete(m.clearedFields, pullrequests.FieldMergeCommit)
 }
 
+// SetRetestCount sets the "retest_count" field.
+func (m *PullRequestsMutation) SetRetestCount(f float64) {
+	m.retest_count = &f
+	m.addretest_count = nil
+}
+
+// RetestCount returns the value of the "retest_count" field in the mutation.
+func (m *PullRequestsMutation) RetestCount() (r float64, exists bool) {
+	v := m.retest_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRetestCount returns the old "retest_count" field's value of the PullRequests entity.
+// If the PullRequests object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PullRequestsMutation) OldRetestCount(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRetestCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRetestCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRetestCount: %w", err)
+	}
+	return oldValue.RetestCount, nil
+}
+
+// AddRetestCount adds f to the "retest_count" field.
+func (m *PullRequestsMutation) AddRetestCount(f float64) {
+	if m.addretest_count != nil {
+		*m.addretest_count += f
+	} else {
+		m.addretest_count = &f
+	}
+}
+
+// AddedRetestCount returns the value that was added to the "retest_count" field in this mutation.
+func (m *PullRequestsMutation) AddedRetestCount() (r float64, exists bool) {
+	v := m.addretest_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearRetestCount clears the value of the "retest_count" field.
+func (m *PullRequestsMutation) ClearRetestCount() {
+	m.retest_count = nil
+	m.addretest_count = nil
+	m.clearedFields[pullrequests.FieldRetestCount] = struct{}{}
+}
+
+// RetestCountCleared returns if the "retest_count" field was cleared in this mutation.
+func (m *PullRequestsMutation) RetestCountCleared() bool {
+	_, ok := m.clearedFields[pullrequests.FieldRetestCount]
+	return ok
+}
+
+// ResetRetestCount resets all changes to the "retest_count" field.
+func (m *PullRequestsMutation) ResetRetestCount() {
+	m.retest_count = nil
+	m.addretest_count = nil
+	delete(m.clearedFields, pullrequests.FieldRetestCount)
+}
+
 // SetRetestBeforeMergeCount sets the "retest_before_merge_count" field.
 func (m *PullRequestsMutation) SetRetestBeforeMergeCount(f float64) {
 	m.retest_before_merge_count = &f
@@ -5568,7 +5747,7 @@ func (m *PullRequestsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PullRequestsMutation) Fields() []string {
-	fields := make([]string, 0, 12)
+	fields := make([]string, 0, 13)
 	if m.pr_id != nil {
 		fields = append(fields, pullrequests.FieldPrID)
 	}
@@ -5601,6 +5780,9 @@ func (m *PullRequestsMutation) Fields() []string {
 	}
 	if m.merge_commit != nil {
 		fields = append(fields, pullrequests.FieldMergeCommit)
+	}
+	if m.retest_count != nil {
+		fields = append(fields, pullrequests.FieldRetestCount)
 	}
 	if m.retest_before_merge_count != nil {
 		fields = append(fields, pullrequests.FieldRetestBeforeMergeCount)
@@ -5635,6 +5817,8 @@ func (m *PullRequestsMutation) Field(name string) (ent.Value, bool) {
 		return m.Title()
 	case pullrequests.FieldMergeCommit:
 		return m.MergeCommit()
+	case pullrequests.FieldRetestCount:
+		return m.RetestCount()
 	case pullrequests.FieldRetestBeforeMergeCount:
 		return m.RetestBeforeMergeCount()
 	}
@@ -5668,6 +5852,8 @@ func (m *PullRequestsMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldTitle(ctx)
 	case pullrequests.FieldMergeCommit:
 		return m.OldMergeCommit(ctx)
+	case pullrequests.FieldRetestCount:
+		return m.OldRetestCount(ctx)
 	case pullrequests.FieldRetestBeforeMergeCount:
 		return m.OldRetestBeforeMergeCount(ctx)
 	}
@@ -5756,6 +5942,13 @@ func (m *PullRequestsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetMergeCommit(v)
 		return nil
+	case pullrequests.FieldRetestCount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRetestCount(v)
+		return nil
 	case pullrequests.FieldRetestBeforeMergeCount:
 		v, ok := value.(float64)
 		if !ok {
@@ -5774,6 +5967,9 @@ func (m *PullRequestsMutation) AddedFields() []string {
 	if m.addnumber != nil {
 		fields = append(fields, pullrequests.FieldNumber)
 	}
+	if m.addretest_count != nil {
+		fields = append(fields, pullrequests.FieldRetestCount)
+	}
 	if m.addretest_before_merge_count != nil {
 		fields = append(fields, pullrequests.FieldRetestBeforeMergeCount)
 	}
@@ -5787,6 +5983,8 @@ func (m *PullRequestsMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case pullrequests.FieldNumber:
 		return m.AddedNumber()
+	case pullrequests.FieldRetestCount:
+		return m.AddedRetestCount()
 	case pullrequests.FieldRetestBeforeMergeCount:
 		return m.AddedRetestBeforeMergeCount()
 	}
@@ -5805,6 +6003,13 @@ func (m *PullRequestsMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddNumber(v)
 		return nil
+	case pullrequests.FieldRetestCount:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRetestCount(v)
+		return nil
 	case pullrequests.FieldRetestBeforeMergeCount:
 		v, ok := value.(float64)
 		if !ok {
@@ -5822,6 +6027,9 @@ func (m *PullRequestsMutation) ClearedFields() []string {
 	var fields []string
 	if m.FieldCleared(pullrequests.FieldMergeCommit) {
 		fields = append(fields, pullrequests.FieldMergeCommit)
+	}
+	if m.FieldCleared(pullrequests.FieldRetestCount) {
+		fields = append(fields, pullrequests.FieldRetestCount)
 	}
 	if m.FieldCleared(pullrequests.FieldRetestBeforeMergeCount) {
 		fields = append(fields, pullrequests.FieldRetestBeforeMergeCount)
@@ -5842,6 +6050,9 @@ func (m *PullRequestsMutation) ClearField(name string) error {
 	switch name {
 	case pullrequests.FieldMergeCommit:
 		m.ClearMergeCommit()
+		return nil
+	case pullrequests.FieldRetestCount:
+		m.ClearRetestCount()
 		return nil
 	case pullrequests.FieldRetestBeforeMergeCount:
 		m.ClearRetestBeforeMergeCount()
@@ -5886,6 +6097,9 @@ func (m *PullRequestsMutation) ResetField(name string) error {
 		return nil
 	case pullrequests.FieldMergeCommit:
 		m.ResetMergeCommit()
+		return nil
+	case pullrequests.FieldRetestCount:
+		m.ResetRetestCount()
 		return nil
 	case pullrequests.FieldRetestBeforeMergeCount:
 		m.ResetRetestBeforeMergeCount()

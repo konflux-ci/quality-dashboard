@@ -110,6 +110,33 @@ func (pru *PullRequestsUpdate) ClearMergeCommit() *PullRequestsUpdate {
 	return pru
 }
 
+// SetRetestCount sets the "retest_count" field.
+func (pru *PullRequestsUpdate) SetRetestCount(f float64) *PullRequestsUpdate {
+	pru.mutation.ResetRetestCount()
+	pru.mutation.SetRetestCount(f)
+	return pru
+}
+
+// SetNillableRetestCount sets the "retest_count" field if the given value is not nil.
+func (pru *PullRequestsUpdate) SetNillableRetestCount(f *float64) *PullRequestsUpdate {
+	if f != nil {
+		pru.SetRetestCount(*f)
+	}
+	return pru
+}
+
+// AddRetestCount adds f to the "retest_count" field.
+func (pru *PullRequestsUpdate) AddRetestCount(f float64) *PullRequestsUpdate {
+	pru.mutation.AddRetestCount(f)
+	return pru
+}
+
+// ClearRetestCount clears the value of the "retest_count" field.
+func (pru *PullRequestsUpdate) ClearRetestCount() *PullRequestsUpdate {
+	pru.mutation.ClearRetestCount()
+	return pru
+}
+
 // SetRetestBeforeMergeCount sets the "retest_before_merge_count" field.
 func (pru *PullRequestsUpdate) SetRetestBeforeMergeCount(f float64) *PullRequestsUpdate {
 	pru.mutation.ResetRetestBeforeMergeCount()
@@ -247,6 +274,15 @@ func (pru *PullRequestsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if pru.mutation.MergeCommitCleared() {
 		_spec.ClearField(pullrequests.FieldMergeCommit, field.TypeString)
+	}
+	if value, ok := pru.mutation.RetestCount(); ok {
+		_spec.SetField(pullrequests.FieldRetestCount, field.TypeFloat64, value)
+	}
+	if value, ok := pru.mutation.AddedRetestCount(); ok {
+		_spec.AddField(pullrequests.FieldRetestCount, field.TypeFloat64, value)
+	}
+	if pru.mutation.RetestCountCleared() {
+		_spec.ClearField(pullrequests.FieldRetestCount, field.TypeFloat64)
 	}
 	if value, ok := pru.mutation.RetestBeforeMergeCount(); ok {
 		_spec.SetField(pullrequests.FieldRetestBeforeMergeCount, field.TypeFloat64, value)
@@ -390,6 +426,33 @@ func (pruo *PullRequestsUpdateOne) SetNillableMergeCommit(s *string) *PullReques
 // ClearMergeCommit clears the value of the "merge_commit" field.
 func (pruo *PullRequestsUpdateOne) ClearMergeCommit() *PullRequestsUpdateOne {
 	pruo.mutation.ClearMergeCommit()
+	return pruo
+}
+
+// SetRetestCount sets the "retest_count" field.
+func (pruo *PullRequestsUpdateOne) SetRetestCount(f float64) *PullRequestsUpdateOne {
+	pruo.mutation.ResetRetestCount()
+	pruo.mutation.SetRetestCount(f)
+	return pruo
+}
+
+// SetNillableRetestCount sets the "retest_count" field if the given value is not nil.
+func (pruo *PullRequestsUpdateOne) SetNillableRetestCount(f *float64) *PullRequestsUpdateOne {
+	if f != nil {
+		pruo.SetRetestCount(*f)
+	}
+	return pruo
+}
+
+// AddRetestCount adds f to the "retest_count" field.
+func (pruo *PullRequestsUpdateOne) AddRetestCount(f float64) *PullRequestsUpdateOne {
+	pruo.mutation.AddRetestCount(f)
+	return pruo
+}
+
+// ClearRetestCount clears the value of the "retest_count" field.
+func (pruo *PullRequestsUpdateOne) ClearRetestCount() *PullRequestsUpdateOne {
+	pruo.mutation.ClearRetestCount()
 	return pruo
 }
 
@@ -554,6 +617,15 @@ func (pruo *PullRequestsUpdateOne) sqlSave(ctx context.Context) (_node *PullRequ
 	}
 	if pruo.mutation.MergeCommitCleared() {
 		_spec.ClearField(pullrequests.FieldMergeCommit, field.TypeString)
+	}
+	if value, ok := pruo.mutation.RetestCount(); ok {
+		_spec.SetField(pullrequests.FieldRetestCount, field.TypeFloat64, value)
+	}
+	if value, ok := pruo.mutation.AddedRetestCount(); ok {
+		_spec.AddField(pullrequests.FieldRetestCount, field.TypeFloat64, value)
+	}
+	if pruo.mutation.RetestCountCleared() {
+		_spec.ClearField(pullrequests.FieldRetestCount, field.TypeFloat64)
 	}
 	if value, ok := pruo.mutation.RetestBeforeMergeCount(); ok {
 		_spec.SetField(pullrequests.FieldRetestBeforeMergeCount, field.TypeFloat64, value)

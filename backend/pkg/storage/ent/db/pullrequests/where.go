@@ -111,6 +111,11 @@ func MergeCommit(v string) predicate.PullRequests {
 	return predicate.PullRequests(sql.FieldEQ(FieldMergeCommit, v))
 }
 
+// RetestCount applies equality check predicate on the "retest_count" field. It's identical to RetestCountEQ.
+func RetestCount(v float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEQ(FieldRetestCount, v))
+}
+
 // RetestBeforeMergeCount applies equality check predicate on the "retest_before_merge_count" field. It's identical to RetestBeforeMergeCountEQ.
 func RetestBeforeMergeCount(v float64) predicate.PullRequests {
 	return predicate.PullRequests(sql.FieldEQ(FieldRetestBeforeMergeCount, v))
@@ -714,6 +719,56 @@ func MergeCommitEqualFold(v string) predicate.PullRequests {
 // MergeCommitContainsFold applies the ContainsFold predicate on the "merge_commit" field.
 func MergeCommitContainsFold(v string) predicate.PullRequests {
 	return predicate.PullRequests(sql.FieldContainsFold(FieldMergeCommit, v))
+}
+
+// RetestCountEQ applies the EQ predicate on the "retest_count" field.
+func RetestCountEQ(v float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldEQ(FieldRetestCount, v))
+}
+
+// RetestCountNEQ applies the NEQ predicate on the "retest_count" field.
+func RetestCountNEQ(v float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNEQ(FieldRetestCount, v))
+}
+
+// RetestCountIn applies the In predicate on the "retest_count" field.
+func RetestCountIn(vs ...float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldIn(FieldRetestCount, vs...))
+}
+
+// RetestCountNotIn applies the NotIn predicate on the "retest_count" field.
+func RetestCountNotIn(vs ...float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNotIn(FieldRetestCount, vs...))
+}
+
+// RetestCountGT applies the GT predicate on the "retest_count" field.
+func RetestCountGT(v float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldGT(FieldRetestCount, v))
+}
+
+// RetestCountGTE applies the GTE predicate on the "retest_count" field.
+func RetestCountGTE(v float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldGTE(FieldRetestCount, v))
+}
+
+// RetestCountLT applies the LT predicate on the "retest_count" field.
+func RetestCountLT(v float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldLT(FieldRetestCount, v))
+}
+
+// RetestCountLTE applies the LTE predicate on the "retest_count" field.
+func RetestCountLTE(v float64) predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldLTE(FieldRetestCount, v))
+}
+
+// RetestCountIsNil applies the IsNil predicate on the "retest_count" field.
+func RetestCountIsNil() predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldIsNull(FieldRetestCount))
+}
+
+// RetestCountNotNil applies the NotNil predicate on the "retest_count" field.
+func RetestCountNotNil() predicate.PullRequests {
+	return predicate.PullRequests(sql.FieldNotNull(FieldRetestCount))
 }
 
 // RetestBeforeMergeCountEQ applies the EQ predicate on the "retest_before_merge_count" field.

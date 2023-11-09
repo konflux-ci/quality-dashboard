@@ -8,8 +8,11 @@ type Coverage struct {
 	// RepositoryName identifies a GitHub repository
 	GitOrganization string `json:"git_organization"`
 
-	// Metric to determine the average of retest in a pull request
-	AverageToRetestPullRequest float64 `json:"average_to_retest_before_merge"`
+	// Metric to determine the average of retest in an open pull request
+	AverageToRetestPullRequest float64 `json:"average_to_retest"`
+
+	// Metric to determine the average of retest after last push in a merged pull request
+	AverageToRetestBeforeMergePullRequest float64 `json:"average_to_retest_before_merge"`
 
 	// CoveragePercentage identifies the total percentage of a repo coverage
 	CoveragePercentage float64 `json:"coverage_percentage"`

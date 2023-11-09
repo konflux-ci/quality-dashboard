@@ -37,7 +37,8 @@ func (d *Database) CreatePullRequests(prs prV1Alpha1.PullRequests, repo_id strin
 				SetState(p.State).
 				SetAuthor(p.Author.User.Login).
 				SetMergeCommit(p.MergeCommit.OID).
-				SetRetestBeforeMergeCount(github.RetestComments(&p.TimelineItems)).
+				SetRetestCount(github.RetestComments(&p.TimelineItems)).
+				SetRetestBeforeMergeCount(github.RetestCommentsAfterLastPush(&p.TimelineItems)).
 				Save(context.TODO())
 			if err != nil {
 				return convertDBError("failed to update pull request: %w", err)
@@ -56,7 +57,8 @@ func (d *Database) CreatePullRequests(prs prV1Alpha1.PullRequests, repo_id strin
 			SetRepositoryName(p.Repository.Name).
 			SetRepositoryOrganization(p.Repository.Owner.Login).
 			SetMergeCommit(p.MergeCommit.OID).
-			SetRetestBeforeMergeCount(github.RetestComments(&p.TimelineItems))
+			SetRetestCount(github.RetestComments(&p.TimelineItems)).
+			SetRetestBeforeMergeCount(github.RetestCommentsAfterLastPush(&p.TimelineItems))
 		bulkPullRequests = append(bulkPullRequests, bulkPullRequest)
 		create = true
 	}
@@ -81,7 +83,7 @@ func (d *Database) CreatePullRequests(prs prV1Alpha1.PullRequests, repo_id strin
 // GetPullRequestsByRepository gets the summary and the metrics of the open and merged pull requests.
 func (d *Database) GetPullRequestsByRepository(repositoryName, organization, startDate, endDate string) (info prV1Alpha1.PullRequestsInfo, err error) {
 	totalMergedPrs := 0
-	var totalMergeTime, totalRetestBeforeMerge, retestBeforeMergeAvg float64
+	var totalMergeTime, totalRetests, retestAvg, totalRetestBeforeMerge, retestBeforeMergeAvg float64
 	info = prV1Alpha1.PullRequestsInfo{}
 
 	repo := d.client.Repository.Query().Where(predicate.Repository(repository.RepositoryName(repositoryName))).FirstX(context.TODO())
@@ -90,14 +92,35 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 		Where(predicate.PullRequests(pullrequests.State("MERGED"))).
 		All(context.TODO())
 	if err != nil {
-		return info, convertDBError("failed to get open pull requests: %w", err)
+		return info, convertDBError("failed to get merged pull requests: %w", err)
 	}
 
-	totalOpenPullRequests, err := d.client.Repository.QueryPrs(repo).Select(pullrequests.FieldState).
+	totalOpenPullRequests, err := d.client.Repository.QueryPrs(repo).
+		Select().
 		Where(predicate.PullRequests(pullrequests.State("OPEN"))).
 		All(context.TODO())
 	if err != nil {
 		return info, convertDBError("failed to get open pull requests: %w", err)
+	}
+
+	openPullRequestsInTimeRange, _ := d.client.Repository.QueryPrs(repo).Select().
+		Where(func(s *sql.Selector) {
+			// 0001-01-01 00:00:00 is the default value meaning the pull requests has not yet been closed.
+			s.Where(sql.ExprP(fmt.Sprintf("created_at <= '%s' AND (closed_at >= '%s' OR closed_at='0001-01-01 00:00:00')", endDate, startDate)))
+		}).
+		All(context.TODO())
+	if err != nil {
+		return info, convertDBError("failed to get open pull requests in time range: %w", err)
+	}
+
+	for _, openPr := range openPullRequestsInTimeRange {
+		if openPr.RetestCount != nil {
+			totalRetests += *openPr.RetestCount
+		}
+	}
+
+	if len(openPullRequestsInTimeRange) != 0 {
+		retestAvg = totalRetests / float64(len(openPullRequestsInTimeRange))
 	}
 
 	mergedPullRequestsInTimeRange, err := d.client.Repository.QueryPrs(repo).Select().
@@ -133,6 +156,7 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 		MergedPrsCount:       len(totalPullRequestsMerged),
 		OpenPrsCount:         len(totalOpenPullRequests),
 		MergeAvg:             math.Round(totalMergeTime*100) / 100,
+		RetestAvg:            math.Round(retestAvg*100) / 100,
 		RetestBeforeMergeAvg: math.Round(retestBeforeMergeAvg*100) / 100,
 	}
 	info.Metrics = d.getMetrics(repo, startDate, endDate)
