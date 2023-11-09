@@ -20,7 +20,9 @@ export interface StateContext {
     },
     teams: {
         Team: string
-        TeamsAvailable: ITeam[]
+        TeamsAvailable: ITeam[],
+        InstalledPlugins: [],
+        FlattenedPlugins: string[]
     },
     auth : {
         AT: string,
@@ -114,6 +116,13 @@ const teamsReducer = (state, action) => {
             return {
                 ...state,
                 TeamsAvailable: action.data
+            };
+        case 'SET_INSTALLED_PLUGINS':
+            const flPlugins= action.data.filter((plugin, plIndex)=>{return plugin.status.installed}).map((plugin, plIndex)=>{return plugin.plugin.name})
+            return {
+                ...state,
+                InstalledPlugins: action.data,
+                FlattenedPlugins: flPlugins
             };
         default: return state || null;
     }

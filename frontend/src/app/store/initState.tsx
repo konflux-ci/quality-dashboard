@@ -18,7 +18,9 @@ export const initialState = {
     }, 
     teams : {
         Team: "",
-        TeamsAvailable: []
+        TeamsAvailable: [],
+        InstalledPlugins: [],
+        FlattenedPlugins: []
     },
     auth : {
         AT: stateContextExists("AT") ? loadStateContext("AT") : "",

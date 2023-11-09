@@ -17,8 +17,8 @@ import CheckCircleIcon from '@patternfly/react-icons/dist/esm/icons/check-circle
 import { listInstalledPlugins, deleteInApi } from '@app/utils/APIService';
 
 function importAll(r) {
-  let images = {};
-   r.keys().forEach((item, index) => { images[item.replace('./', '')] = r(item); });
+  const images = {};
+  r.keys().forEach((item, index) => { images[item.replace('./', '')] = r(item); });
   return images
 }
 
@@ -50,9 +50,10 @@ const columnNames = {
   status: "Status",
 };
 
-export const PInstalled: FC<HubProps> = ({/* destructured props */}): ReactElement => { 
+export const PInstalled: FC<HubProps> = (): ReactElement => { 
   const images = importAll(require.context('../../images', false, /\.(png|jpe?g|svg)$/));
   const currentTeam = useSelector((state: any) => state.teams.Team);
+  const { store } = React.useContext(ReactReduxContext);
   const widths = {
     default: '100px',
     sm: '80px',
@@ -62,7 +63,7 @@ export const PInstalled: FC<HubProps> = ({/* destructured props */}): ReactEleme
     '2xl': '500px'
   };
 
-  let [cards, setCards] = useState<Array<PluginResponse>>([])
+  const [cards, setCards] = useState<Array<PluginResponse>>([])
   const [searchValue, setSearchValue] = React.useState('');
   const onChange = (value: string) => {
     setSearchValue(value);
@@ -96,7 +97,6 @@ export const PInstalled: FC<HubProps> = ({/* destructured props */}): ReactEleme
     listInstalledPlugins(currentTeam).then(res => {
       if(res.code == 200){
         setCards(res.data)
-        console.log("response", res)
       } else {
         throw("Error getting plugins list")
       }
@@ -117,10 +117,6 @@ export const PInstalled: FC<HubProps> = ({/* destructured props */}): ReactEleme
         }
     }
   ];
-
-  useEffect(() => {
-    if(currentTeam != ''){ listAllPlugins() }
-  }, [currentTeam]);
 
   return (
     <React.Fragment>

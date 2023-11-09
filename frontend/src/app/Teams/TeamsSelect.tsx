@@ -14,6 +14,7 @@ import CaretDownIcon from '@patternfly/react-icons/dist/js/icons/caret-down-icon
 import { useHistory } from 'react-router-dom';
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { UserToolbarGroup } from './User';
+import { listInstalledPlugins } from '@app/utils/APIService';
 
 export interface ITeam {
   id: string
@@ -21,8 +22,6 @@ export interface ITeam {
   description: string
   jira_keys: string
 }
-
-
 
 export const BasicMasthead = () => {
   const history = useHistory();
@@ -39,7 +38,19 @@ export const BasicMasthead = () => {
 
   const onDropdownSelect = (event: any) => {
     setDropdownOpen(!isDropdownOpen);
-    dispatch({ type: "SET_TEAM", data: event.target.dataset.value });
+    const selecteTeam = event.target.dataset.value
+    dispatch({ type: "SET_TEAM", data: selecteTeam });
+
+    if(selecteTeam != ''){
+      listInstalledPlugins(selecteTeam).then(res => {
+        if(res.code == 200){
+          dispatch({ type: "SET_INSTALLED_PLUGINS", data: res.data }) 
+          console.log("response", res)
+        } else {
+          throw("Error getting plugins list for team")
+        }
+      })
+    }
 
     const params = new URLSearchParams(window.location.search)
     const team = params.get("team")

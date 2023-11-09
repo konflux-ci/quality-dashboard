@@ -1,5 +1,5 @@
 import React, { FC, ReactElement, useEffect, useState } from 'react';
-import { ReactReduxContext, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import {
   Title,
   PageSectionVariants,
@@ -20,8 +20,8 @@ import { Tabs, Tab } from '@patternfly/react-core';
 import { useHistory } from 'react-router-dom';
 
 function importAll(r) {
-  let images = {};
-   r.keys().forEach((item, index) => { images[item.replace('./', '')] = r(item); });
+  const images = {};
+  r.keys().forEach((item, index) => { images[item.replace('./', '')] = r(item); });
   return images
 }
 
@@ -103,13 +103,13 @@ type Plugin = {
   reason: string,
 }
 
-export const PHub: FC<HubProps> = ({/* destructured props */}): ReactElement => { 
+export const PHub: FC<HubProps> = (): ReactElement => { 
   const images = importAll(require.context('../../images', false, /\.(png|jpe?g|svg)$/));
   const [activeTabKey, setActiveTabKey] = React.useState<string | number>(0);
   const [isBox, setIsBox] = React.useState<boolean>(false);
   const currentTeam = useSelector((state: any) => state.teams.Team);
-  let [cards, setCards] = useState<Array<PluginResponse>>([])
-  let [categories, setCategories] = useState<Array<string>>([])
+  const [cards, setCards] = useState<Array<PluginResponse>>([])
+  const [categories, setCategories] = useState<Array<string>>([])
   const [searchValue, setSearchValue] = React.useState('');
 
   const handleTabClick = (
@@ -181,19 +181,13 @@ export const PHub: FC<HubProps> = ({/* destructured props */}): ReactElement => 
     listInstalledPlugins(currentTeam).then(res => {
       if(res.code == 200){
         setCards(res.data)
-        console.log("response", res)
-        let categories:string[] = ['all', ...res.data.map(item => item.plugin.category).filter((value, index, self) => self.indexOf(value) === index)]
+        const categories:string[] = ['all', ...res.data.map(item => item.plugin.category).filter((value, index, self) => self.indexOf(value) === index)]
         setCategories(categories)
       } else {
         throw("Error getting plugins list")
       }
     })
   };
-
-  useEffect(() => {
-    console.log(currentTeam)
-    if(currentTeam != ''){ listAllPlugins() }
-  }, [currentTeam]);
 
   return (
     <React.Fragment>

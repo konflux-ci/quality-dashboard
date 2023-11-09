@@ -13,10 +13,11 @@ import {
   AlertGroup,
   MastheadContent,
 } from '@patternfly/react-core';
-import { routes, IAppRoute, IAppRouteGroup } from '@app/routes';
+import { routes, IAppRoute, IAppRouteGroup, isPluginRouteAuthorized } from '@app/routes';
 import logo from '@app/bgimages/Logo-RedHat-A-Reverse-RGB.svg';
 import { BasicMasthead } from '@app/Teams/TeamsSelect';
-import { checkDbConnection, getTeams, getVersion } from '@app/utils/APIService';
+import { checkDbConnection, getTeams, getVersion, listInstalledPlugins } from '@app/utils/APIService';
+import { ReactReduxContext, useSelector } from 'react-redux';
 
 interface IAppLayout {
   children: React.ReactNode;
@@ -28,7 +29,12 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
   const [isNavOpen, setIsNavOpen] = React.useState(true);
   const [isMobileView, setIsMobileView] = React.useState(true);
   const [isNavOpenMobile, setIsNavOpenMobile] = React.useState(false);
-
+  const { store } = React.useContext(ReactReduxContext);
+  const state = store.getState();
+  const currentTeam = useSelector((state: any) => state.teams.Team);
+  const pluginList = useSelector((state: any) => state.teams.FlattenedPlugins);
+  const dispatch = store.dispatch
+  
   const onNavToggleMobile = () => {
     setIsNavOpenMobile(!isNavOpenMobile);
   };
@@ -43,10 +49,25 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
     if (locationHistory.pathname === '/') {
       history.push('/home/overview');
     }
-  }, []);
+    listAllPlugins();
+  }, [currentTeam]);
 
   const params = new URLSearchParams(window.location.search);
   const team = params.get('team');
+
+  const listAllPlugins = () =>  {
+    if(currentTeam == ''){
+      console.error( "team is empty. cannot get plugins")
+      return
+    }
+    listInstalledPlugins(currentTeam).then(res => {
+      if(res.code == 200){
+        dispatch({ type: "SET_INSTALLED_PLUGINS", data: res.data }) 
+      } else {
+        throw("Error getting plugins list for team")
+      }
+    })
+  };
 
   function LogoImg() {
     const history = useHistory();
@@ -102,24 +123,35 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
     return route;
   };
 
-  const renderNavItem = (route: IAppRoute, index: number) => (
-    <NavItem key={`${route.label}-${index}`} id={`${route.label}-${index}`}>
+  const renderNavItem = (route: IAppRoute, index: number, allowedPlugins: string[]) => {
+    const navRoute = (<NavItem key={`${route.label}-${index}`} id={`${route.label}-${index}`}>
       <NavLink exact={route.exact} to={handleRoute(route.path)} activeClassName="pf-m-current">
         {route.label}
       </NavLink>
-    </NavItem>
-  );
+    </NavItem>)
 
-  const renderNavGroup = (group: IAppRouteGroup, groupIndex: number) => (
-    <NavExpandable
-      key={`${group.label}-${groupIndex}`}
-      id={`${group.label}-${groupIndex}`}
-      title={group.label}
-      isActive={group.routes.some((route) => route.path === location.pathname)}
-    >
-      {group.routes.map((route, idx) => route.label && renderNavItem(route, idx))}
-    </NavExpandable>
-  );
+    if(route.isPlugin){
+      if(route.label && isPluginRouteAuthorized(route.label, allowedPlugins)){
+        return navRoute
+      } else {
+        return false
+      }
+    } else {
+      return navRoute
+    }
+  };
+
+  const renderNavGroup = (group: IAppRouteGroup, groupIndex: number) => {
+    return (
+      <NavExpandable
+        key={`${group.label}-${groupIndex}`}
+        id={`${group.label}-${groupIndex}`}
+        title={group.label}
+        isActive={group.routes.some((route) => route.path === location.pathname)}
+      >
+        {group.routes.map((route, idx) => route.label && renderNavItem(route, idx, state.teams.FlattenedPlugins))}
+      </NavExpandable>
+  )};
 
 
   const toRender = (label) => {
@@ -159,13 +191,13 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
       <Nav id="nav-primary-simple" theme="dark">
         <NavList id="nav-list-simple">
           {routes.map(
-            (route, idx) => route.label && toRender(route.label) && (!route.routes ? renderNavItem(route, idx) : renderNavGroup(route, idx))
+            (route, idx) => route.label && toRender(route.label) && (!route.routes ? renderNavItem(route, idx, state.teams.FlattenedPlugins) : renderNavGroup(route, idx))
           )}
         </NavList>
       </Nav>
     );
     setNavigation(N)
-  }, []);
+  }, [currentTeam, pluginList]);
 
 
 

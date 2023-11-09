@@ -12,7 +12,7 @@ import { GitHub } from './Github/Github';
 import { PHub } from './Hub/Hub';
 import { PInstalled } from './Hub/Installed';
 import { Config } from './Config/Config';
-import { initOauthFlow, completeOauthFlow, OauthData, refreshTokenFlow } from '@app/utils/oauth'
+import { refreshTokenFlow } from '@app/utils/oauth'
 import { CiFailures } from './CiFailures/CiFailures';
 
 let routeFocusTimer: number;
@@ -27,6 +27,7 @@ export interface IAppRoute {
   isAsync?: boolean;
   isProtected?: boolean;
   isAuthenticated?: boolean;
+  isPlugin?: boolean;
   routes?: undefined;
 }
 
@@ -100,6 +101,7 @@ const routes: AppRouteConfig[] = [
         exact: true,
         isAsync: true,
         isProtected: true,
+        isPlugin: true,
         label: 'Github',
         path: '/home/github',
         title: 'Github | Quality Studio',
@@ -108,6 +110,7 @@ const routes: AppRouteConfig[] = [
         component: Jira,
         exact: true,
         isAsync: true,
+        isPlugin: true,
         isProtected: true,
         label: 'Jira',
         path: '/home/jira',
@@ -117,6 +120,7 @@ const routes: AppRouteConfig[] = [
         component: Reports,
         exact: true,
         isAsync: true,
+        isPlugin: true,
         isProtected: true,
         label: 'Openshift CI',
         path: '/reports/test',
@@ -126,6 +130,7 @@ const routes: AppRouteConfig[] = [
         component: CiFailures,
         exact: true,
         isAsync: true,
+        isPlugin: true,
         isProtected: true,
         label: 'RHTAPBUGS Impact on CI',
         path: '/home/rhtapbugs-impact',
@@ -167,6 +172,10 @@ const flattenedRoutes: IAppRoute[] = routes.reduce(
   (flattened, route) => [...flattened, ...(route.routes ? route.routes : [route])],
   [] as IAppRoute[]
 );
+
+const isPluginRouteAuthorized = (name:string, state:string[]):boolean => {
+  return state && state.includes(name)
+}
 
 const AppRoutes = (): React.ReactElement => {
   const { store } = React.useContext(ReactReduxContext);
@@ -221,21 +230,23 @@ const AppRoutes = (): React.ReactElement => {
   return (
     <LastLocationProvider>
       <Switch>
-        {flattenedRoutes.map(({ path, exact, component, title, isAsync, isProtected }, idx) => (
-          <RouteWithTitleUpdates
-            path={path}
-            exact={exact}
-            component={component}
-            key={idx}
-            title={title}
-            isAsync={isAsync}
-            isProtected={isProtected}
-            isAuthenticated={isAuthenticated}
-          />
-        ))}
+        {flattenedRoutes.map(({ path, exact, component, title, isAsync, isProtected, isPlugin }, idx) => {
+            return (
+            <RouteWithTitleUpdates
+              path={path}
+              exact={exact}
+              component={component}
+              key={idx}
+              title={title}
+              isAsync={isAsync}
+              isProtected={isProtected}
+              isAuthenticated={isAuthenticated}
+            />
+            )
+        })}
       </Switch>
     </LastLocationProvider>
   );
 };
 
-export { AppRoutes, routes };
+export { AppRoutes, routes, isPluginRouteAuthorized };
