@@ -199,7 +199,7 @@ const AppRoutes = (): React.ReactElement => {
       if(new Date(state.auth.AT_expiration*1000) < now){
         (async () => {
           try{
-            let data = await refreshTokenFlow(state.auth.RT)
+            const data = await refreshTokenFlow(state.auth.RT)
             dispatch({ type: "SET_REFRESH_TOKEN", data: data.RT });
             dispatch({ type: "SET_ACCESS_TOKEN", data: data.AT });
             dispatch({ type: "SET_ID_TOKEN", data: data.IDT });

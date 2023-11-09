@@ -18,6 +18,80 @@ import {
 import { listInstalledPlugins, installPlugin } from '@app/utils/APIService';
 import { Tabs, Tab } from '@patternfly/react-core';
 import { useHistory } from 'react-router-dom';
+import { Modal, ModalVariant } from '@patternfly/react-core';
+import { CodeEditor, Language } from '@patternfly/react-code-editor';
+
+type InstallWizardProps = {
+  show: boolean, 
+  data: { 
+    team_name: string, 
+    plugin_name: string, 
+    onInstall: (team_name: string, plugin_name: string, configCode: string)=>void, 
+    configCode: string
+  }
+}
+
+export const InstallWizard: React.FC<{wizard: InstallWizardProps}> = ({wizard: wizard}) => {
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [configCode, setConfigCode] = React.useState("");
+
+  useEffect(() => {
+    setIsModalOpen(wizard.show)
+    if(wizard.data.configCode) {
+      setConfigCode(wizard.data.configCode)
+    }
+  }, [wizard.show]);
+
+  const onCodeChange = (value) => {
+    setConfigCode(value)
+  }
+
+  const onEditorDidMount = (editor, monaco) => {
+    // eslint-disable-next-line no-console
+    editor.layout();
+    editor.focus();
+    monaco.editor.getModels()[0].updateOptions({ tabSize: 5 });
+  };
+
+  const onInstall = () => {
+    wizard.data.onInstall(wizard.data.team_name, wizard.data.plugin_name, configCode)
+    wizard.data.configCode = configCode
+    setIsModalOpen(false)
+  }
+ 
+  return (
+    <React.Fragment>
+      <Modal
+        variant={ModalVariant.large}
+        title={"Install "+wizard.data.plugin_name+" for "+wizard.data.team_name}
+        isOpen={isModalOpen}
+        onClose={()=>{setIsModalOpen(false); wizard.show = false;}}
+        actions={[
+          <Button key="confirm" variant="primary" onClick={onInstall}>
+            Install
+          </Button>,
+          <Button key="cancel" variant="link" onClick={()=>{setIsModalOpen(false); wizard.show = false;}}>
+            Cancel
+          </Button>
+        ]}
+      >
+        <p>This plugin requires that you fill the configuration YAML below before installing. </p>
+        <CodeEditor
+          isDarkTheme={true}
+          isLineNumbersVisible={true}
+          isReadOnly={false}
+          isMinimapVisible={false}
+          isLanguageLabelVisible
+          code={configCode}
+          onChange={onCodeChange}
+          language={Language.yaml}
+          onEditorDidMount={onEditorDidMount}
+          height="400px"
+        />
+      </Modal>
+    </React.Fragment>
+  );
+};
 
 function importAll(r) {
   const images = {};
@@ -44,7 +118,7 @@ export const CardWithImageAndActions: React.FunctionComponent<CProps> = (props:C
     setTimeout(() => {
       props.onInstall(e)
       setIsLoading(false)
-    }, 1000);
+    }, 0);
   }
 
   const onCardClick = ()=>{
@@ -111,6 +185,7 @@ export const PHub: FC<HubProps> = (): ReactElement => {
   const [cards, setCards] = useState<Array<PluginResponse>>([])
   const [categories, setCategories] = useState<Array<string>>([])
   const [searchValue, setSearchValue] = React.useState('');
+  const [modal, setModal] = useState<InstallWizardProps>({ show: false, data: {team_name:"", plugin_name: "", onInstall: () => {/**/}, configCode: ""} });
 
   const handleTabClick = (
     event: React.MouseEvent<any> | React.KeyboardEvent | MouseEvent,
@@ -162,8 +237,33 @@ export const PHub: FC<HubProps> = (): ReactElement => {
     return true
   };
 
-  const installTeamPlugin = (team_name: string, plugin_name:string) => {
-    console.log(team_name, plugin_name)
+  const startInstallWizard = (team_name: string, plugin_name:string) => {
+    const sampleYaml = `
+---
+doe: "a deer, a female deer"
+ray: "a drop of golden sun"
+pi: 3.14159
+xmas: true
+french-hens: 3
+calling-birds:
+  - huey
+  - dewey
+  - louie
+  - fred
+xmas-fifth-day:
+  calling-birds: four
+  french-hens: 3
+  golden-rings: 5
+  partridges:
+    count: 1
+    location: "a pear tree"
+  turtle-doves: two
+    `
+    setModal({show: true, data: {team_name: team_name, plugin_name: plugin_name, onInstall: installTeamPlugin, configCode: sampleYaml}});
+  };
+
+  const installTeamPlugin = (team_name: string, plugin_name:string, configCode: string) => {
+    console.log(configCode)
     installPlugin(team_name, plugin_name).then(res => {
       if(res.code == 200){
         listAllPlugins();
@@ -191,7 +291,7 @@ export const PHub: FC<HubProps> = (): ReactElement => {
 
   useEffect(() => {
     listAllPlugins();
-  }, []);
+  }, [currentTeam]);
 
   return (
     <React.Fragment>
@@ -234,11 +334,12 @@ export const PHub: FC<HubProps> = (): ReactElement => {
             </PageSection>
             <Gallery hasGutter style={{margin: '1em'}}>
               {cards.filter(onFilter).map((product, key) => (
-                <CardWithImageAndActions onInstall={()=>{installTeamPlugin(currentTeam, product.plugin.name)}} name={product.plugin.name} description={product.plugin.description} category={product.plugin.category} logo={images[product.plugin.logo]} reason={product.plugin.reason} installed={product.status.installed} key={key}></CardWithImageAndActions>
+                <CardWithImageAndActions onInstall={()=>{startInstallWizard(currentTeam, product.plugin.name)}} name={product.plugin.name} description={product.plugin.description} category={product.plugin.category} logo={images[product.plugin.logo]} reason={product.plugin.reason} installed={product.status.installed} key={key}></CardWithImageAndActions>
               ))}
             </Gallery>
         </GridItem>
       </Grid>
+      <InstallWizard wizard={modal} ></InstallWizard>
     </React.Fragment>
   )
 };
