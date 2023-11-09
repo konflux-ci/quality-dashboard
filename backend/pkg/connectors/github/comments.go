@@ -88,7 +88,7 @@ func (gc *Github) RetestsToMerge(source string) (float64, error) {
 	}
 
 	for _, prItem := range items {
-		totalRetests += RetestComments(&prItem.ChatopsPullRequestFragment.TimelineItems)
+		totalRetests += RetestCommentsAfterLastPush(&prItem.ChatopsPullRequestFragment.TimelineItems)
 	}
 
 	average = totalRetests / float64(len(items))
@@ -103,8 +103,19 @@ func (gc *Github) RetestsToMerge(source string) (float64, error) {
 }
 
 // RetestComments returns the number of /retest or /test comments a PR received
-// after the last commit or force push.
 func RetestComments(items *githubV1Alhpa1.TimelineItems) float64 {
+	var total float64 = 0
+	for _, timelineItem := range items.Nodes {
+		if isRetestComment(timelineItem) {
+			total++
+		}
+	}
+	return total
+}
+
+// RetestCommentsAfterLastPush returns the number of /retest or /test comments a PR received
+// after the last commit or force push.
+func RetestCommentsAfterLastPush(items *githubV1Alhpa1.TimelineItems) float64 {
 	var total float64 = 0
 	lastPush := determineLastPush(items)
 
@@ -148,9 +159,13 @@ func isBaseRefForcePush(timelineItem githubV1Alhpa1.TimelineItem) bool {
 
 }
 
-func isRetestCommentAfterLastPush(timelineItem githubV1Alhpa1.TimelineItem, lastPush time.Time) bool {
+func isRetestComment(timelineItem githubV1Alhpa1.TimelineItem) bool {
 	return timelineItem.IssueCommentFragment != githubV1Alhpa1.IssueCommentFragment{} &&
-		timelineItem.IssueCommentFragment.CreatedAt.After(lastPush) &&
 		(strings.HasPrefix(timelineItem.IssueCommentFragment.BodyText, "/retest") ||
 			strings.HasPrefix(timelineItem.IssueCommentFragment.BodyText, "/test"))
+}
+
+func isRetestCommentAfterLastPush(timelineItem githubV1Alhpa1.TimelineItem, lastPush time.Time) bool {
+	return isRetestComment(timelineItem) &&
+		timelineItem.IssueCommentFragment.CreatedAt.After(lastPush)
 }
