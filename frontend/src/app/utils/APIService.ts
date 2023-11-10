@@ -551,10 +551,14 @@ async function createFailure(team: string, jiraKey: string, errorMessage: string
   const subPath = '/api/quality/failures/create';
   const uri = API_URL + subPath;
   await axios
-    .post(uri, {
-      team: team,
-      jira_key: jiraKey,
-      error_message: errorMessage,
+    .request({
+      method: 'POST',
+      url: uri,
+      data: {
+        team: team,
+        jira_key: jiraKey,
+        error_message: errorMessage,
+      },
     })
     .then((res: AxiosResponse) => {
       result.code = res.status;
@@ -565,23 +569,6 @@ async function createFailure(team: string, jiraKey: string, errorMessage: string
       result.data = err.response.data;
     });
 
-  return result;
-}
-
-async function deleteFailureByJiraKey(jiraKey: string) {
-  const uri = API_URL + '/api/quality/failures/delete?jira_key=' + jiraKey
-  const result: ApiResponse = { code: 0, data: {} };
-
-  await axios
-    .get(uri)
-    .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
-    })
-    .catch((err) => {
-      result.code = err.status;
-      result.data = err.data;
-    });
   return result;
 }
 
@@ -656,7 +643,6 @@ export {
   listE2EBugsKnown,
   getFailures,
   createFailure,
-  deleteFailureByJiraKey,
   bugExists,
   getBugSLIs
 };
