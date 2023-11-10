@@ -65,7 +65,7 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetPriority(bug.Fields.Priority.Name).
 				SetSummary(bug.Fields.Summary).
 				SetURL(fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key)).
-				SetStatus(bug.Fields.Status.Description).
+				SetStatus(bug.Fields.Status.Name).
 				SetBugs(team).
 				SetProjectKey(getProjectKey(bug.Key)).
 				SetAssignmentTime(jiraBugMetricsInfo.AssignmentTime).
@@ -90,7 +90,7 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetPriority(bug.Fields.Priority.Name).
 				SetSummary(bug.Fields.Summary).
 				SetURL(fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key)).
-				SetStatus(bug.Fields.Status.Description).
+				SetStatus(bug.Fields.Status.Name).
 				SetBugs(team).
 				SetProjectKey(getProjectKey(bug.Key)).
 				SetAssignmentTime(jiraBugMetricsInfo.AssignmentTime).
