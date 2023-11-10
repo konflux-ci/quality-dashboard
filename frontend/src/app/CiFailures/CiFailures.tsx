@@ -91,7 +91,7 @@ let CiFailures = () => {
             const start_date = formatDate(rangeDateTime[0]);
             const end_date = formatDate(rangeDateTime[1]);
 
-            // setFailures(data)
+            setFailures(res.data)
             setLoadingState(false)
 
             history.push(
