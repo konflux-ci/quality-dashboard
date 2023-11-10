@@ -67,7 +67,7 @@ type ListPullRequestsOptions struct {
 
 // Summary represents all the collected information regarding all the pull requests of a repository.
 type Summary struct {
-	// Number of open pull requests.
+	// Number of created pull requests.
 	CreatedPrsCountInTimeRange int `json:"created_prs_in_time_range"`
 
 	// Number of open pull requests.
