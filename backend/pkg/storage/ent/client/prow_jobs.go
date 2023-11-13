@@ -15,17 +15,11 @@ func (d *Database) CreateProwJobResults(job prowV1Alpha1.Job, repo_id string) er
 		SetJobID(job.JobID).
 		SetState(job.State).
 		SetCreatedAt(job.CreatedAt).
-		SetDuration(job.Duration).
-		SetTestsCount(job.TestsCount).
-		SetFailedCount(job.FailedCount).
-		SetSkippedCount(job.SkippedCount).
 		SetJobType(job.JobType).
 		SetJobName(job.JobName).
 		SetJobURL(job.JobURL).
 		SetCiFailed(job.CIFailed).
-		SetE2eFailedTestMessages(job.E2EFailedTestMessages).
-		SetSuitesXMLURL(job.SuitesXmlUrl).
-		SetBuildErrorLogs(job.BuildErrorLogs).
+		SetDuration(job.Duration).
 		Save(context.TODO())
 	if err != nil {
 		return convertDBError("create prow status: %w", err)

@@ -22,10 +22,16 @@ func (ProwJobs) Fields() []ent.Field {
 		field.Float("duration").
 			SchemaType(textSchema),
 		field.Int64("tests_count").
+			Optional().
+			Nillable().
 			SchemaType(textSchema),
 		field.Int64("failed_count").
+			Optional().
+			Nillable().
 			SchemaType(textSchema),
 		field.Int64("skipped_count").
+			Optional().
+			Nillable().
 			SchemaType(textSchema),
 		field.Text("job_name").
 			SchemaType(textSchema),

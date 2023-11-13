@@ -11,9 +11,13 @@ import (
 func (d *Database) CreateProwJobSuites(suites prowV1Alpha1.JobSuites, repo_id string) error {
 	c, err := d.client.ProwSuites.Create().
 		SetJobID(suites.JobID).
+		SetJobURL(suites.JobURL).
+		SetSuiteName(suites.SuiteName).
 		SetName(suites.TestCaseName).
 		SetStatus(suites.TestCaseStatus).
 		SetTime(suites.TestTiming).
+		SetErrorMessage(suites.ErrorMessage).
+		SetCreatedAt(suites.CreatedAt).
 		Save(context.TODO())
 	if err != nil {
 		return convertDBError("create prow: %w", err)

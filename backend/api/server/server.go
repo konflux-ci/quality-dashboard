@@ -18,6 +18,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/api/server/router/jira"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/repositories"
+	"github.com/redhat-appstudio/quality-studio/api/server/router/suites"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/teams"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/version"
 	_ "github.com/redhat-appstudio/quality-studio/docs/swagger"
@@ -192,6 +193,7 @@ func (s *Server) InitRouter() {
 		teams.NewRouter(s.cfg.Storage),
 		jira.NewRouter(s.cfg.Storage),
 		database.NewRouter(s.cfg.Db),
+		suites.NewRouter(s.cfg.Storage),
 		failure.NewRouter(s.cfg.Storage))
 }
 
