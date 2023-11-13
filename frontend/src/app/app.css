@@ -1,3 +1,32 @@
 html, body, #root {
   height: 100%;
 }
+
+.expandedPre pre {
+  resize: vertical;
+  white-space: pre-wrap;
+  word-break: break-word; 
+  cursor: pointer;
+  padding: 1em;
+}
+
+.collapsedPre pre {
+  white-space: pre-wrap;
+  word-break: break-word; 
+  height: 6em;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 1em;
+  text-overflow: ellipsis;
+}
+
+.expandedPre:hover, .collapsedPre:hover {
+  background-color: #F5F5F5;
+}
+
+.collapsedPre::after {
+  content: '...';
+  text-align: center;
+  font-size: 2em;
+  margin: 0 auto;
+}
