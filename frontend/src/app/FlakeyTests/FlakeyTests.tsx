@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   TableComposable,
   Thead,
@@ -8,6 +8,7 @@ import {
   Td,
   InnerScrollContainer,
   ExpandableRowContent,
+  ThProps
 } from '@patternfly/react-table';
 import { Header } from '@app/utils/Header';
 import { TextContent, Text, TextVariants } from '@patternfly/react-core';
@@ -95,6 +96,47 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams}> =
       e.currentTarget.classList.add('expandedPre')
     }
   }
+
+  const [activeSortIndex, setActiveSortIndex] = React.useState<number | undefined>(1);
+  const [activeSortDirection, setActiveSortDirection] = React.useState<'asc' | 'desc' | undefined>('desc');
+  
+  const getSortParams = (columnIndex: number): ThProps['sort'] => ({
+    sortBy: {
+      index: activeSortIndex,
+      direction: activeSortDirection,
+      defaultDirection: 'asc' // starting sort direction when first sorting a column. Defaults to 'asc'
+    },
+    onSort: (_event, index, direction) => {
+      setActiveSortIndex(index);
+      setActiveSortDirection(direction);
+    },
+    columnIndex
+  });
+
+  const getSortableRowValues = (flakey: Flakey): (string | number)[] => {
+    const { name, count, suite_name } = flakey;
+    return [name, count, suite_name];
+  };
+
+  const onSortFn = (a, b) => {
+    if(!activeSortIndex) return
+    const aValue = getSortableRowValues(a)[activeSortIndex];
+    const bValue = getSortableRowValues(b)[activeSortIndex];
+    if (typeof aValue === 'number') {
+      // Numeric sort
+      if (activeSortDirection === 'asc') {
+        return (aValue as number) - (bValue as number);
+      }
+      return (bValue as number) - (aValue as number);
+    } else {
+      // String sort
+      if (activeSortDirection === 'asc') {
+        return (aValue as string).localeCompare(bValue as string);
+      }
+      return (bValue as string).localeCompare(aValue as string);
+    }
+  }
+
   return (
     <InnerScrollContainer>
       <TableComposable aria-label="Nested column headers with expandable rows table" gridBreakPoint="">
@@ -104,18 +146,21 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams}> =
             <Th width={50} >
               {columnNames.name}
             </Th>
-            <Th >
+            <Th width={10}>
               {columnNames.status}
             </Th>
-            <Th >
+            <Th width={10} sort={getSortParams(1)}>
               {columnNames.count}
             </Th>
-            <Th >
+            <Th width={15} >
               {columnNames.suite_name}
+            </Th>
+            <Th width={15} >
+              {columnNames.failure_date}
             </Th>
           </Tr>
         </Thead>
-        {teams.map((team, rowIndex) => (
+        {teams.sort(onSortFn).map((team, rowIndex) => (
           <Tbody key={rowIndex} isExpanded={isTeamExpanded(team)}>
             <Tr>
               <Td expand={{ rowIndex, isExpanded: isTeamExpanded(team), onToggle: () => setTeamExpanded(team, !isTeamExpanded(team)), expandId: 'composable-nested-expandable-example' }}/>
@@ -123,6 +168,7 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams}> =
               <Td dataLabel={columnNames.status}>{team.status}</Td>
               <Td dataLabel={columnNames.count}>{team.count}</Td>
               <Td dataLabel={columnNames.suite_name}>{team.suite_name}</Td>
+              <Td style={{whiteSpace: 'pre-line'}} dataLabel={columnNames.suite_name}>{team.error_message.map((error) => error.failure_date).join(" \n ")}</Td>
             </Tr>
             <Tr isExpanded={isTeamExpanded(team)} className='pf-px-xl'>
               <Td></Td>
@@ -889,6 +935,7 @@ const FlakeyTests = () => {
   const onDataFilter = (suite:Flakey) => {
     return suite.suite_name == selectedSuite || selectedSuite == '' || selectedSuite == 'All failures'
   }
+
   return (
     <React.Fragment>
       <Header info="Observe the impact of the flakey tests that are affecting CI."></Header>
