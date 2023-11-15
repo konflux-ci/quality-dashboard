@@ -33,13 +33,13 @@ const ImpactChart:React.FunctionComponent<{data}> = ({data}) => {
   }, []);
 
   return (
-    <div style={{ height: '100%', width: '100%', minHeight: "50vh" }} className={"pf-c-card"} ref={ref}>
+    <div style={{ height: '100%', width: '100%', minHeight: "40vh" }} className={"pf-c-card"} ref={ref}>
       <div ref={ref} style={{ height: height + 'px', width: width + 'px', background: "white" }}>
         <Chart
           ariaDesc="Average number of pets"
           ariaTitle="Bar chart example"
           containerComponent={<ChartVoronoiContainer labels={({ datum }) => `${datum.name}: ${datum.y}`} constrainToVisibleArea />}
-          domain={{y: [0,9]}}
+          domain={{y: [0,50]}}
           domainPadding={{ x: [30, 25] }}
           legendOrientation="vertical"
           legendPosition="right"
@@ -47,19 +47,16 @@ const ImpactChart:React.FunctionComponent<{data}> = ({data}) => {
           width={width}
           name="chart1"
           padding={{
-            bottom: 30,
-            left: 30,
-            right: 30,
-            top: 30
+            bottom: 50,
+            left: 100,
+            right: 100,
+            top: 50
           }}
         >
-          <ChartAxis />
           <ChartAxis dependentAxis showGrid />
           <ChartGroup offset={11}>
-            <ChartBar data={[{ name: 'Cats', x: '2013', y: 1 },{ name: 'Cats', x: '2014', y: 1 },{ name: 'Cats', x: '2015', y: 1 }, { name: 'Cats', x: '2016', y: 2 }, { name: 'Cats', x: '2017', y: 5 }, { name: 'Cats', x: '2018', y: 3 }]} />
-            <ChartBar data={[{ name: 'Dogs', x: '2013', y: 2 },{ name: 'Dogs', x: '2014', y: 2 },{ name: 'Dogs', x: '2015', y: 2 }, { name: 'Dogs', x: '2016', y: 1 }, { name: 'Dogs', x: '2017', y: 7 }, { name: 'Dogs', x: '2018', y: 4 }]} />
-            <ChartBar data={[{ name: 'Birds', x: '2013', y: 4 },{ name: 'Birds', x: '2014', y: 4 },{ name: 'Birds', x: '2015', y: 4 }, { name: 'Birds', x: '2016', y: 4 }, { name: 'Birds', x: '2017', y: 9 }, { name: 'Birds', x: '2018', y: 7 }]} />
-          </ChartGroup>
+            <ChartBar data={  data.map( (datum) => { return {"name": datum.suite_name, "x": datum.suite_name, "y": parseFloat(datum.average_impact)}  }) }/>
+         </ChartGroup>
         </Chart>
       </div>
     </div>
@@ -80,7 +77,7 @@ const PieChart:React.FunctionComponent<{data}> = ({data}) => {
   }, []);
 
   return (
-   <div style={{ height: '100%', width: '100%', minHeight: "50vh" }} className={"pf-c-card"} ref={ref}>
+   <div style={{ height: '100%', width: '100%', minHeight: "40vh" }} className={"pf-c-card"} ref={ref}>
       <div ref={ref} style={{ height: height + 'px', width: width + 'px', background: "white" }}>
         <ChartPie
           ariaDesc="Average number of pets"
@@ -271,7 +268,7 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
           </Tr>
         </Thead>
         {teams.map((suite, rowIndex) => (
-          <Tbody key={rowIndex} isExpanded={isSuiteExpanded(suite.suite_name)}>
+          <Tbody key={suite.suite_name+rowIndex} isExpanded={isSuiteExpanded(suite.suite_name)}>
             <Tr>
               <Td expand={{ rowIndex, isExpanded: isSuiteExpanded(suite.suite_name), onToggle: () => setSuiteExpanded(suite.suite_name, !isSuiteExpanded(suite.suite_name))}}/>
               <Td dataLabel={columnNames.name}>{suite.suite_name}</Td>
@@ -308,8 +305,8 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
                             </Tr>
                           </Thead>
                           {suite.test_cases && suite.test_cases.map((test_case, tc_idx) => (
-                            <Tbody key={rowIndex}>
-                              <Tr key={tc_idx} >
+                            <Tbody key={test_case.name+tc_idx}>
+                              <Tr>
                                 <Td expand={{ rowIndex, isExpanded: isTestCaseExpanded(test_case.name), onToggle: () => setTestCaseExpanded(test_case.name, !isTestCaseExpanded(test_case.name))}}/>
                                 <Td>
                                   {test_case.name}
@@ -324,7 +321,6 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
                               <Tr isExpanded={isTestCaseExpanded(test_case.name)}>
                                 <Td></Td>
                                 <Td colSpan={3}>
-
                                   <ExpandableRowContent>
                                     <Flex>
                                       <FlexItem>
@@ -359,8 +355,8 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
                                         </Tr>
                                       </Thead>
                                       {test_case.messages && test_case.messages.map((message, m_idx) => (
-
-                                        <Tr key={m_idx}>
+                                        <Tbody key={message.job_id+m_idx}>
+                                        <Tr>
                                           <Td></Td>
                                           <Td dataLabel={columnNames.job_id}>
                                             <a href={message.job_url} rel="noreferrer noopener" target='_blank'>{message.job_id}</a>
@@ -375,7 +371,7 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
                                             {message.failure_date}
                                           </Td>
                                         </Tr>
-                                        
+                                        </Tbody>
                                         ))
                                       }
                                     </TableComposable>
@@ -407,341 +403,315 @@ const FlakeyTests: React.FunctionComponent = () => {
   const [barData, setBarData] = React.useState<any>([])
 
   const mockData: FlakeyObject = {
-    "global_impact": 43.75,
+    "global_impact": 40.54054054054054,
     "git_organization": "redhat-appstudio",
     "repository_name": "infra-deployments",
     "job_name": "pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests",
     "suites": [
-      {
-        "suite_name": "build-service-suite Build service E2E tests",
-        "status": "failed",
-        "test_cases": [
-          {
-            "name": "[It] [build-service-suite Build service E2E tests] test PaC component build when a new component without specified branch is created and with visibility private a related PipelineRun should be deleted after deleting the component [build, HACBS, github-webhook, pac-build, pipeline, image-controller, pac-custom-default-branch]",
-            "test_case_impact": 6.25,
-            "count": 2,
-            "messages": [
-              {
-                "job_id": "1724346055316738048",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2719/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724346055316738048",
-                "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
-                "failure_date": "2023-11-14T08:38:31Z"
-              },
-              {
-                "job_id": "1724016536861020160",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2738/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724016536861020160",
-                "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
-                "failure_date": "2023-11-13T10:49:07Z"
-              }
-            ]
-          },
-          {
-            "name": "[It] [build-service-suite Build service E2E tests] PLNSRVCE-799 - test pipeline selector default Pipeline bundle should be used and no additional Pipeline params should be added to the PipelineRun if one of the WhenConditions does not match [build, HACBS, pipeline-selector]",
-            "test_case_impact": 6.25,
-            "count": 2,
-            "messages": [
-              {
-                "job_id": "1724095820627709952",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2739/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724095820627709952",
-                "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
-                "failure_date": "2023-11-13T16:04:10Z"
-              },
-              {
-                "job_id": "1724069906363715584",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2629/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724069906363715584",
-                "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
-                "failure_date": "2023-11-13T14:21:11Z"
-              }
-            ]
-          },
-          {
-            "name": "[It] [build-service-suite Build service E2E tests] PLNSRVCE-799 - test pipeline selector default Pipeline bundle should be used and no additional Pipeline params should be added to the PipelineRun if one of the WhenConditions does not match [build, HACBS, pipeline-selector]",
-            "test_case_impact": 6.25,
-            "count": 2,
-            "messages": [
-              {
-                "job_id": "1724095820627709952",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2739/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724095820627709952",
-                "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
-                "failure_date": "2023-11-13T16:04:10Z"
-              },
-              {
-                "job_id": "1724069906363715584",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2629/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724069906363715584",
-                "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
-                "failure_date": "2023-11-13T14:21:11Z"
-              }
-            ]
-          },
-          {
-            "name": "[It] [build-service-suite Build service E2E tests] test PaC component build when a new component without specified branch is created and with visibility private a related PipelineRun should be deleted after deleting the component [build, HACBS, github-webhook, pac-build, pipeline, image-controller, pac-custom-default-branch]",
-            "test_case_impact": 6.25,
-            "count": 2,
-            "messages": [
-              {
-                "job_id": "1724346055316738048",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2719/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724346055316738048",
-                "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
-                "failure_date": "2023-11-14T08:38:31Z"
-              },
-              {
-                "job_id": "1724016536861020160",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2738/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724016536861020160",
-                "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
-                "failure_date": "2023-11-13T10:49:07Z"
-              }
-            ]
-          },
-          {
-            "name": "[It] [build-service-suite Build service E2E tests] test pac with multiple components using same repository when components are created in same namespace the PipelineRun should eventually finish successfully for component go-component-wcve [build, HACBS, pac-build, multi-component]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724390754152878080",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2741/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724390754152878080",
-                "error_message": "Expected success, but got an error:\n    <*errors.errorString | 0xc00109f270>: \n    \n    init container prepare: \n    2023/11/14 11:53:01 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:53:02 Decoded script /tekton/scripts/script-0-bbf9w\n    2023/11/14 11:53:02 Decoded script /tekton/scripts/script-1-kwnxz\n    \n    container step-clone: \n    + '[' true = true ']'\n    + '[' -f /workspace/basic-auth/.git-credentials ']'\n    + '[' -f /workspace/basic-auth/.gitconfig ']'\n    + cp /workspace/basic-auth/.git-credentials /tekton/home/.git-credentials\n    + cp /workspace/basic-auth/.gitconfig /tekton/home/.gitconfig\n    + chmod 400 /tekton/home/.git-credentials\n    + chmod 400 /tekton/home/.gitconfig\n    + '[' false = true ']'\n    + CHECKOUT_DIR=/workspace/output/source\n    + '[' true = true ']'\n    + cleandir\n    + '[' -d /workspace/output/source ']'\n    + test -z ''\n    + test -z ''\n    + test -z ''\n    + /ko-app/git-init -url=https://github.com/redhat-appstudio-qe/sample-multi-component -revision=05ab65ffc94b843e8543556c20bd16647ffc3220 -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\n    {\"level\":\"info\",\"ts\":1699962800.4609172,\"caller\":\"git/git.go:178\",\"msg\":\"Successfully cloned https://github.com/redhat-appstudio-qe/sample-multi-component @ 05ab65ffc94b843e8543556c20bd16647ffc3220 (grafted, HEAD) in path /workspace/output/source\"}\n    {\"level\":\"info\",\"ts\":1699962800.491771,\"caller\":\"git/git.go:217\",\"msg\":\"Successfully initialized and updated submodules in path /workspace/output/source\"}\n    + cd /workspace/output/source\n    ++ git rev-parse HEAD\n    + RESULT_SHA=05ab65ffc94b843e8543556c20bd16647ffc3220\n    + EXIT_CODE=0\n    + '[' 0 '!=' 0 ']'\n    + printf %!s(MISSING) 05ab65ffc94b843e8543556c20bd16647ffc3220\n    + printf %!s(MISSING) https://github.com/redhat-appstudio-qe/sample-multi-component\n    + '[' false = true ']'\n    \n    container step-symlink-check: \n    Running symlink check\n    \n    init container prepare: \n    2023/11/14 11:52:40 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:52:41 Decoded script /tekton/scripts/script-0-hgqxq\n    \n    container step-init: \n    Build Initialize: quay.io/redhat-appstudio-qe/build-e2e-cpme-tenant/build-suite-positive-mc-nupu/go-component-wcve:on-pr-05ab65ffc94b843e8543556c20bd16647ffc3220\n    \n    Determine if Image Already Exists\n    \n    init container prepare: \n    2023/11/14 11:53:26 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:53:27 Decoded script /tekton/scripts/script-0-25ssv\n    \n    init container working-dir-initializer: \n    \n    container step-sast-snyk-check: \n    {\"result\":\"SKIPPED\",\"timestamp\":\"1699962832\",\"note\":\"Task sast-snyk-check skipped: If you wish to use the Snyk code SAST task, please create a secret named snyk-secret with the key snyk_token containing the Snyk token.\",\"namespace\":\"default\",\"successes\":0,\"failures\":0,\"warnings\":0}\n    \n    init container prepare: \n    2023/11/14 11:53:56 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:53:56 Decoded script /tekton/scripts/script-0-rlvw2\n    \n    container step-appstudio-summary: \n    \n    Build Summary:\n    \n    Build repository: https://github.com/redhat-appstudio-qe/sample-multi-component?rev=05ab65ffc94b843e8543556c20bd16647ffc3220\n    \n    End Summary\n    \n    {\n        s: \"\\ninit container prepare: \\n2023/11/14 11:53:01 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:53:02 Decoded script /tekton/scripts/script-0-bbf9w\\n2023/11/14 11:53:02 Decoded script /tekton/scripts/script-1-kwnxz\\n\\ncontainer step-clone: \\n+ '[' true = true ']'\\n+ '[' -f /workspace/basic-auth/.git-credentials ']'\\n+ '[' -f /workspace/basic-auth/.gitconfig ']'\\n+ cp /workspace/basic-auth/.git-credentials /tekton/home/.git-credentials\\n+ cp /workspace/basic-auth/.gitconfig /tekton/home/.gitconfig\\n+ chmod 400 /tekton/home/.git-credentials\\n+ chmod 400 /tekton/home/.gitconfig\\n+ '[' false = true ']'\\n+ CHECKOUT_DIR=/workspace/output/source\\n+ '[' true = true ']'\\n+ cleandir\\n+ '[' -d /workspace/output/source ']'\\n+ test -z ''\\n+ test -z ''\\n+ test -z ''\\n+ /ko-app/git-init -url=https://github.com/redhat-appstudio-qe/sample-multi-component -revision=05ab65ffc94b843e8543556c20bd16647ffc3220 -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699962800.4609172,\\\"caller\\\":\\\"git/git.go:178\\\",\\\"msg\\\":\\\"Successfully cloned https://github.com/redhat-appstudio-qe/sample-multi-component @ 05ab65ffc94b843e8543556c20bd16647ffc3220 (grafted, HEAD) in path /workspace/output/source\\\"}\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699962800.491771,\\\"caller\\\":\\\"git/git.go:217\\\",\\\"msg\\\":\\\"Successfully initialized and updated submodules in path /workspace/output/source\\\"}\\n+ cd /workspace/output/source\\n++ git rev-parse HEAD\\n+ RESULT_SHA=05ab65ffc94b843e8543556c20bd16647ffc3220\\n+ EXIT_CODE=0\\n+ '[' 0 '!=' 0 ']'\\n+ printf %!s(MISSING) 05ab65ffc94b843e8543556c20bd16647ffc3220\\n+ printf %!s(MISSING) https://github.com/redhat-appstudio-qe/sample-multi-component\\n+ '[' false = true ']'\\n\\ncontainer step-symlink-check: \\nRunning symlink check\\n\\ninit container prepare: \\n2023/11/14 11:52:40 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:52:41 Decoded script /tekton/scripts/script-0-hgqxq\\n\\ncontainer step-init: \\nBuild Initialize: quay.io/redhat-appstudio-qe/build-e2e-cpme-tenant/build-suite-positive-mc-nupu/go-component-wcve:on-pr-05ab65ffc94b843e8543556c20bd16647ffc3220\\n\\nDetermine if Image Already Exists\\n\\ninit container prepare: \\n2023/11/14 11:53:26 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:53:27 Decoded script /tekton/scripts/script-0-25ssv\\n\\ninit container working-dir-initializer: \\n\\ncontainer step-sast-snyk-check: \\n{\\\"result\\\":\\\"SKIPPED\\\",\\\"timestamp\\\":\\\"1699962832\\\",\\\"note\\\":\\\"Task sast-snyk-check skipped: If you wish to use the Snyk code SAST task, please create a secret named snyk-secret with the key snyk_token containing the Snyk token.\\\",\\\"namespace\\\":\\\"default\\\",\\\"successes\\\":0,\\\"failures\\\":0,\\\"warnings\\\":0}\\n\\ninit container prepare: \\n2023/11/14 11:53:56 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:53:56 Decoded script /tekton/scripts/script-0-rlvw2\\n\\ncontainer step-appstudio-summary: \\n\\nBuild Summary:\\n\\nBuild repository: https://github.com/redhat-appstudio-qe/sample-multi-component?rev=05ab65ffc94b843e8543556c20bd16647ffc3220\\n\\nEnd Summary\\n\",\n    }",
-                "failure_date": "2023-11-14T11:36:08Z"
-              }
-            ]
-          },
-          {
-            "name": "[It] [build-service-suite Build service E2E tests] test PaC component build when the component is removed and recreated (with the same name in the same namespace) should no longer lead to a creation of a PaC PR [build, HACBS, github-webhook, pac-build, pipeline, image-controller]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724398958685458432",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2698/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724398958685458432",
-                "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
-                "failure_date": "2023-11-14T12:08:44Z"
-              }
-            ]
-          }
-        ],
-        "average_impact": 18.75
-      },
-      {
-        "suite_name": "build-service-suite Build templates E2E test",
-        "status": "failed",
-        "test_cases": [
-          {
-            "name": "[It] [build-service-suite Build templates E2E test] HACBS pipelines should eventually finish successfully for component with Git source URL https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git [build, HACBS, pipeline, build-templates-e2e]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724386610788700160",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2719/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724386610788700160",
-                "error_message": "Expected success, but got an error:\n    <*errors.errorString | 0xc001669870>: \n    \n    init container prepare: \n    2023/11/14 11:35:11 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:35:13 Decoded script /tekton/scripts/script-0-vs9f6\n    2023/11/14 11:35:13 Decoded script /tekton/scripts/script-1-q7jrv\n    \n    container step-clone: \n    + '[' false = true ']'\n    + '[' false = true ']'\n    + CHECKOUT_DIR=/workspace/output/source\n    + '[' true = true ']'\n    + cleandir\n    + '[' -d /workspace/output/source ']'\n    + test -z ''\n    + test -z ''\n    + test -z ''\n    + /ko-app/git-init -url=https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git -revision=main -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\n    {\"level\":\"info\",\"ts\":1699961719.3569608,\"caller\":\"git/git.go:178\",\"msg\":\"Successfully cloned https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git @ 7c630e200f40ba457ed508e7f6401d03fb50982d (grafted, HEAD, origin/main) in path /workspace/output/source\"}\n    {\"level\":\"info\",\"ts\":1699961719.3835516,\"caller\":\"git/git.go:217\",\"msg\":\"Successfully initialized and updated submodules in path /workspace/output/source\"}\n    + cd /workspace/output/source\n    ++ git rev-parse HEAD\n    + RESULT_SHA=7c630e200f40ba457ed508e7f6401d03fb50982d\n    + EXIT_CODE=0\n    + '[' 0 '!=' 0 ']'\n    + printf %!s(MISSING) 7c630e200f40ba457ed508e7f6401d03fb50982d\n    + printf %!s(MISSING) https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git\n    + '[' false = true ']'\n    \n    container step-symlink-check: \n    Running symlink check\n    \n    init container prepare: \n    2023/11/14 11:34:49 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:34:50 Decoded script /tekton/scripts/script-0-m88s5\n    \n    container step-init: \n    Build Initialize: quay.io/redhat-appstudio-qe/build-e2e-cdlg-tenant/test-app-qsly/devfile-sample-python-basic-xxqf:build-b34d2-1699961683\n    \n    Determine if Image Already Exists\n    \n    init container prepare: \n    2023/11/14 11:35:24 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:35:25 Decoded script /tekton/scripts/script-0-dwxnq\n    \n    init container working-dir-initializer: \n    \n    container step-sast-snyk-check: \n    {\"result\":\"SKIPPED\",\"timestamp\":\"1699961745\",\"note\":\"Task sast-snyk-check skipped: If you wish to use the Snyk code SAST task, please create a secret named snyk-secret with the key snyk_token containing the Snyk token.\",\"namespace\":\"default\",\"successes\":0,\"failures\":0,\"warnings\":0}\n    \n    init container prepare: \n    2023/11/14 11:35:54 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:35:55 Decoded script /tekton/scripts/script-0-6r5lk\n    \n    container step-appstudio-summary: \n    \n    Build Summary:\n    \n    Build repository: https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git?rev=7c630e200f40ba457ed508e7f6401d03fb50982d\n    \n    End Summary\n    \n    {\n        s: \"\\ninit container prepare: \\n2023/11/14 11:35:11 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:35:13 Decoded script /tekton/scripts/script-0-vs9f6\\n2023/11/14 11:35:13 Decoded script /tekton/scripts/script-1-q7jrv\\n\\ncontainer step-clone: \\n+ '[' false = true ']'\\n+ '[' false = true ']'\\n+ CHECKOUT_DIR=/workspace/output/source\\n+ '[' true = true ']'\\n+ cleandir\\n+ '[' -d /workspace/output/source ']'\\n+ test -z ''\\n+ test -z ''\\n+ test -z ''\\n+ /ko-app/git-init -url=https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git -revision=main -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699961719.3569608,\\\"caller\\\":\\\"git/git.go:178\\\",\\\"msg\\\":\\\"Successfully cloned https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git @ 7c630e200f40ba457ed508e7f6401d03fb50982d (grafted, HEAD, origin/main) in path /workspace/output/source\\\"}\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699961719.3835516,\\\"caller\\\":\\\"git/git.go:217\\\",\\\"msg\\\":\\\"Successfully initialized and updated submodules in path /workspace/output/source\\\"}\\n+ cd /workspace/output/source\\n++ git rev-parse HEAD\\n+ RESULT_SHA=7c630e200f40ba457ed508e7f6401d03fb50982d\\n+ EXIT_CODE=0\\n+ '[' 0 '!=' 0 ']'\\n+ printf %!s(MISSING) 7c630e200f40ba457ed508e7f6401d03fb50982d\\n+ printf %!s(MISSING) https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git\\n+ '[' false = true ']'\\n\\ncontainer step-symlink-check: \\nRunning symlink check\\n\\ninit container prepare: \\n2023/11/14 11:34:49 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:34:50 Decoded script /tekton/scripts/script-0-m88s5\\n\\ncontainer step-init: \\nBuild Initialize: quay.io/redhat-appstudio-qe/build-e2e-cdlg-tenant/test-app-qsly/devfile-sample-python-basic-xxqf:build-b34d2-1699961683\\n\\nDetermine if Image Already Exists\\n\\ninit container prepare: \\n2023/11/14 11:35:24 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:35:25 Decoded script /tekton/scripts/script-0-dwxnq\\n\\ninit container working-dir-initializer: \\n\\ncontainer step-sast-snyk-check: \\n{\\\"result\\\":\\\"SKIPPED\\\",\\\"timestamp\\\":\\\"1699961745\\\",\\\"note\\\":\\\"Task sast-snyk-check skipped: If you wish to use the Snyk code SAST task, please create a secret named snyk-secret with the key snyk_token containing the Snyk token.\\\",\\\"namespace\\\":\\\"default\\\",\\\"successes\\\":0,\\\"failures\\\":0,\\\"warnings\\\":0}\\n\\ninit container prepare: \\n2023/11/14 11:35:54 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:35:55 Decoded script /tekton/scripts/script-0-6r5lk\\n\\ncontainer step-appstudio-summary: \\n\\nBuild Summary:\\n\\nBuild repository: https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git?rev=7c630e200f40ba457ed508e7f6401d03fb50982d\\n\\nEnd Summary\\n\",\n    }",
-                "failure_date": "2023-11-14T11:19:40Z"
-              }
-            ]
-          }
-        ],
-        "average_impact": 3.125
-      },
-      {
-        "suite_name": "byoc-suite",
-        "status": "failed",
-        "test_cases": [
-          {
-            "name": "[It] [byoc-suite] Deploy RHTAP sample application into a Kubernetes cluster provided by user waits component pipeline to finish [byoc]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724310537740750848",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2738/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724310537740750848",
-                "error_message": "Expected success, but got an error:\n    <*errors.errorString | 0xc0019b9c20>: \n    \n    init container prepare: \n    2023/11/14 06:36:57 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 06:36:58 Decoded script /tekton/scripts/script-0-dpdtt\n    2023/11/14 06:36:58 Decoded script /tekton/scripts/script-1-xwcsr\n    2023/11/14 06:36:58 Decoded script /tekton/scripts/script-2-mbtpt\n    2023/11/14 06:36:58 Decoded script /tekton/scripts/script-3-7hwcv\n    2023/11/14 06:36:58 Decoded script /tekton/scripts/script-4-4rxk6\n    2023/11/14 06:36:58 Decoded script /tekton/scripts/script-5-t8kj4\n    2023/11/14 06:36:58 Decoded script /tekton/scripts/script-6-8qskp\n    \n    init container working-dir-initializer: \n    \n    container step-build: \n    \n    container step-sbom-syft-generate: \n    \n    container step-analyse-dependencies-java-sbom: \n    \n    container step-merge-syft-sboms: \n    \n    container step-merge-cachi2-sbom: \n    \n    container step-create-purl-sbom: \n    \n    container step-inject-sbom-and-push: \n    \n    container step-upload-sbom: \n    \n    init container prepare: \n    2023/11/14 06:36:38 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 06:36:38 Decoded script /tekton/scripts/script-0-dtrhs\n    2023/11/14 06:36:38 Decoded script /tekton/scripts/script-1-dszs4\n    \n    container step-clone: \n    + '[' false = true ']'\n    + '[' false = true ']'\n    + CHECKOUT_DIR=/workspace/output/source\n    + '[' true = true ']'\n    + cleandir\n    + '[' -d /workspace/output/source ']'\n    + test -z ''\n    + test -z ''\n    + test -z ''\n    + /ko-app/git-init -url=https://github.com/devfile-samples/devfile-sample-code-with-quarkus -revision=main -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\n    {\"level\":\"info\",\"ts\":1699943812.3555655,\"caller\":\"git/git.go:178\",\"msg\":\"Successfully cloned https://github.com/devfile-samples/devfile-sample-code-with-quarkus @ 1815bc17f90687ff54b0d73a9486e10e4a69d5aa (grafted, HEAD, origin/main) in path /workspace/output/source\"}\n    {\"level\":\"info\",\"ts\":1699943812.383541,\"caller\":\"git/git.go:217\",\"msg\":\"Successfully initialized and updated submodules in path /workspace/output/source\"}\n    + cd /workspace/output/source\n    ++ git rev-parse HEAD\n    + RESULT_SHA=1815bc17f90687ff54b0d73a9486e10e4a69d5aa\n    + EXIT_CODE=0\n    + '[' 0 '!=' 0 ']'\n    + printf %!s(MISSING) 1815bc17f90687ff54b0d73a9486e10e4a69d5aa\n    + printf %!s(MISSING) https://github.com/devfile-samples/devfile-sample-code-with-quarkus\n    + '[' false = true ']'\n    \n    container step-symlink-check: \n    Running symlink check\n    \n    init container prepare: \n    2023/11/14 06:36:19 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 06:36:19 Decoded script /tekton/scripts/script-0-7jzh9\n    \n    container step-init: \n    Build Initialize: quay.io/redhat-appstudio-qe/byoc-vetg-tenant/byoc-app-uasg/lbvm:build-0db21-1699943772\n    \n    Determine if Image Already Exists\n    \n    init container prepare: \n    2023/11/14 06:37:44 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 06:37:46 Decoded script /tekton/scripts/script-0-8lcv6\n    \n    container step-appstudio-summary: \n    \n    Build Summary:\n    \n    Build repository: https://github.com/devfile-samples/devfile-sample-code-with-quarkus?rev=1815bc17f90687ff54b0d73a9486e10e4a69d5aa\n    \n    End Summary\n    \n    {\n        s: \"\\ninit container prepare: \\n2023/11/14 06:36:57 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 06:36:58 Decoded script /tekton/scripts/script-0-dpdtt\\n2023/11/14 06:36:58 Decoded script /tekton/scripts/script-1-xwcsr\\n2023/11/14 06:36:58 Decoded script /tekton/scripts/script-2-mbtpt\\n2023/11/14 06:36:58 Decoded script /tekton/scripts/script-3-7hwcv\\n2023/11/14 06:36:58 Decoded script /tekton/scripts/script-4-4rxk6\\n2023/11/14 06:36:58 Decoded script /tekton/scripts/script-5-t8kj4\\n2023/11/14 06:36:58 Decoded script /tekton/scripts/script-6-8qskp\\n\\ninit container working-dir-initializer: \\n\\ncontainer step-build: \\n\\ncontainer step-sbom-syft-generate: \\n\\ncontainer step-analyse-dependencies-java-sbom: \\n\\ncontainer step-merge-syft-sboms: \\n\\ncontainer step-merge-cachi2-sbom: \\n\\ncontainer step-create-purl-sbom: \\n\\ncontainer step-inject-sbom-and-push: \\n\\ncontainer step-upload-sbom: \\n\\ninit container prepare: \\n2023/11/14 06:36:38 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 06:36:38 Decoded script /tekton/scripts/script-0-dtrhs\\n2023/11/14 06:36:38 Decoded script /tekton/scripts/script-1-dszs4\\n\\ncontainer step-clone: \\n+ '[' false = true ']'\\n+ '[' false = true ']'\\n+ CHECKOUT_DIR=/workspace/output/source\\n+ '[' true = true ']'\\n+ cleandir\\n+ '[' -d /workspace/output/source ']'\\n+ test -z ''\\n+ test -z ''\\n+ test -z ''\\n+ /ko-app/git-init -url=https://github.com/devfile-samples/devfile-sample-code-with-quarkus -revision=main -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699943812.3555655,\\\"caller\\\":\\\"git/git.go:178\\\",\\\"msg\\\":\\\"Successfully cloned https://github.com/devfile-samples/devfile-sample-code-with-quarkus @ 1815bc17f90687ff54b0d73a9486e10e4a69d5aa (grafted, HEAD, origin/main) in path /workspace/output/source\\\"}\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699943812.383541,\\\"caller\\\":\\\"git/git.go:217\\\",\\\"msg\\\":\\\"Successfully initialized and updated submodules in path /workspace/output/source\\\"}\\n+ cd /workspace/output/source\\n++ git rev-parse HEAD\\n+ RESULT_SHA=1815bc17f90687ff54b0d73a9486e10e4a69d5aa\\n+ EXIT_CODE=0\\n+ '[' 0 '!=' 0 ']'\\n+ printf %!s(MISSING) 1815bc17f90687ff54b0d73a9486e10e4a69d5aa\\n+ printf %!s(MISSING) https://github.com/devfile-samples/devfile-sample-code-with-quarkus\\n+ '[' false = true ']'\\n\\ncontainer step-symlink-check: \\nRunning symlink check\\n\\ninit container prepare: \\n2023/11/14 06:36:19 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 06:36:19 Decoded script /tekton/scripts/script-0-7jzh9\\n\\ncontainer step-init: \\nBuild Initialize: quay.io/redhat-appstudio-qe/byoc-vetg-tenant/byoc-app-uasg/lbvm:build-0db21-1699943772\\n\\nDetermine if Image Already Exists\\n\\ninit container prepare: \\n2023/11/14 06:37:44 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 06:37:46 Decoded script /tekton/scripts/script-0-8lcv6\\n\\ncontainer step-appstudio-summary: \\n\\nBuild Summary:\\n\\nBuild repository: https://github.com/devfile-samples/devfile-sample-code-with-quarkus?rev=1815bc17f90687ff54b0d73a9486e10e4a69d5aa\\n\\nEnd Summary\\n\",\n    }",
-                "failure_date": "2023-11-14T06:17:22Z"
-              }
-            ]
-          }
-        ],
-        "average_impact": 3.125
-      },
-      {
-        "suite_name": "integration-service-suite Integration Service E2E tests",
-        "status": "failed",
-        "test_cases": [
-          {
-            "name": "[It] [integration-service-suite Integration Service E2E tests] with happy path for general flow of Integration service triggers a build PipelineRun [integration-service, HACBS]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724310537740750848",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2738/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724310537740750848",
-                "error_message": "Expected success, but got an error:\n    <*errors.errorString | 0xc0012b9c40>: \n    \n    init container prepare: \n    2023/11/14 06:36:10 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 06:36:10 Decoded script /tekton/scripts/script-0-mwr7p\n    2023/11/14 06:36:10 Decoded script /tekton/scripts/script-1-vdnjx\n    \n    container step-clone: \n    + '[' false = true ']'\n    + '[' false = true ']'\n    + CHECKOUT_DIR=/workspace/output/source\n    + '[' true = true ']'\n    + cleandir\n    + '[' -d /workspace/output/source ']'\n    + test -z ''\n    + test -z ''\n    + test -z ''\n    + /ko-app/git-init -url=https://github.com/redhat-appstudio-qe/hacbs-test-project -revision=main -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\n    {\"level\":\"info\",\"ts\":1699943773.9714282,\"caller\":\"git/git.go:178\",\"msg\":\"Successfully cloned https://github.com/redhat-appstudio-qe/hacbs-test-project @ 34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274 (grafted, HEAD, origin/main) in path /workspace/output/source\"}\n    {\"level\":\"info\",\"ts\":1699943774.0033467,\"caller\":\"git/git.go:217\",\"msg\":\"Successfully initialized and updated submodules in path /workspace/output/source\"}\n    + cd /workspace/output/source\n    ++ git rev-parse HEAD\n    + RESULT_SHA=34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274\n    + EXIT_CODE=0\n    + '[' 0 '!=' 0 ']'\n    + printf %!s(MISSING) 34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274\n    + printf %!s(MISSING) https://github.com/redhat-appstudio-qe/hacbs-test-project\n    + '[' false = true ']'\n    \n    container step-symlink-check: \n    Running symlink check\n    \n    init container prepare: \n    2023/11/14 06:35:50 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 06:35:51 Decoded script /tekton/scripts/script-0-rldfw\n    \n    container step-init: \n    Build Initialize: quay.io/redhat-appstudio-qe/integration1-iegh-tenant/integ-app-olhh/hacbs-test-project-c1k1:build-abb81-1699943742\n    \n    Determine if Image Already Exists\n    \n    init container prepare: \n    2023/11/14 06:36:50 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 06:36:51 Decoded script /tekton/scripts/script-0-m6zhw\n    \n    container step-appstudio-summary: \n    \n    Build Summary:\n    \n    Build repository: https://github.com/redhat-appstudio-qe/hacbs-test-project?rev=34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274\n    \n    End Summary\n    \n    {\n        s: \"\\ninit container prepare: \\n2023/11/14 06:36:10 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 06:36:10 Decoded script /tekton/scripts/script-0-mwr7p\\n2023/11/14 06:36:10 Decoded script /tekton/scripts/script-1-vdnjx\\n\\ncontainer step-clone: \\n+ '[' false = true ']'\\n+ '[' false = true ']'\\n+ CHECKOUT_DIR=/workspace/output/source\\n+ '[' true = true ']'\\n+ cleandir\\n+ '[' -d /workspace/output/source ']'\\n+ test -z ''\\n+ test -z ''\\n+ test -z ''\\n+ /ko-app/git-init -url=https://github.com/redhat-appstudio-qe/hacbs-test-project -revision=main -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699943773.9714282,\\\"caller\\\":\\\"git/git.go:178\\\",\\\"msg\\\":\\\"Successfully cloned https://github.com/redhat-appstudio-qe/hacbs-test-project @ 34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274 (grafted, HEAD, origin/main) in path /workspace/output/source\\\"}\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699943774.0033467,\\\"caller\\\":\\\"git/git.go:217\\\",\\\"msg\\\":\\\"Successfully initialized and updated submodules in path /workspace/output/source\\\"}\\n+ cd /workspace/output/source\\n++ git rev-parse HEAD\\n+ RESULT_SHA=34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274\\n+ EXIT_CODE=0\\n+ '[' 0 '!=' 0 ']'\\n+ printf %!s(MISSING) 34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274\\n+ printf %!s(MISSING) https://github.com/redhat-appstudio-qe/hacbs-test-project\\n+ '[' false = true ']'\\n\\ncontainer step-symlink-check: \\nRunning symlink check\\n\\ninit container prepare: \\n2023/11/14 06:35:50 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 06:35:51 Decoded script /tekton/scripts/script-0-rldfw\\n\\ncontainer step-init: \\nBuild Initialize: quay.io/redhat-appstudio-qe/integration1-iegh-tenant/integ-app-olhh/hacbs-test-project-c1k1:build-abb81-1699943742\\n\\nDetermine if Image Already Exists\\n\\ninit container prepare: \\n2023/11/14 06:36:50 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 06:36:51 Decoded script /tekton/scripts/script-0-m6zhw\\n\\ncontainer step-appstudio-summary: \\n\\nBuild Summary:\\n\\nBuild repository: https://github.com/redhat-appstudio-qe/hacbs-test-project?rev=34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274\\n\\nEnd Summary\\n\",\n    }",
-                "failure_date": "2023-11-14T06:17:22Z"
-              }
-            ]
-          },
-          {
-            "name": "[It] [integration-service-suite Integration Service E2E tests] with happy path for general flow of Integration service when An snapshot of push event is created checks if an SnapshotEnvironmentBinding is created successfully [integration-service, HACBS]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724144866838974464",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2738/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724144866838974464",
-                "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
-                "failure_date": "2023-11-13T19:19:03Z"
-              }
-            ]
-          },
-          {
-            "name": "[It] [integration-service-suite Integration Service E2E tests] with an integration test fail when An snapshot of push event is created checks if the global candidate is not updated [integration-service, HACBS]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724067359221616640",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2728/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724067359221616640",
-                "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
-                "failure_date": "2023-11-13T14:11:04Z"
-              }
-            ]
-          }
-        ],
-        "average_impact": 9.375
-      },
-      {
-        "suite_name": "integration-service-suite Namespace-backed Environment (NBE) E2E tests",
-        "status": "failed",
-        "test_cases": [
-          {
-            "name": "[It] [integration-service-suite Namespace-backed Environment (NBE) E2E tests] with happy path for Namespace-backed environments checks for deploymentTargetClaim after Ephemeral env has been created [integration-service, HACBS, namespace-backed-envs]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724272905153417216",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2741/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724272905153417216",
-                "error_message": "Timed out after 60.001s.\ntimed out checking DeploymentTargetClaim after Ephemeral Environment user-picked-environment-example-pass-with-env-sxgh-s7mdm was created \nExpected success, but got an error:\n    <*errors.errorString | 0xc00057d730>: \n    DeploymentTargetClaimPhase is not yet equal to the expected phase: Bound\n    {\n        s: \"DeploymentTargetClaimPhase is not yet equal to the expected phase: Bound\",\n    }",
-                "failure_date": "2023-11-14T03:47:50Z"
-              }
-            ]
-          }
-        ],
-        "average_impact": 3.125
-      },
-      {
-        "suite_name": "integration-service-suite Status Reporting of Integration tests",
-        "status": "failed",
-        "test_cases": [
-          {
-            "name": "[It] [integration-service-suite Status Reporting of Integration tests] with status reporting of Integration tests in CheckRuns when a new Component with specified custom branch is created eventually leads to the build PipelineRun's status reported at Checks tab [integration-service, HACBS, status-reporting, custom-branch]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724359083231809536",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2743/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724359083231809536",
-                "error_message": "the PR 78 in hacbs-test-project-integration repo doesn't contain the expected conclusion (success) of the CheckRun\nExpected\n    <string>: failure\nto equal\n    <string>: success",
-                "failure_date": "2023-11-14T09:30:17Z"
-              }
-            ]
-          },
-          {
-            "name": "[It] [integration-service-suite Status Reporting of Integration tests] with status reporting of Integration tests in CheckRuns when Integration PipelineRuns completes successfully eventually leads to the status reported at Checks tab for the successful Integration PipelineRun [integration-service, HACBS, status-reporting]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724410953295990784",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2728/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724410953295990784",
-                "error_message": "the PR 94 in hacbs-test-project-integration repo doesn't contain the expected conclusion (success) of the CheckRun\nExpected\n    <string>: \nto equal\n    <string>: success",
-                "failure_date": "2023-11-14T12:56:23Z"
-              }
-            ]
-          }
-        ],
-        "average_impact": 6.25
-      },
-      {
-        "suite_name": "rhtap-demo-suite",
-        "status": "failed",
-        "test_cases": [
-          {
-            "name": "[It] [rhtap-demo-suite] DEVHAS-234: create an application with branch and context dir creates an environment [rhtap-demo]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724046292146982912",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2728/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724046292146982912",
-                "error_message": "Unexpected error:\n    <*url.Error | 0xc001f661e0>: \n    Post \"https://api-toolchain-host-operator.apps.rhtap-ocp-4-12-amd64-us-east-2-m8kt5.ci.stonesoupengineering.com/apis/appstudio.redhat.com/v1alpha1/namespaces/rhtap-demo-gihe-tenant/environments\": EOF\n    {\n        Op: \"Post\",\n        URL: \"https://api-toolchain-host-operator.apps.rhtap-ocp-4-12-amd64-us-east-2-m8kt5.ci.stonesoupengineering.com/apis/appstudio.redhat.com/v1alpha1/namespaces/rhtap-demo-gihe-tenant/environments\",\n        Err: <*errors.errorString | 0xc0001920f0>{s: \"EOF\"},\n    }\noccurred",
-                "failure_date": "2023-11-13T12:47:21Z"
-              }
-            ]
-          },
-          {
-            "name": "[It] [rhtap-demo-suite] Maven project - Simple and Advanced build RHTAP Advanced build test for rhtap-demo-component when SLSA level 3 customizable PipelineRun is created should eventually complete successfully [rhtap-demo]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724359083231809536",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2743/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724359083231809536",
-                "error_message": "Expected success, but got an error:\n    <*errors.errorString | 0xc00106a570>: \n    \n    {s: \"\"}",
-                "failure_date": "2023-11-14T09:30:17Z"
-              }
-            ]
-          },
-          {
-            "name": "[It] [rhtap-demo-suite] Application with a golang component with dockerfile but not devfile (private) waits for mc-golang-nodevfile component (private: true) pipeline to be finished [rhtap-demo]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724386610788700160",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2719/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724386610788700160",
-                "error_message": "Expected success, but got an error:\n    <*errors.errorString | 0xc001312fc0>: \n    \n    {s: \"\"}",
-                "failure_date": "2023-11-14T11:19:40Z"
-              }
-            ]
-          },
-          {
-            "name": "[It] [rhtap-demo-suite] multi-component scenario with all supported import components deploys component mc-three-scenarios successfully using gitops [rhtap-demo]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724386610788700160",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2719/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724386610788700160",
-                "error_message": "Timed out after 1500.000s.\ntimed out waiting for deployment of a component rhtap-demo-yigu-tenant/devfile-go-rhtap-three-component-scenarios-i8oj to become ready\nExpected success, but got an error:\n    <*errors.StatusError | 0xc000a09360>: \n    deployments.apps \"devfile-go-rhtap-three-component-scenarios-i8oj\" not found\n    {\n        ErrStatus: {\n            TypeMeta: {Kind: \"\", APIVersion: \"\"},\n            ListMeta: {\n                SelfLink: \"\",\n                ResourceVersion: \"\",\n                Continue: \"\",\n                RemainingItemCount: nil,\n            },\n            Status: \"Failure\",\n            Message: \"deployments.apps \\\"devfile-go-rhtap-three-component-scenarios-i8oj\\\" not found\",\n            Reason: \"NotFound\",\n            Details: {\n                Name: \"devfile-go-rhtap-three-component-scenarios-i8oj\",\n                Group: \"apps\",\n                Kind: \"deployments\",\n                UID: \"\",\n                Causes: nil,\n                RetryAfterSeconds: 0,\n            },\n            Code: 404,\n        },\n    }",
-                "failure_date": "2023-11-14T11:19:40Z"
-              }
-            ]
-          }
-        ],
-        "average_impact": 12.5
-      },
-      {
-        "suite_name": "spi-suite",
-        "status": "failed",
-        "test_cases": [
-          {
-            "name": "[It] [spi-suite] SVPI-495 - Test automation to ensure that a user can't access and use secrets from another workspace checks that user A can access the SPIAccessToken A in workspace A [spi-suite, access-control]",
-            "test_case_impact": 3.125,
-            "count": 1,
-            "messages": [
-              {
-                "job_id": "1724410953295990784",
-                "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2728/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724410953295990784",
-                "error_message": "Unexpected error:\n    <*url.Error | 0xc001752f30>: \n    Post \"https://api-toolchain-host-operator.apps.rhtap-ocp-4-12-amd64-us-east-2-chx2f.ci.stonesoupengineering.com/apis/appstudio.redhat.com/v1beta1/namespaces/spi-user-b-hxvs-tenant/spiaccesstokenbindings\": EOF\n    {\n        Op: \"Post\",\n        URL: \"https://api-toolchain-host-operator.apps.rhtap-ocp-4-12-amd64-us-east-2-chx2f.ci.stonesoupengineering.com/apis/appstudio.redhat.com/v1beta1/namespaces/spi-user-b-hxvs-tenant/spiaccesstokenbindings\",\n        Err: <*errors.errorString | 0xc0001980f0>{s: \"EOF\"},\n    }\noccurred",
-                "failure_date": "2023-11-14T12:56:23Z"
-              }
-            ]
-          }
-        ],
-        "average_impact": 3.125
-      }
+        {
+            "suite_name": "build-service-suite Build service E2E tests",
+            "status": "failed",
+            "test_cases": [
+                {
+                    "name": "[It] [build-service-suite Build service E2E tests] test PaC component build when a new component without specified branch is created and with visibility private a related PipelineRun should be deleted after deleting the component [build, HACBS, github-webhook, pac-build, pipeline, image-controller, pac-custom-default-branch]",
+                    "test_case_impact": 5.405405405405405,
+                    "count": 2,
+                    "messages": [
+                        {
+                            "job_id": "1724346055316738048",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2719/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724346055316738048",
+                            "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
+                            "failure_date": "2023-11-14T08:38:31Z"
+                        },
+                        {
+                            "job_id": "1724016536861020160",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2738/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724016536861020160",
+                            "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
+                            "failure_date": "2023-11-13T10:49:07Z"
+                        }
+                    ]
+                },
+                {
+                    "name": "[It] [build-service-suite Build service E2E tests] PLNSRVCE-799 - test pipeline selector default Pipeline bundle should be used and no additional Pipeline params should be added to the PipelineRun if one of the WhenConditions does not match [build, HACBS, pipeline-selector]",
+                    "test_case_impact": 5.405405405405405,
+                    "count": 2,
+                    "messages": [
+                        {
+                            "job_id": "1724095820627709952",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2739/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724095820627709952",
+                            "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
+                            "failure_date": "2023-11-13T16:04:10Z"
+                        },
+                        {
+                            "job_id": "1724069906363715584",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2629/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724069906363715584",
+                            "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
+                            "failure_date": "2023-11-13T14:21:11Z"
+                        }
+                    ]
+                },
+                {
+                    "name": "[It] [build-service-suite Build service E2E tests] test pac with multiple components using same repository when components are created in same namespace the PipelineRun should eventually finish successfully for component go-component-wcve [build, HACBS, pac-build, multi-component]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724390754152878080",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2741/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724390754152878080",
+                            "error_message": "Expected success, but got an error:\n    <*errors.errorString | 0xc00109f270>: \n    \n    init container prepare: \n    2023/11/14 11:53:01 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:53:02 Decoded script /tekton/scripts/script-0-bbf9w\n    2023/11/14 11:53:02 Decoded script /tekton/scripts/script-1-kwnxz\n    \n    container step-clone: \n    + '[' true = true ']'\n    + '[' -f /workspace/basic-auth/.git-credentials ']'\n    + '[' -f /workspace/basic-auth/.gitconfig ']'\n    + cp /workspace/basic-auth/.git-credentials /tekton/home/.git-credentials\n    + cp /workspace/basic-auth/.gitconfig /tekton/home/.gitconfig\n    + chmod 400 /tekton/home/.git-credentials\n    + chmod 400 /tekton/home/.gitconfig\n    + '[' false = true ']'\n    + CHECKOUT_DIR=/workspace/output/source\n    + '[' true = true ']'\n    + cleandir\n    + '[' -d /workspace/output/source ']'\n    + test -z ''\n    + test -z ''\n    + test -z ''\n    + /ko-app/git-init -url=https://github.com/redhat-appstudio-qe/sample-multi-component -revision=05ab65ffc94b843e8543556c20bd16647ffc3220 -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\n    {\"level\":\"info\",\"ts\":1699962800.4609172,\"caller\":\"git/git.go:178\",\"msg\":\"Successfully cloned https://github.com/redhat-appstudio-qe/sample-multi-component @ 05ab65ffc94b843e8543556c20bd16647ffc3220 (grafted, HEAD) in path /workspace/output/source\"}\n    {\"level\":\"info\",\"ts\":1699962800.491771,\"caller\":\"git/git.go:217\",\"msg\":\"Successfully initialized and updated submodules in path /workspace/output/source\"}\n    + cd /workspace/output/source\n    ++ git rev-parse HEAD\n    + RESULT_SHA=05ab65ffc94b843e8543556c20bd16647ffc3220\n    + EXIT_CODE=0\n    + '[' 0 '!=' 0 ']'\n    + printf %!s(MISSING) 05ab65ffc94b843e8543556c20bd16647ffc3220\n    + printf %!s(MISSING) https://github.com/redhat-appstudio-qe/sample-multi-component\n    + '[' false = true ']'\n    \n    container step-symlink-check: \n    Running symlink check\n    \n    init container prepare: \n    2023/11/14 11:52:40 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:52:41 Decoded script /tekton/scripts/script-0-hgqxq\n    \n    container step-init: \n    Build Initialize: quay.io/redhat-appstudio-qe/build-e2e-cpme-tenant/build-suite-positive-mc-nupu/go-component-wcve:on-pr-05ab65ffc94b843e8543556c20bd16647ffc3220\n    \n    Determine if Image Already Exists\n    \n    init container prepare: \n    2023/11/14 11:53:26 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:53:27 Decoded script /tekton/scripts/script-0-25ssv\n    \n    init container working-dir-initializer: \n    \n    container step-sast-snyk-check: \n    {\"result\":\"SKIPPED\",\"timestamp\":\"1699962832\",\"note\":\"Task sast-snyk-check skipped: If you wish to use the Snyk code SAST task, please create a secret named snyk-secret with the key snyk_token containing the Snyk token.\",\"namespace\":\"default\",\"successes\":0,\"failures\":0,\"warnings\":0}\n    \n    init container prepare: \n    2023/11/14 11:53:56 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:53:56 Decoded script /tekton/scripts/script-0-rlvw2\n    \n    container step-appstudio-summary: \n    \n    Build Summary:\n    \n    Build repository: https://github.com/redhat-appstudio-qe/sample-multi-component?rev=05ab65ffc94b843e8543556c20bd16647ffc3220\n    \n    End Summary\n    \n    {\n        s: \"\\ninit container prepare: \\n2023/11/14 11:53:01 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:53:02 Decoded script /tekton/scripts/script-0-bbf9w\\n2023/11/14 11:53:02 Decoded script /tekton/scripts/script-1-kwnxz\\n\\ncontainer step-clone: \\n+ '[' true = true ']'\\n+ '[' -f /workspace/basic-auth/.git-credentials ']'\\n+ '[' -f /workspace/basic-auth/.gitconfig ']'\\n+ cp /workspace/basic-auth/.git-credentials /tekton/home/.git-credentials\\n+ cp /workspace/basic-auth/.gitconfig /tekton/home/.gitconfig\\n+ chmod 400 /tekton/home/.git-credentials\\n+ chmod 400 /tekton/home/.gitconfig\\n+ '[' false = true ']'\\n+ CHECKOUT_DIR=/workspace/output/source\\n+ '[' true = true ']'\\n+ cleandir\\n+ '[' -d /workspace/output/source ']'\\n+ test -z ''\\n+ test -z ''\\n+ test -z ''\\n+ /ko-app/git-init -url=https://github.com/redhat-appstudio-qe/sample-multi-component -revision=05ab65ffc94b843e8543556c20bd16647ffc3220 -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699962800.4609172,\\\"caller\\\":\\\"git/git.go:178\\\",\\\"msg\\\":\\\"Successfully cloned https://github.com/redhat-appstudio-qe/sample-multi-component @ 05ab65ffc94b843e8543556c20bd16647ffc3220 (grafted, HEAD) in path /workspace/output/source\\\"}\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699962800.491771,\\\"caller\\\":\\\"git/git.go:217\\\",\\\"msg\\\":\\\"Successfully initialized and updated submodules in path /workspace/output/source\\\"}\\n+ cd /workspace/output/source\\n++ git rev-parse HEAD\\n+ RESULT_SHA=05ab65ffc94b843e8543556c20bd16647ffc3220\\n+ EXIT_CODE=0\\n+ '[' 0 '!=' 0 ']'\\n+ printf %!s(MISSING) 05ab65ffc94b843e8543556c20bd16647ffc3220\\n+ printf %!s(MISSING) https://github.com/redhat-appstudio-qe/sample-multi-component\\n+ '[' false = true ']'\\n\\ncontainer step-symlink-check: \\nRunning symlink check\\n\\ninit container prepare: \\n2023/11/14 11:52:40 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:52:41 Decoded script /tekton/scripts/script-0-hgqxq\\n\\ncontainer step-init: \\nBuild Initialize: quay.io/redhat-appstudio-qe/build-e2e-cpme-tenant/build-suite-positive-mc-nupu/go-component-wcve:on-pr-05ab65ffc94b843e8543556c20bd16647ffc3220\\n\\nDetermine if Image Already Exists\\n\\ninit container prepare: \\n2023/11/14 11:53:26 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:53:27 Decoded script /tekton/scripts/script-0-25ssv\\n\\ninit container working-dir-initializer: \\n\\ncontainer step-sast-snyk-check: \\n{\\\"result\\\":\\\"SKIPPED\\\",\\\"timestamp\\\":\\\"1699962832\\\",\\\"note\\\":\\\"Task sast-snyk-check skipped: If you wish to use the Snyk code SAST task, please create a secret named snyk-secret with the key snyk_token containing the Snyk token.\\\",\\\"namespace\\\":\\\"default\\\",\\\"successes\\\":0,\\\"failures\\\":0,\\\"warnings\\\":0}\\n\\ninit container prepare: \\n2023/11/14 11:53:56 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:53:56 Decoded script /tekton/scripts/script-0-rlvw2\\n\\ncontainer step-appstudio-summary: \\n\\nBuild Summary:\\n\\nBuild repository: https://github.com/redhat-appstudio-qe/sample-multi-component?rev=05ab65ffc94b843e8543556c20bd16647ffc3220\\n\\nEnd Summary\\n\",\n    }",
+                            "failure_date": "2023-11-14T11:36:08Z"
+                        }
+                    ]
+                },
+                {
+                    "name": "[It] [build-service-suite Build service E2E tests] test PaC component build when the component is removed and recreated (with the same name in the same namespace) should no longer lead to a creation of a PaC PR [build, HACBS, github-webhook, pac-build, pipeline, image-controller]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724398958685458432",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2698/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724398958685458432",
+                            "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
+                            "failure_date": "2023-11-14T12:08:44Z"
+                        }
+                    ]
+                }
+            ],
+            "average_impact": 16.216216216216218
+        },
+        {
+            "suite_name": "build-service-suite Build templates E2E test",
+            "status": "failed",
+            "test_cases": [
+                {
+                    "name": "[It] [build-service-suite Build templates E2E test] HACBS pipelines should eventually finish successfully for component with Git source URL https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git [build, HACBS, pipeline, build-templates-e2e]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724386610788700160",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2719/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724386610788700160",
+                            "error_message": "Expected success, but got an error:\n    <*errors.errorString | 0xc001669870>: \n    \n    init container prepare: \n    2023/11/14 11:35:11 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:35:13 Decoded script /tekton/scripts/script-0-vs9f6\n    2023/11/14 11:35:13 Decoded script /tekton/scripts/script-1-q7jrv\n    \n    container step-clone: \n    + '[' false = true ']'\n    + '[' false = true ']'\n    + CHECKOUT_DIR=/workspace/output/source\n    + '[' true = true ']'\n    + cleandir\n    + '[' -d /workspace/output/source ']'\n    + test -z ''\n    + test -z ''\n    + test -z ''\n    + /ko-app/git-init -url=https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git -revision=main -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\n    {\"level\":\"info\",\"ts\":1699961719.3569608,\"caller\":\"git/git.go:178\",\"msg\":\"Successfully cloned https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git @ 7c630e200f40ba457ed508e7f6401d03fb50982d (grafted, HEAD, origin/main) in path /workspace/output/source\"}\n    {\"level\":\"info\",\"ts\":1699961719.3835516,\"caller\":\"git/git.go:217\",\"msg\":\"Successfully initialized and updated submodules in path /workspace/output/source\"}\n    + cd /workspace/output/source\n    ++ git rev-parse HEAD\n    + RESULT_SHA=7c630e200f40ba457ed508e7f6401d03fb50982d\n    + EXIT_CODE=0\n    + '[' 0 '!=' 0 ']'\n    + printf %!s(MISSING) 7c630e200f40ba457ed508e7f6401d03fb50982d\n    + printf %!s(MISSING) https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git\n    + '[' false = true ']'\n    \n    container step-symlink-check: \n    Running symlink check\n    \n    init container prepare: \n    2023/11/14 11:34:49 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:34:50 Decoded script /tekton/scripts/script-0-m88s5\n    \n    container step-init: \n    Build Initialize: quay.io/redhat-appstudio-qe/build-e2e-cdlg-tenant/test-app-qsly/devfile-sample-python-basic-xxqf:build-b34d2-1699961683\n    \n    Determine if Image Already Exists\n    \n    init container prepare: \n    2023/11/14 11:35:24 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:35:25 Decoded script /tekton/scripts/script-0-dwxnq\n    \n    init container working-dir-initializer: \n    \n    container step-sast-snyk-check: \n    {\"result\":\"SKIPPED\",\"timestamp\":\"1699961745\",\"note\":\"Task sast-snyk-check skipped: If you wish to use the Snyk code SAST task, please create a secret named snyk-secret with the key snyk_token containing the Snyk token.\",\"namespace\":\"default\",\"successes\":0,\"failures\":0,\"warnings\":0}\n    \n    init container prepare: \n    2023/11/14 11:35:54 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 11:35:55 Decoded script /tekton/scripts/script-0-6r5lk\n    \n    container step-appstudio-summary: \n    \n    Build Summary:\n    \n    Build repository: https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git?rev=7c630e200f40ba457ed508e7f6401d03fb50982d\n    \n    End Summary\n    \n    {\n        s: \"\\ninit container prepare: \\n2023/11/14 11:35:11 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:35:13 Decoded script /tekton/scripts/script-0-vs9f6\\n2023/11/14 11:35:13 Decoded script /tekton/scripts/script-1-q7jrv\\n\\ncontainer step-clone: \\n+ '[' false = true ']'\\n+ '[' false = true ']'\\n+ CHECKOUT_DIR=/workspace/output/source\\n+ '[' true = true ']'\\n+ cleandir\\n+ '[' -d /workspace/output/source ']'\\n+ test -z ''\\n+ test -z ''\\n+ test -z ''\\n+ /ko-app/git-init -url=https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git -revision=main -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699961719.3569608,\\\"caller\\\":\\\"git/git.go:178\\\",\\\"msg\\\":\\\"Successfully cloned https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git @ 7c630e200f40ba457ed508e7f6401d03fb50982d (grafted, HEAD, origin/main) in path /workspace/output/source\\\"}\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699961719.3835516,\\\"caller\\\":\\\"git/git.go:217\\\",\\\"msg\\\":\\\"Successfully initialized and updated submodules in path /workspace/output/source\\\"}\\n+ cd /workspace/output/source\\n++ git rev-parse HEAD\\n+ RESULT_SHA=7c630e200f40ba457ed508e7f6401d03fb50982d\\n+ EXIT_CODE=0\\n+ '[' 0 '!=' 0 ']'\\n+ printf %!s(MISSING) 7c630e200f40ba457ed508e7f6401d03fb50982d\\n+ printf %!s(MISSING) https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git\\n+ '[' false = true ']'\\n\\ncontainer step-symlink-check: \\nRunning symlink check\\n\\ninit container prepare: \\n2023/11/14 11:34:49 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:34:50 Decoded script /tekton/scripts/script-0-m88s5\\n\\ncontainer step-init: \\nBuild Initialize: quay.io/redhat-appstudio-qe/build-e2e-cdlg-tenant/test-app-qsly/devfile-sample-python-basic-xxqf:build-b34d2-1699961683\\n\\nDetermine if Image Already Exists\\n\\ninit container prepare: \\n2023/11/14 11:35:24 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:35:25 Decoded script /tekton/scripts/script-0-dwxnq\\n\\ninit container working-dir-initializer: \\n\\ncontainer step-sast-snyk-check: \\n{\\\"result\\\":\\\"SKIPPED\\\",\\\"timestamp\\\":\\\"1699961745\\\",\\\"note\\\":\\\"Task sast-snyk-check skipped: If you wish to use the Snyk code SAST task, please create a secret named snyk-secret with the key snyk_token containing the Snyk token.\\\",\\\"namespace\\\":\\\"default\\\",\\\"successes\\\":0,\\\"failures\\\":0,\\\"warnings\\\":0}\\n\\ninit container prepare: \\n2023/11/14 11:35:54 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 11:35:55 Decoded script /tekton/scripts/script-0-6r5lk\\n\\ncontainer step-appstudio-summary: \\n\\nBuild Summary:\\n\\nBuild repository: https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git?rev=7c630e200f40ba457ed508e7f6401d03fb50982d\\n\\nEnd Summary\\n\",\n    }",
+                            "failure_date": "2023-11-14T11:19:40Z"
+                        }
+                    ]
+                },
+                {
+                    "name": "[It] [build-service-suite Build templates E2E test] HACBS pipelines when Pipeline Results are stored for component with Git source URL https://github.com/redhat-appstudio-qe/devfile-sample-python-basic.git should have Pipeline Logs [build, HACBS, pipeline]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724439144450494464",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2748/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724439144450494464",
+                            "error_message": "Timed out after 120.000s.\ntimed out when getting logs for PipelineRun build-e2e-fual-tenant/devfile-sample-python-basic-gjmy-dwvwl\nExpected success, but got an error:\n    <*errors.errorString | 0xc001e82870>: \n    logs for PipelineRun build-e2e-fual-tenant/devfile-sample-python-basic-gjmy-dwvwl are empty\n    {\n        s: \"logs for PipelineRun build-e2e-fual-tenant/devfile-sample-python-basic-gjmy-dwvwl are empty\",\n    }",
+                            "failure_date": "2023-11-14T14:48:25Z"
+                        }
+                    ]
+                }
+            ],
+            "average_impact": 5.405405405405405
+        },
+        {
+            "suite_name": "byoc-suite",
+            "status": "failed",
+            "test_cases": [
+                {
+                    "name": "[It] [byoc-suite] Deploy RHTAP sample application into a Kubernetes cluster provided by user waits component pipeline to finish [byoc]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724310537740750848",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2738/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724310537740750848",
+                            "error_message": "Expected success, but got an error:\n    <*errors.errorString | 0xc0019b9c20>: \n    \n    init container prepare: \n    2023/11/14 06:36:57 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 06:36:58 Decoded script /tekton/scripts/script-0-dpdtt\n    2023/11/14 06:36:58 Decoded script /tekton/scripts/script-1-xwcsr\n    2023/11/14 06:36:58 Decoded script /tekton/scripts/script-2-mbtpt\n    2023/11/14 06:36:58 Decoded script /tekton/scripts/script-3-7hwcv\n    2023/11/14 06:36:58 Decoded script /tekton/scripts/script-4-4rxk6\n    2023/11/14 06:36:58 Decoded script /tekton/scripts/script-5-t8kj4\n    2023/11/14 06:36:58 Decoded script /tekton/scripts/script-6-8qskp\n    \n    init container working-dir-initializer: \n    \n    container step-build: \n    \n    container step-sbom-syft-generate: \n    \n    container step-analyse-dependencies-java-sbom: \n    \n    container step-merge-syft-sboms: \n    \n    container step-merge-cachi2-sbom: \n    \n    container step-create-purl-sbom: \n    \n    container step-inject-sbom-and-push: \n    \n    container step-upload-sbom: \n    \n    init container prepare: \n    2023/11/14 06:36:38 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 06:36:38 Decoded script /tekton/scripts/script-0-dtrhs\n    2023/11/14 06:36:38 Decoded script /tekton/scripts/script-1-dszs4\n    \n    container step-clone: \n    + '[' false = true ']'\n    + '[' false = true ']'\n    + CHECKOUT_DIR=/workspace/output/source\n    + '[' true = true ']'\n    + cleandir\n    + '[' -d /workspace/output/source ']'\n    + test -z ''\n    + test -z ''\n    + test -z ''\n    + /ko-app/git-init -url=https://github.com/devfile-samples/devfile-sample-code-with-quarkus -revision=main -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\n    {\"level\":\"info\",\"ts\":1699943812.3555655,\"caller\":\"git/git.go:178\",\"msg\":\"Successfully cloned https://github.com/devfile-samples/devfile-sample-code-with-quarkus @ 1815bc17f90687ff54b0d73a9486e10e4a69d5aa (grafted, HEAD, origin/main) in path /workspace/output/source\"}\n    {\"level\":\"info\",\"ts\":1699943812.383541,\"caller\":\"git/git.go:217\",\"msg\":\"Successfully initialized and updated submodules in path /workspace/output/source\"}\n    + cd /workspace/output/source\n    ++ git rev-parse HEAD\n    + RESULT_SHA=1815bc17f90687ff54b0d73a9486e10e4a69d5aa\n    + EXIT_CODE=0\n    + '[' 0 '!=' 0 ']'\n    + printf %!s(MISSING) 1815bc17f90687ff54b0d73a9486e10e4a69d5aa\n    + printf %!s(MISSING) https://github.com/devfile-samples/devfile-sample-code-with-quarkus\n    + '[' false = true ']'\n    \n    container step-symlink-check: \n    Running symlink check\n    \n    init container prepare: \n    2023/11/14 06:36:19 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 06:36:19 Decoded script /tekton/scripts/script-0-7jzh9\n    \n    container step-init: \n    Build Initialize: quay.io/redhat-appstudio-qe/byoc-vetg-tenant/byoc-app-uasg/lbvm:build-0db21-1699943772\n    \n    Determine if Image Already Exists\n    \n    init container prepare: \n    2023/11/14 06:37:44 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 06:37:46 Decoded script /tekton/scripts/script-0-8lcv6\n    \n    container step-appstudio-summary: \n    \n    Build Summary:\n    \n    Build repository: https://github.com/devfile-samples/devfile-sample-code-with-quarkus?rev=1815bc17f90687ff54b0d73a9486e10e4a69d5aa\n    \n    End Summary\n    \n    {\n        s: \"\\ninit container prepare: \\n2023/11/14 06:36:57 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 06:36:58 Decoded script /tekton/scripts/script-0-dpdtt\\n2023/11/14 06:36:58 Decoded script /tekton/scripts/script-1-xwcsr\\n2023/11/14 06:36:58 Decoded script /tekton/scripts/script-2-mbtpt\\n2023/11/14 06:36:58 Decoded script /tekton/scripts/script-3-7hwcv\\n2023/11/14 06:36:58 Decoded script /tekton/scripts/script-4-4rxk6\\n2023/11/14 06:36:58 Decoded script /tekton/scripts/script-5-t8kj4\\n2023/11/14 06:36:58 Decoded script /tekton/scripts/script-6-8qskp\\n\\ninit container working-dir-initializer: \\n\\ncontainer step-build: \\n\\ncontainer step-sbom-syft-generate: \\n\\ncontainer step-analyse-dependencies-java-sbom: \\n\\ncontainer step-merge-syft-sboms: \\n\\ncontainer step-merge-cachi2-sbom: \\n\\ncontainer step-create-purl-sbom: \\n\\ncontainer step-inject-sbom-and-push: \\n\\ncontainer step-upload-sbom: \\n\\ninit container prepare: \\n2023/11/14 06:36:38 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 06:36:38 Decoded script /tekton/scripts/script-0-dtrhs\\n2023/11/14 06:36:38 Decoded script /tekton/scripts/script-1-dszs4\\n\\ncontainer step-clone: \\n+ '[' false = true ']'\\n+ '[' false = true ']'\\n+ CHECKOUT_DIR=/workspace/output/source\\n+ '[' true = true ']'\\n+ cleandir\\n+ '[' -d /workspace/output/source ']'\\n+ test -z ''\\n+ test -z ''\\n+ test -z ''\\n+ /ko-app/git-init -url=https://github.com/devfile-samples/devfile-sample-code-with-quarkus -revision=main -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699943812.3555655,\\\"caller\\\":\\\"git/git.go:178\\\",\\\"msg\\\":\\\"Successfully cloned https://github.com/devfile-samples/devfile-sample-code-with-quarkus @ 1815bc17f90687ff54b0d73a9486e10e4a69d5aa (grafted, HEAD, origin/main) in path /workspace/output/source\\\"}\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699943812.383541,\\\"caller\\\":\\\"git/git.go:217\\\",\\\"msg\\\":\\\"Successfully initialized and updated submodules in path /workspace/output/source\\\"}\\n+ cd /workspace/output/source\\n++ git rev-parse HEAD\\n+ RESULT_SHA=1815bc17f90687ff54b0d73a9486e10e4a69d5aa\\n+ EXIT_CODE=0\\n+ '[' 0 '!=' 0 ']'\\n+ printf %!s(MISSING) 1815bc17f90687ff54b0d73a9486e10e4a69d5aa\\n+ printf %!s(MISSING) https://github.com/devfile-samples/devfile-sample-code-with-quarkus\\n+ '[' false = true ']'\\n\\ncontainer step-symlink-check: \\nRunning symlink check\\n\\ninit container prepare: \\n2023/11/14 06:36:19 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 06:36:19 Decoded script /tekton/scripts/script-0-7jzh9\\n\\ncontainer step-init: \\nBuild Initialize: quay.io/redhat-appstudio-qe/byoc-vetg-tenant/byoc-app-uasg/lbvm:build-0db21-1699943772\\n\\nDetermine if Image Already Exists\\n\\ninit container prepare: \\n2023/11/14 06:37:44 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 06:37:46 Decoded script /tekton/scripts/script-0-8lcv6\\n\\ncontainer step-appstudio-summary: \\n\\nBuild Summary:\\n\\nBuild repository: https://github.com/devfile-samples/devfile-sample-code-with-quarkus?rev=1815bc17f90687ff54b0d73a9486e10e4a69d5aa\\n\\nEnd Summary\\n\",\n    }",
+                            "failure_date": "2023-11-14T06:17:22Z"
+                        }
+                    ]
+                }
+            ],
+            "average_impact": 2.7027027027027026
+        },
+        {
+            "suite_name": "integration-service-suite Integration Service E2E tests",
+            "status": "failed",
+            "test_cases": [
+                {
+                    "name": "[It] [integration-service-suite Integration Service E2E tests] with happy path for general flow of Integration service triggers a build PipelineRun [integration-service, HACBS]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724310537740750848",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2738/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724310537740750848",
+                            "error_message": "Expected success, but got an error:\n    <*errors.errorString | 0xc0012b9c40>: \n    \n    init container prepare: \n    2023/11/14 06:36:10 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 06:36:10 Decoded script /tekton/scripts/script-0-mwr7p\n    2023/11/14 06:36:10 Decoded script /tekton/scripts/script-1-vdnjx\n    \n    container step-clone: \n    + '[' false = true ']'\n    + '[' false = true ']'\n    + CHECKOUT_DIR=/workspace/output/source\n    + '[' true = true ']'\n    + cleandir\n    + '[' -d /workspace/output/source ']'\n    + test -z ''\n    + test -z ''\n    + test -z ''\n    + /ko-app/git-init -url=https://github.com/redhat-appstudio-qe/hacbs-test-project -revision=main -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\n    {\"level\":\"info\",\"ts\":1699943773.9714282,\"caller\":\"git/git.go:178\",\"msg\":\"Successfully cloned https://github.com/redhat-appstudio-qe/hacbs-test-project @ 34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274 (grafted, HEAD, origin/main) in path /workspace/output/source\"}\n    {\"level\":\"info\",\"ts\":1699943774.0033467,\"caller\":\"git/git.go:217\",\"msg\":\"Successfully initialized and updated submodules in path /workspace/output/source\"}\n    + cd /workspace/output/source\n    ++ git rev-parse HEAD\n    + RESULT_SHA=34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274\n    + EXIT_CODE=0\n    + '[' 0 '!=' 0 ']'\n    + printf %!s(MISSING) 34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274\n    + printf %!s(MISSING) https://github.com/redhat-appstudio-qe/hacbs-test-project\n    + '[' false = true ']'\n    \n    container step-symlink-check: \n    Running symlink check\n    \n    init container prepare: \n    2023/11/14 06:35:50 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 06:35:51 Decoded script /tekton/scripts/script-0-rldfw\n    \n    container step-init: \n    Build Initialize: quay.io/redhat-appstudio-qe/integration1-iegh-tenant/integ-app-olhh/hacbs-test-project-c1k1:build-abb81-1699943742\n    \n    Determine if Image Already Exists\n    \n    init container prepare: \n    2023/11/14 06:36:50 Entrypoint initialization\n    \n    init container place-scripts: \n    2023/11/14 06:36:51 Decoded script /tekton/scripts/script-0-m6zhw\n    \n    container step-appstudio-summary: \n    \n    Build Summary:\n    \n    Build repository: https://github.com/redhat-appstudio-qe/hacbs-test-project?rev=34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274\n    \n    End Summary\n    \n    {\n        s: \"\\ninit container prepare: \\n2023/11/14 06:36:10 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 06:36:10 Decoded script /tekton/scripts/script-0-mwr7p\\n2023/11/14 06:36:10 Decoded script /tekton/scripts/script-1-vdnjx\\n\\ncontainer step-clone: \\n+ '[' false = true ']'\\n+ '[' false = true ']'\\n+ CHECKOUT_DIR=/workspace/output/source\\n+ '[' true = true ']'\\n+ cleandir\\n+ '[' -d /workspace/output/source ']'\\n+ test -z ''\\n+ test -z ''\\n+ test -z ''\\n+ /ko-app/git-init -url=https://github.com/redhat-appstudio-qe/hacbs-test-project -revision=main -refspec= -path=/workspace/output/source -sslVerify=true -submodules=true -depth=1 -sparseCheckoutDirectories=\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699943773.9714282,\\\"caller\\\":\\\"git/git.go:178\\\",\\\"msg\\\":\\\"Successfully cloned https://github.com/redhat-appstudio-qe/hacbs-test-project @ 34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274 (grafted, HEAD, origin/main) in path /workspace/output/source\\\"}\\n{\\\"level\\\":\\\"info\\\",\\\"ts\\\":1699943774.0033467,\\\"caller\\\":\\\"git/git.go:217\\\",\\\"msg\\\":\\\"Successfully initialized and updated submodules in path /workspace/output/source\\\"}\\n+ cd /workspace/output/source\\n++ git rev-parse HEAD\\n+ RESULT_SHA=34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274\\n+ EXIT_CODE=0\\n+ '[' 0 '!=' 0 ']'\\n+ printf %!s(MISSING) 34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274\\n+ printf %!s(MISSING) https://github.com/redhat-appstudio-qe/hacbs-test-project\\n+ '[' false = true ']'\\n\\ncontainer step-symlink-check: \\nRunning symlink check\\n\\ninit container prepare: \\n2023/11/14 06:35:50 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 06:35:51 Decoded script /tekton/scripts/script-0-rldfw\\n\\ncontainer step-init: \\nBuild Initialize: quay.io/redhat-appstudio-qe/integration1-iegh-tenant/integ-app-olhh/hacbs-test-project-c1k1:build-abb81-1699943742\\n\\nDetermine if Image Already Exists\\n\\ninit container prepare: \\n2023/11/14 06:36:50 Entrypoint initialization\\n\\ninit container place-scripts: \\n2023/11/14 06:36:51 Decoded script /tekton/scripts/script-0-m6zhw\\n\\ncontainer step-appstudio-summary: \\n\\nBuild Summary:\\n\\nBuild repository: https://github.com/redhat-appstudio-qe/hacbs-test-project?rev=34da5a8f51fba6a8b7ec75a727d3c72ebb5e1274\\n\\nEnd Summary\\n\",\n    }",
+                            "failure_date": "2023-11-14T06:17:22Z"
+                        }
+                    ]
+                },
+                {
+                    "name": "[It] [integration-service-suite Integration Service E2E tests] with happy path for general flow of Integration service when An snapshot of push event is created checks if an SnapshotEnvironmentBinding is created successfully [integration-service, HACBS]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724144866838974464",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2738/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724144866838974464",
+                            "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
+                            "failure_date": "2023-11-13T19:19:03Z"
+                        }
+                    ]
+                },
+                {
+                    "name": "[It] [integration-service-suite Integration Service E2E tests] with an integration test fail when An snapshot of push event is created checks if the global candidate is not updated [integration-service, HACBS]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724067359221616640",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2728/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724067359221616640",
+                            "error_message": "Expected success, but got an error:\n    <context.deadlineExceededError>: \n    context deadline exceeded\n    {}",
+                            "failure_date": "2023-11-13T14:11:04Z"
+                        }
+                    ]
+                }
+            ],
+            "average_impact": 8.108108108108109
+        },
+        {
+            "suite_name": "integration-service-suite Namespace-backed Environment (NBE) E2E tests",
+            "status": "failed",
+            "test_cases": [
+                {
+                    "name": "[It] [integration-service-suite Namespace-backed Environment (NBE) E2E tests] with happy path for Namespace-backed environments checks for deploymentTargetClaim after Ephemeral env has been created [integration-service, HACBS, namespace-backed-envs]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724272905153417216",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2741/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724272905153417216",
+                            "error_message": "Timed out after 60.001s.\ntimed out checking DeploymentTargetClaim after Ephemeral Environment user-picked-environment-example-pass-with-env-sxgh-s7mdm was created \nExpected success, but got an error:\n    <*errors.errorString | 0xc00057d730>: \n    DeploymentTargetClaimPhase is not yet equal to the expected phase: Bound\n    {\n        s: \"DeploymentTargetClaimPhase is not yet equal to the expected phase: Bound\",\n    }",
+                            "failure_date": "2023-11-14T03:47:50Z"
+                        }
+                    ]
+                }
+            ],
+            "average_impact": 2.7027027027027026
+        },
+        {
+            "suite_name": "integration-service-suite Status Reporting of Integration tests",
+            "status": "failed",
+            "test_cases": [
+                {
+                    "name": "[It] [integration-service-suite Status Reporting of Integration tests] with status reporting of Integration tests in CheckRuns when a new Component with specified custom branch is created eventually leads to the build PipelineRun's status reported at Checks tab [integration-service, HACBS, status-reporting, custom-branch]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724359083231809536",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2743/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724359083231809536",
+                            "error_message": "the PR 78 in hacbs-test-project-integration repo doesn't contain the expected conclusion (success) of the CheckRun\nExpected\n    <string>: failure\nto equal\n    <string>: success",
+                            "failure_date": "2023-11-14T09:30:17Z"
+                        }
+                    ]
+                },
+                {
+                    "name": "[It] [integration-service-suite Status Reporting of Integration tests] with status reporting of Integration tests in CheckRuns when Integration PipelineRuns completes successfully eventually leads to the status reported at Checks tab for the successful Integration PipelineRun [integration-service, HACBS, status-reporting]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724410953295990784",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2728/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724410953295990784",
+                            "error_message": "the PR 94 in hacbs-test-project-integration repo doesn't contain the expected conclusion (success) of the CheckRun\nExpected\n    <string>: \nto equal\n    <string>: success",
+                            "failure_date": "2023-11-14T12:56:23Z"
+                        }
+                    ]
+                }
+            ],
+            "average_impact": 5.405405405405405
+        },
+        {
+            "suite_name": "rhtap-demo-suite",
+            "status": "failed",
+            "test_cases": [
+                {
+                    "name": "[It] [rhtap-demo-suite] DEVHAS-234: create an application with branch and context dir creates an environment [rhtap-demo]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724046292146982912",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2728/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724046292146982912",
+                            "error_message": "Unexpected error:\n    <*url.Error | 0xc001f661e0>: \n    Post \"https://api-toolchain-host-operator.apps.rhtap-ocp-4-12-amd64-us-east-2-m8kt5.ci.stonesoupengineering.com/apis/appstudio.redhat.com/v1alpha1/namespaces/rhtap-demo-gihe-tenant/environments\": EOF\n    {\n        Op: \"Post\",\n        URL: \"https://api-toolchain-host-operator.apps.rhtap-ocp-4-12-amd64-us-east-2-m8kt5.ci.stonesoupengineering.com/apis/appstudio.redhat.com/v1alpha1/namespaces/rhtap-demo-gihe-tenant/environments\",\n        Err: <*errors.errorString | 0xc0001920f0>{s: \"EOF\"},\n    }\noccurred",
+                            "failure_date": "2023-11-13T12:47:21Z"
+                        }
+                    ]
+                },
+                {
+                    "name": "[It] [rhtap-demo-suite] Maven project - Simple and Advanced build RHTAP Advanced build test for rhtap-demo-component when SLSA level 3 customizable PipelineRun is created should eventually complete successfully [rhtap-demo]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724359083231809536",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2743/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724359083231809536",
+                            "error_message": "Expected success, but got an error:\n    <*errors.errorString | 0xc00106a570>: \n    \n    {s: \"\"}",
+                            "failure_date": "2023-11-14T09:30:17Z"
+                        }
+                    ]
+                },
+                {
+                    "name": "[It] [rhtap-demo-suite] Application with a golang component with dockerfile but not devfile (private) waits for mc-golang-nodevfile component (private: true) pipeline to be finished [rhtap-demo]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724386610788700160",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2719/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724386610788700160",
+                            "error_message": "Expected success, but got an error:\n    <*errors.errorString | 0xc001312fc0>: \n    \n    {s: \"\"}",
+                            "failure_date": "2023-11-14T11:19:40Z"
+                        }
+                    ]
+                },
+                {
+                    "name": "[It] [rhtap-demo-suite] multi-component scenario with all supported import components deploys component mc-three-scenarios successfully using gitops [rhtap-demo]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724386610788700160",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2719/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724386610788700160",
+                            "error_message": "Timed out after 1500.000s.\ntimed out waiting for deployment of a component rhtap-demo-yigu-tenant/devfile-go-rhtap-three-component-scenarios-i8oj to become ready\nExpected success, but got an error:\n    <*errors.StatusError | 0xc000a09360>: \n    deployments.apps \"devfile-go-rhtap-three-component-scenarios-i8oj\" not found\n    {\n        ErrStatus: {\n            TypeMeta: {Kind: \"\", APIVersion: \"\"},\n            ListMeta: {\n                SelfLink: \"\",\n                ResourceVersion: \"\",\n                Continue: \"\",\n                RemainingItemCount: nil,\n            },\n            Status: \"Failure\",\n            Message: \"deployments.apps \\\"devfile-go-rhtap-three-component-scenarios-i8oj\\\" not found\",\n            Reason: \"NotFound\",\n            Details: {\n                Name: \"devfile-go-rhtap-three-component-scenarios-i8oj\",\n                Group: \"apps\",\n                Kind: \"deployments\",\n                UID: \"\",\n                Causes: nil,\n                RetryAfterSeconds: 0,\n            },\n            Code: 404,\n        },\n    }",
+                            "failure_date": "2023-11-14T11:19:40Z"
+                        }
+                    ]
+                }
+            ],
+            "average_impact": 10.81081081081081
+        },
+        {
+            "suite_name": "spi-suite",
+            "status": "failed",
+            "test_cases": [
+                {
+                    "name": "[It] [spi-suite] SVPI-495 - Test automation to ensure that a user can't access and use secrets from another workspace checks that user A can access the SPIAccessToken A in workspace A [spi-suite, access-control]",
+                    "test_case_impact": 2.7027027027027026,
+                    "count": 1,
+                    "messages": [
+                        {
+                            "job_id": "1724410953295990784",
+                            "job_url": "https://prow.ci.openshift.org/view/gs/origin-ci-test/pr-logs/pull/redhat-appstudio_infra-deployments/2728/pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests/1724410953295990784",
+                            "error_message": "Unexpected error:\n    <*url.Error | 0xc001752f30>: \n    Post \"https://api-toolchain-host-operator.apps.rhtap-ocp-4-12-amd64-us-east-2-chx2f.ci.stonesoupengineering.com/apis/appstudio.redhat.com/v1beta1/namespaces/spi-user-b-hxvs-tenant/spiaccesstokenbindings\": EOF\n    {\n        Op: \"Post\",\n        URL: \"https://api-toolchain-host-operator.apps.rhtap-ocp-4-12-amd64-us-east-2-chx2f.ci.stonesoupengineering.com/apis/appstudio.redhat.com/v1beta1/namespaces/spi-user-b-hxvs-tenant/spiaccesstokenbindings\",\n        Err: <*errors.errorString | 0xc0001980f0>{s: \"EOF\"},\n    }\noccurred",
+                            "failure_date": "2023-11-14T12:56:23Z"
+                        }
+                    ]
+                }
+            ],
+            "average_impact": 2.7027027027027026
+        }
     ]
   }
-
 
   const sumByKey = (arr, key, value) => {
     const map = new Map();
@@ -753,6 +723,13 @@ const FlakeyTests: React.FunctionComponent = () => {
     return res;
   }
 
+  const countSuiteFailures = (suites) => {
+    return suites.map((suite) => {
+      const c = suite.test_cases.reduce(function (acc, obj) { return acc + obj.count; }, 0);
+      return {suite_name: suite.suite_name, count: c}
+    })
+  }
+
   React.useEffect(() => {
     if(mockData && mockData.suites){
       setData(mockData.suites)
@@ -761,12 +738,13 @@ const FlakeyTests: React.FunctionComponent = () => {
 
   React.useEffect(() => {
     if(data){
-      const organizedData = sumByKey(data, "suite_name", "count")
+      
+      const organizedData = countSuiteFailures(data)
       const organizedData_2 = sumByKey(data, "suite_name", "average_impact")
       setToggles(organizedData)
       setPieData(organizedData)
       setBarData(organizedData_2)
-      console.log(organizedData_2)
+      console.log(organizedData, organizedData_2)
     }
   }, [data]);
 
@@ -794,7 +772,6 @@ const FlakeyTests: React.FunctionComponent = () => {
                 <Text component={TextVariants.h1}>Flakey tetst</Text>
               </TextContent>
             </StackItem>
-            { false && <div>
             <StackItem>
               <Grid hasGutter>
                 <GridItem span={4}>
@@ -808,7 +785,6 @@ const FlakeyTests: React.FunctionComponent = () => {
             <StackItem>
               <DropdownBasic selected={selectedSuite} toggles={toggles} onSelect={onSuiteSelect}></DropdownBasic>
             </StackItem>
-            </div>}
             <StackItem>
               <ComposableTableNestedExpandable teams={data.filter(onDataFilter)}></ComposableTableNestedExpandable>
             </StackItem>
