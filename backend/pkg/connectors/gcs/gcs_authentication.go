@@ -26,10 +26,15 @@ func BucketHandleClient() *GCSBucket {
 	}
 }
 
-func (b *GCSBucket) GetJobJunitContent(orgName string, repoName string, pullNumber string, jobId, jobName string, junitName string) []byte {
-	query := &storage.Query{
-		Prefix: fmt.Sprintf("pr-logs/pull/%s_%s/%s/%s/%s/artifacts", orgName, repoName, pullNumber, jobName, jobId),
+func (b *GCSBucket) GetJobJunitContent(orgName string, repoName string, pullNumber string, jobId string, jobType string, jobName string, junitName string) []byte {
+	query := &storage.Query{}
+
+	if jobType == "periodic" {
+		query.Prefix = fmt.Sprintf("logs/%s/%s", jobName, jobId) // logs/periodic-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests-periodic
+	} else if jobType == "presubmit" {
+		query.Prefix = fmt.Sprintf("pr-logs/pull/%s_%s/%s/%s/%s/artifacts", orgName, repoName, pullNumber, jobName, jobId)
 	}
+
 	it := b.bkt.Objects(context.Background(), query)
 	for {
 		obj, err := it.Next()

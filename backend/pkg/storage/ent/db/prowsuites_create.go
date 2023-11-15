@@ -35,6 +35,12 @@ func (psc *ProwSuitesCreate) SetJobURL(s string) *ProwSuitesCreate {
 	return psc
 }
 
+// SetJobName sets the "job_name" field.
+func (psc *ProwSuitesCreate) SetJobName(s string) *ProwSuitesCreate {
+	psc.mutation.SetJobName(s)
+	return psc
+}
+
 // SetSuiteName sets the "suite_name" field.
 func (psc *ProwSuitesCreate) SetSuiteName(s string) *ProwSuitesCreate {
 	psc.mutation.SetSuiteName(s)
@@ -146,6 +152,9 @@ func (psc *ProwSuitesCreate) check() error {
 	if _, ok := psc.mutation.JobURL(); !ok {
 		return &ValidationError{Name: "job_url", err: errors.New(`db: missing required field "ProwSuites.job_url"`)}
 	}
+	if _, ok := psc.mutation.JobName(); !ok {
+		return &ValidationError{Name: "job_name", err: errors.New(`db: missing required field "ProwSuites.job_name"`)}
+	}
 	if _, ok := psc.mutation.SuiteName(); !ok {
 		return &ValidationError{Name: "suite_name", err: errors.New(`db: missing required field "ProwSuites.suite_name"`)}
 	}
@@ -198,6 +207,10 @@ func (psc *ProwSuitesCreate) createSpec() (*ProwSuites, *sqlgraph.CreateSpec) {
 	if value, ok := psc.mutation.JobURL(); ok {
 		_spec.SetField(prowsuites.FieldJobURL, field.TypeString, value)
 		_node.JobURL = value
+	}
+	if value, ok := psc.mutation.JobName(); ok {
+		_spec.SetField(prowsuites.FieldJobName, field.TypeString, value)
+		_node.JobName = value
 	}
 	if value, ok := psc.mutation.SuiteName(); ok {
 		_spec.SetField(prowsuites.FieldSuiteName, field.TypeString, value)
@@ -316,6 +329,18 @@ func (u *ProwSuitesUpsert) SetJobURL(v string) *ProwSuitesUpsert {
 // UpdateJobURL sets the "job_url" field to the value that was provided on create.
 func (u *ProwSuitesUpsert) UpdateJobURL() *ProwSuitesUpsert {
 	u.SetExcluded(prowsuites.FieldJobURL)
+	return u
+}
+
+// SetJobName sets the "job_name" field.
+func (u *ProwSuitesUpsert) SetJobName(v string) *ProwSuitesUpsert {
+	u.Set(prowsuites.FieldJobName, v)
+	return u
+}
+
+// UpdateJobName sets the "job_name" field to the value that was provided on create.
+func (u *ProwSuitesUpsert) UpdateJobName() *ProwSuitesUpsert {
+	u.SetExcluded(prowsuites.FieldJobName)
 	return u
 }
 
@@ -474,6 +499,20 @@ func (u *ProwSuitesUpsertOne) SetJobURL(v string) *ProwSuitesUpsertOne {
 func (u *ProwSuitesUpsertOne) UpdateJobURL() *ProwSuitesUpsertOne {
 	return u.Update(func(s *ProwSuitesUpsert) {
 		s.UpdateJobURL()
+	})
+}
+
+// SetJobName sets the "job_name" field.
+func (u *ProwSuitesUpsertOne) SetJobName(v string) *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.SetJobName(v)
+	})
+}
+
+// UpdateJobName sets the "job_name" field to the value that was provided on create.
+func (u *ProwSuitesUpsertOne) UpdateJobName() *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.UpdateJobName()
 	})
 }
 
@@ -806,6 +845,20 @@ func (u *ProwSuitesUpsertBulk) SetJobURL(v string) *ProwSuitesUpsertBulk {
 func (u *ProwSuitesUpsertBulk) UpdateJobURL() *ProwSuitesUpsertBulk {
 	return u.Update(func(s *ProwSuitesUpsert) {
 		s.UpdateJobURL()
+	})
+}
+
+// SetJobName sets the "job_name" field.
+func (u *ProwSuitesUpsertBulk) SetJobName(v string) *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.SetJobName(v)
+	})
+}
+
+// UpdateJobName sets the "job_name" field to the value that was provided on create.
+func (u *ProwSuitesUpsertBulk) UpdateJobName() *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.UpdateJobName()
 	})
 }
 

@@ -41,6 +41,12 @@ func (psu *ProwSuitesUpdate) SetJobURL(s string) *ProwSuitesUpdate {
 	return psu
 }
 
+// SetJobName sets the "job_name" field.
+func (psu *ProwSuitesUpdate) SetJobName(s string) *ProwSuitesUpdate {
+	psu.mutation.SetJobName(s)
+	return psu
+}
+
 // SetSuiteName sets the "suite_name" field.
 func (psu *ProwSuitesUpdate) SetSuiteName(s string) *ProwSuitesUpdate {
 	psu.mutation.SetSuiteName(s)
@@ -193,6 +199,9 @@ func (psu *ProwSuitesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := psu.mutation.JobURL(); ok {
 		_spec.SetField(prowsuites.FieldJobURL, field.TypeString, value)
 	}
+	if value, ok := psu.mutation.JobName(); ok {
+		_spec.SetField(prowsuites.FieldJobName, field.TypeString, value)
+	}
 	if value, ok := psu.mutation.SuiteName(); ok {
 		_spec.SetField(prowsuites.FieldSuiteName, field.TypeString, value)
 	}
@@ -284,6 +293,12 @@ func (psuo *ProwSuitesUpdateOne) SetJobID(s string) *ProwSuitesUpdateOne {
 // SetJobURL sets the "job_url" field.
 func (psuo *ProwSuitesUpdateOne) SetJobURL(s string) *ProwSuitesUpdateOne {
 	psuo.mutation.SetJobURL(s)
+	return psuo
+}
+
+// SetJobName sets the "job_name" field.
+func (psuo *ProwSuitesUpdateOne) SetJobName(s string) *ProwSuitesUpdateOne {
+	psuo.mutation.SetJobName(s)
 	return psuo
 }
 
@@ -462,6 +477,9 @@ func (psuo *ProwSuitesUpdateOne) sqlSave(ctx context.Context) (_node *ProwSuites
 	}
 	if value, ok := psuo.mutation.JobURL(); ok {
 		_spec.SetField(prowsuites.FieldJobURL, field.TypeString, value)
+	}
+	if value, ok := psuo.mutation.JobName(); ok {
+		_spec.SetField(prowsuites.FieldJobName, field.TypeString, value)
 	}
 	if value, ok := psuo.mutation.SuiteName(); ok {
 		_spec.SetField(prowsuites.FieldSuiteName, field.TypeString, value)

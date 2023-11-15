@@ -133,7 +133,6 @@ func (s *Server) CacheRepositoriesInformation(storageRepos []repoV1Alpha1.Reposi
 			return err
 		}
 	}
-	s.cfg.Logger.Info("Successfully updated the storage data")
 
 	return nil
 }

@@ -50,8 +50,8 @@ type Storage interface {
 	GetAllFailures(team *db.Teams) ([]*db.Failure, error)
 	ListAllRepositories() ([]*db.Repository, error)
 	BugExists(projectKey string, t *db.Teams) (bool, error)
-	GetSuitesFailureFrequency(repoName string, gitOrg string, startDate string, endDate string) ([]v1alpha1.SuitesFailureFrequency, error)
-
+	GetSuitesFailureFrequency(gitOrg string, repoName string, jobName string, startDate string, endDate string) (*v1alpha1.FlakyFrequency, error)
+	GetProwFlakyTrendsMetrics(gitOrg string, repoName string, jobName string, startDate string, endDate string) []v1alpha1.FlakyMetrics
 	// POST
 	CreateRepository(p repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error)
 	CreateQualityStudioTeam(teamName string, description string, jira_keys string) (*db.Teams, error)

@@ -130,6 +130,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "job_id", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "job_url", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "job_name", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "suite_name", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "name", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "status", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
@@ -146,7 +147,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "prow_suites_repositories_prow_suites",
-				Columns:    []*schema.Column{ProwSuitesColumns[9]},
+				Columns:    []*schema.Column{ProwSuitesColumns[10]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

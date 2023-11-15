@@ -12,7 +12,6 @@ import (
 	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
 
-	"github.com/redhat-appstudio/quality-studio/pkg/connectors/gcs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"go.uber.org/zap"
 )
@@ -34,7 +33,6 @@ func (s *Server) UpdateProwStatusByTeam() {
 	}
 
 	for _, repo := range repos {
-		s.cfg.Logger.Info("updating repository", zap.String("repo_name", repo.RepositoryName), zap.String("git_org", repo.GitOrganization))
 		filter := FilterProwJobsByRepository(repo.GitOrganization, repo.RepositoryName, prowjobs)
 		s.SaveProwJobsInDatabase(filter, repo)
 	}
@@ -42,12 +40,17 @@ func (s *Server) UpdateProwStatusByTeam() {
 
 func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Repository) {
 	for _, job := range prowJobs {
+		suitesXml := prow.TestSuites{}
+
 		prowJobsInDatabase, _ := s.cfg.Storage.GetProwJobsResultsByJobID(job.Status.BuildID)
 
 		if len(prowJobsInDatabase) > 0 {
 			s.cfg.Logger.Sugar().Debugf("Data already exists in database about jobID %v, %v", job.Status.BuildID)
 			continue
 		}
+
+		s.cfg.Logger.Info("compiling job for analysis", zap.String("job_name", job.Spec.Job), zap.String("job_id", job.Status.BuildID),
+			zap.String("git_org", repo.GitOrganization), zap.String("repo_name", repo.RepositoryName), zap.String("job_status", string(job.Status.State)))
 
 		diff := job.Status.CompletionTime.Sub(job.Status.StartTime)
 
@@ -62,51 +65,55 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 		}, repo.ID); err != nil {
 			s.cfg.Logger.Sugar().Errorf("failed to save prowJob", err)
 		}
-		if job.Spec.Type != "periodic" {
-			suitesXml := prow.TestSuites{}
+		var suites []byte
+		if job.Spec.Type == "periodic" {
+			suites = s.cfg.GCS.GetJobJunitContent("", "", "", "", job.Spec.Type, job.Spec.Job, "e2e-report.xml")
+		} else if job.Spec.Type == "presubmit" {
+			suites = s.cfg.GCS.GetJobJunitContent(repo.GitOrganization, repo.RepositoryName, ExtractPullRequestNumberFromLabels(job.Labels),
+				job.Status.BuildID, job.Spec.Type, job.Spec.Job, "e2e-report.xml")
+		}
 
-			g := gcs.BucketHandleClient()
-			suites := g.GetJobJunitContent(repo.GitOrganization, repo.RepositoryName, ExtractPullRequestNumberFromLabels(job.Labels), job.Status.BuildID, job.Spec.Job, "e2e-report.xml")
-
-			if len(suites) > 0 {
-				fmt.Println(job.Status.State, job.Status.BuildID)
-				if err := xml.Unmarshal(suites, &suitesXml); err != nil {
-					s.cfg.Logger.Sugar().Warnf("Failed convert xml file to golang bytes ", err)
-					continue
-				}
+		if len(suites) > 0 {
+			if err := xml.Unmarshal(suites, &suitesXml); err != nil {
+				s.cfg.Logger.Sugar().Warnf("Failed convert xml file to golang bytes ", err)
+				continue
 			}
+		}
 
-			for _, suite := range suitesXml.Suites {
-				for _, testCase := range suite.TestCases {
+		s.cfg.Logger.Info("successfully pulled data from gcs. Updating database", zap.String("job_name", job.Spec.Job), zap.String("job_id", job.Status.BuildID),
+			zap.String("git_org", repo.GitOrganization), zap.String("repo_name", repo.RepositoryName), zap.String("job_status", string(job.Status.State)))
+
+		for _, suite := range suitesXml.Suites {
+			for _, testCase := range suite.TestCases {
+				if testCase.Status == "failed" {
+					jobSuite := prowV1Alpha1.JobSuites{
+						JobID:          job.Status.BuildID,
+						JobName:        job.Spec.Job,
+						TestCaseName:   testCase.Name,
+						TestCaseStatus: testCase.Status,
+						TestTiming:     testCase.Duration,
+						JobType:        job.Spec.Type,
+						CreatedAt:      job.Status.StartTime,
+					}
+
+					re := regexp.MustCompile(`\[It\]\s*\[([^\]]+)\]`)
+					matches := re.FindStringSubmatch(testCase.Name)
+
+					if len(matches) > 1 {
+						jobSuite.SuiteName = matches[1]
+					}
+
+					jobSuite.JobURL = job.Status.URL
+
 					if testCase.Status == "failed" {
-						jobSuite := prowV1Alpha1.JobSuites{
-							JobID:          job.Status.BuildID,
-							TestCaseName:   testCase.Name,
-							TestCaseStatus: testCase.Status,
-							TestTiming:     testCase.Duration,
-							JobType:        job.Spec.Type,
-							CreatedAt:      job.Status.StartTime,
-						}
-
-						re := regexp.MustCompile(`\[It\]\s*\[([^\]]+)\]`)
-						matches := re.FindStringSubmatch(testCase.Name)
-
-						if len(matches) > 1 {
-							jobSuite.SuiteName = matches[1]
-						}
-
-						jobSuite.JobURL = job.Status.URL
-
-						if testCase.Status == "failed" {
-							jobSuite.ErrorMessage = testCase.FailureOutput.Message
-						}
-
 						jobSuite.ErrorMessage = testCase.FailureOutput.Message
+					}
 
-						if err := s.cfg.Storage.CreateProwJobSuites(jobSuite, repo.ID); err != nil {
-							// nolint:all
-							s.cfg.Logger.Sugar().Info(err)
-						}
+					jobSuite.ErrorMessage = testCase.FailureOutput.Message
+
+					if err := s.cfg.Storage.CreateProwJobSuites(jobSuite, repo.ID); err != nil {
+						// nolint:all
+						s.cfg.Logger.Sugar().Info(err)
 					}
 				}
 			}
@@ -121,7 +128,7 @@ func FilterProwJobsByRepository(gitOrg string, repoName string, prowJobs []prow.
 
 		prowOrg, prowRepo := ExtractOrgAndRepoFromProwJobLabels(job.GetLabels())
 
-		if prowOrg == gitOrg && prowRepo == repoName && job.Status.State != prow.AbortedState && job.Status.State != prow.PendingState {
+		if prowOrg == gitOrg && prowRepo == repoName && job.Status.State != prow.AbortedState && job.Status.State != prow.PendingState && job.Status.State != prow.TriggeredState {
 			filtered = append(filtered, job)
 		}
 	}

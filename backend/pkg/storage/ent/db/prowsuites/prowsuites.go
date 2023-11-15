@@ -11,6 +11,8 @@ const (
 	FieldJobID = "job_id"
 	// FieldJobURL holds the string denoting the job_url field in the database.
 	FieldJobURL = "job_url"
+	// FieldJobName holds the string denoting the job_name field in the database.
+	FieldJobName = "job_name"
 	// FieldSuiteName holds the string denoting the suite_name field in the database.
 	FieldSuiteName = "suite_name"
 	// FieldName holds the string denoting the name field in the database.
@@ -41,6 +43,7 @@ var Columns = []string{
 	FieldID,
 	FieldJobID,
 	FieldJobURL,
+	FieldJobName,
 	FieldSuiteName,
 	FieldName,
 	FieldStatus,

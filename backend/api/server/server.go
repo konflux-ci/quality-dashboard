@@ -23,6 +23,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/api/server/router/version"
 	_ "github.com/redhat-appstudio/quality-studio/docs/swagger"
 	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/connectors/gcs"
 	"github.com/redhat-appstudio/quality-studio/pkg/connectors/github"
 	jiraAPI "github.com/redhat-appstudio/quality-studio/pkg/connectors/jira"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
@@ -64,6 +65,7 @@ type Config struct {
 	CodeCov     *codecov.API
 	Db          *sql.DB
 	Slack       *slack.Client
+	GCS         *gcs.GCSBucket
 }
 
 // HTTPServer contains an instance of http server and the listener.

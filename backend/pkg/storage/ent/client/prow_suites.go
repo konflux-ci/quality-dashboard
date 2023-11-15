@@ -12,6 +12,7 @@ func (d *Database) CreateProwJobSuites(suites prowV1Alpha1.JobSuites, repo_id st
 	c, err := d.client.ProwSuites.Create().
 		SetJobID(suites.JobID).
 		SetJobURL(suites.JobURL).
+		SetJobName(suites.JobName).
 		SetSuiteName(suites.SuiteName).
 		SetName(suites.TestCaseName).
 		SetStatus(suites.TestCaseStatus).

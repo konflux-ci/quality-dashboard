@@ -4454,6 +4454,7 @@ type ProwSuitesMutation struct {
 	id                 *int
 	job_id             *string
 	job_url            *string
+	job_name           *string
 	suite_name         *string
 	name               *string
 	status             *string
@@ -4637,6 +4638,42 @@ func (m *ProwSuitesMutation) OldJobURL(ctx context.Context) (v string, err error
 // ResetJobURL resets all changes to the "job_url" field.
 func (m *ProwSuitesMutation) ResetJobURL() {
 	m.job_url = nil
+}
+
+// SetJobName sets the "job_name" field.
+func (m *ProwSuitesMutation) SetJobName(s string) {
+	m.job_name = &s
+}
+
+// JobName returns the value of the "job_name" field in the mutation.
+func (m *ProwSuitesMutation) JobName() (r string, exists bool) {
+	v := m.job_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJobName returns the old "job_name" field's value of the ProwSuites entity.
+// If the ProwSuites object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwSuitesMutation) OldJobName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldJobName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldJobName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJobName: %w", err)
+	}
+	return oldValue.JobName, nil
+}
+
+// ResetJobName resets all changes to the "job_name" field.
+func (m *ProwSuitesMutation) ResetJobName() {
+	m.job_name = nil
 }
 
 // SetSuiteName sets the "suite_name" field.
@@ -4974,12 +5011,15 @@ func (m *ProwSuitesMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProwSuitesMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.job_id != nil {
 		fields = append(fields, prowsuites.FieldJobID)
 	}
 	if m.job_url != nil {
 		fields = append(fields, prowsuites.FieldJobURL)
+	}
+	if m.job_name != nil {
+		fields = append(fields, prowsuites.FieldJobName)
 	}
 	if m.suite_name != nil {
 		fields = append(fields, prowsuites.FieldSuiteName)
@@ -5011,6 +5051,8 @@ func (m *ProwSuitesMutation) Field(name string) (ent.Value, bool) {
 		return m.JobID()
 	case prowsuites.FieldJobURL:
 		return m.JobURL()
+	case prowsuites.FieldJobName:
+		return m.JobName()
 	case prowsuites.FieldSuiteName:
 		return m.SuiteName()
 	case prowsuites.FieldName:
@@ -5036,6 +5078,8 @@ func (m *ProwSuitesMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldJobID(ctx)
 	case prowsuites.FieldJobURL:
 		return m.OldJobURL(ctx)
+	case prowsuites.FieldJobName:
+		return m.OldJobName(ctx)
 	case prowsuites.FieldSuiteName:
 		return m.OldSuiteName(ctx)
 	case prowsuites.FieldName:
@@ -5070,6 +5114,13 @@ func (m *ProwSuitesMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetJobURL(v)
+		return nil
+	case prowsuites.FieldJobName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJobName(v)
 		return nil
 	case prowsuites.FieldSuiteName:
 		v, ok := value.(string)
@@ -5197,6 +5248,9 @@ func (m *ProwSuitesMutation) ResetField(name string) error {
 		return nil
 	case prowsuites.FieldJobURL:
 		m.ResetJobURL()
+		return nil
+	case prowsuites.FieldJobName:
+		m.ResetJobName()
 		return nil
 	case prowsuites.FieldSuiteName:
 		m.ResetSuiteName()

@@ -24,6 +24,7 @@ func NewRouter(s storage.Storage) router.Router {
 
 	r.Route = []router.Route{
 		router.NewGetRoute("/suites/ocurrencies", r.getOcurrencies),
+		router.NewGetRoute("/suites/flaky/trends", r.getTrends),
 	}
 
 	return r

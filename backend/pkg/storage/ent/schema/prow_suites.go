@@ -18,6 +18,8 @@ func (ProwSuites) Fields() []ent.Field {
 			SchemaType(textSchema),
 		field.String("job_url").
 			SchemaType(textSchema),
+		field.String("job_name").
+			SchemaType(textSchema),
 		field.String("suite_name").
 			SchemaType(textSchema),
 		field.Text("name").

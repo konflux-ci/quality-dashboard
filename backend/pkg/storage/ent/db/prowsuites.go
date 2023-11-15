@@ -21,6 +21,8 @@ type ProwSuites struct {
 	JobID string `json:"job_id,omitempty"`
 	// JobURL holds the value of the "job_url" field.
 	JobURL string `json:"job_url,omitempty"`
+	// JobName holds the value of the "job_name" field.
+	JobName string `json:"job_name,omitempty"`
 	// SuiteName holds the value of the "suite_name" field.
 	SuiteName string `json:"suite_name,omitempty"`
 	// Name holds the value of the "name" field.
@@ -70,7 +72,7 @@ func (*ProwSuites) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case prowsuites.FieldID:
 			values[i] = new(sql.NullInt64)
-		case prowsuites.FieldJobID, prowsuites.FieldJobURL, prowsuites.FieldSuiteName, prowsuites.FieldName, prowsuites.FieldStatus, prowsuites.FieldErrorMessage:
+		case prowsuites.FieldJobID, prowsuites.FieldJobURL, prowsuites.FieldJobName, prowsuites.FieldSuiteName, prowsuites.FieldName, prowsuites.FieldStatus, prowsuites.FieldErrorMessage:
 			values[i] = new(sql.NullString)
 		case prowsuites.FieldCreatedAt:
 			values[i] = new(sql.NullTime)
@@ -108,6 +110,12 @@ func (ps *ProwSuites) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field job_url", values[i])
 			} else if value.Valid {
 				ps.JobURL = value.String
+			}
+		case prowsuites.FieldJobName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field job_name", values[i])
+			} else if value.Valid {
+				ps.JobName = value.String
 			}
 		case prowsuites.FieldSuiteName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -192,6 +200,9 @@ func (ps *ProwSuites) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("job_url=")
 	builder.WriteString(ps.JobURL)
+	builder.WriteString(", ")
+	builder.WriteString("job_name=")
+	builder.WriteString(ps.JobName)
 	builder.WriteString(", ")
 	builder.WriteString("suite_name=")
 	builder.WriteString(ps.SuiteName)

@@ -10,6 +10,9 @@ type JobSuites struct {
 	// Job URL of a specific test suite
 	JobURL string `json:"job_url"`
 
+	// JobName the name of the job which a suite belongs
+	JobName string `json:"job_name"`
+
 	// the name of suite
 	SuiteName string `json:"suite_name"`
 
@@ -30,22 +33,54 @@ type JobSuites struct {
 	ErrorMessage string `json:"error_message"`
 }
 
+type FlakyFrequency struct {
+	// Indicate percentage of the flaky tests impact in ci jobs
+	GlobalImpact float64 `json:"global_impact"`
+
+	// Indicate a GitHub organization name
+	GitOrganization string `json:"git_organization"`
+
+	// Indicate a GitHub repository name. "e2e-tests", "kubernetes"
+	RepositoryName string `json:"repository_name"`
+
+	// JobName the name of the job which a suite belongs
+	JobName string `json:"job_name"`
+
+	SuitesFailureFrequency []SuitesFailureFrequency `json:"suites"`
+}
+
 type SuitesFailureFrequency struct {
-	Name string `json:"name"`
+	SuiteName string `json:"suite_name"`
 
 	Status string `json:"status"`
 
-	ErrorMessage []ErrorMessage `json:"error_message"`
+	TestCases []TestCases `json:"test_cases"`
+
+	AverageImpact float64 `json:"average_impact"`
+}
+
+type TestCases struct {
+	Name string `json:"name"`
+
+	TestCaseImpact float64 `json:"test_case_impact"`
 
 	Count int `json:"count"`
 
-	SuiteName string `json:"suite_name"`
+	Messages []Messages `json:"messages"`
 }
 
-type ErrorMessage struct {
+type Messages struct {
 	JobId string `json:"job_id"`
 
 	JobURL string `json:"job_url"`
 
 	Message string `json:"error_message"`
+
+	FailureDate *time.Time `json:"failure_date"`
+}
+
+type FlakyMetrics struct {
+	Date string `jaon:"date"`
+
+	GlobalImpact float64 `json:"global_impact"`
 }
