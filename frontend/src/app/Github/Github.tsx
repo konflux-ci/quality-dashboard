@@ -74,7 +74,7 @@ let GitHub = () => {
   // Triggers automatic validation when state variables change
   useEffect(() => {
     getAllRepositoriesWithOrgs(state.teams.Team, false, rangeDateTime).then((data: any) => {
-      let rps = new Array<RepositoryInfo>
+      const rps = new Array<RepositoryInfo>
       data.forEach((repository, _) => {
         rps.push({
           repository_name: repository.repoName,
