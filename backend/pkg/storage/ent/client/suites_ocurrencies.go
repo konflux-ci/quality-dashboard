@@ -13,6 +13,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
+	"k8s.io/utils/strings/slices"
 )
 
 func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, jobName string, startDate string, endDate string) (*v1alpha1.FlakyFrequency, error) {
@@ -189,6 +190,22 @@ func (d *Database) GetProwFlakyTrendsMetrics(gitOrg string, repoName string, job
 	}
 
 	return metrics
+}
+
+func (d *Database) GetFlakyTest(gitOrg string, repoName string) ([]string, error) {
+	var flakyJobs []string
+
+	p, err := d.client.ProwSuites.Query().Select(prowsuites.FieldJobName).Unique(true).All(context.Background())
+	if err != nil {
+		return nil, convertDBError("get jobs name: %w", err)
+	}
+
+	for _, v := range p {
+		if !slices.Contains(flakyJobs, v.JobName) {
+			flakyJobs = append(flakyJobs, v.JobName)
+		}
+	}
+	return flakyJobs, nil
 }
 
 func AlreadyExists(tc []v1alpha1.TestCases, caseName string) bool {
