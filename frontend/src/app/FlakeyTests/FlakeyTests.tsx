@@ -211,8 +211,8 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
     }
   }
 
-  const [activeSortIndex, setActiveSortIndex] = React.useState<number | undefined>(1);
-  const [activeSortDirection, setActiveSortDirection] = React.useState<'asc' | 'desc' | undefined>('desc');
+  const [activeSortIndex, setActiveSortIndex] = React.useState<number>(0);
+  const [activeSortDirection, setActiveSortDirection] = React.useState<'asc' | 'desc' >('desc');
   
   const getSortParams = (columnIndex: number): ThProps['sort'] => ({
     sortBy: {
@@ -232,8 +232,8 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
     return [ average_impact, suite_name];
   };
 
-  const onSortFn = (a, b) => {
-    if(!activeSortIndex) return
+  const onSortFn = (a:Flakey, b:Flakey):number => {
+    
     const aValue = getSortableRowValues(a)[activeSortIndex];
     const bValue = getSortableRowValues(b)[activeSortIndex];
     if (typeof aValue === 'number') {
@@ -272,7 +272,7 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
             </Th>
           </Tr>
         </Thead>
-        {teams.map((suite, rowIndex) => (
+        {teams.sort(onSortFn).map((suite, rowIndex) => (
           <Tbody key={suite.suite_name+rowIndex} isExpanded={isSuiteExpanded(suite.suite_name)}>
             <Tr>
               <Td expand={{ rowIndex, isExpanded: isSuiteExpanded(suite.suite_name), onToggle: () => setSuiteExpanded(suite.suite_name, !isSuiteExpanded(suite.suite_name))}}/>
@@ -284,17 +284,17 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
                 <ExpandableRowContent>
                   <Grid hasGutter>
                     <GridItem span={3}>
-                      <Card>
+                      <Card className='card-no-border'>
                         <CardTitle component="h3" style={{color: "red"}}>Overall Impact</CardTitle>
                         <CardBody>{suite.average_impact.toFixed(2)}%</CardBody>
                       </Card>
-                      <Card>
+                      <Card className='card-no-border'>
                         <CardTitle component="h3">Total count of failed test cases</CardTitle>
                         <CardBody>{isSuiteExpanded(suite.suite_name) ? countFailingSuites(suite): ""}</CardBody>
                       </Card>
                     </GridItem>
                     <GridItem span={9}>
-                      <Card>
+                      <Card className='card-no-border'>
                         <CardTitle>Failing test cases</CardTitle>
                         <TableComposable aria-label="Error messages" variant="compact">
                           <Thead>
@@ -327,29 +327,7 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
                                 <Td></Td>
                                 <Td colSpan={3}>
                                   <ExpandableRowContent>
-                                    <Flex>
-                                      <FlexItem>
-                                        <Card>
-                                          <CardTitle component="h4">Header within an {'<h4>'} element</CardTitle>
-                                          <CardBody>Body</CardBody>
-                                          <CardFooter>Footer</CardFooter>
-                                        </Card>
-                                      </FlexItem>
-                                      <FlexItem>
-                                        <Card>
-                                          <CardTitle component="h4">Header within an {'<h4>'} element</CardTitle>
-                                          <CardBody>Body</CardBody>
-                                          <CardFooter>Footer</CardFooter>
-                                        </Card> 
-                                      </FlexItem>
-                                      <FlexItem>
-                                        <Card>
-                                          <CardTitle component="h4">Header within an {'<h4>'} element</CardTitle>
-                                          <CardBody>Body</CardBody>
-                                          <CardFooter>Footer</CardFooter>
-                                        </Card>
-                                      </FlexItem>
-                                    </Flex>
+
                                     <TableComposable aria-label="Error messages" variant="compact">
                                       <Thead>
                                         <Tr>
@@ -769,16 +747,6 @@ const FlakeyTests: React.FunctionComponent = () => {
   }
   ]
 
-  const sumByKey = (arr, key, value) => {
-    const map = new Map();
-    for(const obj of arr) {
-      const currSum = map.get(obj[key]) || 0;
-      map.set(obj[key], currSum + obj[value]);
-    }
-    const res = Array.from(map, ([k, v]) => ({[key]: k, [value]: v}));
-    return res;
-  }
-
   const countSuiteFailures = (suites) => {
     return suites.map((suite) => {
       const c = suite.test_cases.reduce(function (acc, obj) { return acc + obj.count; }, 0);
@@ -797,12 +765,11 @@ const FlakeyTests: React.FunctionComponent = () => {
 
   React.useEffect(() => {
     if(data){
-      
       const organizedData = countSuiteFailures(data)
       setToggles(organizedData)
       setPieData(organizedData)
-      console.log(organizedData)
     }
+
   }, [data]);
 
   const onSuiteSelect = (value) => {
@@ -821,7 +788,7 @@ const FlakeyTests: React.FunctionComponent = () => {
           Flaky tests impacting CI
         </Title>
       </PageSection>
-      <PageSection variant={PageSectionVariants.default}>
+      <PageSection style={{minHeight: '120vh'}} variant={PageSectionVariants.default}>
         <div>
           <Grid hasGutter>
             <GridItem span={12}>

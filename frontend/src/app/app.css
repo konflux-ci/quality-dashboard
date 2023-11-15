@@ -25,14 +25,11 @@ html, body, #root {
   background-color: #F5F5F5;
 }
 
-.collapsedPre_old::after {
-  content: '...';
-  text-align: center;
-  font-size: 2em;
-  margin: 0 auto;
-}
-
 .bg-white{
   background-color: white;
   padding: 1em;
+}
+
+.card-no-border {
+  box-shadow: none;
 }
