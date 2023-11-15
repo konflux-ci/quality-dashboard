@@ -412,6 +412,7 @@ func (d *Database) getJiraBugMetrics(bug jira.Issue) JiraBugMetricsInfo {
 
 	createdTime := time.Time(bug.Fields.Created).UTC()
 	daysSinceCreation := getDaysBetweenDates(createdTime, time.Now().UTC())
+	businessDaysSinceCreation := getBusinessDays(createdTime, time.Now().UTC())
 
 	if bug.Fields.Status.Name == "Closed" || bug.Fields.Status.Name == "Resolved" || bug.Fields.Status.Name == "Done" {
 		// issue was closed
@@ -459,12 +460,12 @@ func (d *Database) getJiraBugMetrics(bug jira.Issue) JiraBugMetricsInfo {
 
 	// assignee was not defined
 	if bug.Fields.Assignee == nil {
-		jiraBugMetric.DaysWithoutAssignee = daysSinceCreation
+		jiraBugMetric.DaysWithoutAssignee = businessDaysSinceCreation
 	}
 
 	// priority was not defined
 	if bug.Fields.Priority == nil || bug.Fields.Priority.Name == "Undefined" {
-		jiraBugMetric.DaysWithoutPriority = daysSinceCreation
+		jiraBugMetric.DaysWithoutPriority = businessDaysSinceCreation
 	}
 
 	return jiraBugMetric
