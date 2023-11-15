@@ -68,11 +68,7 @@ export const GetMetrics = () => {
                     </GridItem>
 
                     <GridItem span={2} rowSpan={1}>
-                        <PullRequestCard
-                            title="Time To Merge PR Avg Days"
-                            subtitle="Selected Time Range"
-                            total={prs?.summary?.merge_avg}
-                        ></PullRequestCard>
+                        <PullRequestCard title="Time To Merge PR Avg Days" subtitle="Selected Time Range" total={prs?.summary?.merge_avg}></PullRequestCard>
                     </GridItem>
 
                     <GridItem span={2} rowSpan={1}>
@@ -83,8 +79,12 @@ export const GetMetrics = () => {
                         ></PullRequestCard>
                     </GridItem>
 
-                    <GridItem span={3} rowSpan={1}>
+                    <GridItem span={2} rowSpan={1}>
                         <PullRequestCard title="Open PRs" subtitle="Total" total={prs?.summary?.open_prs}></PullRequestCard>
+                    </GridItem>
+
+                    <GridItem span={1} rowSpan={1}>
+                        <PullRequestCard title="Created PRs" subtitle="Selected Time Range" total={prs?.summary?.created_prs_in_time_range}></PullRequestCard>
                     </GridItem>
 
                     <GridItem span={2} rowSpan={1}>
@@ -97,12 +97,12 @@ export const GetMetrics = () => {
                         ></PullRequestCard>
                     </GridItem>
 
-                    <GridItem span={3} rowSpan={1}>
-                        <PullRequestCard
-                            title="Merged PRs"
-                            subtitle="Total"
-                            total={prs?.summary?.merged_prs}
-                        ></PullRequestCard>
+                    <GridItem span={2} rowSpan={1}>
+                        <PullRequestCard title="Merged PRs" subtitle="Total" total={prs?.summary?.merged_prs}></PullRequestCard>
+                    </GridItem>
+                    
+                    <GridItem span={1} rowSpan={1}>
+                        <PullRequestCard title="Merged PRs" subtitle="Selected Time Range" total={prs?.summary?.merged_prs_in_time_range}></PullRequestCard>
                     </GridItem>
 
                     <GridItem span={2} rowSpan={1}>
