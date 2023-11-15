@@ -19,6 +19,7 @@ import { ChartPie } from '@patternfly/react-charts';
 import { Chart, ChartAxis, ChartLine, ChartGroup, ChartVoronoiContainer } from '@patternfly/react-charts';
 import { Grid, GridItem, Flex, FlexItem } from '@patternfly/react-core';
 import { Card, CardTitle, CardBody, CardFooter } from '@patternfly/react-core';
+import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 
 const ImpactChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -28,14 +29,14 @@ const ImpactChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
   useLayoutEffect(() => {
     if (ref.current) {
       console.log(ref.current.offsetWidth, ref.current.offsetHeight)
-      setWidth(ref.current.offsetWidth * 0.8  );
-      setHeight(ref.current.offsetWidth * 0.8 * 0.4 );
+      setWidth(ref.current.offsetWidth * 0.8 - 10);
+      setHeight(ref.current.offsetWidth * 0.8 * 0.4 -20);
     }
   }, []);
 
   return (
-    <div style={{  width: '100%', height: '100%' }} className={"pf-c-card"} ref={ref}>
-      <div style={{ height: height + 'px', width: width + 'px', background: "white" }}>
+    <div style={{  width: '100%', height: '100%', boxShadow: "none" }} className={"pf-c-card"} ref={ref}>
+      <div style={{ height: height + 'px', width: width + 'px', background: "white", boxShadow: "none" }}>
         <Chart
           ariaDesc="Average number of pets"
           ariaTitle="Bar chart example"
@@ -48,7 +49,7 @@ const ImpactChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
           width={width}
           name="chart1"
           padding={{
-            bottom: 50,
+            bottom: 30,
             left: 60,
             right: 0,
             top: 50
@@ -78,8 +79,8 @@ const PieChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
   }, []);
 
   return (
-   <div style={{  width: '100%', height: '100%' }} className={"pf-c-card"} ref={ref}>
-      <div style={{ height: height + 'px', width: width + 'px', background: "white" }}>
+   <div style={{  width: '100%', height: '100%', boxShadow: "none" }} className={"pf-c-card"} ref={ref}>
+      <div style={{ height: height + 'px', width: width + 'px', background: "white", boxShadow: "none" }}>
         <ChartPie
           ariaDesc="Average number of pets"
           ariaTitle="Pie chart example"
@@ -90,6 +91,7 @@ const PieChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
           width={width}
           legendData={data.map(datum => { return {name: datum[x]} })}
           labels={({ datum }) => `${datum.x}: ${datum.y}`}
+          style={{labels: { fontSize: 9}}}
           legendOrientation="vertical"
           legendPosition="right"
           name="chart1"
@@ -820,32 +822,42 @@ const FlakeyTests: React.FunctionComponent = () => {
         </Title>
       </PageSection>
       <PageSection variant={PageSectionVariants.default}>
-        <div style={{padding: "2em", background: 'white'}}>
-          <Stack hasGutter>
-            <StackItem>
-              <TextContent>
+        <div>
+          <Grid hasGutter>
+            <GridItem span={12}>
+              <TextContent className='bg-white'>
                 <Text component={TextVariants.h1}>Flaky tetst</Text>
               </TextContent>
-            </StackItem>
-            <StackItem>
-              <Grid hasGutter>
+            </GridItem>
+            <GridItem>
+              <Grid hasGutter className='bg-white'>
                 <GridItem span={5}>
-                  <Title headingLevel="h3">Count of failed tests by suite</Title>
-                  <PieChart data={pieData} x="suite_name" y="count"></PieChart>
+                  <div>
+                    <Title headingLevel="h3">Count of failed tests by suite</Title>
+                    <PieChart data={pieData} x="suite_name" y="count"></PieChart>
+                  </div>
                 </GridItem>
                 <GridItem span={7}>
-                  <Title headingLevel="h3">Impact on CI suite</Title>
-                  <ImpactChart data={barData} x="Date" y="global_impact"></ImpactChart>
+                  <div>
+                    <Title headingLevel="h3">Impact on CI suite</Title>
+                    <ImpactChart data={barData} x="Date" y="global_impact"></ImpactChart>
+                  </div>
                 </GridItem>
-              </Grid>
-            </StackItem>
-            <StackItem>
-              <DropdownBasic selected={selectedSuite} toggles={toggles} onSelect={onSuiteSelect}></DropdownBasic>
-            </StackItem>
-            <StackItem>
+              </Grid>  
+            </GridItem>
+            <GridItem style={{clear: 'both', minHeight: '1em'}} span={12}>
+            </GridItem>
+            <GridItem span={12}>
+              <Toolbar id="toolbar-items">
+                <ToolbarContent>
+                  <DropdownBasic selected={selectedSuite} toggles={toggles} onSelect={onSuiteSelect}></DropdownBasic>
+                </ToolbarContent>
+              </Toolbar>
+            </GridItem>
+            <GridItem span={12}>
               <ComposableTableNestedExpandable teams={data.filter(onDataFilter)}></ComposableTableNestedExpandable>
-            </StackItem>
-          </Stack>
+            </GridItem>
+          </Grid>
         </div>
       </PageSection>
     </React.Fragment>

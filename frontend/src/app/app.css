@@ -31,3 +31,8 @@ html, body, #root {
   font-size: 2em;
   margin: 0 auto;
 }
+
+.bg-white{
+  background-color: white;
+  padding: 1em;
+}
