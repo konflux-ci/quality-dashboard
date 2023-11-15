@@ -16,25 +16,26 @@ import { Stack, StackItem } from '@patternfly/react-core';
 import { PageSection, PageSectionVariants, Title, TitleSizes } from '@patternfly/react-core';
 import { Dropdown, DropdownToggle, DropdownItem } from '@patternfly/react-core';
 import { ChartPie } from '@patternfly/react-charts';
-import { Chart, ChartAxis, ChartBar, ChartGroup, ChartVoronoiContainer } from '@patternfly/react-charts';
+import { Chart, ChartAxis, ChartLine, ChartGroup, ChartVoronoiContainer } from '@patternfly/react-charts';
 import { Grid, GridItem, Flex, FlexItem } from '@patternfly/react-core';
 import { Card, CardTitle, CardBody, CardFooter } from '@patternfly/react-core';
 
-const ImpactChart:React.FunctionComponent<{data}> = ({data}) => {
+const ImpactChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
 
   useLayoutEffect(() => {
     if (ref.current) {
-      setWidth(ref.current.offsetWidth*0.8 - 0);
-      setHeight(ref.current.offsetHeight*0.8 - 40);
+      console.log(ref.current.offsetWidth, ref.current.offsetHeight)
+      setWidth(ref.current.offsetWidth * 0.8  );
+      setHeight(ref.current.offsetWidth * 0.8 * 0.4 );
     }
   }, []);
 
   return (
-    <div style={{ height: '100%', width: '100%', minHeight: "40vh" }} className={"pf-c-card"} ref={ref}>
-      <div ref={ref} style={{ height: height + 'px', width: width + 'px', background: "white" }}>
+    <div style={{  width: '100%', height: '100%' }} className={"pf-c-card"} ref={ref}>
+      <div style={{ height: height + 'px', width: width + 'px', background: "white" }}>
         <Chart
           ariaDesc="Average number of pets"
           ariaTitle="Bar chart example"
@@ -48,14 +49,15 @@ const ImpactChart:React.FunctionComponent<{data}> = ({data}) => {
           name="chart1"
           padding={{
             bottom: 50,
-            left: 100,
-            right: 100,
+            left: 60,
+            right: 0,
             top: 50
           }}
         >
+          <ChartAxis showGrid style={{ tickLabels: {angle :0, fontSize: 9}}} />
           <ChartAxis dependentAxis showGrid />
           <ChartGroup offset={11}>
-            <ChartBar data={  data.map( (datum) => { return {"name": datum.suite_name, "x": datum.suite_name, "y": parseFloat(datum.average_impact)}  }) }/>
+            <ChartLine data={  data.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": parseFloat(datum[y])}  }) }/>
          </ChartGroup>
         </Chart>
       </div>
@@ -63,38 +65,39 @@ const ImpactChart:React.FunctionComponent<{data}> = ({data}) => {
   )
 }
 
-const PieChart:React.FunctionComponent<{data}> = ({data}) => {
+const PieChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
 
   useLayoutEffect(() => {
-    console.log(ref.current?.offsetWidth)
     if (ref.current) {
-      setWidth(ref.current.offsetWidth*0.8 - 0);
-      setHeight(ref.current.offsetHeight*0.8 - 40);
+      setWidth(ref.current.offsetWidth * 0.8);
+      setHeight(ref.current.offsetWidth * 0.8 * 0.6 );
     }
   }, []);
 
   return (
-   <div style={{ height: '100%', width: '100%', minHeight: "40vh" }} className={"pf-c-card"} ref={ref}>
-      <div ref={ref} style={{ height: height + 'px', width: width + 'px', background: "white" }}>
+   <div style={{  width: '100%', height: '100%' }} className={"pf-c-card"} ref={ref}>
+      <div style={{ height: height + 'px', width: width + 'px', background: "white" }}>
         <ChartPie
           ariaDesc="Average number of pets"
           ariaTitle="Pie chart example"
           constrainToVisibleArea
-          data={ data.map((datum => { return {x: datum.suite_name, y: datum.count} })) }
+          colorScale={["tomato", "orange", "gold", "bisque", "coral", "darkorange", "darksalmon", "salmon", "peachpuff", "papayawhip", "palevioletred", "pink", "red" ]}
+          data={ data.map((datum => { return {x: datum[x], y: datum[y]} })) }
           height={height}
           width={width}
+          legendData={data.map(datum => { return {name: datum[x]} })}
           labels={({ datum }) => `${datum.x}: ${datum.y}`}
           legendOrientation="vertical"
           legendPosition="right"
           name="chart1"
           padding={{
             bottom: 30,
-            left: 30,
-            right: 30,
-            top: 30
+            left: 20,
+            right: 150,
+            top: 50
           }}
         />
       </div>
@@ -272,7 +275,7 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
             <Tr>
               <Td expand={{ rowIndex, isExpanded: isSuiteExpanded(suite.suite_name), onToggle: () => setSuiteExpanded(suite.suite_name, !isSuiteExpanded(suite.suite_name))}}/>
               <Td dataLabel={columnNames.name}>{suite.suite_name}</Td>
-              <Td dataLabel={columnNames.count}>{suite.average_impact}</Td>
+              <Td dataLabel={columnNames.count}>{suite.average_impact.toFixed(2)}%</Td>
             </Tr>
             <Tr isExpanded={isSuiteExpanded(suite.suite_name)} className='pf-px-xl'>
               <Td colSpan={3}>
@@ -281,7 +284,7 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
                     <GridItem span={3}>
                       <Card>
                         <CardTitle component="h3" style={{color: "red"}}>Overall Impact</CardTitle>
-                        <CardBody>{suite.average_impact}</CardBody>
+                        <CardBody>{suite.average_impact.toFixed(2)}%</CardBody>
                       </Card>
                       <Card>
                         <CardTitle component="h3">Total count of failed test cases</CardTitle>
@@ -713,6 +716,57 @@ const FlakeyTests: React.FunctionComponent = () => {
     ]
   }
 
+  const mockImpact = [
+      {
+          "Date": "2023-11-10 23:59:59",
+          "global_impact": 0
+      },
+      {
+          "Date": "2023-11-11 23:59:59",
+          "global_impact": 0
+      },
+      {
+          "Date": "2023-11-12 23:59:59",
+          "global_impact": 0
+      },
+      {
+          "Date": "2023-11-13 23:59:59",
+          "global_impact": 46.15384615384615
+      },
+      {
+          "Date": "2023-11-14 23:59:59",
+          "global_impact": 39.53488372093023
+      },
+      {
+          "Date": "2023-11-15 23:59:59",
+          "global_impact": 35.294117647058826
+      },
+
+     { "Date": "2023-11-16 23:59:59",
+      "global_impact": 0
+  },
+  {
+      "Date": "2023-11-17 23:59:59",
+      "global_impact": 0
+  },
+  {
+      "Date": "2023-11-18 23:59:59",
+      "global_impact": 0
+  },
+  {
+      "Date": "2023-11-19 23:59:59",
+      "global_impact": 46.15384615384615
+  },
+  {
+      "Date": "2023-11-20 23:59:59",
+      "global_impact": 39.53488372093023
+  },
+  {
+      "Date": "2023-11-21 23:59:59",
+      "global_impact": 35.294117647058826
+  }
+  ]
+
   const sumByKey = (arr, key, value) => {
     const map = new Map();
     for(const obj of arr) {
@@ -734,17 +788,18 @@ const FlakeyTests: React.FunctionComponent = () => {
     if(mockData && mockData.suites){
       setData(mockData.suites)
     }
+    if(mockImpact){
+      setBarData(mockImpact.map(impact => { impact.Date = impact.Date.split(' ')[0]; return impact;}))
+    }
   }, []);
 
   React.useEffect(() => {
     if(data){
       
       const organizedData = countSuiteFailures(data)
-      const organizedData_2 = sumByKey(data, "suite_name", "average_impact")
       setToggles(organizedData)
       setPieData(organizedData)
-      setBarData(organizedData_2)
-      console.log(organizedData, organizedData_2)
+      console.log(organizedData)
     }
   }, [data]);
 
@@ -758,10 +813,10 @@ const FlakeyTests: React.FunctionComponent = () => {
 
   return (
     <React.Fragment>
-      <Header info="Observe the impact of the flakey tests that are affecting CI."></Header>
+      <Header info="Observe the impact of the flaky tests that are affecting CI."></Header>
       <PageSection variant={PageSectionVariants.light}>
         <Title headingLevel="h3" size={TitleSizes['2xl']}>
-          Flakey tests impacting CI
+          Flaky tests impacting CI
         </Title>
       </PageSection>
       <PageSection variant={PageSectionVariants.default}>
@@ -769,16 +824,18 @@ const FlakeyTests: React.FunctionComponent = () => {
           <Stack hasGutter>
             <StackItem>
               <TextContent>
-                <Text component={TextVariants.h1}>Flakey tetst</Text>
+                <Text component={TextVariants.h1}>Flaky tetst</Text>
               </TextContent>
             </StackItem>
             <StackItem>
               <Grid hasGutter>
-                <GridItem span={4}>
-                  <PieChart data={pieData}></PieChart>
+                <GridItem span={5}>
+                  <Title headingLevel="h3">Count of failed tests by suite</Title>
+                  <PieChart data={pieData} x="suite_name" y="count"></PieChart>
                 </GridItem>
-                <GridItem span={8}>
-                  <ImpactChart data={barData}></ImpactChart>
+                <GridItem span={7}>
+                  <Title headingLevel="h3">Impact on CI suite</Title>
+                  <ImpactChart data={barData} x="Date" y="global_impact"></ImpactChart>
                 </GridItem>
               </Grid>
             </StackItem>
