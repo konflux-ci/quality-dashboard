@@ -123,6 +123,15 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 		retestAvg = totalRetests / float64(len(openPullRequestsInTimeRange))
 	}
 
+	createdPullRequestsInTimeRange, err := d.client.Repository.QueryPrs(repo).Select().
+		Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
+			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
+		}).
+		All(context.TODO())
+	if err != nil {
+		return info, convertDBError("failed to get merged pull requests in time range: %w", err)
+	}
+
 	mergedPullRequestsInTimeRange, err := d.client.Repository.QueryPrs(repo).Select().
 		Where(predicate.PullRequests(pullrequests.State("MERGED"))).
 		Where(func(s *sql.Selector) { // "merged_at BETWEEN ? AND 2022-08-17", "2022-08-16"
@@ -153,11 +162,13 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 	}
 
 	info.Summary = prV1Alpha1.Summary{
-		MergedPrsCount:       len(totalPullRequestsMerged),
-		OpenPrsCount:         len(totalOpenPullRequests),
-		MergeAvg:             math.Round(totalMergeTime*100) / 100,
-		RetestAvg:            math.Round(retestAvg*100) / 100,
-		RetestBeforeMergeAvg: math.Round(retestBeforeMergeAvg*100) / 100,
+		CreatedPrsCountInTimeRange: len(createdPullRequestsInTimeRange),
+		OpenPrsCount:               len(totalOpenPullRequests),
+		MergedPrsCount:             len(totalPullRequestsMerged),
+		MergedPrsCountInTimeRange:  len(mergedPullRequestsInTimeRange),
+		MergeAvg:                   math.Round(totalMergeTime*100) / 100,
+		RetestAvg:                  math.Round(retestAvg*100) / 100,
+		RetestBeforeMergeAvg:       math.Round(retestBeforeMergeAvg*100) / 100,
 	}
 	info.Metrics = d.getMetrics(repo, startDate, endDate)
 
