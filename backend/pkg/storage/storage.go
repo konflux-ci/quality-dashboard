@@ -52,7 +52,7 @@ type Storage interface {
 	BugExists(projectKey string, t *db.Teams) (bool, error)
 	GetSuitesFailureFrequency(gitOrg string, repoName string, jobName string, startDate string, endDate string) (*v1alpha1.FlakyFrequency, error)
 	GetProwFlakyTrendsMetrics(gitOrg string, repoName string, jobName string, startDate string, endDate string) []v1alpha1.FlakyMetrics
-	GetFlakyTest(gitOrg string, repoName string) ([]string, error)
+	GetProwJobsByRepoOrg(gitOrg string, repoName string) ([]string, error)
 
 	// POST
 	CreateRepository(p repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error)

@@ -23,6 +23,7 @@ require (
 	github.com/swaggo/swag v1.8.10
 	go.uber.org/zap v1.24.0
 	golang.org/x/oauth2 v0.5.0
+	google.golang.org/api v0.103.0
 	google.golang.org/grpc v1.51.0
 	k8s.io/apimachinery v0.26.0
 )
@@ -37,7 +38,6 @@ require (
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	google.golang.org/api v0.103.0 // indirect
 )
 
 require (
@@ -151,7 +151,7 @@ require (
 	k8s.io/client-go v0.21.3 // indirect
 	k8s.io/klog v1.0.0 // indirect
 	k8s.io/klog/v2 v2.80.1 // indirect
-	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448 // indirect
+	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )

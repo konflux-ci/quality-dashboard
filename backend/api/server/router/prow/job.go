@@ -165,7 +165,7 @@ func (jb *jobRouter) listProwRepos(ctx context.Context, w http.ResponseWriter, r
 
 	for _, repo := range repos {
 		if jb.Github.CheckIfRepoExistsInOpenshiftCI(repo.Owner.Login, repo.Name) {
-			list, err := jb.Storage.GetFlakyTest(repo.Owner.Login, repo.Name)
+			list, err := jb.Storage.GetProwJobsByRepoOrg(repo.Owner.Login, repo.Name)
 			if err != nil {
 				jb.Logger.Error("Failed to fetch team. Make sure the team exists", zap.String("team", teamName[0]), zap.Error(err))
 

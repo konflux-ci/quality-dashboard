@@ -35,6 +35,7 @@ func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, job
 		Where(func(s *sql.Selector) { // "merged_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 		}).
+		Where(prowsuites.JobName(jobName)).
 		GroupBy(prowsuites.FieldSuiteName, prowsuites.FieldStatus).
 		Aggregate(db.Count()).
 		Scan(context.Background(), &suitesFailure)
@@ -100,7 +101,7 @@ func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, job
 			if !AlreadyExists(testCase, s.Name) {
 				testFlakyAvg := util.RoundTo((float64(getLengthOfJobIdsInPRowSuiteWithoutDuplication(testcase))/float64(len(allImpacted)))*100, 2)
 
-				if math.IsNaN(testFlakyAvg) {
+				if math.IsNaN(testFlakyAvg) || math.IsInf(testFlakyAvg, len(allImpacted)) {
 					testFlakyAvg = 0
 				}
 
@@ -115,7 +116,7 @@ func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, job
 
 		flakySuiteAVG := util.RoundTo((float64(suiteFail.Count)/float64(len(allImpacted)))*100, 2)
 
-		if math.IsNaN(flakySuiteAVG) {
+		if math.IsNaN(flakySuiteAVG) || math.IsInf(flakySuiteAVG, len(allImpacted)) {
 			flakySuiteAVG = 0
 		}
 
@@ -134,7 +135,7 @@ func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, job
 
 	globalFlakyAvg := (float64(getLengthOfJobIdsInPRowSuiteWithoutDuplication(allImpacted)) / float64(allJobs)) * 100
 
-	if math.IsNaN(globalFlakyAvg) {
+	if math.IsNaN(globalFlakyAvg) || math.IsInf(globalFlakyAvg, allJobs) {
 		globalFlakyAvg = 0
 	}
 
@@ -192,7 +193,7 @@ func (d *Database) GetProwFlakyTrendsMetrics(gitOrg string, repoName string, job
 	return metrics
 }
 
-func (d *Database) GetFlakyTest(gitOrg string, repoName string) ([]string, error) {
+func (d *Database) GetProwJobsByRepoOrg(gitOrg string, repoName string) ([]string, error) {
 	var flakyJobs []string
 
 	p, err := d.client.ProwSuites.Query().Select(prowsuites.FieldJobName).Unique(true).All(context.Background())
