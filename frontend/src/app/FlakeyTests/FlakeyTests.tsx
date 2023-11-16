@@ -478,13 +478,13 @@ const FlakeyTests: React.FunctionComponent = () => {
 
   const onDatesChange = (value:string, date:Date, name:string) => {
     console.log(value, date, name)
-    if(name=='start-date'){ setStartDate(date) }
+    if(name=='start-date'){ setStartDate(date)}
     if(name=='end-date'){ setEndDate(date) }
   }
 
   const fetchData = () => {
     if(startDate && endDate && selectedRepo && selectedRepo){
-      getFlakyData(currentTeam, selectedJob, selectedRepo, startDate.toISOString(), endDate.toISOString(), "redhat-appstudio").then(res => {
+      getFlakyData(currentTeam, selectedJob, selectedRepo, startDate.toISOString().replace('T', ' ').replace('Z', ''), endDate.toISOString().replace('T', ' ').replace('Z', ''), "redhat-appstudio").then(res => {
         if(res.code == 200){
           const impact:FlakeyObject = res.data
           if(impact && impact.suites){
@@ -494,7 +494,7 @@ const FlakeyTests: React.FunctionComponent = () => {
           console.log("error", res)
         }
       })
-      getGlobalImpactData(currentTeam, selectedJob, selectedRepo, startDate.toISOString(), endDate.toISOString(), "redhat-appstudio").then(res => {
+      getGlobalImpactData(currentTeam, selectedJob, selectedRepo, startDate.toISOString().replace('T', ' ').replace('Z', ''), endDate.toISOString().replace('T', ' ').replace('Z', ''), "redhat-appstudio").then(res => {
         if(res.code == 200){
           console.log("global impact data", res.data)
           const impact:any = res.data
