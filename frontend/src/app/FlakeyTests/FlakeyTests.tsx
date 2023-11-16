@@ -24,11 +24,11 @@ import { useSelector } from 'react-redux';
 import { DatePicker, Button } from '@patternfly/react-core';
 import { Skeleton } from '@patternfly/react-core';
 
-export const DatePickerMinMax: React.FunctionComponent<{minDate:Date, maxDate:Date, selectedDate: Date | undefined, onChange:(value:string, date:Date, name:string)=>void, name:string}> = ({minDate, maxDate, selectedDate, onChange, name}) => {
+export const DatePickerMinMax: React.FunctionComponent<{minDate?:Date, maxDate?:Date, selectedDate: Date | undefined, onChange:(value:string, date:Date, name:string)=>void, name:string}> = ({minDate, maxDate, selectedDate, onChange, name}) => {
   const rangeValidator = (date: Date) => {
-    if (date < minDate) {
+    if (minDate && date < minDate) {
       return 'Date is before the allowable range.';
-    } else if (date > maxDate) {
+    } else if (maxDate && date > maxDate) {
       return 'Date is after the allowable range.';
     }
 
@@ -122,7 +122,7 @@ const PieChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
           width={width}
           legendData={data.map(datum => { return {name: datum[x]} })}
           labels={({ datum }) => `${datum.x}: ${datum.y}`}
-          style={{labels: { fontSize: 9}}}
+          style={{ labels: {fontSize: '9px'} }}
           legendOrientation="vertical"
           legendPosition="right"
           name="chart1"
@@ -497,6 +497,7 @@ const FlakeyTests: React.FunctionComponent = () => {
       getGlobalImpactData(currentTeam, selectedJob, selectedRepo, startDate.toISOString().replace('T', ' ').replace('Z', ''), endDate.toISOString().replace('T', ' ').replace('Z', ''), "redhat-appstudio").then(res => {
         if(res.code == 200){
           const impact:any = res.data
+          console.log(impact)
           if(impact && impact.length>0){
             setBarData(impact.map(impact => { impact.Date = impact.Date.split(' ')[0]; return impact;}))
           }
@@ -504,8 +505,6 @@ const FlakeyTests: React.FunctionComponent = () => {
           console.log("error", res)
         }
       })
-    } else {
-      console.log("missing some values", startDate, endDate, selectedRepo, selectedRepo)
     }
   }
 
@@ -534,8 +533,8 @@ const FlakeyTests: React.FunctionComponent = () => {
                   <DropdownBasic selected={selectedJob} toggles={
                     jobs.map( (job, idx) => <DropdownItem key={idx} name={job}> {job} </DropdownItem> )
                   } onSelect={onJobSelect} placeholder="Select a repository"></DropdownBasic>
-                  <DatePickerMinMax onChange={onDatesChange} selectedDate={startDate} name="start-date" minDate={ new Date(new Date().setDate(new Date().getDate() - 14)) } maxDate={new Date()}></DatePickerMinMax>
-                  <DatePickerMinMax onChange={onDatesChange} selectedDate={endDate} name="end-date" minDate={ new Date(new Date().setDate(new Date().getDate() - 14)) } maxDate={new Date()}></DatePickerMinMax>
+                  <DatePickerMinMax onChange={onDatesChange} selectedDate={startDate} name="start-date" minDate={ new Date(new Date().setDate(new Date().getDate() - 30)) } ></DatePickerMinMax>
+                  <DatePickerMinMax onChange={onDatesChange} selectedDate={endDate} name="end-date" minDate={ new Date(new Date().setDate(new Date().getDate() - 30)) } ></DatePickerMinMax>
                   <Button variant="primary" onClick={fetchData}>Primary</Button>
                 </ToolbarContent>
               </Toolbar>
