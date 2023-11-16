@@ -499,7 +499,7 @@ const FlakeyTests: React.FunctionComponent = () => {
           console.log("global impact data", res.data)
           const impact:any = res.data
           if(impact && impact.length>0){
-            setBarData(impact.map(impact => { impact.Date = impact.Date.split(' ')[0]; return impact;}))
+            setBarData(impact)
           }
         } else {
           console.log("error", res)
