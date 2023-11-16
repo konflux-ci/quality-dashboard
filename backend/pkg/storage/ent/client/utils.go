@@ -22,6 +22,22 @@ func convertDBError(t string, err error) error {
 }
 
 // getDatesBetweenRange gets the dates between a range date (including the start and end dates)
+func getRangesInISO(startDate, endDate string) []string {
+	start, _ := time.Parse(time.RFC3339, startDate)
+	end, _ := time.Parse(time.RFC3339, endDate)
+	difference := int(math.Ceil(end.Sub(start).Hours() / 24))
+
+	dayArr := make([]string, 0)
+
+	for i := 0; i < difference; i++ {
+		dayArr = append(dayArr, start.AddDate(0, 0, +i).Format(time.RFC3339))
+	}
+	dayArr = append(dayArr, endDate)
+
+	return dayArr
+}
+
+// getDatesBetweenRange gets the dates between a range date (including the start and end dates)
 func getDatesBetweenRange(startDate, endDate string) []string {
 	start, _ := time.Parse("2006-01-02 15:04:05", startDate)
 	end, _ := time.Parse("2006-01-02 15:04:05", endDate)

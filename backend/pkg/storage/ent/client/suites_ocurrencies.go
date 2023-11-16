@@ -150,8 +150,7 @@ func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, job
 func (d *Database) GetProwFlakyTrendsMetrics(gitOrg string, repoName string, jobName string, startDate string, endDate string) []v1alpha1.FlakyMetrics {
 	var metrics []v1alpha1.FlakyMetrics
 
-	dayArr := getDatesBetweenRange(startDate, endDate)
-
+	dayArr := getRangesInISO(startDate, endDate)
 	// range between one day (same day)
 	if len(dayArr) == 2 && isSameDay(startDate, endDate) {
 		metric, _ := d.GetSuitesFailureFrequency("redhat-appstudio", "infra-deployments", "pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests", startDate, endDate)
@@ -164,7 +163,7 @@ func (d *Database) GetProwFlakyTrendsMetrics(gitOrg string, repoName string, job
 
 	// range between more than one day
 	for i, day := range dayArr {
-		t, _ := time.Parse("2006-01-02 15:04:05", day)
+		t, _ := time.Parse(time.RFC3339, day)
 		y, m, dd := t.Date()
 
 		if i == 0 { // first day
@@ -193,10 +192,10 @@ func (d *Database) GetProwFlakyTrendsMetrics(gitOrg string, repoName string, job
 	return metrics
 }
 
-func (d *Database) GetProwJobsByRepoOrg(gitOrg string, repoName string) ([]string, error) {
+func (d *Database) GetProwJobsByRepoOrg(repo *db.Repository) ([]string, error) {
 	var flakyJobs []string
 
-	p, err := d.client.ProwSuites.Query().Select(prowsuites.FieldJobName).Unique(true).All(context.Background())
+	p, err := d.client.Repository.QueryProwSuites(repo).Select(prowsuites.FieldJobName).Unique(true).All(context.Background())
 	if err != nil {
 		return nil, convertDBError("get jobs name: %w", err)
 	}

@@ -67,7 +67,7 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 		}
 		var suites []byte
 		if job.Spec.Type == "periodic" {
-			suites = s.cfg.GCS.GetJobJunitContent("", "", "", "", job.Spec.Type, job.Spec.Job, "e2e-report.xml")
+			suites = s.cfg.GCS.GetJobJunitContent("", "", "", job.Status.BuildID, job.Spec.Type, job.Spec.Job, "e2e-report.xml")
 		} else if job.Spec.Type == "presubmit" {
 			suites = s.cfg.GCS.GetJobJunitContent(repo.GitOrganization, repo.RepositoryName, ExtractPullRequestNumberFromLabels(job.Labels),
 				job.Status.BuildID, job.Spec.Type, job.Spec.Job, "e2e-report.xml")
