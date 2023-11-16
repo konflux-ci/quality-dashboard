@@ -60,7 +60,7 @@ const ImpactChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
           ariaDesc="Average number of pets"
           ariaTitle="Bar chart example"
           containerComponent={<ChartVoronoiContainer labels={({ datum }) => `${datum.name}: ${datum.y}`} constrainToVisibleArea />}
-          domain={{y: [0,50]}}
+          domain={{y: [-1,100]}}
           domainPadding={{ x: [30, 25] }}
           legendOrientation="vertical"
           legendPosition="right"
@@ -496,10 +496,9 @@ const FlakeyTests: React.FunctionComponent = () => {
       })
       getGlobalImpactData(currentTeam, selectedJob, selectedRepo, startDate.toISOString().replace('T', ' ').replace('Z', ''), endDate.toISOString().replace('T', ' ').replace('Z', ''), "redhat-appstudio").then(res => {
         if(res.code == 200){
-          console.log("global impact data", res.data)
           const impact:any = res.data
           if(impact && impact.length>0){
-            setBarData(impact)
+            setBarData(impact.map(impact => { impact.Date = impact.Date.split(' ')[0]; return impact;}))
           }
         } else {
           console.log("error", res)
