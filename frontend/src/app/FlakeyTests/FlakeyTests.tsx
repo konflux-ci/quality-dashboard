@@ -15,7 +15,7 @@ import { TextContent, Text, TextVariants } from '@patternfly/react-core';
 import { PageSection, PageSectionVariants, Title, TitleSizes } from '@patternfly/react-core';
 import { Dropdown, DropdownToggle, DropdownItem } from '@patternfly/react-core';
 import { ChartPie } from '@patternfly/react-charts';
-import { Chart, ChartAxis, ChartLine, ChartGroup, ChartVoronoiContainer } from '@patternfly/react-charts';
+import { Chart, ChartAxis, ChartLine, ChartArea, ChartGroup, ChartVoronoiContainer } from '@patternfly/react-charts';
 import { Grid, GridItem, } from '@patternfly/react-core';
 import { Card, CardTitle, CardBody } from '@patternfly/react-core';
 import { Toolbar, ToolbarContent } from '@patternfly/react-core';
@@ -64,7 +64,7 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
           ariaDesc="Average number of pets"
           ariaTitle="Bar chart example"
           containerComponent={<ChartVoronoiContainer labels={({ datum }) => `${datum.name}: ${datum.y}`} constrainToVisibleArea />}
-          domain={{y: [-1,100]}}
+          domain={{y: [-1,101]}}
           domainPadding={{ x: [30, 25] }}
           legendOrientation="vertical"
           legendPosition="right"
@@ -80,12 +80,23 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
         >
           <ChartAxis showGrid style={{ tickLabels: {angle :0, fontSize: 9}}} />
           <ChartAxis dependentAxis showGrid />
+          {
+            secondaryData && <ChartArea style={{
+              data: {
+                fill: "red", fillOpacity: 0.7, stroke: "#c43a31", strokeWidth: 3
+              }
+            }} data={ secondaryData.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": 100}  }) }/>
+          }
+          {
+            secondaryData && <ChartArea style={{
+              data: {
+                fill: "white", fillOpacity: 1, stroke: "#c43a31", strokeWidth: 3
+              }
+            }} data={ secondaryData.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
+          }
           <ChartGroup>
             <ChartLine data={ data.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
           </ChartGroup>
-          {
-            secondaryData && <ChartLine data={ secondaryData.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
-          }
         </Chart>
         }
         {(!data || data.length == 0) && 
