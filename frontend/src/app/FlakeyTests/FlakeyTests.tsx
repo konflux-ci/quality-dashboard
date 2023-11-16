@@ -23,6 +23,7 @@ import { getRepositoriesWithJobs, getFlakyData, getGlobalImpactData } from '../u
 import { useSelector } from 'react-redux';
 import { DatePicker, Button } from '@patternfly/react-core';
 import { Skeleton } from '@patternfly/react-core';
+import { isNull } from 'lodash';
 
 export const DatePickerMinMax: React.FunctionComponent<{selectedDate: Date | undefined, onChange:(value:string, date:Date, name:string)=>void, name:string}> = ({ selectedDate, onChange, name}) => {
   const onDateChange = (e, value, date) => {
@@ -411,6 +412,7 @@ const FlakeyTests: React.FunctionComponent = () => {
   const [selectedRepo, setSelectedRepo] = React.useState<string>('')
   const [repositories, setRepositories] = React.useState<Array<any>>([])
   const [jobs, setJobs] = React.useState<Array<any>>([])
+  const [globalImpact, setGlobalImpact] = React.useState<number>(-1)
   const [selectedJob, setSelectedJob] = React.useState<string>('')
   const [startDate, setStartDate] = React.useState<Date | undefined>(undefined)
   const [endDate, setEndDate] = React.useState<Date | undefined>(undefined)
@@ -427,6 +429,7 @@ const FlakeyTests: React.FunctionComponent = () => {
     if(!currentTeam){ return }
     getRepositoriesWithJobs(currentTeam).then( res => {
       if(res.code == 200){
+        console.log(res.data)
         setRepositories(res.data)
       } else {
         console.error("Cannot get repositories and jobs")
@@ -455,6 +458,11 @@ const FlakeyTests: React.FunctionComponent = () => {
     setSelectedRepo(value)
     setSelectedJob('')
     const j = repositories.filter(repo => repo.Repository.Name == value )
+    console.log(j[0].jobs)
+    if(!j || j[0].jobs == null){
+      setJobs([])
+      return
+    }
     if(j && j[0] && j[0].jobs){
       setJobs(j[0].jobs)
     }
@@ -469,12 +477,10 @@ const FlakeyTests: React.FunctionComponent = () => {
   const onDatesChange = (value:string, date:Date, name:string) => {
     if(name=='start-date'){
       const sd = new Date( date.setHours(0,0,0,0) ) 
-      console.log(sd)
       setStartDate(sd)
     }
     if(name=='end-date'){ 
       const ed = new Date( date.setHours(23,59,0,0) ) 
-      console.log(ed)
       setEndDate(ed) 
     }
   }
@@ -484,8 +490,12 @@ const FlakeyTests: React.FunctionComponent = () => {
       getFlakyData(currentTeam, selectedJob, selectedRepo, startDate.toISOString(), endDate.toISOString(), "redhat-appstudio").then(res => {
         if(res.code == 200){
           const impact:FlakeyObject = res.data
+          console.log("flaky data", impact)
           if(impact && impact.suites){
             setData(res.data.suites)
+          }
+          if(impact && impact.global_impact){
+            setGlobalImpact(res.data.global_impact)
           }
         } else {
           console.log("error", res)
@@ -494,7 +504,7 @@ const FlakeyTests: React.FunctionComponent = () => {
       getGlobalImpactData(currentTeam, selectedJob, selectedRepo, startDate.toISOString(), endDate.toISOString(), "redhat-appstudio").then(res => {
         if(res.code == 200){
           const impact:any = res.data
-          console.log(impact)
+          console.log("global impact data", impact)
           if(impact && impact.length>0){
             setBarData(impact.map(impact => { impact.Date = impact.Date.split(' ')[0]; return impact;}))
           }
@@ -532,7 +542,7 @@ const FlakeyTests: React.FunctionComponent = () => {
                   } onSelect={onJobSelect} placeholder="Select a repository"></DropdownBasic>
                   <DatePickerMinMax onChange={onDatesChange} selectedDate={startDate} name="start-date" ></DatePickerMinMax>
                   <DatePickerMinMax onChange={onDatesChange} selectedDate={endDate} name="end-date" ></DatePickerMinMax>
-                  <Button variant="primary" onClick={fetchData}>Primary</Button>
+                  <Button variant="primary" onClick={fetchData}>Submit</Button>
                 </ToolbarContent>
               </Toolbar>
             </GridItem>
