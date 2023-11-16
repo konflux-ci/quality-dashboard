@@ -673,6 +673,34 @@ async function getFlakyData(team:string, job: string, repo: string, startDate: s
   return result;
 }
 
+async function getGlobalImpactData(team:string, job: string, repo: string, startDate: string, endDate: string, gitOrg: string) {
+  const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
+  const subPath = '/api/quality/suites/flaky/trends';
+  const uri = API_URL + subPath;
+
+  await axios
+    .get(uri, {
+      headers: {},
+      params: {
+        repository_name: repo,
+        job_name: job,
+        start_date: startDate,
+        end_date: endDate,
+        git_org: gitOrg,
+        team_name: team
+      },
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
 export {
   getVersion,
   getRepositories,
@@ -699,5 +727,6 @@ export {
   bugExists,
   getBugSLIs,
   getRepositoriesWithJobs,
-  getFlakyData
+  getFlakyData,
+  getGlobalImpactData
 };

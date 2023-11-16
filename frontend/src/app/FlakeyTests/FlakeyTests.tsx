@@ -15,13 +15,14 @@ import { TextContent, Text, TextVariants } from '@patternfly/react-core';
 import { PageSection, PageSectionVariants, Title, TitleSizes } from '@patternfly/react-core';
 import { Dropdown, DropdownToggle, DropdownItem } from '@patternfly/react-core';
 import { ChartPie } from '@patternfly/react-charts';
-import { Chart, ChartAxis, ChartLine, ChartGroup, ChartVoronoiContainer } from '@patternfly/react-charts';
+import { Chart, ChartAxis, ChartLine, ChartBar, ChartGroup, ChartVoronoiContainer } from '@patternfly/react-charts';
 import { Grid, GridItem, } from '@patternfly/react-core';
 import { Card, CardTitle, CardBody } from '@patternfly/react-core';
 import { Toolbar, ToolbarContent } from '@patternfly/react-core';
-import { getRepositoriesWithJobs, getFlakyData } from '../utils/APIService'
+import { getRepositoriesWithJobs, getFlakyData, getGlobalImpactData } from '../utils/APIService'
 import { useSelector } from 'react-redux';
 import { DatePicker, Button } from '@patternfly/react-core';
+import { Skeleton } from '@patternfly/react-core';
 
 export const DatePickerMinMax: React.FunctionComponent<{minDate:Date, maxDate:Date, selectedDate: Date | undefined, onChange:(value:string, date:Date, name:string)=>void, name:string}> = ({minDate, maxDate, selectedDate, onChange, name}) => {
   const rangeValidator = (date: Date) => {
@@ -41,8 +42,8 @@ export const DatePickerMinMax: React.FunctionComponent<{minDate:Date, maxDate:Da
 
 const ImpactChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
   const ref = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(1);
-  const [height, setHeight] = useState(1);
+  const [width, setWidth] = useState(100);
+  const [height, setHeight] = useState(100);
 
   useLayoutEffect(() => {
     if (ref.current && ref.current.offsetWidth>0) {
@@ -54,7 +55,8 @@ const ImpactChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
   return (
     <div style={{  width: '100%', height: '100%', boxShadow: "none" }} className={"pf-c-card"} ref={ref}>
       <div style={{ height: height + 'px', width: width + 'px', background: "white", boxShadow: "none" }}>
-        <Chart
+        {
+          data && data.length > 0 && <Chart
           ariaDesc="Average number of pets"
           ariaTitle="Bar chart example"
           containerComponent={<ChartVoronoiContainer labels={({ datum }) => `${datum.name}: ${datum.y}`} constrainToVisibleArea />}
@@ -74,10 +76,22 @@ const ImpactChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
         >
           <ChartAxis showGrid style={{ tickLabels: {angle :0, fontSize: 9}}} />
           <ChartAxis dependentAxis showGrid />
-          <ChartGroup offset={11}>
-            <ChartLine data={  data.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": parseFloat(datum[y])}  }) }/>
+          <ChartGroup>
+            { data.length > 1 && <ChartLine data={ data.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/> }
+            { data.length == 1 && <ChartBar data={ data.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/> }
          </ChartGroup>
         </Chart>
+        }
+        {(!data || data.length == 0) && 
+          <div style={{ height: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+            <Skeleton height="25%" width="15%" screenreaderText="Loading contents" />
+            <Skeleton height="33%" width="15%" />
+            <Skeleton height="50%" width="15%" />
+            <Skeleton height="66%" width="15%" />
+            <Skeleton height="75%" width="15%" />
+            <Skeleton height="100%" width="15%" />
+          </div>
+        }
       </div>
     </div>
   )
@@ -98,6 +112,7 @@ const PieChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
   return (
    <div style={{  width: '100%', height: '100%', boxShadow: "none" }} className={"pf-c-card"} ref={ref}>
       <div style={{ height: height + 'px', width: width + 'px', background: "white", boxShadow: "none" }}>
+        {data && data.length > 0 &&
         <ChartPie
           ariaDesc="Average number of pets"
           ariaTitle="Pie chart example"
@@ -119,6 +134,12 @@ const PieChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
             top: 50
           }}
         />
+      }
+      {(!data || data.length == 0) && 
+        <div style={{ height: '100%', padding:"5%", display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Skeleton shape="circle" width="50%" screenreaderText="Loading medium circle contents" />
+        </div>
+      }
       </div>
     </div>
     )
@@ -396,7 +417,7 @@ const FlakeyTests: React.FunctionComponent = () => {
   const [selectedSuite, setSelectedSuite] = React.useState<string>('')
   const [data, setData] = React.useState<any>([])
   const [pieData, setPieData] = React.useState<any>([])
-  const [barData] = React.useState<any>([])
+  const [barData, setBarData] = React.useState<any>([])
   const [selectedRepo, setSelectedRepo] = React.useState<string>('')
   const [repositories, setRepositories] = React.useState<Array<any>>([])
   const [jobs, setJobs] = React.useState<Array<any>>([])
@@ -470,11 +491,23 @@ const FlakeyTests: React.FunctionComponent = () => {
           if(impact && impact.suites){
             setData(res.data.suites)
           }
-          /*if(mockImpact){
-            setBarData(mockImpact.map(impact => { impact.Date = impact.Date.split(' ')[0]; return impact;}))
-          }*/
+        } else {
+          console.log("error", res)
         }
       })
+      getGlobalImpactData(currentTeam, selectedJob, selectedRepo, startDate.toISOString(), endDate.toISOString(), "redhat-appstudio").then(res => {
+        if(res.code == 200){
+          console.log("global impact data", res.data)
+          const impact:any = res.data
+          if(impact && impact.length>0){
+            setBarData(impact.map(impact => { impact.Date = impact.Date.split(' ')[0]; return impact;}))
+          }
+        } else {
+          console.log("error", res)
+        }
+      })
+    } else {
+      console.log("missing some values", startDate, endDate, selectedRepo, selectedRepo)
     }
   }
 
