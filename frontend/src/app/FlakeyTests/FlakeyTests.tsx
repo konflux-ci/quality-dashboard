@@ -15,7 +15,7 @@ import { TextContent, Text, TextVariants } from '@patternfly/react-core';
 import { PageSection, PageSectionVariants, Title, TitleSizes } from '@patternfly/react-core';
 import { Dropdown, DropdownToggle, DropdownItem } from '@patternfly/react-core';
 import { ChartPie } from '@patternfly/react-charts';
-import { Chart, ChartAxis, ChartLine, ChartBar, ChartGroup, ChartVoronoiContainer } from '@patternfly/react-charts';
+import { Chart, ChartAxis, ChartLine, ChartGroup, ChartVoronoiContainer } from '@patternfly/react-charts';
 import { Grid, GridItem, } from '@patternfly/react-core';
 import { Card, CardTitle, CardBody } from '@patternfly/react-core';
 import { Toolbar, ToolbarContent } from '@patternfly/react-core';
@@ -26,8 +26,8 @@ import { Skeleton } from '@patternfly/react-core';
 
 export const DatePickerMinMax: React.FunctionComponent<{selectedDate: Date | undefined, onChange:(value:string, date:Date, name:string)=>void, name:string}> = ({ selectedDate, onChange, name}) => {
   const onDateChange = (e, value, date) => {
-    onChange(value, new Date(value), name)
-    console.log(value, new Date(value), name)
+    onChange(value, date, name)
+    console.log(value, date, name)
   }
   return <DatePicker name={name} onChange={onDateChange} value={selectedDate?.toDateString()} />;
 };
@@ -470,8 +470,16 @@ const FlakeyTests: React.FunctionComponent = () => {
 
   const onDatesChange = (value:string, date:Date, name:string) => {
     console.log(value, date, name)
-    if(name=='start-date'){ setStartDate(date)}
-    if(name=='end-date'){ setEndDate(date) }
+    if(name=='start-date'){ 
+      const sd = new Date(date.setHours( 0,0,0,0 ))
+      console.log("sd", sd)
+      setStartDate(sd)
+    }
+    if(name=='end-date'){ 
+      const ed = new Date(date.setHours( 23,59,0,0 ))
+      console.log("ed", ed)
+      setEndDate(ed) 
+    }
   }
 
   const fetchData = () => {
