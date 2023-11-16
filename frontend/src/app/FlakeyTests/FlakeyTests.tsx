@@ -467,13 +467,15 @@ const FlakeyTests: React.FunctionComponent = () => {
   }
 
   const onDatesChange = (value:string, date:Date, name:string) => {
-    if(name=='start-date'){ 
-      console.log(value, date.toISOString())
-      setStartDate(date)
+    if(name=='start-date'){
+      const sd = new Date( date.setHours(0,0,0,0) ) 
+      console.log(sd)
+      setStartDate(sd)
     }
     if(name=='end-date'){ 
-      console.log(value, date.toISOString())
-      setEndDate(date) 
+      const ed = new Date( date.setHours(23,59,0,0) ) 
+      console.log(ed)
+      setEndDate(ed) 
     }
   }
 
