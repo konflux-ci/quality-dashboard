@@ -27,7 +27,6 @@ import { Skeleton } from '@patternfly/react-core';
 export const DatePickerMinMax: React.FunctionComponent<{selectedDate: Date | undefined, onChange:(value:string, date:Date, name:string)=>void, name:string}> = ({ selectedDate, onChange, name}) => {
   const onDateChange = (e, value, date) => {
     onChange(value, date, name)
-    console.log(value, date, name)
   }
   return <DatePicker name={name} onChange={onDateChange} value={selectedDate?.toDateString()} />;
 };
@@ -429,7 +428,6 @@ const FlakeyTests: React.FunctionComponent = () => {
     getRepositoriesWithJobs(currentTeam).then( res => {
       if(res.code == 200){
         setRepositories(res.data)
-        console.log(res.data)
       } else {
         console.error("Cannot get repositories and jobs")
       }
@@ -469,22 +467,19 @@ const FlakeyTests: React.FunctionComponent = () => {
   }
 
   const onDatesChange = (value:string, date:Date, name:string) => {
-    console.log(value, date, name)
     if(name=='start-date'){ 
-      const sd = new Date(date.setHours( 0,0,0,0 ))
-      console.log("sd", sd)
-      setStartDate(sd)
+      console.log(value, date.toISOString())
+      setStartDate(date)
     }
     if(name=='end-date'){ 
-      const ed = new Date(date.setHours( 23,59,0,0 ))
-      console.log("ed", ed)
-      setEndDate(ed) 
+      console.log(value, date.toISOString())
+      setEndDate(date) 
     }
   }
 
   const fetchData = () => {
     if(startDate && endDate && selectedRepo && selectedRepo){
-      getFlakyData(currentTeam, selectedJob, selectedRepo, startDate.toISOString().replace('T', ' ').replace('Z', ''), endDate.toISOString().replace('T', ' ').replace('Z', ''), "redhat-appstudio").then(res => {
+      getFlakyData(currentTeam, selectedJob, selectedRepo, startDate.toISOString(), endDate.toISOString(), "redhat-appstudio").then(res => {
         if(res.code == 200){
           const impact:FlakeyObject = res.data
           if(impact && impact.suites){
@@ -494,7 +489,7 @@ const FlakeyTests: React.FunctionComponent = () => {
           console.log("error", res)
         }
       })
-      getGlobalImpactData(currentTeam, selectedJob, selectedRepo, startDate.toISOString().replace('T', ' ').replace('Z', ''), endDate.toISOString().replace('T', ' ').replace('Z', ''), "redhat-appstudio").then(res => {
+      getGlobalImpactData(currentTeam, selectedJob, selectedRepo, startDate.toISOString(), endDate.toISOString(), "redhat-appstudio").then(res => {
         if(res.code == 200){
           const impact:any = res.data
           console.log(impact)
