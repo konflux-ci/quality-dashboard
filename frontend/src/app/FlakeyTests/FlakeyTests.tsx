@@ -77,9 +77,8 @@ const ImpactChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
           <ChartAxis showGrid style={{ tickLabels: {angle :0, fontSize: 9}}} />
           <ChartAxis dependentAxis showGrid />
           <ChartGroup>
-            { data.length > 1 && <ChartLine data={ data.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/> }
-            { data.length == 1 && <ChartBar data={ data.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/> }
-         </ChartGroup>
+            <ChartLine data={ data.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
+          </ChartGroup>
         </Chart>
         }
         {(!data || data.length == 0) && 
