@@ -21,9 +21,21 @@ import { Card, CardTitle, CardBody } from '@patternfly/react-core';
 import { Toolbar, ToolbarContent } from '@patternfly/react-core';
 import { getRepositoriesWithJobs, getFlakyData, getGlobalImpactData } from '../utils/APIService'
 import { useSelector } from 'react-redux';
-import { DatePicker, Button } from '@patternfly/react-core';
+import { DatePicker } from '@patternfly/react-core';
 import { Skeleton } from '@patternfly/react-core';
-import { isNull } from 'lodash';
+import { Spinner } from '@patternfly/react-core';
+
+export const SpinnerBasic: React.FunctionComponent<{isLoading:boolean}> = ({isLoading}) => { 
+  return (
+    <React.Fragment> 
+      {isLoading && 
+        <div className='spinner-loading'>
+          <Spinner isSVG aria-label="Contents of the basic example" />
+        </div>
+      }
+    </React.Fragment> 
+  )
+};
 
 export const DatePickerMinMax: React.FunctionComponent<{selectedDate: Date | undefined, onChange:(value:string, date:Date, name:string)=>void, name:string}> = ({ selectedDate, onChange, name}) => {
   const onDateChange = (e, value, date) => {
@@ -32,7 +44,7 @@ export const DatePickerMinMax: React.FunctionComponent<{selectedDate: Date | und
   return <DatePicker name={name} onChange={onDateChange} value={selectedDate?.toDateString()} />;
 };
 
-const ImpactChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
+const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data, x, y, secondaryData}) => {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(100);
   const [height, setHeight] = useState(100);
@@ -71,6 +83,9 @@ const ImpactChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
           <ChartGroup>
             <ChartLine data={ data.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
           </ChartGroup>
+          {
+            secondaryData && <ChartLine data={ secondaryData.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
+          }
         </Chart>
         }
         {(!data || data.length == 0) && 
@@ -412,10 +427,11 @@ const FlakeyTests: React.FunctionComponent = () => {
   const [selectedRepo, setSelectedRepo] = React.useState<string>('')
   const [repositories, setRepositories] = React.useState<Array<any>>([])
   const [jobs, setJobs] = React.useState<Array<any>>([])
-  const [globalImpact, setGlobalImpact] = React.useState<number>(-1)
+  const [globalImpact, setGlobalImpact] = React.useState<any>([])
   const [selectedJob, setSelectedJob] = React.useState<string>('')
   const [startDate, setStartDate] = React.useState<Date | undefined>(undefined)
-  const [endDate, setEndDate] = React.useState<Date | undefined>(undefined)
+  const [endDate, setEndDate] = React.useState<Date | undefined>(new Date())
+  const [loadingSpinner, setLoadingSpinner] = React.useState<boolean>(false)
   const currentTeam = useSelector((state: any) => state.teams.Team);
 
   const countSuiteFailures = (suites) => {
@@ -446,6 +462,13 @@ const FlakeyTests: React.FunctionComponent = () => {
 
   }, [data]);
 
+  React.useEffect(() => {
+    if(selectedJob && selectedRepo && startDate && endDate){
+      fetchData()
+    }
+
+  }, [selectedJob, selectedRepo, startDate, endDate]);
+
   const onSuiteSelect = (value) => {
     setSelectedSuite(value)
   }
@@ -454,17 +477,27 @@ const FlakeyTests: React.FunctionComponent = () => {
     return suite.suite_name == selectedSuite || selectedSuite == '' || selectedSuite == 'All failures'
   }
 
-  const onRepoSelect = (value) => {
-    setSelectedRepo(value)
+  const clearAllData = () => {
+    setPieData([])
+    setBarData([])
     setSelectedJob('')
-    const j = repositories.filter(repo => repo.Repository.Name == value )
-    console.log(j[0].jobs)
-    if(!j || j[0].jobs == null){
-      setJobs([])
-      return
-    }
-    if(j && j[0] && j[0].jobs){
-      setJobs(j[0].jobs)
+    setSelectedRepo('')
+    setData([])
+    setSelectedSuite('')
+  }
+
+  const onRepoSelect = (value) => {
+    if(selectedRepo != value){
+      clearAllData()
+      setSelectedRepo(value)
+      const j = repositories.filter(repo => repo.Repository.Name == value )
+      if(!j || j[0].jobs == null){
+        setJobs([])
+        return
+      }
+      if(j && j[0] && j[0].jobs){
+        setJobs(j[0].jobs)
+      }
     }
   }
 
@@ -486,6 +519,7 @@ const FlakeyTests: React.FunctionComponent = () => {
   }
 
   const fetchData = () => {
+    setLoadingSpinner(true)
     if(startDate && endDate && selectedRepo && selectedRepo){
       getFlakyData(currentTeam, selectedJob, selectedRepo, startDate.toISOString(), endDate.toISOString(), "redhat-appstudio").then(res => {
         if(res.code == 200){
@@ -495,8 +529,11 @@ const FlakeyTests: React.FunctionComponent = () => {
             setData(res.data.suites)
           }
           if(impact && impact.global_impact){
-            setGlobalImpact(res.data.global_impact)
+            const gd = [{ Date: startDate.toISOString().split('T')[0], global_impact: res.data.global_impact}, { Date: endDate.toISOString().split('T')[0], global_impact: res.data.global_impact}]
+            console.log(gd)
+            setGlobalImpact(gd)
           }
+          setLoadingSpinner(false)
         } else {
           console.log("error", res)
         }
@@ -508,6 +545,7 @@ const FlakeyTests: React.FunctionComponent = () => {
           if(impact && impact.length>0){
             setBarData(impact.map(impact => { impact.Date = impact.Date.split(' ')[0]; return impact;}))
           }
+          setLoadingSpinner(false)
         } else {
           console.log("error", res)
         }
@@ -542,7 +580,6 @@ const FlakeyTests: React.FunctionComponent = () => {
                   } onSelect={onJobSelect} placeholder="Select a repository"></DropdownBasic>
                   <DatePickerMinMax onChange={onDatesChange} selectedDate={startDate} name="start-date" ></DatePickerMinMax>
                   <DatePickerMinMax onChange={onDatesChange} selectedDate={endDate} name="end-date" ></DatePickerMinMax>
-                  <Button variant="primary" onClick={fetchData}>Submit</Button>
                 </ToolbarContent>
               </Toolbar>
             </GridItem>
@@ -551,13 +588,15 @@ const FlakeyTests: React.FunctionComponent = () => {
                 <GridItem span={5}>
                   <div>
                     <Title headingLevel="h3">Count of failed tests by suite</Title>
+                    <SpinnerBasic isLoading={loadingSpinner}></SpinnerBasic>
                     <PieChart data={pieData} x="suite_name" y="count"></PieChart>
                   </div>
                 </GridItem>
                 <GridItem span={7}>
                   <div>
                     <Title headingLevel="h3">Impact on CI suite</Title>
-                    <ImpactChart data={barData} x="Date" y="global_impact"></ImpactChart>
+                    <SpinnerBasic isLoading={loadingSpinner}></SpinnerBasic>
+                    <ImpactChart data={barData} x="Date" y="global_impact" secondaryData={globalImpact}></ImpactChart>
                   </div>
                 </GridItem>
               </Grid>  
@@ -576,6 +615,7 @@ const FlakeyTests: React.FunctionComponent = () => {
               </Toolbar>
             </GridItem>
             <GridItem span={12}>
+              <SpinnerBasic isLoading={loadingSpinner}></SpinnerBasic>
               <ComposableTableNestedExpandable teams={data.filter(onDataFilter)}></ComposableTableNestedExpandable>
             </GridItem>
           </Grid>

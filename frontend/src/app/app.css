@@ -33,3 +33,9 @@ html, body, #root {
 .card-no-border {
   box-shadow: none;
 }
+
+.spinner-loading{
+  padding: 3em;
+  position:absolute;
+  z-index: 99;
+}
