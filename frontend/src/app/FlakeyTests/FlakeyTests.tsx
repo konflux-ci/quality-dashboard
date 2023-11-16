@@ -24,20 +24,12 @@ import { useSelector } from 'react-redux';
 import { DatePicker, Button } from '@patternfly/react-core';
 import { Skeleton } from '@patternfly/react-core';
 
-export const DatePickerMinMax: React.FunctionComponent<{minDate?:Date, maxDate?:Date, selectedDate: Date | undefined, onChange:(value:string, date:Date, name:string)=>void, name:string}> = ({minDate, maxDate, selectedDate, onChange, name}) => {
-  const rangeValidator = (date: Date) => {
-    if (minDate && date < minDate) {
-      return 'Date is before the allowable range.';
-    } else if (maxDate && date > maxDate) {
-      return 'Date is after the allowable range.';
-    }
-
-    return '';
-  };
+export const DatePickerMinMax: React.FunctionComponent<{selectedDate: Date | undefined, onChange:(value:string, date:Date, name:string)=>void, name:string}> = ({ selectedDate, onChange, name}) => {
   const onDateChange = (e, value, date) => {
-    onChange(value, date, name)
+    onChange(value, new Date(value), name)
+    console.log(value, new Date(value), name)
   }
-  return <DatePicker name={name} onChange={onDateChange} value={selectedDate?.toDateString()} validators={[rangeValidator]} />;
+  return <DatePicker name={name} onChange={onDateChange} value={selectedDate?.toDateString()} />;
 };
 
 const ImpactChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
@@ -533,8 +525,8 @@ const FlakeyTests: React.FunctionComponent = () => {
                   <DropdownBasic selected={selectedJob} toggles={
                     jobs.map( (job, idx) => <DropdownItem key={idx} name={job}> {job} </DropdownItem> )
                   } onSelect={onJobSelect} placeholder="Select a repository"></DropdownBasic>
-                  <DatePickerMinMax onChange={onDatesChange} selectedDate={startDate} name="start-date" minDate={ new Date(new Date().setDate(new Date().getDate() - 30)) } ></DatePickerMinMax>
-                  <DatePickerMinMax onChange={onDatesChange} selectedDate={endDate} name="end-date" minDate={ new Date(new Date().setDate(new Date().getDate() - 30)) } ></DatePickerMinMax>
+                  <DatePickerMinMax onChange={onDatesChange} selectedDate={startDate} name="start-date" ></DatePickerMinMax>
+                  <DatePickerMinMax onChange={onDatesChange} selectedDate={endDate} name="end-date" ></DatePickerMinMax>
                   <Button variant="primary" onClick={fetchData}>Primary</Button>
                 </ToolbarContent>
               </Toolbar>
