@@ -75,7 +75,7 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
           padding={{
             bottom: 100,
             left: 60,
-            right: 150,
+            right: 250,
             top: 50
           }}
         >
@@ -637,7 +637,7 @@ const FlakeyTests: React.FunctionComponent = () => {
             </GridItem>
             <GridItem>
               <Grid hasGutter className='bg-white'>
-                <GridItem span={10}>
+                <GridItem span={11}>
                   <div>
                     <Title headingLevel="h3">
                       <Popover
