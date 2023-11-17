@@ -139,6 +139,8 @@ func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, job
 		globalFlakyAvg = 0
 	}
 
+	fmt.Println(allJobs)
+
 	flakyFrequency.GlobalImpact = util.RoundTo(globalFlakyAvg, 2)
 	flakyFrequency.JobName = jobName
 	flakyFrequency.GitOrganization = gitOrg
@@ -153,7 +155,7 @@ func (d *Database) GetProwFlakyTrendsMetrics(gitOrg string, repoName string, job
 	dayArr := getRangesInISO(startDate, endDate)
 	// range between one day (same day)
 	if len(dayArr) == 2 && isSameDay(startDate, endDate) {
-		metric, _ := d.GetSuitesFailureFrequency("redhat-appstudio", "infra-deployments", "pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests", startDate, endDate)
+		metric, _ := d.GetSuitesFailureFrequency(gitOrg, repoName, jobName, startDate, endDate)
 		metrics = append(metrics, v1alpha1.FlakyMetrics{
 			GlobalImpact: metric.GlobalImpact,
 			Date:         startDate,
@@ -167,20 +169,20 @@ func (d *Database) GetProwFlakyTrendsMetrics(gitOrg string, repoName string, job
 		y, m, dd := t.Date()
 
 		if i == 0 { // first day
-			metric, _ := d.GetSuitesFailureFrequency("redhat-appstudio", "infra-deployments", "pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests", day, fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd))
+			metric, _ := d.GetSuitesFailureFrequency(gitOrg, repoName, jobName, day, fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd))
 			metrics = append(metrics, v1alpha1.FlakyMetrics{
 				GlobalImpact: metric.GlobalImpact,
 				Date:         fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd),
 			})
 		} else {
 			if i == len(dayArr)-1 { // last day
-				metric, _ := d.GetSuitesFailureFrequency("redhat-appstudio", "infra-deployments", "pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests", fmt.Sprintf("%04d-%02d-%02d 00:00:00", y, m, dd), day)
+				metric, _ := d.GetSuitesFailureFrequency(gitOrg, repoName, jobName, fmt.Sprintf("%04d-%02d-%02d 00:00:00", y, m, dd), day)
 				metrics = append(metrics, v1alpha1.FlakyMetrics{
 					GlobalImpact: metric.GlobalImpact,
-					Date:         day,
+					Date:         fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd),
 				})
 			} else { // middle days
-				metric, _ := d.GetSuitesFailureFrequency("redhat-appstudio", "infra-deployments", "pull-ci-redhat-appstudio-infra-deployments-main-appstudio-e2e-tests", fmt.Sprintf("%04d-%02d-%02d 00:00:00", y, m, dd), fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd))
+				metric, _ := d.GetSuitesFailureFrequency(gitOrg, repoName, jobName, fmt.Sprintf("%04d-%02d-%02d 00:00:00", y, m, dd), fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd))
 				metrics = append(metrics, v1alpha1.FlakyMetrics{
 					GlobalImpact: metric.GlobalImpact,
 					Date:         fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd),
