@@ -79,7 +79,7 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
           padding={{
             bottom: 100,
             left: 60,
-            right: 0,
+            right: 50,
             top: 50
           }}
         >
