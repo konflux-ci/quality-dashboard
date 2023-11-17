@@ -25,6 +25,8 @@ import { DatePicker } from '@patternfly/react-core';
 import { Skeleton } from '@patternfly/react-core';
 import { Spinner } from '@patternfly/react-core';
 
+const PREFERENCES_CACHE_NAME = "flakyCache"
+
 export const SpinnerBasic: React.FunctionComponent<{isLoading:boolean}> = ({isLoading}) => { 
   return (
     <React.Fragment> 
@@ -61,11 +63,14 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
       <div style={{ height: height + 'px', width: width + 'px', background: "white", boxShadow: "none" }}>
         {
           data && data.length > 0 && <Chart
-          ariaDesc="Average number of pets"
-          ariaTitle="Bar chart example"
+          style={{
+            background: { fill: "red", opacity: 0.1 }
+          }}
+          ariaDesc="Global impact"
+          ariaTitle="Global Impact"
           containerComponent={<ChartVoronoiContainer labels={({ datum }) => `${datum.name}: ${datum.y}`} constrainToVisibleArea />}
           domain={{y: [-1,101]}}
-          domainPadding={{ x: [30, 25] }}
+          domainPadding={{ x: 0, y:0 }}
           legendOrientation="vertical"
           legendPosition="right"
           height={height}
@@ -78,15 +83,11 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
             top: 50
           }}
         >
-          <ChartAxis showGrid style={{ tickLabels: {angle :0, fontSize: 9}}} />
-          <ChartAxis dependentAxis showGrid />
-          {
-            secondaryData && <ChartArea style={{
-              data: {
-                fill: "red", fillOpacity: 0.7, stroke: "#c43a31", strokeWidth: 3
-              }
-            }} data={ secondaryData.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": 100}  }) }/>
-          }
+          <ChartAxis style={{ tickLabels: {angle :0, fontSize: 9}}} />
+          <ChartAxis dependentAxis />
+                  
+          <ChartLine data={ data.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
+
           {
             secondaryData && <ChartArea style={{
               data: {
@@ -94,9 +95,13 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
               }
             }} data={ secondaryData.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
           }
-          <ChartGroup>
-            <ChartLine data={ data.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
-          </ChartGroup>
+          
+          <ChartArea style={{
+              data: {
+                fill: "#6495ED", fillOpacity: 0.3
+              }
+            }} data={ data.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
+
         </Chart>
         }
         {(!data || data.length == 0) && 
@@ -131,8 +136,8 @@ const PieChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
       <div style={{ height: height + 'px', width: width + 'px', background: "white", boxShadow: "none" }}>
         {data && data.length > 0 &&
         <ChartPie
-          ariaDesc="Average number of pets"
-          ariaTitle="Pie chart example"
+          ariaDesc="Failed tests"
+          ariaTitle="Failed tests"
           constrainToVisibleArea
           colorScale={["tomato", "orange", "gold", "bisque", "coral", "darkorange", "darksalmon", "salmon", "peachpuff", "papayawhip", "palevioletred", "pink", "red" ]}
           data={ data.map((datum => { return {x: datum[x], y: datum[y]} })) }
@@ -452,12 +457,38 @@ const FlakeyTests: React.FunctionComponent = () => {
     })
   }
 
+  const saveCachePreferences = () => {
+    let cache = {}
+    const stored = localStorage.getItem(PREFERENCES_CACHE_NAME)
+    if(stored){
+      cache = JSON.parse(stored)
+    }
+    cache[currentTeam] = {job: selectedJob, repository: selectedRepo}
+    localStorage.setItem(PREFERENCES_CACHE_NAME, JSON.stringify(cache) )
+  }
+
+  const getCachePreferences = () => {
+    const stored = localStorage.getItem(PREFERENCES_CACHE_NAME)
+    let cache = {}
+    if(stored){
+      cache = JSON.parse(stored)
+    }
+    return cache
+  }
+
   React.useEffect(() => {
     if(!currentTeam){ return }
+    clearAllData()
     getRepositoriesWithJobs(currentTeam).then( res => {
       if(res.code == 200){
-        console.log(res.data)
         setRepositories(res.data)
+        const cache = getCachePreferences()
+        if(cache && cache[currentTeam] && cache[currentTeam].job && cache[currentTeam].repository){
+          setSelectedJob(cache[currentTeam].job)
+          setSelectedRepo(cache[currentTeam].repository)
+          const sd = new Date(Date.now() - 12096e5);
+          setStartDate(new Date(sd.setHours(0,0,0,0)))
+        }
       } else {
         console.error("Cannot get repositories and jobs")
       }
@@ -474,8 +505,14 @@ const FlakeyTests: React.FunctionComponent = () => {
   }, [data]);
 
   React.useEffect(() => {
+    fillJobs(selectedRepo)
+  }, [selectedRepo]);
+
+
+  React.useEffect(() => {
     if(selectedJob && selectedRepo && startDate && endDate){
       fetchData()
+      saveCachePreferences()
     }
 
   }, [selectedJob, selectedRepo, startDate, endDate]);
@@ -497,18 +534,21 @@ const FlakeyTests: React.FunctionComponent = () => {
     setSelectedSuite('')
   }
 
+  const fillJobs = (value) => {
+    const j = repositories.filter(repo => repo.Repository.Name == value )
+    console.log(j, value)
+    if(!j || !j[0] || j[0].jobs == null){
+      setJobs([])
+      return
+    }
+    if(j && j[0] && j[0].jobs){
+      setJobs(j[0].jobs)
+    }
+}
   const onRepoSelect = (value) => {
     if(selectedRepo != value){
       clearAllData()
       setSelectedRepo(value)
-      const j = repositories.filter(repo => repo.Repository.Name == value )
-      if(!j || j[0].jobs == null){
-        setJobs([])
-        return
-      }
-      if(j && j[0] && j[0].jobs){
-        setJobs(j[0].jobs)
-      }
     }
   }
 
@@ -535,13 +575,11 @@ const FlakeyTests: React.FunctionComponent = () => {
       getFlakyData(currentTeam, selectedJob, selectedRepo, startDate.toISOString(), endDate.toISOString(), "redhat-appstudio").then(res => {
         if(res.code == 200){
           const impact:FlakeyObject = res.data
-          console.log("flaky data", impact)
           if(impact && impact.suites){
             setData(res.data.suites)
           }
           if(impact && impact.global_impact){
             const gd = [{ Date: startDate.toISOString().split('T')[0], global_impact: res.data.global_impact}, { Date: endDate.toISOString().split('T')[0], global_impact: res.data.global_impact}]
-            console.log(gd)
             setGlobalImpact(gd)
           }
           setLoadingSpinner(false)
@@ -554,7 +592,7 @@ const FlakeyTests: React.FunctionComponent = () => {
           const impact:any = res.data
           console.log("global impact data", impact)
           if(impact && impact.length>0){
-            setBarData(impact.map(impact => { impact.Date = impact.Date.split(' ')[0]; return impact;}))
+            setBarData(impact.map(impact => { impact.Date = impact.Date.split(' ')[0].split('T')[0]; return impact;}))
           }
           setLoadingSpinner(false)
         } else {
@@ -605,7 +643,7 @@ const FlakeyTests: React.FunctionComponent = () => {
                 </GridItem>
                 <GridItem span={7}>
                   <div>
-                    <Title headingLevel="h3">Impact on CI suite</Title>
+                    <Title headingLevel="h3">Impact on CI suite (%)</Title>
                     <SpinnerBasic isLoading={loadingSpinner}></SpinnerBasic>
                     <ImpactChart data={barData} x="Date" y="global_impact" secondaryData={globalImpact}></ImpactChart>
                   </div>
