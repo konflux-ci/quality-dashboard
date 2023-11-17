@@ -15,7 +15,7 @@ import { TextContent, Text, TextVariants } from '@patternfly/react-core';
 import { PageSection, PageSectionVariants, Title, TitleSizes } from '@patternfly/react-core';
 import { Dropdown, DropdownToggle, DropdownItem } from '@patternfly/react-core';
 import { ChartPie } from '@patternfly/react-charts';
-import { Chart, ChartAxis, ChartLine, ChartArea, ChartGroup, ChartVoronoiContainer } from '@patternfly/react-charts';
+import { Chart, ChartAxis, ChartLine, ChartArea, ChartVoronoiContainer } from '@patternfly/react-charts';
 import { Grid, GridItem, } from '@patternfly/react-core';
 import { Card, CardTitle, CardBody } from '@patternfly/react-core';
 import { Toolbar, ToolbarContent } from '@patternfly/react-core';
@@ -24,6 +24,7 @@ import { useSelector } from 'react-redux';
 import { DatePicker } from '@patternfly/react-core';
 import { Skeleton } from '@patternfly/react-core';
 import { Spinner } from '@patternfly/react-core';
+import { InfoCircleIcon } from "@patternfly/react-icons";
 
 const PREFERENCES_CACHE_NAME = "flakyCache"
 
@@ -73,13 +74,14 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
           domainPadding={{ x: 0, y:0 }}
           legendOrientation="vertical"
           legendPosition="right"
+          legendData={[{name: "Global Impact", symbol: { fill: "green"}}, {name: "Flaky test impact", symbol: { fill: "#6495ED"}}, {name: "Quarantine zone", symbol: { fill: "red"}}]}
           height={height}
           width={width}
           name="chart1"
           padding={{
             bottom: 100,
             left: 60,
-            right: 50,
+            right: 150,
             top: 50
           }}
         >
@@ -91,7 +93,7 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
           {
             secondaryData && <ChartArea style={{
               data: {
-                fill: "white", fillOpacity: 1, stroke: "#c43a31", strokeWidth: 3
+                fill: "white", fillOpacity: 1, stroke: "green", strokeWidth: 3
               }
             }} data={ secondaryData.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
           }
@@ -632,11 +634,20 @@ const FlakeyTests: React.FunctionComponent = () => {
             </GridItem>
             <GridItem>
               <Grid hasGutter className='bg-white'>
-                <GridItem span={9}>
+                <GridItem span={10}>
                   <div>
                     <Title headingLevel="h3">Impact on CI suite (%)</Title>
                     <SpinnerBasic isLoading={loadingSpinner}></SpinnerBasic>
                     <ImpactChart data={barData} x="Date" y="global_impact" secondaryData={globalImpact}></ImpactChart>
+                  </div>
+                </GridItem>
+                <GridItem span={2}>
+                  <div style={{padding: "1em", textAlign: "justify"}}>
+                    <InfoCircleIcon></InfoCircleIcon>
+                    <Title headingLevel="h2">Quarantine zone</Title>
+                    <Text>Flakiness reaching the quarantine zone indicates i big impact on CI over that period of time.</Text>
+                    <Title headingLevel="h2">Global impact</Title>
+                    <Text>Global impact shows the average of the tests impact in the selected time range.</Text>
                   </div>
                 </GridItem>
               </Grid>  
