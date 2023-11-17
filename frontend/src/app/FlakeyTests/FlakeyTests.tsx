@@ -41,13 +41,6 @@ export const SpinnerBasic: React.FunctionComponent<{isLoading:boolean}> = ({isLo
   )
 };
 
-export const DatePickerMinMax: React.FunctionComponent<{selectedDate: Date | undefined, onChange:(value:string, date:Date, name:string)=>void, name:string}> = ({ selectedDate, onChange, name}) => {
-  const onDateChange = (e, value, date) => {
-    onChange(value, date, name)
-  }
-  return <DatePicker name={name} onChange={onDateChange} value={selectedDate?.toDateString()} />;
-};
-
 const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data, x, y, secondaryData}) => {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(100);
@@ -155,7 +148,7 @@ const PieChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
           padding={{
             bottom: 30,
             left: 20,
-            right: 150,
+            right: 250,
             top: 50
           }}
         />
@@ -437,6 +430,13 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
   );
 };
 
+export const DatePickerMinMax: React.FunctionComponent<{selectedDate: string | undefined, onChange:(value:string, date:Date, name:string)=>void, name:string}> = ({ selectedDate, onChange, name}) => {
+  const onDateChange = (e, value, date) => {
+    onChange(value, date, name)
+  }
+  return <DatePicker name={name} onChange={onDateChange} value={selectedDate?.split('T')[0]} />;
+};
+
 const FlakeyTests: React.FunctionComponent = () => {
   const [toggles, setToggles] = React.useState<any>([])
   const [selectedSuite, setSelectedSuite] = React.useState<string>('')
@@ -448,8 +448,8 @@ const FlakeyTests: React.FunctionComponent = () => {
   const [jobs, setJobs] = React.useState<Array<any>>([])
   const [globalImpact, setGlobalImpact] = React.useState<any>([])
   const [selectedJob, setSelectedJob] = React.useState<string>('')
-  const [startDate, setStartDate] = React.useState<Date | undefined>(undefined)
-  const [endDate, setEndDate] = React.useState<Date | undefined>(new Date())
+  const [startDate, setStartDate] = React.useState<string | undefined>(undefined)
+  const [endDate, setEndDate] = React.useState<string | undefined>(undefined)
   const [loadingSpinner, setLoadingSpinner] = React.useState<boolean>(false)
   const currentTeam = useSelector((state: any) => state.teams.Team);
 
@@ -489,8 +489,10 @@ const FlakeyTests: React.FunctionComponent = () => {
         if(cache && cache[currentTeam] && cache[currentTeam].job && cache[currentTeam].repository){
           setSelectedJob(cache[currentTeam].job)
           setSelectedRepo(cache[currentTeam].repository)
-          const sd = new Date(Date.now() - 12096e5);
-          setStartDate(new Date(sd.setHours(0,0,0,0)))
+          const sd = new Date(Date.now() - 12096e5).setUTCHours(0,0,0,0);
+          setStartDate(new Date(sd).toISOString())
+          const ed = new Date(Date.now()).setUTCHours(23,59,0,0);
+          setEndDate(new Date(ed).toISOString())
         }
       } else {
         console.error("Cannot get repositories and jobs")
@@ -546,7 +548,8 @@ const FlakeyTests: React.FunctionComponent = () => {
     if(j && j[0] && j[0].jobs){
       setJobs(j[0].jobs)
     }
-}
+  }
+
   const onRepoSelect = (value) => {
     if(selectedRepo != value){
       clearAllData()
@@ -562,26 +565,24 @@ const FlakeyTests: React.FunctionComponent = () => {
 
   const onDatesChange = (value:string, date:Date, name:string) => {
     if(name=='start-date'){
-      const sd = new Date( date.setHours(0,0,0,0) ) 
-      setStartDate(sd)
+      setStartDate(new Date( value ).toISOString())
     }
     if(name=='end-date'){ 
-      const ed = new Date( date.setHours(23,59,0,0) ) 
-      setEndDate(ed) 
+      setEndDate(new Date( value ).toISOString()) 
     }
   }
 
   const fetchData = () => {
     setLoadingSpinner(true)
     if(startDate && endDate && selectedRepo && selectedRepo){
-      getFlakyData(currentTeam, selectedJob, selectedRepo, startDate.toISOString(), endDate.toISOString(), "redhat-appstudio").then(res => {
+      getFlakyData(currentTeam, selectedJob, selectedRepo, startDate, endDate, "redhat-appstudio").then(res => {
         if(res.code == 200){
           const impact:FlakeyObject = res.data
           if(impact && impact.suites){
             setData(res.data.suites)
           }
           if(impact && impact.global_impact){
-            const gd = [{ Date: startDate.toISOString().split('T')[0], global_impact: res.data.global_impact}, { Date: endDate.toISOString().split('T')[0], global_impact: res.data.global_impact}]
+            const gd = [{ Date: startDate.split('T')[0], global_impact: res.data.global_impact}, { Date: endDate.split('T')[0], global_impact: res.data.global_impact}]
             setGlobalImpact(gd)
           }
           setLoadingSpinner(false)
@@ -589,9 +590,10 @@ const FlakeyTests: React.FunctionComponent = () => {
           console.log("error", res)
         }
       })
-      getGlobalImpactData(currentTeam, selectedJob, selectedRepo, startDate.toISOString(), endDate.toISOString(), "redhat-appstudio").then(res => {
+      getGlobalImpactData(currentTeam, selectedJob, selectedRepo, startDate, endDate, "redhat-appstudio").then(res => {
         if(res.code == 200){
           const impact:any = res.data
+          console.log(impact)
           if(impact && impact.length>0){
             setBarData(impact.map(impact => { impact.Date = impact.Date.split(' ')[0].split('T')[0]; return impact;}))
           }
