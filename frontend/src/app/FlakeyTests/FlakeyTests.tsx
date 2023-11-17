@@ -25,6 +25,7 @@ import { DatePicker } from '@patternfly/react-core';
 import { Skeleton } from '@patternfly/react-core';
 import { Spinner } from '@patternfly/react-core';
 import { InfoCircleIcon } from "@patternfly/react-icons";
+import { Popover } from '@patternfly/react-core';
 
 const PREFERENCES_CACHE_NAME = "flakyCache"
 
@@ -636,18 +637,24 @@ const FlakeyTests: React.FunctionComponent = () => {
               <Grid hasGutter className='bg-white'>
                 <GridItem span={10}>
                   <div>
-                    <Title headingLevel="h3">Impact on CI suite (%)</Title>
+                    <Title headingLevel="h3">
+                      <Popover
+                        aria-label="Hoverable popover"
+                        headerContent={<div>What is this chart about?</div>}
+                        bodyContent={<div>
+                          <Title headingLevel="h2">Quarantine zone</Title>
+                            <Text>Flakiness reaching the quarantine zone indicates i big impact on CI over that period of time.</Text>
+                            <Title headingLevel="h2">Global impact</Title>
+                            <Text>Global impact shows the average of the tests impact in the selected time range.</Text>
+                        </div>
+                        }
+                      >
+                        <InfoCircleIcon></InfoCircleIcon>
+                      </Popover>
+                      <span style={{paddingLeft: '1em'}}>Impact on CI suite (%)</span>
+                    </Title>
                     <SpinnerBasic isLoading={loadingSpinner}></SpinnerBasic>
                     <ImpactChart data={barData} x="Date" y="global_impact" secondaryData={globalImpact}></ImpactChart>
-                  </div>
-                </GridItem>
-                <GridItem span={2}>
-                  <div style={{padding: "1em", textAlign: "justify"}}>
-                    <InfoCircleIcon></InfoCircleIcon>
-                    <Title headingLevel="h2">Quarantine zone</Title>
-                    <Text>Flakiness reaching the quarantine zone indicates i big impact on CI over that period of time.</Text>
-                    <Title headingLevel="h2">Global impact</Title>
-                    <Text>Global impact shows the average of the tests impact in the selected time range.</Text>
                   </div>
                 </GridItem>
               </Grid>  
