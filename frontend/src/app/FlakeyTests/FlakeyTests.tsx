@@ -77,7 +77,7 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
           width={width}
           name="chart1"
           padding={{
-            bottom: 30,
+            bottom: 100,
             left: 60,
             right: 0,
             top: 50
@@ -536,7 +536,6 @@ const FlakeyTests: React.FunctionComponent = () => {
 
   const fillJobs = (value) => {
     const j = repositories.filter(repo => repo.Repository.Name == value )
-    console.log(j, value)
     if(!j || !j[0] || j[0].jobs == null){
       setJobs([])
       return
@@ -590,7 +589,6 @@ const FlakeyTests: React.FunctionComponent = () => {
       getGlobalImpactData(currentTeam, selectedJob, selectedRepo, startDate.toISOString(), endDate.toISOString(), "redhat-appstudio").then(res => {
         if(res.code == 200){
           const impact:any = res.data
-          console.log("global impact data", impact)
           if(impact && impact.length>0){
             setBarData(impact.map(impact => { impact.Date = impact.Date.split(' ')[0].split('T')[0]; return impact;}))
           }
@@ -634,14 +632,7 @@ const FlakeyTests: React.FunctionComponent = () => {
             </GridItem>
             <GridItem>
               <Grid hasGutter className='bg-white'>
-                <GridItem span={5}>
-                  <div>
-                    <Title headingLevel="h3">Count of failed tests by suite</Title>
-                    <SpinnerBasic isLoading={loadingSpinner}></SpinnerBasic>
-                    <PieChart data={pieData} x="suite_name" y="count"></PieChart>
-                  </div>
-                </GridItem>
-                <GridItem span={7}>
+                <GridItem span={12}>
                   <div>
                     <Title headingLevel="h3">Impact on CI suite (%)</Title>
                     <SpinnerBasic isLoading={loadingSpinner}></SpinnerBasic>
