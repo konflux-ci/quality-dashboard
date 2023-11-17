@@ -632,7 +632,7 @@ const FlakeyTests: React.FunctionComponent = () => {
             </GridItem>
             <GridItem>
               <Grid hasGutter className='bg-white'>
-                <GridItem span={12}>
+                <GridItem span={9}>
                   <div>
                     <Title headingLevel="h3">Impact on CI suite (%)</Title>
                     <SpinnerBasic isLoading={loadingSpinner}></SpinnerBasic>
