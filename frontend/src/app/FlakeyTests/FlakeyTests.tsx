@@ -135,7 +135,7 @@ const RegressionChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => 
           ariaDesc="Global impact"
           ariaTitle="Global Impact"
           containerComponent={<ChartVoronoiContainer labels={({ datum }) => `${datum.name}: ${datum.y}`} constrainToVisibleArea />}
-          domain={{y: [-1,101]}}
+          domain={{y: [0, Math.max(...data.map(o => o.global_impact))], x: [0, Math.max(...data.map(o => o.jobs_executed))]}}
           domainPadding={{ x: 0, y:0 }}
           legendOrientation="vertical"
           legendPosition="right"
@@ -152,9 +152,9 @@ const RegressionChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => 
           <ChartAxis style={{ tickLabels: {angle :0, fontSize: 9}}} />
           <ChartAxis dependentAxis />
                   
-          <ChartScatter style={{ data: { fill: "orange" } }} data={ data.filter(d => d.jobs_executed != 0).map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
+          <ChartScatter style={{ data: { fill: "orange" } }} data={ data.filter(d => d.jobs_executed != 0).sort((aValue, bValue)=>{return (aValue.jobs_executed as number) - (bValue.jobs_executed as number)}).map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
 
-          <ChartLine style={{ data: { stroke: "darkgray" } }} data={ data.filter(d => d.jobs_executed != 0).map( (datum) => { return {"name": "Regression", "x": datum[x], "y": datum.regression ? parseFloat(datum.regression) : 0}  }) }/>
+          <ChartLine style={{ data: { stroke: "darkgray" } }} data={ data.filter(d => d.jobs_executed != 0).sort((aValue, bValue)=>{return (aValue.jobs_executed as number) - (bValue.jobs_executed as number)}).map( (datum) => { return {"name": "Regression", "x": datum[x], "y": datum.regression ? parseFloat(datum.regression) : 0}  }) }/>
 
         </Chart>
         }
