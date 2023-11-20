@@ -46,6 +46,8 @@ type FlakyFrequency struct {
 	// JobName the name of the job which a suite belongs
 	JobName string `json:"job_name"`
 
+	JobsExecuted int `json:"jobs_executed"`
+
 	SuitesFailureFrequency []SuitesFailureFrequency `json:"suites"`
 }
 
@@ -80,7 +82,11 @@ type Messages struct {
 }
 
 type FlakyMetrics struct {
-	Date string `jaon:"date"`
+	JobsExecuted int `json:"jobs_executed"`
+
+	Date string `json:"date"`
+
+	Regression float64 `json:"regression"`
 
 	GlobalImpact float64 `json:"global_impact"`
 }

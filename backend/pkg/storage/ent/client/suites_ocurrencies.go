@@ -8,6 +8,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
+	"github.com/redhat-appstudio/quality-studio/pkg/ml"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
@@ -18,7 +19,6 @@ import (
 
 func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, jobName string, startDate string, endDate string) (*v1alpha1.FlakyFrequency, error) {
 	flakyFrequency := new(v1alpha1.FlakyFrequency)
-
 	var suitesFailure []struct {
 		SuiteName string `json:"suite_name"`
 		Status    string `json:"status"`
@@ -139,11 +139,10 @@ func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, job
 		globalFlakyAvg = 0
 	}
 
-	fmt.Println(allJobs)
-
 	flakyFrequency.GlobalImpact = util.RoundTo(globalFlakyAvg, 2)
 	flakyFrequency.JobName = jobName
 	flakyFrequency.GitOrganization = gitOrg
+	flakyFrequency.JobsExecuted = allJobs
 	flakyFrequency.RepositoryName = repoName
 
 	return flakyFrequency, nil
@@ -157,6 +156,7 @@ func (d *Database) GetProwFlakyTrendsMetrics(gitOrg string, repoName string, job
 	if len(dayArr) == 2 && isSameDay(startDate, endDate) {
 		metric, _ := d.GetSuitesFailureFrequency(gitOrg, repoName, jobName, startDate, endDate)
 		metrics = append(metrics, v1alpha1.FlakyMetrics{
+			JobsExecuted: metric.JobsExecuted,
 			GlobalImpact: metric.GlobalImpact,
 			Date:         startDate,
 		})
@@ -172,18 +172,21 @@ func (d *Database) GetProwFlakyTrendsMetrics(gitOrg string, repoName string, job
 			metric, _ := d.GetSuitesFailureFrequency(gitOrg, repoName, jobName, day, fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd))
 			metrics = append(metrics, v1alpha1.FlakyMetrics{
 				GlobalImpact: metric.GlobalImpact,
+				JobsExecuted: metric.JobsExecuted,
 				Date:         fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd),
 			})
 		} else {
 			if i == len(dayArr)-1 { // last day
-				metric, _ := d.GetSuitesFailureFrequency(gitOrg, repoName, jobName, fmt.Sprintf("%04d-%02d-%02d 00:00:00", y, m, dd), day)
+				metric, _ := d.GetSuitesFailureFrequency(gitOrg, repoName, jobName, fmt.Sprintf("%04d-%02d-%02d 00:00:00", y, m, dd), fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd))
 				metrics = append(metrics, v1alpha1.FlakyMetrics{
+					JobsExecuted: metric.JobsExecuted,
 					GlobalImpact: metric.GlobalImpact,
 					Date:         fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd),
 				})
 			} else { // middle days
 				metric, _ := d.GetSuitesFailureFrequency(gitOrg, repoName, jobName, fmt.Sprintf("%04d-%02d-%02d 00:00:00", y, m, dd), fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd))
 				metrics = append(metrics, v1alpha1.FlakyMetrics{
+					JobsExecuted: metric.JobsExecuted,
 					GlobalImpact: metric.GlobalImpact,
 					Date:         fmt.Sprintf("%04d-%02d-%02d 23:59:59", y, m, dd),
 				})
@@ -191,7 +194,29 @@ func (d *Database) GetProwFlakyTrendsMetrics(gitOrg string, repoName string, job
 		}
 	}
 
-	return metrics
+	return d.calculateRegression(metrics)
+}
+
+func (d *Database) calculateRegression(ms []v1alpha1.FlakyMetrics) []v1alpha1.FlakyMetrics {
+	var x = []float64{}
+	var y = []float64{}
+	var lr ml.LinearRegression
+
+	for _, m := range ms {
+		if m.JobsExecuted > 0 {
+			x = append(x, float64(m.JobsExecuted))
+			y = append(y, m.GlobalImpact)
+		}
+	}
+
+	lr.Fit(x, y)
+	for i, m := range ms {
+		if m.JobsExecuted > 0 {
+			ms[i].Regression = lr.Predict(float64(m.JobsExecuted))
+		}
+	}
+
+	return ms
 }
 
 func (d *Database) GetProwJobsByRepoOrg(repo *db.Repository) ([]string, error) {
