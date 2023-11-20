@@ -136,6 +136,7 @@ const RegressionChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => 
           ariaTitle="Global Impact"
           containerComponent={<ChartVoronoiContainer labels={({ datum }) => `${datum.name}: ${datum.y}`} constrainToVisibleArea />}
           domain={{y: [0, Math.max(...data.map(o => o.global_impact))], x: [0, Math.max(...data.map(o => o.jobs_executed))]}}
+          legendData={[{name: "Job-Impact", symbol: { fill: "orange"}}, {name: "Regression", symbol: { fill: "darkgray"}}]}
           domainPadding={{ x: 0, y:0 }}
           legendOrientation="vertical"
           legendPosition="right"
@@ -719,6 +720,7 @@ const FlakeyTests: React.FunctionComponent = () => {
                     <RegressionChart data={barData} x="jobs_executed" y="global_impact"></RegressionChart>
                   </div>
                 </GridItem>
+                
               </Grid>  
             </GridItem>
             <GridItem style={{clear: 'both', minHeight: '1em'}} span={12}>
