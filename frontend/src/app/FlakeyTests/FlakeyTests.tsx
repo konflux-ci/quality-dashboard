@@ -41,7 +41,7 @@ export const SpinnerBasic: React.FunctionComponent<{isLoading:boolean}> = ({isLo
   )
 };
 
-const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data, x, y, secondaryData}) => {
+const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?, tertiaryData}> = ({data, x, y, secondaryData, tertiaryData}) => {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(100);
   const [height, setHeight] = useState(100);
@@ -68,7 +68,7 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
           domainPadding={{ x: 0, y:0 }}
           legendOrientation="vertical"
           legendPosition="right"
-          legendData={[{name: "Global Impact", symbol: { fill: "green"}}, {name: "Flaky test impact", symbol: { fill: "#6495ED"}}, {name: "Quarantine zone", symbol: { fill: "red"}}]}
+          legendData={[{name: "Global Impact", symbol: { fill: "green"}}, {name: "Flaky test impact", symbol: { fill: "#6495ED"}}, {name: "Quarantine zone", symbol: { fill: "red"}}, {name: "Regression", symbol: { fill: "orange"}}]}
           height={height}
           width={width}
           name="chart1"
@@ -91,7 +91,11 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
               }
             }} data={ secondaryData.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
           }
-          
+
+          <ChartLine style={{
+              data: { stroke: "orange", strokeWidth: 3, strokeDasharray: '3,3' }
+            }} data={ data.map( (datum) => { return {"name": "Regression", "x": datum[x], "y": datum.regression ? parseFloat(datum.regression) : 0}  }) }/>
+
           <ChartArea style={{
               data: {
                 fill: "#6495ED", fillOpacity: 0.3
@@ -595,7 +599,7 @@ const FlakeyTests: React.FunctionComponent = () => {
           const impact:any = res.data
           console.log(impact)
           if(impact && impact.length>0){
-            setBarData(impact.map(impact => { impact.Date = impact.Date.split(' ')[0].split('T')[0]; return impact;}))
+            setBarData(impact.map(impact => { impact.Date = impact.date.split(' ')[0].split('T')[0]; return impact;}))
           }
           setLoadingSpinner(false)
         } else {
@@ -656,7 +660,7 @@ const FlakeyTests: React.FunctionComponent = () => {
                       <span style={{paddingLeft: '1em'}}>Impact on CI suite (%)</span>
                     </Title>
                     <SpinnerBasic isLoading={loadingSpinner}></SpinnerBasic>
-                    <ImpactChart data={barData} x="Date" y="global_impact" secondaryData={globalImpact}></ImpactChart>
+                    <ImpactChart data={barData} x="Date" y="global_impact" secondaryData={globalImpact} tertiaryData={globalImpact}></ImpactChart>
                   </div>
                 </GridItem>
               </Grid>  
