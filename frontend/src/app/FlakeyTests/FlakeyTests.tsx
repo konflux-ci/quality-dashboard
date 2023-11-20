@@ -41,7 +41,7 @@ export const SpinnerBasic: React.FunctionComponent<{isLoading:boolean}> = ({isLo
   )
 };
 
-const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?, tertiaryData}> = ({data, x, y, secondaryData, tertiaryData}) => {
+const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data, x, y, secondaryData}) => {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(100);
   const [height, setHeight] = useState(100);
@@ -92,10 +92,6 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?, tertiaryD
             }} data={ secondaryData.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
           }
 
-          <ChartScatter style={{
-              data: { fill: "orange" }
-            }} data={ data.map( (datum) => { return {"name": "Regression", "x": datum[x], "y": datum.regression ? parseFloat(datum.regression) : 0}  }) }/>
-
           <ChartArea style={{
               data: {
                 fill: "#6495ED", fillOpacity: 0.3
@@ -118,6 +114,65 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?, tertiaryD
     </div>
   )
 }
+
+const RegressionChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(100);
+  const [height, setHeight] = useState(100);
+
+  useLayoutEffect(() => {
+    if (ref.current && ref.current.offsetWidth>0) {
+      setWidth(ref.current.offsetWidth * 0.8 - 10);
+      setHeight(ref.current.offsetWidth * 0.8 * 0.4 -20);
+    }
+  }, []);
+
+  return (
+    <div style={{  width: '100%', height: '100%', boxShadow: "none" }} className={"pf-c-card"} ref={ref}>
+      <div style={{ height: height + 'px', width: width + 'px', background: "white", boxShadow: "none" }}>
+        {
+          data && data.length > 0 && <Chart
+          ariaDesc="Global impact"
+          ariaTitle="Global Impact"
+          containerComponent={<ChartVoronoiContainer labels={({ datum }) => `${datum.name}: ${datum.y}`} constrainToVisibleArea />}
+          domain={{y: [-1,101]}}
+          domainPadding={{ x: 0, y:0 }}
+          legendOrientation="vertical"
+          legendPosition="right"
+          height={height}
+          width={width}
+          name="chart1"
+          padding={{
+            bottom: 100,
+            left: 60,
+            right: 250,
+            top: 50
+          }}
+        >
+          <ChartAxis style={{ tickLabels: {angle :0, fontSize: 9}}} />
+          <ChartAxis dependentAxis />
+                  
+          <ChartScatter style={{ data: { fill: "orange" } }} data={ data.filter(d => d.jobs_executed != 0).map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
+
+          <ChartLine style={{ data: { stroke: "darkgray" } }} data={ data.filter(d => d.jobs_executed != 0).map( (datum) => { return {"name": "Regression", "x": datum[x], "y": datum.regression ? parseFloat(datum.regression) : 0}  }) }/>
+
+        </Chart>
+        }
+        {(!data || data.length == 0) && 
+          <div style={{ height: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+            <Skeleton height="25%" width="15%" screenreaderText="Loading contents" />
+            <Skeleton height="33%" width="15%" />
+            <Skeleton height="50%" width="15%" />
+            <Skeleton height="66%" width="15%" />
+            <Skeleton height="75%" width="15%" />
+            <Skeleton height="100%" width="15%" />
+          </div>
+        }
+      </div>
+    </div>
+  )
+}
+
 
 const PieChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
   const ref = useRef<HTMLDivElement>(null);
@@ -660,7 +715,8 @@ const FlakeyTests: React.FunctionComponent = () => {
                       <span style={{paddingLeft: '1em'}}>Impact on CI suite (%)</span>
                     </Title>
                     <SpinnerBasic isLoading={loadingSpinner}></SpinnerBasic>
-                    <ImpactChart data={barData} x="Date" y="global_impact" secondaryData={globalImpact} tertiaryData={globalImpact}></ImpactChart>
+                    <ImpactChart data={barData} x="Date" y="global_impact" secondaryData={globalImpact}></ImpactChart>
+                    <RegressionChart data={barData} x="jobs_executed" y="global_impact"></RegressionChart>
                   </div>
                 </GridItem>
               </Grid>  
