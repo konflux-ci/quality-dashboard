@@ -15,7 +15,7 @@ import { TextContent, Text, TextVariants } from '@patternfly/react-core';
 import { PageSection, PageSectionVariants, Title, TitleSizes } from '@patternfly/react-core';
 import { Dropdown, DropdownToggle, DropdownItem } from '@patternfly/react-core';
 import { ChartPie } from '@patternfly/react-charts';
-import { Chart, ChartAxis, ChartLine, ChartArea, ChartVoronoiContainer } from '@patternfly/react-charts';
+import { Chart, ChartAxis, ChartLine, ChartArea, ChartScatter, ChartVoronoiContainer } from '@patternfly/react-charts';
 import { Grid, GridItem, } from '@patternfly/react-core';
 import { Card, CardTitle, CardBody } from '@patternfly/react-core';
 import { Toolbar, ToolbarContent } from '@patternfly/react-core';
@@ -92,8 +92,8 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?, tertiaryD
             }} data={ secondaryData.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
           }
 
-          <ChartLine style={{
-              data: { stroke: "orange", strokeWidth: 3, strokeDasharray: '3,3' }
+          <ChartScatter style={{
+              data: { fill: "orange" }
             }} data={ data.map( (datum) => { return {"name": "Regression", "x": datum[x], "y": datum.regression ? parseFloat(datum.regression) : 0}  }) }/>
 
           <ChartArea style={{
