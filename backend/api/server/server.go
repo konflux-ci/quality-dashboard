@@ -18,10 +18,12 @@ import (
 	"github.com/redhat-appstudio/quality-studio/api/server/router/jira"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/repositories"
+	"github.com/redhat-appstudio/quality-studio/api/server/router/suites"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/teams"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/version"
 	_ "github.com/redhat-appstudio/quality-studio/docs/swagger"
 	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/connectors/gcs"
 	"github.com/redhat-appstudio/quality-studio/pkg/connectors/github"
 	jiraAPI "github.com/redhat-appstudio/quality-studio/pkg/connectors/jira"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
@@ -63,6 +65,7 @@ type Config struct {
 	CodeCov     *codecov.API
 	Db          *sql.DB
 	Slack       *slack.Client
+	GCS         *gcs.GCSBucket
 }
 
 // HTTPServer contains an instance of http server and the listener.
@@ -192,6 +195,7 @@ func (s *Server) InitRouter() {
 		teams.NewRouter(s.cfg.Storage),
 		jira.NewRouter(s.cfg.Storage),
 		database.NewRouter(s.cfg.Db),
+		suites.NewRouter(s.cfg.Storage),
 		failure.NewRouter(s.cfg.Storage))
 }
 

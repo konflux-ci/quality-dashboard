@@ -1,6 +1,10 @@
 package v1alpha1
 
-import "time"
+import (
+	"time"
+
+	"github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
+)
 
 // Prow Jobs desired specs.
 type Job struct {
@@ -45,4 +49,10 @@ type Job struct {
 
 	// Set of error logs from build-log.txt
 	BuildErrorLogs string `json:"build_error_logs"`
+}
+
+type ProwRepository struct {
+	Repository v1alpha1.Repository
+
+	JobsList []string `json:"jobs"`
 }

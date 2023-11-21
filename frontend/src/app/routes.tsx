@@ -80,6 +80,7 @@ const routes: AppRouteConfig[] = [
         label: 'Flaky Tests',
         path: '/home/flaky',
         title: 'Flaky Tests | Quality Studio',
+
       },
       {
         component: GitHub,
