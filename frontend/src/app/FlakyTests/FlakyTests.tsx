@@ -65,7 +65,7 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
           domainPadding={{ x: 0, y:0 }}
           legendOrientation="vertical"
           legendPosition="right"
-          legendData={[{name: "Global Impact", symbol: { fill: "green"}}, {name: "Flaky test impact", symbol: { fill: "#6495ED"}}]}
+          legendData={[ {name: "Global Impact", symbol: { fill: "green"}}, {name: "Flaky test impact", symbol: { fill: "#6495ED"}}]}
           height={height}
           width={width}
           name="chart1"
@@ -131,7 +131,7 @@ const RegressionChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => 
           ariaTitle="Regression"
           containerComponent={<ChartVoronoiContainer labels={({ datum }) => `${datum.name}: ${datum.y}`} constrainToVisibleArea />}
           domain={{y: [0, Math.max(...data.map(o => o.global_impact))], x: [0, Math.max(...data.map(o => o.jobs_executed))]}}
-          legendData={[{name: "Job-Impact", symbol: { fill: "orange"}}, {name: "Regression", symbol: { fill: "darkgray"}}]}
+          legendData={[{name: "X-axis: Job count", symbol: { fill: "white"}}, {name: "Y-axis: % failed jobs", symbol: { fill: "white"}}, {name: "Job-Impact", symbol: { fill: "orange"}}, {name: "Regression", symbol: { fill: "darkgray"}}]}
           domainPadding={{ x: 0, y:0 }}
           legendOrientation="vertical"
           legendPosition="right"
