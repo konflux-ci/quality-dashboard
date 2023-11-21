@@ -19,7 +19,7 @@ type GCSBucket struct {
 }
 
 func BucketHandleClient() *GCSBucket {
-	d, _ := storage.NewClient(context.Background(), option.WithCredentialsFile("/home/flacatus/WORKSPACE/appstudio-qe/fla_utils/redhatappstudiosa-36243d1d0e49.json"))
+	d, _ := storage.NewClient(context.Background(), option.WithoutAuthentication())
 
 	return &GCSBucket{
 		bkt: d.Bucket(OpenshiCiBucketName),
