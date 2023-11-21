@@ -10,6 +10,7 @@ import {
     ThProps,
 } from '@patternfly/react-table';
 import { Bug } from './Types';
+import { fillPopOver } from '@app/Github/Table';
 
 export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> = ({ bugSLIs, selected }) => {
     const [bugSLIsPage, setBugSLIsPage] = useState<Array<Bug>>([]);
@@ -203,6 +204,12 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
             return "#FAEE84"
         }
     }
+    const getInfo = (label) => {
+        if (label == 'Days Without Assignment' || label == 'Days Without Prioritization' || label == 'Days Without Resolution') {
+            return fillPopOver(label, "Only considers working days.")
+        }
+        return
+    }
 
     return (
         <div>
@@ -226,6 +233,7 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
                                     width={10}
                                     sort={getSortParams(idx)}
                                     key={idx}
+                                    info={getInfo(column.label)}
                                 >
                                     <div>
                                         {column.label}
