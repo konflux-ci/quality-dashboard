@@ -1,6 +1,7 @@
 package util
 
 import (
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -84,4 +85,9 @@ func GetPortEnv(key string, defaultVal uint16) uint16 {
 func CheckIfEnvironmentExists(env string) bool {
 	_, exist := os.LookupEnv(env)
 	return exist
+}
+
+// Round float64 to 2 decimals
+func RoundTo(n float64, decimals uint32) float64 {
+	return math.Round(n*math.Pow(10, float64(decimals))) / math.Pow(10, float64(decimals))
 }

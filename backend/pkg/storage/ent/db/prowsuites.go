@@ -5,6 +5,7 @@ package db
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
@@ -18,12 +19,22 @@ type ProwSuites struct {
 	ID int `json:"id,omitempty"`
 	// JobID holds the value of the "job_id" field.
 	JobID string `json:"job_id,omitempty"`
+	// JobURL holds the value of the "job_url" field.
+	JobURL string `json:"job_url,omitempty"`
+	// JobName holds the value of the "job_name" field.
+	JobName string `json:"job_name,omitempty"`
+	// SuiteName holds the value of the "suite_name" field.
+	SuiteName string `json:"suite_name,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
+	// ErrorMessage holds the value of the "error_message" field.
+	ErrorMessage *string `json:"error_message,omitempty"`
 	// Time holds the value of the "time" field.
 	Time float64 `json:"time,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt *time.Time `json:"created_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProwSuitesQuery when eager-loading is set.
 	Edges                  ProwSuitesEdges `json:"edges"`
@@ -61,8 +72,10 @@ func (*ProwSuites) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case prowsuites.FieldID:
 			values[i] = new(sql.NullInt64)
-		case prowsuites.FieldJobID, prowsuites.FieldName, prowsuites.FieldStatus:
+		case prowsuites.FieldJobID, prowsuites.FieldJobURL, prowsuites.FieldJobName, prowsuites.FieldSuiteName, prowsuites.FieldName, prowsuites.FieldStatus, prowsuites.FieldErrorMessage:
 			values[i] = new(sql.NullString)
+		case prowsuites.FieldCreatedAt:
+			values[i] = new(sql.NullTime)
 		case prowsuites.ForeignKeys[0]: // repository_prow_suites
 			values[i] = new(sql.NullString)
 		default:
@@ -92,6 +105,24 @@ func (ps *ProwSuites) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ps.JobID = value.String
 			}
+		case prowsuites.FieldJobURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field job_url", values[i])
+			} else if value.Valid {
+				ps.JobURL = value.String
+			}
+		case prowsuites.FieldJobName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field job_name", values[i])
+			} else if value.Valid {
+				ps.JobName = value.String
+			}
+		case prowsuites.FieldSuiteName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field suite_name", values[i])
+			} else if value.Valid {
+				ps.SuiteName = value.String
+			}
 		case prowsuites.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
@@ -104,11 +135,25 @@ func (ps *ProwSuites) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ps.Status = value.String
 			}
+		case prowsuites.FieldErrorMessage:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field error_message", values[i])
+			} else if value.Valid {
+				ps.ErrorMessage = new(string)
+				*ps.ErrorMessage = value.String
+			}
 		case prowsuites.FieldTime:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
 				return fmt.Errorf("unexpected type %T for field time", values[i])
 			} else if value.Valid {
 				ps.Time = value.Float64
+			}
+		case prowsuites.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				ps.CreatedAt = new(time.Time)
+				*ps.CreatedAt = value.Time
 			}
 		case prowsuites.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -153,14 +198,33 @@ func (ps *ProwSuites) String() string {
 	builder.WriteString("job_id=")
 	builder.WriteString(ps.JobID)
 	builder.WriteString(", ")
+	builder.WriteString("job_url=")
+	builder.WriteString(ps.JobURL)
+	builder.WriteString(", ")
+	builder.WriteString("job_name=")
+	builder.WriteString(ps.JobName)
+	builder.WriteString(", ")
+	builder.WriteString("suite_name=")
+	builder.WriteString(ps.SuiteName)
+	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(ps.Name)
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(ps.Status)
 	builder.WriteString(", ")
+	if v := ps.ErrorMessage; v != nil {
+		builder.WriteString("error_message=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
 	builder.WriteString("time=")
 	builder.WriteString(fmt.Sprintf("%v", ps.Time))
+	builder.WriteString(", ")
+	if v := ps.CreatedAt; v != nil {
+		builder.WriteString("created_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

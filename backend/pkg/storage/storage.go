@@ -9,6 +9,7 @@ import (
 	failureV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/failure/v1alpha1"
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	jiraV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/jira/v1alpha1"
+	"github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 )
@@ -47,7 +48,11 @@ type Storage interface {
 	GetJiraStatus(key string) (string, error)
 	GetFailuresByDate(team *db.Teams, startDate, endDate string) ([]*failureV1Alpha1.Failure, error)
 	GetAllFailures(team *db.Teams) ([]*db.Failure, error)
+	ListAllRepositories() ([]*db.Repository, error)
 	BugExists(projectKey string, t *db.Teams) (bool, error)
+	GetSuitesFailureFrequency(gitOrg string, repoName string, jobName string, startDate string, endDate string) (*v1alpha1.FlakyFrequency, error)
+	GetProwFlakyTrendsMetrics(gitOrg string, repoName string, jobName string, startDate string, endDate string) []v1alpha1.FlakyMetrics
+	GetProwJobsByRepoOrg(repo *db.Repository) ([]string, error)
 
 	// POST
 	CreateRepository(p repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error)

@@ -24,11 +24,11 @@ type ProwJobs struct {
 	// Duration holds the value of the "duration" field.
 	Duration float64 `json:"duration,omitempty"`
 	// TestsCount holds the value of the "tests_count" field.
-	TestsCount int64 `json:"tests_count,omitempty"`
+	TestsCount *int64 `json:"tests_count,omitempty"`
 	// FailedCount holds the value of the "failed_count" field.
-	FailedCount int64 `json:"failed_count,omitempty"`
+	FailedCount *int64 `json:"failed_count,omitempty"`
 	// SkippedCount holds the value of the "skipped_count" field.
-	SkippedCount int64 `json:"skipped_count,omitempty"`
+	SkippedCount *int64 `json:"skipped_count,omitempty"`
 	// JobName holds the value of the "job_name" field.
 	JobName string `json:"job_name,omitempty"`
 	// JobType holds the value of the "job_type" field.
@@ -131,19 +131,22 @@ func (pj *ProwJobs) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field tests_count", values[i])
 			} else if value.Valid {
-				pj.TestsCount = value.Int64
+				pj.TestsCount = new(int64)
+				*pj.TestsCount = value.Int64
 			}
 		case prowjobs.FieldFailedCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field failed_count", values[i])
 			} else if value.Valid {
-				pj.FailedCount = value.Int64
+				pj.FailedCount = new(int64)
+				*pj.FailedCount = value.Int64
 			}
 		case prowjobs.FieldSkippedCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field skipped_count", values[i])
 			} else if value.Valid {
-				pj.SkippedCount = value.Int64
+				pj.SkippedCount = new(int64)
+				*pj.SkippedCount = value.Int64
 			}
 		case prowjobs.FieldJobName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -245,14 +248,20 @@ func (pj *ProwJobs) String() string {
 	builder.WriteString("duration=")
 	builder.WriteString(fmt.Sprintf("%v", pj.Duration))
 	builder.WriteString(", ")
-	builder.WriteString("tests_count=")
-	builder.WriteString(fmt.Sprintf("%v", pj.TestsCount))
+	if v := pj.TestsCount; v != nil {
+		builder.WriteString("tests_count=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
-	builder.WriteString("failed_count=")
-	builder.WriteString(fmt.Sprintf("%v", pj.FailedCount))
+	if v := pj.FailedCount; v != nil {
+		builder.WriteString("failed_count=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
-	builder.WriteString("skipped_count=")
-	builder.WriteString(fmt.Sprintf("%v", pj.SkippedCount))
+	if v := pj.SkippedCount; v != nil {
+		builder.WriteString("skipped_count=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("job_name=")
 	builder.WriteString(pj.JobName)
