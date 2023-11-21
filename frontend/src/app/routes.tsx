@@ -10,9 +10,10 @@ import { ReactReduxContext } from 'react-redux';
 import { Jira } from './Jira/Jira';
 import { GitHub } from './Github/Github';
 import { Config } from './Config/Config';
-import { initOauthFlow, completeOauthFlow, OauthData, refreshTokenFlow } from '@app/utils/oauth'
+import { refreshTokenFlow } from '@app/utils/oauth'
 import { CiFailures } from './CiFailures/CiFailures';
 import { BugSLIs } from './BugSLIs/MainPage';
+import { FlakeyTests } from './FlakeyTests/FlakeyTests';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -71,6 +72,15 @@ const routes: AppRouteConfig[] = [
   {
     label: 'Plugins',
     routes: [
+      {
+        component: FlakeyTests,
+        exact: true,
+        isAsync: true,
+        isProtected: true,
+        label: 'Flakey Tests',
+        path: '/home/flakey',
+        title: 'Flakey Tests | Quality Studio',
+      },
       {
         component: GitHub,
         exact: true,
@@ -175,7 +185,7 @@ const AppRoutes = (): React.ReactElement => {
       if (new Date(state.auth.AT_expiration * 1000) < now) {
         (async () => {
           try {
-            let data = await refreshTokenFlow(state.auth.RT)
+            const data = await refreshTokenFlow(state.auth.RT)
             dispatch({ type: "SET_REFRESH_TOKEN", data: data.RT });
             dispatch({ type: "SET_ACCESS_TOKEN", data: data.AT });
             dispatch({ type: "SET_ID_TOKEN", data: data.IDT });
