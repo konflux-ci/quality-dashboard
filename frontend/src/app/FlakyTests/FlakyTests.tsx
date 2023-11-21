@@ -58,9 +58,6 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
       <div style={{ height: height + 'px', width: width + 'px', background: "white", boxShadow: "none" }}>
         {
           data && data.length > 0 && <Chart
-          style={{
-            background: { fill: "red", opacity: 0.1 }
-          }}
           ariaDesc="Global impact"
           ariaTitle="Global Impact"
           containerComponent={<ChartVoronoiContainer labels={({ datum }) => `${datum.name}: ${datum.y}`} constrainToVisibleArea />}
@@ -68,7 +65,7 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
           domainPadding={{ x: 0, y:0 }}
           legendOrientation="vertical"
           legendPosition="right"
-          legendData={[{name: "Global Impact", symbol: { fill: "green"}}, {name: "Flaky test impact", symbol: { fill: "#6495ED"}}, {name: "Quarantine zone", symbol: { fill: "red"}}]}
+          legendData={[{name: "Global Impact", symbol: { fill: "green"}}, {name: "Flaky test impact", symbol: { fill: "#6495ED"}}]}
           height={height}
           width={width}
           name="chart1"
@@ -79,16 +76,14 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
             top: 50
           }}
         >
-          <ChartAxis style={{ tickLabels: {angle :0, fontSize: 9}}} />
-          <ChartAxis dependentAxis />
+          <ChartAxis showGrid style={{ tickLabels: {angle :0, fontSize: 9}}} />
+          <ChartAxis showGrid dependentAxis />
                   
           <ChartLine data={ data.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
 
           {
             secondaryData && <ChartArea style={{
-              data: {
-                fill: "white", fillOpacity: 1, stroke: "green", strokeWidth: 3
-              }
+              data: {stroke: "green", strokeWidth: 3}
             }} data={ secondaryData.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
           }
 
@@ -132,8 +127,8 @@ const RegressionChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => 
       <div style={{ height: height + 'px', width: width + 'px', background: "white", boxShadow: "none" }}>
         {
           data && data.length > 0 && <Chart
-          ariaDesc="Global impact"
-          ariaTitle="Global Impact"
+          ariaDesc="Regression"
+          ariaTitle="Regression"
           containerComponent={<ChartVoronoiContainer labels={({ datum }) => `${datum.name}: ${datum.y}`} constrainToVisibleArea />}
           domain={{y: [0, Math.max(...data.map(o => o.global_impact))], x: [0, Math.max(...data.map(o => o.jobs_executed))]}}
           legendData={[{name: "Job-Impact", symbol: { fill: "orange"}}, {name: "Regression", symbol: { fill: "darkgray"}}]}
@@ -150,8 +145,8 @@ const RegressionChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => 
             top: 50
           }}
         >
-          <ChartAxis style={{ tickLabels: {angle :0, fontSize: 9}}} />
-          <ChartAxis dependentAxis />
+          <ChartAxis showGrid style={{ tickLabels: {angle :0, fontSize: 9}}} />
+          <ChartAxis showGrid dependentAxis />
                   
           <ChartScatter style={{ data: { fill: "orange" } }} data={ data.filter(d => d.jobs_executed != 0).sort((aValue, bValue)=>{return (aValue.jobs_executed as number) - (bValue.jobs_executed as number)}).map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
 
@@ -329,7 +324,7 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
     sortBy: {
       index: activeSortIndex,
       direction: activeSortDirection,
-      defaultDirection: 'asc' // starting sort direction when first sorting a column. Defaults to 'asc'
+      defaultDirection: 'desc'
     },
     onSort: (_event, index, direction) => {
       setActiveSortIndex(index);
@@ -362,7 +357,37 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
     }
   }
 
-  const countFailingSuites = (suite:Flakey):number => {
+  const [simpleSortIndex, setSimpleSortIndex] = React.useState<number>(0);
+  const [simpleSortDirection, setSimpleSortDirection] = React.useState<'asc' | 'desc' >('desc');
+  const onSimpleSort = (a, b) => {
+    const aValue = getSimpleSortableRowValues(a)[simpleSortIndex];
+    const bValue = getSimpleSortableRowValues(b)[simpleSortIndex];
+
+    if (simpleSortDirection === 'asc') {
+      return (aValue as number) - (bValue as number);
+    }
+    return (bValue as number) - (aValue as number);
+  }
+
+  const getSimpleSortableRowValues = (flakey:any): (number)[] => {
+    const { count, test_case_impact } = flakey;
+    return [ count, test_case_impact ];
+  };
+
+  const getSimpleSortParams = (columnIndex: number): ThProps['sort'] => ({
+    sortBy: {
+      index: simpleSortIndex,
+      direction: simpleSortDirection,
+      defaultDirection: 'desc' 
+    },
+    onSort: (_event, index, direction) => {
+      setSimpleSortIndex(index);
+      setSimpleSortDirection(direction);
+    },
+    columnIndex
+  });
+
+  const countFailingSuites = (suite:Flakey) => {
     const sum = suite.test_cases.reduce((accumulator, object) => {
       return accumulator + object.count;
     }, 0);
@@ -412,15 +437,15 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
                             <Tr>
                               <Th width={80} rowSpan={2} />
                               <Th>Test Name</Th>
-                              <Th width={10}>
+                              <Th width={10} sort={getSimpleSortParams(1)}>
                                 Impact
                               </Th>
-                              <Th width={10}>
+                              <Th width={10} sort={getSimpleSortParams(0)}>
                                 Count
                               </Th>
                             </Tr>
                           </Thead>
-                          {suite.test_cases && suite.test_cases.sort((a,b) => b.count - a.count).map((test_case, tc_idx) => (
+                          {suite.test_cases && suite.test_cases.sort(onSimpleSort).map((test_case, tc_idx) => (
                             <Tbody key={test_case.name+tc_idx}>
                               <Tr>
                                 <Td expand={{ rowIndex, isExpanded: isTestCaseExpanded(test_case.name), onToggle: () => setTestCaseExpanded(test_case.name, !isTestCaseExpanded(test_case.name))}}/>
@@ -438,7 +463,6 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
                                 <Td></Td>
                                 <Td colSpan={3}>
                                   <ExpandableRowContent>
-
                                     <TableComposable aria-label="Error messages" variant="compact">
                                       <Thead>
                                         <Tr>
@@ -470,7 +494,6 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
                                       }
                                     </TableComposable>
                                   </ExpandableRowContent>
-
                                 </Td>
                               </Tr>
                             </Tbody>
@@ -699,14 +722,12 @@ const FlakyTests: React.FunctionComponent = () => {
                   <div>
                     <Title headingLevel="h3">
                       <Popover
-                        aria-label="Hoverable popover"
                         headerContent={<div>What is this chart about?</div>}
-                        bodyContent={<div>
-                          <Title headingLevel="h2">Quarantine zone</Title>
-                            <Text>Flakiness reaching the quarantine zone indicates i big impact on CI over that period of time.</Text>
+                        bodyContent={
+                          <div>
                             <Title headingLevel="h2">Global impact</Title>
                             <Text>Global impact shows the average of the tests impact in the selected time range.</Text>
-                        </div>
+                          </div>
                         }
                       >
                         <InfoCircleIcon></InfoCircleIcon>
@@ -715,6 +736,9 @@ const FlakyTests: React.FunctionComponent = () => {
                     </Title>
                     <SpinnerBasic isLoading={loadingSpinner}></SpinnerBasic>
                     <ImpactChart data={barData} x="Date" y="global_impact" secondaryData={globalImpact}></ImpactChart>
+                    <Title headingLevel="h3">
+                      <span style={{paddingLeft: '1em'}}>Regression Chart</span>
+                    </Title>
                     <RegressionChart data={barData} x="jobs_executed" y="global_impact"></RegressionChart>
                   </div>
                 </GridItem>
