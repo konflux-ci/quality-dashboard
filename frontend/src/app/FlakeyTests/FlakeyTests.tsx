@@ -174,7 +174,6 @@ const RegressionChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => 
   )
 }
 
-
 const PieChart:React.FunctionComponent<{data, x, y}> = ({data, x, y}) => {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
@@ -653,7 +652,6 @@ const FlakeyTests: React.FunctionComponent = () => {
       getGlobalImpactData(currentTeam, selectedJob, selectedRepo, startDate, endDate, "redhat-appstudio").then(res => {
         if(res.code == 200){
           const impact:any = res.data
-          console.log(impact)
           if(impact && impact.length>0){
             setBarData(impact.map(impact => { impact.Date = impact.date.split(' ')[0].split('T')[0]; return impact;}))
           }
