@@ -82,8 +82,8 @@ const ImpactChart:React.FunctionComponent<{data, x, y, secondaryData?}> = ({data
           <ChartLine data={ data.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
 
           {
-            secondaryData && <ChartArea style={{
-              data: {stroke: "green", strokeWidth: 3}
+            secondaryData && <ChartLine style={{
+              data: {stroke: "green", strokeWidth: 2}
             }} data={ secondaryData.map( (datum) => { return {"name": datum[x], "x": datum[x], "y": datum[y] ? parseFloat(datum[y]) : 0}  }) }/>
           }
 
