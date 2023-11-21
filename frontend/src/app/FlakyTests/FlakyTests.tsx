@@ -420,7 +420,7 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
                               </Th>
                             </Tr>
                           </Thead>
-                          {suite.test_cases && suite.test_cases.map((test_case, tc_idx) => (
+                          {suite.test_cases && suite.test_cases.sort((a,b) => b.count - a.count).map((test_case, tc_idx) => (
                             <Tbody key={test_case.name+tc_idx}>
                               <Tr>
                                 <Td expand={{ rowIndex, isExpanded: isTestCaseExpanded(test_case.name), onToggle: () => setTestCaseExpanded(test_case.name, !isTestCaseExpanded(test_case.name))}}/>
@@ -496,7 +496,7 @@ export const DatePickerMinMax: React.FunctionComponent<{selectedDate: string | u
   return <DatePicker name={name} onChange={onDateChange} value={selectedDate?.split('T')[0]} />;
 };
 
-const FlakeyTests: React.FunctionComponent = () => {
+const FlakyTests: React.FunctionComponent = () => {
   const [toggles, setToggles] = React.useState<any>([])
   const [selectedSuite, setSelectedSuite] = React.useState<string>('')
   const [data, setData] = React.useState<any>([])
@@ -627,7 +627,7 @@ const FlakeyTests: React.FunctionComponent = () => {
       setStartDate(new Date( value ).toISOString())
     }
     if(name=='end-date'){ 
-      setEndDate(new Date( value ).toISOString()) 
+      setEndDate(new Date(new Date( value ).setUTCHours(23, 59, 0, 0)).toISOString()) 
     }
   }
 
@@ -745,4 +745,4 @@ const FlakeyTests: React.FunctionComponent = () => {
   )
 }
 
-export { FlakeyTests };
+export { FlakyTests };

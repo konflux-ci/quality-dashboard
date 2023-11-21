@@ -13,7 +13,7 @@ import { Config } from './Config/Config';
 import { refreshTokenFlow } from '@app/utils/oauth'
 import { CiFailures } from './CiFailures/CiFailures';
 import { BugSLIs } from './BugSLIs/MainPage';
-import { FlakeyTests } from './FlakeyTests/FlakeyTests';
+import { FlakyTests } from './FlakyTests/FlakyTests';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -73,13 +73,13 @@ const routes: AppRouteConfig[] = [
     label: 'Plugins',
     routes: [
       {
-        component: FlakeyTests,
+        component: FlakyTests,
         exact: true,
         isAsync: true,
         isProtected: true,
-        label: 'Flakey Tests',
-        path: '/home/flakey',
-        title: 'Flakey Tests | Quality Studio',
+        label: 'Flaky Tests',
+        path: '/home/flaky',
+        title: 'Flaky Tests | Quality Studio',
       },
       {
         component: GitHub,
