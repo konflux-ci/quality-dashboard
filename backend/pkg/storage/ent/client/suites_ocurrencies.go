@@ -203,17 +203,13 @@ func (d *Database) calculateRegression(ms []v1alpha1.FlakyMetrics) []v1alpha1.Fl
 	var lr ml.LinearRegression
 
 	for _, m := range ms {
-		if m.JobsExecuted > 0 {
-			x = append(x, float64(m.JobsExecuted))
-			y = append(y, m.GlobalImpact)
-		}
+		x = append(x, float64(m.JobsExecuted))
+		y = append(y, m.GlobalImpact)
 	}
 
 	lr.Fit(x, y)
 	for i, m := range ms {
-		if m.JobsExecuted > 0 {
-			ms[i].Regression = lr.Predict(float64(m.JobsExecuted))
-		}
+		ms[i].Regression = lr.Predict(float64(m.JobsExecuted))
 	}
 
 	return ms

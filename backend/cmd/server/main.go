@@ -96,6 +96,7 @@ func main() {
 	jiraAPI := jiraAPI.NewJiraConfig()
 	githubClient := github.NewGithubClient(util.GetEnv(DefaultGithubTokenEnv, ""))
 	g := gcs.BucketHandleClient()
+
 	server := server.New(&server.Config{
 		Logger:  logger,
 		Version: version.ServerVersion,

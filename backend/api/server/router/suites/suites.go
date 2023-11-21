@@ -2,7 +2,6 @@ package suites
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/redhat-appstudio/quality-studio/api/types"
@@ -60,8 +59,6 @@ func (s *suitesRouter) getTrends(ctx context.Context, w http.ResponseWriter, r *
 	jobName := r.URL.Query()["job_name"]
 	startDate := r.URL.Query()["start_date"]
 	endDate := r.URL.Query()["end_date"]
-
-	fmt.Println(startDate[0], endDate[0])
 
 	if len(repositoryName) == 0 {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
