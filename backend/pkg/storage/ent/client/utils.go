@@ -103,9 +103,9 @@ func getDaysBetweenDates(firstDate, secondDate time.Time) float64 {
 	return diff
 }
 
-// getBusinessDays only includes business days by excluding weekend days
-func getBusinessDays(fromDate, toDate time.Time) float64 {
-	var businessDays float64 = 0
+// getWorkingDays only includes business days by excluding weekend days
+func getWorkingDays(fromDate, toDate time.Time) float64 {
+	var workingDays float64 = 0
 	previousDate := fromDate
 	nextDate := previousDate.Add(time.Hour * 24)
 
@@ -115,14 +115,14 @@ func getBusinessDays(fromDate, toDate time.Time) float64 {
 		}
 		if previousDate.Weekday() != 6 && previousDate.Weekday() != 0 {
 			if toDate.Before(nextDate) {
-				businessDays += getDaysBetweenDates(previousDate, toDate)
+				workingDays += getDaysBetweenDates(previousDate, toDate)
 			} else {
-				businessDays += getDaysBetweenDates(previousDate, nextDate)
+				workingDays += getDaysBetweenDates(previousDate, nextDate)
 			}
 		}
 		previousDate = nextDate
 		nextDate = previousDate.Add(time.Hour * 24)
 	}
 
-	return businessDays
+	return workingDays
 }
