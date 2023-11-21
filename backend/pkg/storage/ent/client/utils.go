@@ -90,14 +90,6 @@ func getRange(i int, day string, dayArr []string) (string, string) {
 	return start, end
 }
 
-// handleNaN returns 0 in case of a NaN float
-func handleNaN(nr float64) float64 {
-	if math.IsNaN(nr) {
-		return 0
-	}
-	return nr
-}
-
 // getDaysBetweenDates gets the number of days between two dates
 func getDaysBetweenDates(firstDate, secondDate time.Time) float64 {
 	diff := secondDate.Sub(firstDate).Hours()
@@ -109,4 +101,28 @@ func getDaysBetweenDates(firstDate, secondDate time.Time) float64 {
 	diff = math.Round(diff*100) / 100
 
 	return diff
+}
+
+// getBusinessDays only includes business days by excluding weekend days
+func getBusinessDays(fromDate, toDate time.Time) float64 {
+	var businessDays float64 = 0
+	previousDate := fromDate
+	nextDate := previousDate.Add(time.Hour * 24)
+
+	for {
+		if previousDate.Equal(toDate) || previousDate.Equal(nextDate) || previousDate.After(toDate) || previousDate.After(nextDate) {
+			break
+		}
+		if previousDate.Weekday() != 6 && previousDate.Weekday() != 0 {
+			if toDate.Before(nextDate) {
+				businessDays += getDaysBetweenDates(previousDate, toDate)
+			} else {
+				businessDays += getDaysBetweenDates(previousDate, nextDate)
+			}
+		}
+		previousDate = nextDate
+		nextDate = previousDate.Add(time.Hour * 24)
+	}
+
+	return businessDays
 }

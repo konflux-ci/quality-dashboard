@@ -64,6 +64,12 @@ export const PullRequestCard = (props) => {
           {props.title == 'Retest Avg in Open PRs' && (
             help("Average retests in open PRs: calculate an average how many /test and /retest comments were in total issued for pull requests opened in selected time range")
           )}
+          {props.title == 'Created PRs' && (
+            help("Count of created PRs: count of all PRs created in the selected time range")
+          )}
+          {props.title == 'Merged PRs' && props.subtitle == 'Selected Time Range' && (
+            help("Count of merged PRs: count of all PRs merged in the selected time range")
+          )}
           {props.title == 'Retest Before Merge Avg' && (
             help("Retests to merge: calculate an average how many /test and /retest comments were issued after the last code push")
           )}

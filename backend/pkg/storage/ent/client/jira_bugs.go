@@ -65,7 +65,7 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetPriority(bug.Fields.Priority.Name).
 				SetSummary(bug.Fields.Summary).
 				SetURL(fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key)).
-				SetStatus(bug.Fields.Status.Description).
+				SetStatus(bug.Fields.Status.Name).
 				SetBugs(team).
 				SetProjectKey(getProjectKey(bug.Key)).
 				SetAssignmentTime(jiraBugMetricsInfo.AssignmentTime).
@@ -90,7 +90,7 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetPriority(bug.Fields.Priority.Name).
 				SetSummary(bug.Fields.Summary).
 				SetURL(fmt.Sprintf("https://issues.redhat.com/browse/%s", bug.Key)).
-				SetStatus(bug.Fields.Status.Description).
+				SetStatus(bug.Fields.Status.Name).
 				SetBugs(team).
 				SetProjectKey(getProjectKey(bug.Key)).
 				SetAssignmentTime(jiraBugMetricsInfo.AssignmentTime).
@@ -412,6 +412,7 @@ func (d *Database) getJiraBugMetrics(bug jira.Issue) JiraBugMetricsInfo {
 
 	createdTime := time.Time(bug.Fields.Created).UTC()
 	daysSinceCreation := getDaysBetweenDates(createdTime, time.Now().UTC())
+	businessDaysSinceCreation := getBusinessDays(createdTime, time.Now().UTC())
 
 	if bug.Fields.Status.Name == "Closed" || bug.Fields.Status.Name == "Resolved" || bug.Fields.Status.Name == "Done" {
 		// issue was closed
@@ -459,12 +460,12 @@ func (d *Database) getJiraBugMetrics(bug jira.Issue) JiraBugMetricsInfo {
 
 	// assignee was not defined
 	if bug.Fields.Assignee == nil {
-		jiraBugMetric.DaysWithoutAssignee = daysSinceCreation
+		jiraBugMetric.DaysWithoutAssignee = businessDaysSinceCreation
 	}
 
 	// priority was not defined
 	if bug.Fields.Priority == nil || bug.Fields.Priority.Name == "Undefined" {
-		jiraBugMetric.DaysWithoutPriority = daysSinceCreation
+		jiraBugMetric.DaysWithoutPriority = businessDaysSinceCreation
 	}
 
 	return jiraBugMetric
