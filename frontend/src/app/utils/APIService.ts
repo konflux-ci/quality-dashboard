@@ -542,8 +542,9 @@ async function getFailures(team: string, rangeDateTime: Date[]) {
       result.code = err.statusCode;
       result.data = err.data;
     });
-  return result;
 
+  console.log("res", result)
+  return result;
 }
 
 async function createFailure(team: string, jiraKey: string, errorMessage: string) {
@@ -645,7 +646,7 @@ async function getRepositoriesWithJobs(team: string) {
   return result;
 }
 
-async function getFlakyData(team:string, job: string, repo: string, startDate: string, endDate: string, gitOrg: string) {
+async function getFlakyData(team: string, job: string, repo: string, startDate: string, endDate: string, gitOrg: string) {
   const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
   const subPath = '/api/quality/suites/ocurrencies';
   const uri = API_URL + subPath;
@@ -673,7 +674,7 @@ async function getFlakyData(team:string, job: string, repo: string, startDate: s
   return result;
 }
 
-async function getGlobalImpactData(team:string, job: string, repo: string, startDate: string, endDate: string, gitOrg: string) {
+async function getGlobalImpactData(team: string, job: string, repo: string, startDate: string, endDate: string, gitOrg: string) {
   const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
   const subPath = '/api/quality/suites/flaky/trends';
   const uri = API_URL + subPath;
