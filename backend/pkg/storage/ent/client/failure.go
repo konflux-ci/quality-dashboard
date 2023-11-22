@@ -72,15 +72,16 @@ func (d *Database) GetFrequency(team *db.Teams, errorMessage, startDate, endDate
 			for _, prowJob := range prowJobs {
 				total++
 
-				fmt.Println("prowJob.E2eFailedTestMessages", *prowJob.E2eFailedTestMessages)
-
 				if prowJob.E2eFailedTestMessages != nil {
+					fmt.Println("prowJob.E2eFailedTestMessages", *prowJob.E2eFailedTestMessages)
 					if strings.Contains(*prowJob.E2eFailedTestMessages, errorMessage) {
 						occurrences++
 					}
 				}
 
 				if prowJob.BuildErrorLogs != nil {
+					fmt.Println("prowJob.BuildErrorLogs", *prowJob.BuildErrorLogs)
+
 					if strings.Contains(*prowJob.BuildErrorLogs, errorMessage) {
 						occurrences++
 					}
@@ -107,7 +108,6 @@ func (d *Database) GetFailuresByDate(team *db.Teams, startDate, endDate string) 
 	}
 
 	fmt.Println("len(dbFailures)", len(dbFailures))
-	fmt.Println("error message", dbFailures[0].ErrorMessage)
 
 	failures := make([]*failureV1Alpha1.Failure, 0)
 
