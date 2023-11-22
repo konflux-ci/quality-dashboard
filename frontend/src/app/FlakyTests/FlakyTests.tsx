@@ -699,7 +699,7 @@ const FlakyTests: React.FunctionComponent = () => {
           <Grid hasGutter>
             <GridItem span={12}>
               <TextContent className='bg-white'>
-                <Text component={TextVariants.h1}>Flaky tetst</Text>
+                <Text component={TextVariants.h1}>Flaky tests</Text>
               </TextContent>
             </GridItem>
             <GridItem span={12}>
