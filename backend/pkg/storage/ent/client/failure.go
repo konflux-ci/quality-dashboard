@@ -58,6 +58,9 @@ func (d *Database) GetFrequency(team *db.Teams, errorMessage, startDate, endDate
 		return 0, convertDBError("list repositories: %w", err)
 	}
 
+	fmt.Println("team", team.TeamName)
+	fmt.Println("len repos", len(repositories))
+
 	for _, repo := range repositories {
 		if repo.RepositoryName == "e2e-tests" || repo.RepositoryName == "infra-deployments" {
 			prowJobs, err := d.client.Repository.QueryProwJobs(repo).Select().
@@ -68,6 +71,8 @@ func (d *Database) GetFrequency(team *db.Teams, errorMessage, startDate, endDate
 			if err != nil {
 				fmt.Printf("failed to get prow jobs for repo %s: %v", err, repo.RepositoryName)
 			}
+
+			fmt.Println("len prowJobs", len(prowJobs))
 
 			for _, prowJob := range prowJobs {
 				total++
@@ -100,6 +105,9 @@ func (d *Database) GetFailuresByDate(team *db.Teams, startDate, endDate string) 
 	if err != nil {
 		return nil, convertDBError("list failures: %w", err)
 	}
+
+	fmt.Println("len(dbFailures)", len(dbFailures))
+	fmt.Println("error message", dbFailures[0].ErrorMessage)
 
 	failures := make([]*failureV1Alpha1.Failure, 0)
 
