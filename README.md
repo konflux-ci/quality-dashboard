@@ -224,12 +224,12 @@ RHTAPBUGS Impact on CI plugin lists the RHTAPBUGS that are impacting CI, by show
 To add a new entry, you need to point out the Jira Key of the bug and the associated error message.
 
 #### How the frequency/impact is being measured?
-Since we are saving the prow jobs on our db, we can also [save the error messages](https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/api/server/prow_rotate.go#L143-L145) related to each prow job.
+Since we are saving the prow jobs on our db, we can also [save the error messages](https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/api/server/prow_rotate.go#L133-L135) related to each prow job.
 We are saving two types of error messages:
  - E2E Failed Test Messages: Messages related to failed E2E tests.
  - Build Error Logs: If there is no E2E Failed Test Messages, we save the last 50 lines of the build-log.txt in order to help us find infra errors, for example. We are only saving the last 50 days because we believe it is enough to catch the build errors.
 
-To calculate the impact of each bug, in the date time range selected, we will search for all the prow jobs and verify in how many prow jobs the bug's error message is present in the E2E Failed Test Messages or Build Error Logs. You can find the code (here)[https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/pkg/storage/ent/client/failure.go#L52-L96].
+To calculate the impact of each failure (in the Failures table), in the date time range selected, we will search for all the prow jobs and verify in how many prow jobs the bug's error message is present in the E2E Failed Test Messages or Build Error Logs. You can find the code (here)[https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/pkg/storage/ent/client/failure.go#L52-L96].
 
 ## Connectors
 
