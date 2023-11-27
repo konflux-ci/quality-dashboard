@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -28,6 +29,24 @@ func (psc *ProwSuitesCreate) SetJobID(s string) *ProwSuitesCreate {
 	return psc
 }
 
+// SetJobURL sets the "job_url" field.
+func (psc *ProwSuitesCreate) SetJobURL(s string) *ProwSuitesCreate {
+	psc.mutation.SetJobURL(s)
+	return psc
+}
+
+// SetJobName sets the "job_name" field.
+func (psc *ProwSuitesCreate) SetJobName(s string) *ProwSuitesCreate {
+	psc.mutation.SetJobName(s)
+	return psc
+}
+
+// SetSuiteName sets the "suite_name" field.
+func (psc *ProwSuitesCreate) SetSuiteName(s string) *ProwSuitesCreate {
+	psc.mutation.SetSuiteName(s)
+	return psc
+}
+
 // SetName sets the "name" field.
 func (psc *ProwSuitesCreate) SetName(s string) *ProwSuitesCreate {
 	psc.mutation.SetName(s)
@@ -40,9 +59,37 @@ func (psc *ProwSuitesCreate) SetStatus(s string) *ProwSuitesCreate {
 	return psc
 }
 
+// SetErrorMessage sets the "error_message" field.
+func (psc *ProwSuitesCreate) SetErrorMessage(s string) *ProwSuitesCreate {
+	psc.mutation.SetErrorMessage(s)
+	return psc
+}
+
+// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
+func (psc *ProwSuitesCreate) SetNillableErrorMessage(s *string) *ProwSuitesCreate {
+	if s != nil {
+		psc.SetErrorMessage(*s)
+	}
+	return psc
+}
+
 // SetTime sets the "time" field.
 func (psc *ProwSuitesCreate) SetTime(f float64) *ProwSuitesCreate {
 	psc.mutation.SetTime(f)
+	return psc
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (psc *ProwSuitesCreate) SetCreatedAt(t time.Time) *ProwSuitesCreate {
+	psc.mutation.SetCreatedAt(t)
+	return psc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (psc *ProwSuitesCreate) SetNillableCreatedAt(t *time.Time) *ProwSuitesCreate {
+	if t != nil {
+		psc.SetCreatedAt(*t)
+	}
 	return psc
 }
 
@@ -102,6 +149,15 @@ func (psc *ProwSuitesCreate) check() error {
 	if _, ok := psc.mutation.JobID(); !ok {
 		return &ValidationError{Name: "job_id", err: errors.New(`db: missing required field "ProwSuites.job_id"`)}
 	}
+	if _, ok := psc.mutation.JobURL(); !ok {
+		return &ValidationError{Name: "job_url", err: errors.New(`db: missing required field "ProwSuites.job_url"`)}
+	}
+	if _, ok := psc.mutation.JobName(); !ok {
+		return &ValidationError{Name: "job_name", err: errors.New(`db: missing required field "ProwSuites.job_name"`)}
+	}
+	if _, ok := psc.mutation.SuiteName(); !ok {
+		return &ValidationError{Name: "suite_name", err: errors.New(`db: missing required field "ProwSuites.suite_name"`)}
+	}
 	if _, ok := psc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`db: missing required field "ProwSuites.name"`)}
 	}
@@ -148,6 +204,18 @@ func (psc *ProwSuitesCreate) createSpec() (*ProwSuites, *sqlgraph.CreateSpec) {
 		_spec.SetField(prowsuites.FieldJobID, field.TypeString, value)
 		_node.JobID = value
 	}
+	if value, ok := psc.mutation.JobURL(); ok {
+		_spec.SetField(prowsuites.FieldJobURL, field.TypeString, value)
+		_node.JobURL = value
+	}
+	if value, ok := psc.mutation.JobName(); ok {
+		_spec.SetField(prowsuites.FieldJobName, field.TypeString, value)
+		_node.JobName = value
+	}
+	if value, ok := psc.mutation.SuiteName(); ok {
+		_spec.SetField(prowsuites.FieldSuiteName, field.TypeString, value)
+		_node.SuiteName = value
+	}
 	if value, ok := psc.mutation.Name(); ok {
 		_spec.SetField(prowsuites.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -156,9 +224,17 @@ func (psc *ProwSuitesCreate) createSpec() (*ProwSuites, *sqlgraph.CreateSpec) {
 		_spec.SetField(prowsuites.FieldStatus, field.TypeString, value)
 		_node.Status = value
 	}
+	if value, ok := psc.mutation.ErrorMessage(); ok {
+		_spec.SetField(prowsuites.FieldErrorMessage, field.TypeString, value)
+		_node.ErrorMessage = &value
+	}
 	if value, ok := psc.mutation.Time(); ok {
 		_spec.SetField(prowsuites.FieldTime, field.TypeFloat64, value)
 		_node.Time = value
+	}
+	if value, ok := psc.mutation.CreatedAt(); ok {
+		_spec.SetField(prowsuites.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = &value
 	}
 	if nodes := psc.mutation.ProwSuitesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -244,6 +320,42 @@ func (u *ProwSuitesUpsert) UpdateJobID() *ProwSuitesUpsert {
 	return u
 }
 
+// SetJobURL sets the "job_url" field.
+func (u *ProwSuitesUpsert) SetJobURL(v string) *ProwSuitesUpsert {
+	u.Set(prowsuites.FieldJobURL, v)
+	return u
+}
+
+// UpdateJobURL sets the "job_url" field to the value that was provided on create.
+func (u *ProwSuitesUpsert) UpdateJobURL() *ProwSuitesUpsert {
+	u.SetExcluded(prowsuites.FieldJobURL)
+	return u
+}
+
+// SetJobName sets the "job_name" field.
+func (u *ProwSuitesUpsert) SetJobName(v string) *ProwSuitesUpsert {
+	u.Set(prowsuites.FieldJobName, v)
+	return u
+}
+
+// UpdateJobName sets the "job_name" field to the value that was provided on create.
+func (u *ProwSuitesUpsert) UpdateJobName() *ProwSuitesUpsert {
+	u.SetExcluded(prowsuites.FieldJobName)
+	return u
+}
+
+// SetSuiteName sets the "suite_name" field.
+func (u *ProwSuitesUpsert) SetSuiteName(v string) *ProwSuitesUpsert {
+	u.Set(prowsuites.FieldSuiteName, v)
+	return u
+}
+
+// UpdateSuiteName sets the "suite_name" field to the value that was provided on create.
+func (u *ProwSuitesUpsert) UpdateSuiteName() *ProwSuitesUpsert {
+	u.SetExcluded(prowsuites.FieldSuiteName)
+	return u
+}
+
 // SetName sets the "name" field.
 func (u *ProwSuitesUpsert) SetName(v string) *ProwSuitesUpsert {
 	u.Set(prowsuites.FieldName, v)
@@ -268,6 +380,24 @@ func (u *ProwSuitesUpsert) UpdateStatus() *ProwSuitesUpsert {
 	return u
 }
 
+// SetErrorMessage sets the "error_message" field.
+func (u *ProwSuitesUpsert) SetErrorMessage(v string) *ProwSuitesUpsert {
+	u.Set(prowsuites.FieldErrorMessage, v)
+	return u
+}
+
+// UpdateErrorMessage sets the "error_message" field to the value that was provided on create.
+func (u *ProwSuitesUpsert) UpdateErrorMessage() *ProwSuitesUpsert {
+	u.SetExcluded(prowsuites.FieldErrorMessage)
+	return u
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (u *ProwSuitesUpsert) ClearErrorMessage() *ProwSuitesUpsert {
+	u.SetNull(prowsuites.FieldErrorMessage)
+	return u
+}
+
 // SetTime sets the "time" field.
 func (u *ProwSuitesUpsert) SetTime(v float64) *ProwSuitesUpsert {
 	u.Set(prowsuites.FieldTime, v)
@@ -283,6 +413,24 @@ func (u *ProwSuitesUpsert) UpdateTime() *ProwSuitesUpsert {
 // AddTime adds v to the "time" field.
 func (u *ProwSuitesUpsert) AddTime(v float64) *ProwSuitesUpsert {
 	u.Add(prowsuites.FieldTime, v)
+	return u
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *ProwSuitesUpsert) SetCreatedAt(v time.Time) *ProwSuitesUpsert {
+	u.Set(prowsuites.FieldCreatedAt, v)
+	return u
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *ProwSuitesUpsert) UpdateCreatedAt() *ProwSuitesUpsert {
+	u.SetExcluded(prowsuites.FieldCreatedAt)
+	return u
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (u *ProwSuitesUpsert) ClearCreatedAt() *ProwSuitesUpsert {
+	u.SetNull(prowsuites.FieldCreatedAt)
 	return u
 }
 
@@ -340,6 +488,48 @@ func (u *ProwSuitesUpsertOne) UpdateJobID() *ProwSuitesUpsertOne {
 	})
 }
 
+// SetJobURL sets the "job_url" field.
+func (u *ProwSuitesUpsertOne) SetJobURL(v string) *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.SetJobURL(v)
+	})
+}
+
+// UpdateJobURL sets the "job_url" field to the value that was provided on create.
+func (u *ProwSuitesUpsertOne) UpdateJobURL() *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.UpdateJobURL()
+	})
+}
+
+// SetJobName sets the "job_name" field.
+func (u *ProwSuitesUpsertOne) SetJobName(v string) *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.SetJobName(v)
+	})
+}
+
+// UpdateJobName sets the "job_name" field to the value that was provided on create.
+func (u *ProwSuitesUpsertOne) UpdateJobName() *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.UpdateJobName()
+	})
+}
+
+// SetSuiteName sets the "suite_name" field.
+func (u *ProwSuitesUpsertOne) SetSuiteName(v string) *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.SetSuiteName(v)
+	})
+}
+
+// UpdateSuiteName sets the "suite_name" field to the value that was provided on create.
+func (u *ProwSuitesUpsertOne) UpdateSuiteName() *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.UpdateSuiteName()
+	})
+}
+
 // SetName sets the "name" field.
 func (u *ProwSuitesUpsertOne) SetName(v string) *ProwSuitesUpsertOne {
 	return u.Update(func(s *ProwSuitesUpsert) {
@@ -368,6 +558,27 @@ func (u *ProwSuitesUpsertOne) UpdateStatus() *ProwSuitesUpsertOne {
 	})
 }
 
+// SetErrorMessage sets the "error_message" field.
+func (u *ProwSuitesUpsertOne) SetErrorMessage(v string) *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.SetErrorMessage(v)
+	})
+}
+
+// UpdateErrorMessage sets the "error_message" field to the value that was provided on create.
+func (u *ProwSuitesUpsertOne) UpdateErrorMessage() *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.UpdateErrorMessage()
+	})
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (u *ProwSuitesUpsertOne) ClearErrorMessage() *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.ClearErrorMessage()
+	})
+}
+
 // SetTime sets the "time" field.
 func (u *ProwSuitesUpsertOne) SetTime(v float64) *ProwSuitesUpsertOne {
 	return u.Update(func(s *ProwSuitesUpsert) {
@@ -386,6 +597,27 @@ func (u *ProwSuitesUpsertOne) AddTime(v float64) *ProwSuitesUpsertOne {
 func (u *ProwSuitesUpsertOne) UpdateTime() *ProwSuitesUpsertOne {
 	return u.Update(func(s *ProwSuitesUpsert) {
 		s.UpdateTime()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *ProwSuitesUpsertOne) SetCreatedAt(v time.Time) *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *ProwSuitesUpsertOne) UpdateCreatedAt() *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (u *ProwSuitesUpsertOne) ClearCreatedAt() *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.ClearCreatedAt()
 	})
 }
 
@@ -602,6 +834,48 @@ func (u *ProwSuitesUpsertBulk) UpdateJobID() *ProwSuitesUpsertBulk {
 	})
 }
 
+// SetJobURL sets the "job_url" field.
+func (u *ProwSuitesUpsertBulk) SetJobURL(v string) *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.SetJobURL(v)
+	})
+}
+
+// UpdateJobURL sets the "job_url" field to the value that was provided on create.
+func (u *ProwSuitesUpsertBulk) UpdateJobURL() *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.UpdateJobURL()
+	})
+}
+
+// SetJobName sets the "job_name" field.
+func (u *ProwSuitesUpsertBulk) SetJobName(v string) *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.SetJobName(v)
+	})
+}
+
+// UpdateJobName sets the "job_name" field to the value that was provided on create.
+func (u *ProwSuitesUpsertBulk) UpdateJobName() *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.UpdateJobName()
+	})
+}
+
+// SetSuiteName sets the "suite_name" field.
+func (u *ProwSuitesUpsertBulk) SetSuiteName(v string) *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.SetSuiteName(v)
+	})
+}
+
+// UpdateSuiteName sets the "suite_name" field to the value that was provided on create.
+func (u *ProwSuitesUpsertBulk) UpdateSuiteName() *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.UpdateSuiteName()
+	})
+}
+
 // SetName sets the "name" field.
 func (u *ProwSuitesUpsertBulk) SetName(v string) *ProwSuitesUpsertBulk {
 	return u.Update(func(s *ProwSuitesUpsert) {
@@ -630,6 +904,27 @@ func (u *ProwSuitesUpsertBulk) UpdateStatus() *ProwSuitesUpsertBulk {
 	})
 }
 
+// SetErrorMessage sets the "error_message" field.
+func (u *ProwSuitesUpsertBulk) SetErrorMessage(v string) *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.SetErrorMessage(v)
+	})
+}
+
+// UpdateErrorMessage sets the "error_message" field to the value that was provided on create.
+func (u *ProwSuitesUpsertBulk) UpdateErrorMessage() *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.UpdateErrorMessage()
+	})
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (u *ProwSuitesUpsertBulk) ClearErrorMessage() *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.ClearErrorMessage()
+	})
+}
+
 // SetTime sets the "time" field.
 func (u *ProwSuitesUpsertBulk) SetTime(v float64) *ProwSuitesUpsertBulk {
 	return u.Update(func(s *ProwSuitesUpsert) {
@@ -648,6 +943,27 @@ func (u *ProwSuitesUpsertBulk) AddTime(v float64) *ProwSuitesUpsertBulk {
 func (u *ProwSuitesUpsertBulk) UpdateTime() *ProwSuitesUpsertBulk {
 	return u.Update(func(s *ProwSuitesUpsert) {
 		s.UpdateTime()
+	})
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (u *ProwSuitesUpsertBulk) SetCreatedAt(v time.Time) *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.SetCreatedAt(v)
+	})
+}
+
+// UpdateCreatedAt sets the "created_at" field to the value that was provided on create.
+func (u *ProwSuitesUpsertBulk) UpdateCreatedAt() *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.UpdateCreatedAt()
+	})
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (u *ProwSuitesUpsertBulk) ClearCreatedAt() *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.ClearCreatedAt()
 	})
 }
 

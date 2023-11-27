@@ -6,6 +6,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
+	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 )
@@ -15,16 +16,13 @@ func (d *Database) CreateProwJobResults(job prowV1Alpha1.Job, repo_id string) er
 		SetJobID(job.JobID).
 		SetState(job.State).
 		SetCreatedAt(job.CreatedAt).
-		SetDuration(job.Duration).
-		SetTestsCount(job.TestsCount).
-		SetFailedCount(job.FailedCount).
-		SetSkippedCount(job.SkippedCount).
 		SetJobType(job.JobType).
 		SetJobName(job.JobName).
 		SetJobURL(job.JobURL).
 		SetCiFailed(job.CIFailed).
+		SetDuration(job.Duration).
+		// E2EFailedTestMessages and BuildErrorLogs are used to get the impact of RHTAPBUGS
 		SetE2eFailedTestMessages(job.E2EFailedTestMessages).
-		SetSuitesXMLURL(job.SuitesXmlUrl).
 		SetBuildErrorLogs(job.BuildErrorLogs).
 		Save(context.TODO())
 	if err != nil {
@@ -62,7 +60,7 @@ func (d *Database) GetProwJobsResultsByJobID(jobID string) ([]*db.ProwJobs, erro
 	return prowSuites, nil
 }
 
-func (d *Database) UpdateBuildLogErrors(jobID, buildErrorLogs string) error {
+func (d *Database) UpdateErrorMessages(jobID, buildErrorLogs, e2eErrorMessages string) error {
 	alreadyExists := d.client.ProwJobs.Query().
 		Where(prowjobs.JobID(jobID)).
 		ExistX(context.TODO())
@@ -70,8 +68,10 @@ func (d *Database) UpdateBuildLogErrors(jobID, buildErrorLogs string) error {
 	if !alreadyExists {
 		return fmt.Errorf("jobID '%s' not found", jobID)
 	}
+
 	_, err := d.client.ProwJobs.Update().
 		Where(prowjobs.JobID(jobID)).
+		SetE2eFailedTestMessages(e2eErrorMessages).
 		SetBuildErrorLogs(buildErrorLogs).
 		Save(context.TODO())
 	if err != nil {
@@ -91,5 +91,16 @@ func (d *Database) GetAllProwJobs(startDate, endDate string) ([]*db.ProwJobs, er
 		return nil, convertDBError("failed to get all prow jobs: %w", err)
 	}
 
+	return prowJobs, nil
+}
+
+func (d *Database) ListFailedProwJobsByRepository(repo *db.Repository) ([]*db.ProwJobs, error) {
+	prowJobs, err := d.client.Repository.QueryProwJobs(repo).Select().
+		Where(prowjobs.State(string(prow.FailureState))).
+		All(context.TODO())
+
+	if err != nil {
+		return nil, convertDBError("failed to get all prow jobs: %w", err)
+	}
 	return prowJobs, nil
 }

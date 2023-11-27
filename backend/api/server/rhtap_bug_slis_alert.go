@@ -113,7 +113,16 @@ func slisByTeam(bugs []jira.Bug) []Team {
 	return teams
 }
 
-func (s *Server) sendAlerts(slis jira.BugSlisInfo) {
+func (s *Server) sendAlerts() {
+	startDate := time.Now().AddDate(-2, 0, 0).Format(constants.DateFormat)
+	toDate := time.Now().Format(constants.DateFormat)
+
+	bugs, err := s.cfg.Storage.GetAllOpenRHTAPBUGS(startDate, toDate)
+	if err != nil {
+		s.cfg.Logger.Sugar().Errorf("Failed to get all open RHTAP Bug SLOs", zap.Error(err))
+	}
+
+	slis := jira.GetBugSLIs(bugs)
 	teams := slisByTeam(slis.Bugs)
 
 	for _, team := range teams {
@@ -141,21 +150,11 @@ func (s *Server) sendAlerts(slis jira.BugSlisInfo) {
 }
 
 func (s *Server) SendBugSLIAlerts() {
-	startDate := time.Now().AddDate(-2, 0, 0).Format(constants.DateFormat)
-	toDate := time.Now().Format(constants.DateFormat)
-
-	bugs, err := s.cfg.Storage.GetAllOpenRHTAPBUGS(startDate, toDate)
-	if err != nil {
-		s.cfg.Logger.Sugar().Errorf("Failed to get all open RHTAP Bug SLOs", zap.Error(err))
-	}
-
-	slis := jira.GetBugSLIs(bugs)
-
 	cron := cron.New()
 
 	// every day at 9am
-	err = cron.AddFunc("0 0 9 * * *", func() {
-		s.sendAlerts(slis)
+	err := cron.AddFunc("0 0 9 * * *", func() {
+		s.sendAlerts()
 	})
 	if err != nil {
 		s.cfg.Logger.Sugar().Errorf("Failed to add cron", zap.Error(err))

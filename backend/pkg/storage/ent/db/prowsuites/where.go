@@ -3,6 +3,8 @@
 package prowsuites
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
@@ -58,6 +60,21 @@ func JobID(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(sql.FieldEQ(FieldJobID, v))
 }
 
+// JobURL applies equality check predicate on the "job_url" field. It's identical to JobURLEQ.
+func JobURL(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEQ(FieldJobURL, v))
+}
+
+// JobName applies equality check predicate on the "job_name" field. It's identical to JobNameEQ.
+func JobName(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEQ(FieldJobName, v))
+}
+
+// SuiteName applies equality check predicate on the "suite_name" field. It's identical to SuiteNameEQ.
+func SuiteName(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEQ(FieldSuiteName, v))
+}
+
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(sql.FieldEQ(FieldName, v))
@@ -68,9 +85,19 @@ func Status(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(sql.FieldEQ(FieldStatus, v))
 }
 
+// ErrorMessage applies equality check predicate on the "error_message" field. It's identical to ErrorMessageEQ.
+func ErrorMessage(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEQ(FieldErrorMessage, v))
+}
+
 // Time applies equality check predicate on the "time" field. It's identical to TimeEQ.
 func Time(v float64) predicate.ProwSuites {
 	return predicate.ProwSuites(sql.FieldEQ(FieldTime, v))
+}
+
+// CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
+func CreatedAt(v time.Time) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // JobIDEQ applies the EQ predicate on the "job_id" field.
@@ -136,6 +163,201 @@ func JobIDEqualFold(v string) predicate.ProwSuites {
 // JobIDContainsFold applies the ContainsFold predicate on the "job_id" field.
 func JobIDContainsFold(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(sql.FieldContainsFold(FieldJobID, v))
+}
+
+// JobURLEQ applies the EQ predicate on the "job_url" field.
+func JobURLEQ(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEQ(FieldJobURL, v))
+}
+
+// JobURLNEQ applies the NEQ predicate on the "job_url" field.
+func JobURLNEQ(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldNEQ(FieldJobURL, v))
+}
+
+// JobURLIn applies the In predicate on the "job_url" field.
+func JobURLIn(vs ...string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldIn(FieldJobURL, vs...))
+}
+
+// JobURLNotIn applies the NotIn predicate on the "job_url" field.
+func JobURLNotIn(vs ...string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldNotIn(FieldJobURL, vs...))
+}
+
+// JobURLGT applies the GT predicate on the "job_url" field.
+func JobURLGT(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldGT(FieldJobURL, v))
+}
+
+// JobURLGTE applies the GTE predicate on the "job_url" field.
+func JobURLGTE(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldGTE(FieldJobURL, v))
+}
+
+// JobURLLT applies the LT predicate on the "job_url" field.
+func JobURLLT(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldLT(FieldJobURL, v))
+}
+
+// JobURLLTE applies the LTE predicate on the "job_url" field.
+func JobURLLTE(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldLTE(FieldJobURL, v))
+}
+
+// JobURLContains applies the Contains predicate on the "job_url" field.
+func JobURLContains(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldContains(FieldJobURL, v))
+}
+
+// JobURLHasPrefix applies the HasPrefix predicate on the "job_url" field.
+func JobURLHasPrefix(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldHasPrefix(FieldJobURL, v))
+}
+
+// JobURLHasSuffix applies the HasSuffix predicate on the "job_url" field.
+func JobURLHasSuffix(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldHasSuffix(FieldJobURL, v))
+}
+
+// JobURLEqualFold applies the EqualFold predicate on the "job_url" field.
+func JobURLEqualFold(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEqualFold(FieldJobURL, v))
+}
+
+// JobURLContainsFold applies the ContainsFold predicate on the "job_url" field.
+func JobURLContainsFold(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldContainsFold(FieldJobURL, v))
+}
+
+// JobNameEQ applies the EQ predicate on the "job_name" field.
+func JobNameEQ(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEQ(FieldJobName, v))
+}
+
+// JobNameNEQ applies the NEQ predicate on the "job_name" field.
+func JobNameNEQ(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldNEQ(FieldJobName, v))
+}
+
+// JobNameIn applies the In predicate on the "job_name" field.
+func JobNameIn(vs ...string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldIn(FieldJobName, vs...))
+}
+
+// JobNameNotIn applies the NotIn predicate on the "job_name" field.
+func JobNameNotIn(vs ...string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldNotIn(FieldJobName, vs...))
+}
+
+// JobNameGT applies the GT predicate on the "job_name" field.
+func JobNameGT(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldGT(FieldJobName, v))
+}
+
+// JobNameGTE applies the GTE predicate on the "job_name" field.
+func JobNameGTE(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldGTE(FieldJobName, v))
+}
+
+// JobNameLT applies the LT predicate on the "job_name" field.
+func JobNameLT(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldLT(FieldJobName, v))
+}
+
+// JobNameLTE applies the LTE predicate on the "job_name" field.
+func JobNameLTE(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldLTE(FieldJobName, v))
+}
+
+// JobNameContains applies the Contains predicate on the "job_name" field.
+func JobNameContains(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldContains(FieldJobName, v))
+}
+
+// JobNameHasPrefix applies the HasPrefix predicate on the "job_name" field.
+func JobNameHasPrefix(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldHasPrefix(FieldJobName, v))
+}
+
+// JobNameHasSuffix applies the HasSuffix predicate on the "job_name" field.
+func JobNameHasSuffix(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldHasSuffix(FieldJobName, v))
+}
+
+// JobNameEqualFold applies the EqualFold predicate on the "job_name" field.
+func JobNameEqualFold(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEqualFold(FieldJobName, v))
+}
+
+// JobNameContainsFold applies the ContainsFold predicate on the "job_name" field.
+func JobNameContainsFold(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldContainsFold(FieldJobName, v))
+}
+
+// SuiteNameEQ applies the EQ predicate on the "suite_name" field.
+func SuiteNameEQ(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEQ(FieldSuiteName, v))
+}
+
+// SuiteNameNEQ applies the NEQ predicate on the "suite_name" field.
+func SuiteNameNEQ(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldNEQ(FieldSuiteName, v))
+}
+
+// SuiteNameIn applies the In predicate on the "suite_name" field.
+func SuiteNameIn(vs ...string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldIn(FieldSuiteName, vs...))
+}
+
+// SuiteNameNotIn applies the NotIn predicate on the "suite_name" field.
+func SuiteNameNotIn(vs ...string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldNotIn(FieldSuiteName, vs...))
+}
+
+// SuiteNameGT applies the GT predicate on the "suite_name" field.
+func SuiteNameGT(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldGT(FieldSuiteName, v))
+}
+
+// SuiteNameGTE applies the GTE predicate on the "suite_name" field.
+func SuiteNameGTE(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldGTE(FieldSuiteName, v))
+}
+
+// SuiteNameLT applies the LT predicate on the "suite_name" field.
+func SuiteNameLT(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldLT(FieldSuiteName, v))
+}
+
+// SuiteNameLTE applies the LTE predicate on the "suite_name" field.
+func SuiteNameLTE(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldLTE(FieldSuiteName, v))
+}
+
+// SuiteNameContains applies the Contains predicate on the "suite_name" field.
+func SuiteNameContains(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldContains(FieldSuiteName, v))
+}
+
+// SuiteNameHasPrefix applies the HasPrefix predicate on the "suite_name" field.
+func SuiteNameHasPrefix(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldHasPrefix(FieldSuiteName, v))
+}
+
+// SuiteNameHasSuffix applies the HasSuffix predicate on the "suite_name" field.
+func SuiteNameHasSuffix(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldHasSuffix(FieldSuiteName, v))
+}
+
+// SuiteNameEqualFold applies the EqualFold predicate on the "suite_name" field.
+func SuiteNameEqualFold(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEqualFold(FieldSuiteName, v))
+}
+
+// SuiteNameContainsFold applies the ContainsFold predicate on the "suite_name" field.
+func SuiteNameContainsFold(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldContainsFold(FieldSuiteName, v))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -268,6 +490,81 @@ func StatusContainsFold(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(sql.FieldContainsFold(FieldStatus, v))
 }
 
+// ErrorMessageEQ applies the EQ predicate on the "error_message" field.
+func ErrorMessageEQ(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEQ(FieldErrorMessage, v))
+}
+
+// ErrorMessageNEQ applies the NEQ predicate on the "error_message" field.
+func ErrorMessageNEQ(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldNEQ(FieldErrorMessage, v))
+}
+
+// ErrorMessageIn applies the In predicate on the "error_message" field.
+func ErrorMessageIn(vs ...string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldIn(FieldErrorMessage, vs...))
+}
+
+// ErrorMessageNotIn applies the NotIn predicate on the "error_message" field.
+func ErrorMessageNotIn(vs ...string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldNotIn(FieldErrorMessage, vs...))
+}
+
+// ErrorMessageGT applies the GT predicate on the "error_message" field.
+func ErrorMessageGT(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldGT(FieldErrorMessage, v))
+}
+
+// ErrorMessageGTE applies the GTE predicate on the "error_message" field.
+func ErrorMessageGTE(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldGTE(FieldErrorMessage, v))
+}
+
+// ErrorMessageLT applies the LT predicate on the "error_message" field.
+func ErrorMessageLT(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldLT(FieldErrorMessage, v))
+}
+
+// ErrorMessageLTE applies the LTE predicate on the "error_message" field.
+func ErrorMessageLTE(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldLTE(FieldErrorMessage, v))
+}
+
+// ErrorMessageContains applies the Contains predicate on the "error_message" field.
+func ErrorMessageContains(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldContains(FieldErrorMessage, v))
+}
+
+// ErrorMessageHasPrefix applies the HasPrefix predicate on the "error_message" field.
+func ErrorMessageHasPrefix(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldHasPrefix(FieldErrorMessage, v))
+}
+
+// ErrorMessageHasSuffix applies the HasSuffix predicate on the "error_message" field.
+func ErrorMessageHasSuffix(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldHasSuffix(FieldErrorMessage, v))
+}
+
+// ErrorMessageIsNil applies the IsNil predicate on the "error_message" field.
+func ErrorMessageIsNil() predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldIsNull(FieldErrorMessage))
+}
+
+// ErrorMessageNotNil applies the NotNil predicate on the "error_message" field.
+func ErrorMessageNotNil() predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldNotNull(FieldErrorMessage))
+}
+
+// ErrorMessageEqualFold applies the EqualFold predicate on the "error_message" field.
+func ErrorMessageEqualFold(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEqualFold(FieldErrorMessage, v))
+}
+
+// ErrorMessageContainsFold applies the ContainsFold predicate on the "error_message" field.
+func ErrorMessageContainsFold(v string) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldContainsFold(FieldErrorMessage, v))
+}
+
 // TimeEQ applies the EQ predicate on the "time" field.
 func TimeEQ(v float64) predicate.ProwSuites {
 	return predicate.ProwSuites(sql.FieldEQ(FieldTime, v))
@@ -306,6 +603,56 @@ func TimeLT(v float64) predicate.ProwSuites {
 // TimeLTE applies the LTE predicate on the "time" field.
 func TimeLTE(v float64) predicate.ProwSuites {
 	return predicate.ProwSuites(sql.FieldLTE(FieldTime, v))
+}
+
+// CreatedAtEQ applies the EQ predicate on the "created_at" field.
+func CreatedAtEQ(v time.Time) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
+func CreatedAtNEQ(v time.Time) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldNEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtIn applies the In predicate on the "created_at" field.
+func CreatedAtIn(vs ...time.Time) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
+func CreatedAtNotIn(vs ...time.Time) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldNotIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtGT applies the GT predicate on the "created_at" field.
+func CreatedAtGT(v time.Time) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldGT(FieldCreatedAt, v))
+}
+
+// CreatedAtGTE applies the GTE predicate on the "created_at" field.
+func CreatedAtGTE(v time.Time) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldGTE(FieldCreatedAt, v))
+}
+
+// CreatedAtLT applies the LT predicate on the "created_at" field.
+func CreatedAtLT(v time.Time) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldLT(FieldCreatedAt, v))
+}
+
+// CreatedAtLTE applies the LTE predicate on the "created_at" field.
+func CreatedAtLTE(v time.Time) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldLTE(FieldCreatedAt, v))
+}
+
+// CreatedAtIsNil applies the IsNil predicate on the "created_at" field.
+func CreatedAtIsNil() predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldIsNull(FieldCreatedAt))
+}
+
+// CreatedAtNotNil applies the NotNil predicate on the "created_at" field.
+func CreatedAtNotNil() predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldNotNull(FieldCreatedAt))
 }
 
 // HasProwSuites applies the HasEdge predicate on the "prow_suites" edge.

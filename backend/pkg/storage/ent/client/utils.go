@@ -22,6 +22,22 @@ func convertDBError(t string, err error) error {
 }
 
 // getDatesBetweenRange gets the dates between a range date (including the start and end dates)
+func getRangesInISO(startDate, endDate string) []string {
+	start, _ := time.Parse(time.RFC3339, startDate)
+	end, _ := time.Parse(time.RFC3339, endDate)
+	difference := int(math.Ceil(end.Sub(start).Hours() / 24))
+
+	dayArr := make([]string, 0)
+
+	for i := 0; i < difference; i++ {
+		dayArr = append(dayArr, start.AddDate(0, 0, +i).Format(time.RFC3339))
+	}
+	dayArr = append(dayArr, endDate)
+
+	return dayArr
+}
+
+// getDatesBetweenRange gets the dates between a range date (including the start and end dates)
 func getDatesBetweenRange(startDate, endDate string) []string {
 	start, _ := time.Parse("2006-01-02 15:04:05", startDate)
 	end, _ := time.Parse("2006-01-02 15:04:05", endDate)
@@ -85,4 +101,28 @@ func getDaysBetweenDates(firstDate, secondDate time.Time) float64 {
 	diff = math.Round(diff*100) / 100
 
 	return diff
+}
+
+// getWorkingDays only includes business days by excluding weekend days
+func getWorkingDays(fromDate, toDate time.Time) float64 {
+	var workingDays float64 = 0
+	previousDate := fromDate
+	nextDate := previousDate.Add(time.Hour * 24)
+
+	for {
+		if previousDate.Equal(toDate) || previousDate.Equal(nextDate) || previousDate.After(toDate) || previousDate.After(nextDate) {
+			break
+		}
+		if previousDate.Weekday() != 6 && previousDate.Weekday() != 0 {
+			if toDate.Before(nextDate) {
+				workingDays += getDaysBetweenDates(previousDate, toDate)
+			} else {
+				workingDays += getDaysBetweenDates(previousDate, nextDate)
+			}
+		}
+		previousDate = nextDate
+		nextDate = previousDate.Add(time.Hour * 24)
+	}
+
+	return workingDays
 }

@@ -69,7 +69,7 @@ func (s *Server) rotate() error {
 
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
-		rotationFrequency: time.Minute * 15,
+		rotationFrequency: time.Minute * 40,
 	}
 }
 
@@ -133,7 +133,6 @@ func (s *Server) CacheRepositoriesInformation(storageRepos []repoV1Alpha1.Reposi
 			return err
 		}
 	}
-	s.cfg.Logger.Info("Successfully updated the storage data")
 
 	return nil
 }

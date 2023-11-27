@@ -47,15 +47,39 @@ func (pjc *ProwJobsCreate) SetTestsCount(i int64) *ProwJobsCreate {
 	return pjc
 }
 
+// SetNillableTestsCount sets the "tests_count" field if the given value is not nil.
+func (pjc *ProwJobsCreate) SetNillableTestsCount(i *int64) *ProwJobsCreate {
+	if i != nil {
+		pjc.SetTestsCount(*i)
+	}
+	return pjc
+}
+
 // SetFailedCount sets the "failed_count" field.
 func (pjc *ProwJobsCreate) SetFailedCount(i int64) *ProwJobsCreate {
 	pjc.mutation.SetFailedCount(i)
 	return pjc
 }
 
+// SetNillableFailedCount sets the "failed_count" field if the given value is not nil.
+func (pjc *ProwJobsCreate) SetNillableFailedCount(i *int64) *ProwJobsCreate {
+	if i != nil {
+		pjc.SetFailedCount(*i)
+	}
+	return pjc
+}
+
 // SetSkippedCount sets the "skipped_count" field.
 func (pjc *ProwJobsCreate) SetSkippedCount(i int64) *ProwJobsCreate {
 	pjc.mutation.SetSkippedCount(i)
+	return pjc
+}
+
+// SetNillableSkippedCount sets the "skipped_count" field if the given value is not nil.
+func (pjc *ProwJobsCreate) SetNillableSkippedCount(i *int64) *ProwJobsCreate {
+	if i != nil {
+		pjc.SetSkippedCount(*i)
+	}
 	return pjc
 }
 
@@ -193,15 +217,6 @@ func (pjc *ProwJobsCreate) check() error {
 	if _, ok := pjc.mutation.Duration(); !ok {
 		return &ValidationError{Name: "duration", err: errors.New(`db: missing required field "ProwJobs.duration"`)}
 	}
-	if _, ok := pjc.mutation.TestsCount(); !ok {
-		return &ValidationError{Name: "tests_count", err: errors.New(`db: missing required field "ProwJobs.tests_count"`)}
-	}
-	if _, ok := pjc.mutation.FailedCount(); !ok {
-		return &ValidationError{Name: "failed_count", err: errors.New(`db: missing required field "ProwJobs.failed_count"`)}
-	}
-	if _, ok := pjc.mutation.SkippedCount(); !ok {
-		return &ValidationError{Name: "skipped_count", err: errors.New(`db: missing required field "ProwJobs.skipped_count"`)}
-	}
 	if _, ok := pjc.mutation.JobName(); !ok {
 		return &ValidationError{Name: "job_name", err: errors.New(`db: missing required field "ProwJobs.job_name"`)}
 	}
@@ -264,15 +279,15 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := pjc.mutation.TestsCount(); ok {
 		_spec.SetField(prowjobs.FieldTestsCount, field.TypeInt64, value)
-		_node.TestsCount = value
+		_node.TestsCount = &value
 	}
 	if value, ok := pjc.mutation.FailedCount(); ok {
 		_spec.SetField(prowjobs.FieldFailedCount, field.TypeInt64, value)
-		_node.FailedCount = value
+		_node.FailedCount = &value
 	}
 	if value, ok := pjc.mutation.SkippedCount(); ok {
 		_spec.SetField(prowjobs.FieldSkippedCount, field.TypeInt64, value)
-		_node.SkippedCount = value
+		_node.SkippedCount = &value
 	}
 	if value, ok := pjc.mutation.JobName(); ok {
 		_spec.SetField(prowjobs.FieldJobName, field.TypeString, value)
@@ -438,6 +453,12 @@ func (u *ProwJobsUpsert) AddTestsCount(v int64) *ProwJobsUpsert {
 	return u
 }
 
+// ClearTestsCount clears the value of the "tests_count" field.
+func (u *ProwJobsUpsert) ClearTestsCount() *ProwJobsUpsert {
+	u.SetNull(prowjobs.FieldTestsCount)
+	return u
+}
+
 // SetFailedCount sets the "failed_count" field.
 func (u *ProwJobsUpsert) SetFailedCount(v int64) *ProwJobsUpsert {
 	u.Set(prowjobs.FieldFailedCount, v)
@@ -456,6 +477,12 @@ func (u *ProwJobsUpsert) AddFailedCount(v int64) *ProwJobsUpsert {
 	return u
 }
 
+// ClearFailedCount clears the value of the "failed_count" field.
+func (u *ProwJobsUpsert) ClearFailedCount() *ProwJobsUpsert {
+	u.SetNull(prowjobs.FieldFailedCount)
+	return u
+}
+
 // SetSkippedCount sets the "skipped_count" field.
 func (u *ProwJobsUpsert) SetSkippedCount(v int64) *ProwJobsUpsert {
 	u.Set(prowjobs.FieldSkippedCount, v)
@@ -471,6 +498,12 @@ func (u *ProwJobsUpsert) UpdateSkippedCount() *ProwJobsUpsert {
 // AddSkippedCount adds v to the "skipped_count" field.
 func (u *ProwJobsUpsert) AddSkippedCount(v int64) *ProwJobsUpsert {
 	u.Add(prowjobs.FieldSkippedCount, v)
+	return u
+}
+
+// ClearSkippedCount clears the value of the "skipped_count" field.
+func (u *ProwJobsUpsert) ClearSkippedCount() *ProwJobsUpsert {
+	u.SetNull(prowjobs.FieldSkippedCount)
 	return u
 }
 
@@ -704,6 +737,13 @@ func (u *ProwJobsUpsertOne) UpdateTestsCount() *ProwJobsUpsertOne {
 	})
 }
 
+// ClearTestsCount clears the value of the "tests_count" field.
+func (u *ProwJobsUpsertOne) ClearTestsCount() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearTestsCount()
+	})
+}
+
 // SetFailedCount sets the "failed_count" field.
 func (u *ProwJobsUpsertOne) SetFailedCount(v int64) *ProwJobsUpsertOne {
 	return u.Update(func(s *ProwJobsUpsert) {
@@ -725,6 +765,13 @@ func (u *ProwJobsUpsertOne) UpdateFailedCount() *ProwJobsUpsertOne {
 	})
 }
 
+// ClearFailedCount clears the value of the "failed_count" field.
+func (u *ProwJobsUpsertOne) ClearFailedCount() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearFailedCount()
+	})
+}
+
 // SetSkippedCount sets the "skipped_count" field.
 func (u *ProwJobsUpsertOne) SetSkippedCount(v int64) *ProwJobsUpsertOne {
 	return u.Update(func(s *ProwJobsUpsert) {
@@ -743,6 +790,13 @@ func (u *ProwJobsUpsertOne) AddSkippedCount(v int64) *ProwJobsUpsertOne {
 func (u *ProwJobsUpsertOne) UpdateSkippedCount() *ProwJobsUpsertOne {
 	return u.Update(func(s *ProwJobsUpsert) {
 		s.UpdateSkippedCount()
+	})
+}
+
+// ClearSkippedCount clears the value of the "skipped_count" field.
+func (u *ProwJobsUpsertOne) ClearSkippedCount() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearSkippedCount()
 	})
 }
 
@@ -1155,6 +1209,13 @@ func (u *ProwJobsUpsertBulk) UpdateTestsCount() *ProwJobsUpsertBulk {
 	})
 }
 
+// ClearTestsCount clears the value of the "tests_count" field.
+func (u *ProwJobsUpsertBulk) ClearTestsCount() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearTestsCount()
+	})
+}
+
 // SetFailedCount sets the "failed_count" field.
 func (u *ProwJobsUpsertBulk) SetFailedCount(v int64) *ProwJobsUpsertBulk {
 	return u.Update(func(s *ProwJobsUpsert) {
@@ -1176,6 +1237,13 @@ func (u *ProwJobsUpsertBulk) UpdateFailedCount() *ProwJobsUpsertBulk {
 	})
 }
 
+// ClearFailedCount clears the value of the "failed_count" field.
+func (u *ProwJobsUpsertBulk) ClearFailedCount() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearFailedCount()
+	})
+}
+
 // SetSkippedCount sets the "skipped_count" field.
 func (u *ProwJobsUpsertBulk) SetSkippedCount(v int64) *ProwJobsUpsertBulk {
 	return u.Update(func(s *ProwJobsUpsert) {
@@ -1194,6 +1262,13 @@ func (u *ProwJobsUpsertBulk) AddSkippedCount(v int64) *ProwJobsUpsertBulk {
 func (u *ProwJobsUpsertBulk) UpdateSkippedCount() *ProwJobsUpsertBulk {
 	return u.Update(func(s *ProwJobsUpsert) {
 		s.UpdateSkippedCount()
+	})
+}
+
+// ClearSkippedCount clears the value of the "skipped_count" field.
+func (u *ProwJobsUpsertBulk) ClearSkippedCount() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearSkippedCount()
 	})
 }
 

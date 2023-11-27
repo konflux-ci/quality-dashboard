@@ -127,7 +127,7 @@ async function getJirasOpen(priority: string, team: string, rangeDateTime: Date[
   return result;
 }
 
-async function getRepositories(perPage = 5, team: string) {
+async function getRepositories(perPage = 50, team: string) {
   const REPOS_IN_PAGE = perPage;
   const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
   const subPath = '/api/quality/repositories/list';
@@ -190,7 +190,7 @@ async function getAllRepositoriesWithOrgs(team: string, openshift: boolean, rang
     throw 'Error fetching data from server.';
   } else {
     result.data.sort((a, b) => (a.repository_name < b.repository_name ? -1 : 1));
-    repoAndOrgs = result.data.map((row, index) => {
+    repoAndOrgs = result.data.map((row) => {
       return {
         repoName: row.repository_name,
         organization: row.git_organization,
@@ -542,8 +542,8 @@ async function getFailures(team: string, rangeDateTime: Date[]) {
       result.code = err.statusCode;
       result.data = err.data;
     });
-  return result;
 
+  return result;
 }
 
 async function createFailure(team: string, jiraKey: string, errorMessage: string) {
@@ -620,6 +620,87 @@ async function getBugSLIs(team: string, rangeDateTime: Date[]) {
   return result;
 }
 
+async function getRepositoriesWithJobs(team: string) {
+  const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
+  const subPath = '/api/quality/prow/repositories/list';
+  const uri = API_URL + subPath;
+
+  if (!teamIsNotEmpty(team)) return result;
+
+  await axios
+    .get(uri, {
+      headers: {},
+      params: {
+        team_name: team,
+      },
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
+async function getFlakyData(team: string, job: string, repo: string, startDate: string, endDate: string, gitOrg: string) {
+  const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
+  const subPath = '/api/quality/suites/ocurrencies';
+  const uri = API_URL + subPath;
+
+  await axios
+    .get(uri, {
+      headers: {},
+      params: {
+        repository_name: repo,
+        job_name: job,
+        start_date: startDate,
+        end_date: endDate,
+        git_org: gitOrg,
+        team_name: team
+      },
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
+async function getGlobalImpactData(team: string, job: string, repo: string, startDate: string, endDate: string, gitOrg: string) {
+  const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
+  const subPath = '/api/quality/suites/flaky/trends';
+  const uri = API_URL + subPath;
+
+  await axios
+    .get(uri, {
+      headers: {},
+      params: {
+        repository_name: repo,
+        job_name: job,
+        start_date: startDate,
+        end_date: endDate,
+        git_org: gitOrg,
+        team_name: team
+      },
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
 export {
   getVersion,
   getRepositories,
@@ -644,5 +725,8 @@ export {
   getFailures,
   createFailure,
   bugExists,
-  getBugSLIs
+  getBugSLIs,
+  getRepositoriesWithJobs,
+  getFlakyData,
+  getGlobalImpactData
 };
