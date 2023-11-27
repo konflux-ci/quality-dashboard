@@ -26,6 +26,7 @@ import { Skeleton } from '@patternfly/react-core';
 import { Spinner } from '@patternfly/react-core';
 import { InfoCircleIcon } from "@patternfly/react-icons";
 import { Popover } from '@patternfly/react-core';
+import { Modal, Button } from '@patternfly/react-core';
 
 const PREFERENCES_CACHE_NAME = "flakyCache"
 
@@ -559,6 +560,12 @@ const FlakyTests: React.FunctionComponent = () => {
   const [loadingSpinner, setLoadingSpinner] = React.useState<boolean>(false)
   const currentTeam = useSelector((state: any) => state.teams.Team);
 
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  const handleModalToggle = (_event: KeyboardEvent | React.MouseEvent) => {
+    setIsModalOpen(!isModalOpen);
+  };
+
   const countSuiteFailures = (suites) => {
     return suites.map((suite) => {
       const c = suite.test_cases.reduce(function (acc, obj) { return acc + obj.count; }, 0);
@@ -773,13 +780,6 @@ const FlakyTests: React.FunctionComponent = () => {
             <GridItem style={{clear: 'both', minHeight: '1em'}} span={12}>
             </GridItem>
             <GridItem span={12}>
-              <Card className='card-no-border' style={{padding: "1em"}}>
-                <CardTitle>Top 20 Failing test cases</CardTitle>
-                <InnerNestedComposableTableNestedExpandable test_cases={top10Data.slice(0,20)} rowIndex={0}></InnerNestedComposableTableNestedExpandable>
-                <CardFooter></CardFooter>
-              </Card>
-            </GridItem>
-            <GridItem span={12}>
               <Toolbar id="toolbar-items">
                 <ToolbarContent>
                   <DropdownBasic selected={selectedSuite} toggles={
@@ -787,8 +787,26 @@ const FlakyTests: React.FunctionComponent = () => {
                       ...toggles.sort((a,b) => b.count - a.count).map( (toggle, idx) => <DropdownItem key={idx} name={toggle.suite_name}> {toggle.suite_name} (<strong style={{color: 'red'}}>{toggle.count}</strong>) </DropdownItem> )
                     ]
                   } onSelect={onSuiteSelect} placeholder="Select a failing suite"></DropdownBasic>
+
+                  <Button variant="primary" onClick={handleModalToggle} ouiaId="ShowBasicModal" style={{margin: "auto 2em"}}>
+                    Show top 20 failing test cases
+                  </Button>
                 </ToolbarContent>
               </Toolbar>
+              <Modal
+                title="Basic modal"
+                isOpen={isModalOpen}
+                width="80%"
+                onClose={handleModalToggle}
+                actions={[]}
+                ouiaId="BasicModal"
+              >
+                <Card className='card-no-border' style={{padding: "1em"}}>
+                <CardTitle>Top 20 Failing test cases</CardTitle>
+                <InnerNestedComposableTableNestedExpandable test_cases={top10Data.slice(0,20)} rowIndex={0}></InnerNestedComposableTableNestedExpandable>
+                <CardFooter></CardFooter>
+              </Card>
+              </Modal>
             </GridItem>
             <GridItem span={12}>
               <SpinnerBasic isLoading={loadingSpinner}></SpinnerBasic>
