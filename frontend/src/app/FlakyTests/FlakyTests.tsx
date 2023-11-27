@@ -11,7 +11,7 @@ import {
   ThProps
 } from '@patternfly/react-table';
 import { Header } from '@app/utils/Header';
-import { TextContent, Text, TextVariants } from '@patternfly/react-core';
+import { TextContent, Text, TextVariants, CardFooter } from '@patternfly/react-core';
 import { PageSection, PageSectionVariants, Title, TitleSizes } from '@patternfly/react-core';
 import { Dropdown, DropdownToggle, DropdownItem } from '@patternfly/react-core';
 import { ChartPie } from '@patternfly/react-charts';
@@ -245,19 +245,21 @@ export const DropdownBasic: React.FunctionComponent<{toggles, onSelect, selected
   );
 };
 
+interface TestCase {
+  name: string;
+  test_case_impact: number;
+  count: number;
+  messages: {
+    job_id: string;
+    job_url: string;
+    error_message: string;
+    failure_date: string;
+  }[]
+}
+
 interface Flakey {
   status: string;
-  test_cases: {
-    name: string;
-    test_case_impact: number;
-    count: number;
-    messages: {
-      job_id: string;
-      job_url: string;
-      error_message: string;
-      failure_date: string;
-    }[]
-  }[];
+  test_cases: TestCase[];
   suite_name: string;
   average_impact: number;
 }
@@ -268,6 +270,144 @@ interface FlakeyObject {
   repository_name: string;
   job_name: string;
   suites: Flakey[];
+}
+
+export const InnerNestedComposableTableNestedExpandable: React.FunctionComponent<{test_cases:TestCase[], rowIndex:number}> = ({test_cases, rowIndex}) => {
+
+  const [simpleSortIndex, setSimpleSortIndex] = React.useState<number>(0);
+  const [simpleSortDirection, setSimpleSortDirection] = React.useState<'asc' | 'desc' >('desc');
+  const onSimpleSort = (a, b) => {
+    const aValue = getSimpleSortableRowValues(a)[simpleSortIndex];
+    const bValue = getSimpleSortableRowValues(b)[simpleSortIndex];
+
+    if (simpleSortDirection === 'asc') {
+      return (aValue as number) - (bValue as number);
+    }
+    return (bValue as number) - (aValue as number);
+  }
+
+  const getSimpleSortableRowValues = (flakey:any): (number)[] => {
+    const { count, test_case_impact } = flakey;
+    return [ count, test_case_impact ];
+  };
+
+  // Expandable test cases
+  const [expandedTestCaseNames, setExpandedTestCaseNames] = React.useState<string[]>([]);
+
+  const setTestCaseExpanded = (suite_name: string, isExpanding = true) => {
+    setExpandedTestCaseNames(prevExpanded => {
+      const otherExpandedTestCaseNames = prevExpanded.filter(t => t !== suite_name);
+      return isExpanding ? [...otherExpandedTestCaseNames, suite_name] : otherExpandedTestCaseNames;
+    });
+  }
+  const isTestCaseExpanded = (test_case_name: string) => expandedTestCaseNames.includes(test_case_name);
+
+  const expandPre = (e) => {
+    if(e.currentTarget.classList.contains('expandedPre')){
+      e.currentTarget.classList.remove("expandedPre")
+      e.currentTarget.classList.add('collapsedPre')
+
+    } else {
+      e.currentTarget.classList.remove('collapsedPre')
+      e.currentTarget.classList.add('expandedPre')
+    }
+  }
+    
+  const getSimpleSortParams = (columnIndex: number): ThProps['sort'] => ({
+    sortBy: {
+      index: simpleSortIndex,
+      direction: simpleSortDirection,
+      defaultDirection: 'desc' 
+    },
+    onSort: (_event, index, direction) => {
+      setSimpleSortIndex(index);
+      setSimpleSortDirection(direction);
+    },
+    columnIndex
+  });
+
+  const columnNames = {
+    name: 'Test Case',
+    status: 'Status',
+    error_message: 'Failing Jobs',
+    count: 'Count',
+    suite_name: 'Suite Name',
+    job_id: "Job ID",
+    job_url: "Job Url",
+    failure_date: "Falure Date",
+    average_impact: "Impact"
+  };
+  
+  return (
+
+        <TableComposable aria-label="Error messages" variant="compact">
+          <Thead>
+            <Tr>
+              <Th width={80} rowSpan={2} />
+              <Th>Test Name</Th>
+              <Th width={10} sort={getSimpleSortParams(1)}>
+                Impact
+              </Th>
+              <Th width={10} sort={getSimpleSortParams(0)}>
+                Count
+              </Th>
+            </Tr>
+          </Thead>
+          {test_cases && test_cases.sort(onSimpleSort).map((test_case, tc_idx) => (
+            <Tbody key={test_case.name+tc_idx}>
+              <Tr>
+                <Td expand={{ rowIndex, isExpanded: isTestCaseExpanded(test_case.name), onToggle: () => setTestCaseExpanded(test_case.name, !isTestCaseExpanded(test_case.name))}}/>
+                <Td>
+                  {test_case.name}
+                </Td>
+                <Td>
+                  {test_case.test_case_impact}
+                </Td>
+                <Td>
+                  {test_case.count}
+                </Td>
+              </Tr>
+              <Tr isExpanded={isTestCaseExpanded(test_case.name)}>
+                <Td></Td>
+                <Td colSpan={3}>
+                  <ExpandableRowContent>
+                    <TableComposable aria-label="Error messages" variant="compact">
+                      <Thead>
+                        <Tr>
+                          <Th />
+                          <Th width={10}>Job URL</Th>
+                          <Th width={70}>Error</Th>
+                          <Th width={20}>Failure Dates</Th>
+                        </Tr>
+                      </Thead>
+                      {test_case.messages && test_case.messages.map((message, m_idx) => (
+                        <Tbody key={message.job_id+m_idx}>
+                        <Tr>
+                          <Td></Td>
+                          <Td dataLabel={columnNames.job_id}>
+                            <a href={message.job_url} rel="noreferrer noopener" target='_blank'>{message.job_id}</a>
+                          </Td>
+                          <Td dataLabel="Error messages" onClick={expandPre} className='collapsedPre'>
+                            <p  style={{textAlign: 'center', color: 'var(--pf-global--link--Color)', cursor: "pointer"}}><u>Show error</u></p>
+                            <pre>
+                              {message.error_message}
+                            </pre>
+                          </Td>
+                          <Td dataLabel={columnNames.failure_date}>
+                            {message.failure_date}
+                          </Td>
+                        </Tr>
+                        </Tbody>
+                        ))
+                      }
+                    </TableComposable>
+                  </ExpandableRowContent>
+                </Td>
+              </Tr>
+            </Tbody>
+          ))}
+        </TableComposable>
+  )
 }
 
 export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Flakey[]}> = ({teams}) => {
@@ -295,27 +435,6 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
   }
   const isSuiteExpanded = (suite_name: string) => expandedSuitesNames.includes(suite_name);
 
-  // Expandable test cases
-  const [expandedTestCaseNames, setExpandedTestCaseNames] = React.useState<string[]>([]);
-
-  const setTestCaseExpanded = (suite_name: string, isExpanding = true) => {
-    setExpandedTestCaseNames(prevExpanded => {
-      const otherExpandedTestCaseNames = prevExpanded.filter(t => t !== suite_name);
-      return isExpanding ? [...otherExpandedTestCaseNames, suite_name] : otherExpandedTestCaseNames;
-    });
-  }
-  const isTestCaseExpanded = (test_case_name: string) => expandedTestCaseNames.includes(test_case_name);
-
-  const expandPre = (e) => {
-    if(e.currentTarget.classList.contains('expandedPre')){
-      e.currentTarget.classList.remove("expandedPre")
-      e.currentTarget.classList.add('collapsedPre')
-
-    } else {
-      e.currentTarget.classList.remove('collapsedPre')
-      e.currentTarget.classList.add('expandedPre')
-    }
-  }
 
   const [activeSortIndex, setActiveSortIndex] = React.useState<number>(0);
   const [activeSortDirection, setActiveSortDirection] = React.useState<'asc' | 'desc' >('desc');
@@ -356,36 +475,6 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
       return (bValue as string).localeCompare(aValue as string);
     }
   }
-
-  const [simpleSortIndex, setSimpleSortIndex] = React.useState<number>(0);
-  const [simpleSortDirection, setSimpleSortDirection] = React.useState<'asc' | 'desc' >('desc');
-  const onSimpleSort = (a, b) => {
-    const aValue = getSimpleSortableRowValues(a)[simpleSortIndex];
-    const bValue = getSimpleSortableRowValues(b)[simpleSortIndex];
-
-    if (simpleSortDirection === 'asc') {
-      return (aValue as number) - (bValue as number);
-    }
-    return (bValue as number) - (aValue as number);
-  }
-
-  const getSimpleSortableRowValues = (flakey:any): (number)[] => {
-    const { count, test_case_impact } = flakey;
-    return [ count, test_case_impact ];
-  };
-
-  const getSimpleSortParams = (columnIndex: number): ThProps['sort'] => ({
-    sortBy: {
-      index: simpleSortIndex,
-      direction: simpleSortDirection,
-      defaultDirection: 'desc' 
-    },
-    onSort: (_event, index, direction) => {
-      setSimpleSortIndex(index);
-      setSimpleSortDirection(direction);
-    },
-    columnIndex
-  });
 
   const countFailingSuites = (suite:Flakey) => {
     const sum = suite.test_cases.reduce((accumulator, object) => {
@@ -432,73 +521,7 @@ export const ComposableTableNestedExpandable: React.FunctionComponent<{teams:Fla
                     <GridItem span={9}>
                       <Card className='card-no-border'>
                         <CardTitle>Failing test cases</CardTitle>
-                        <TableComposable aria-label="Error messages" variant="compact">
-                          <Thead>
-                            <Tr>
-                              <Th width={80} rowSpan={2} />
-                              <Th>Test Name</Th>
-                              <Th width={10} sort={getSimpleSortParams(1)}>
-                                Impact
-                              </Th>
-                              <Th width={10} sort={getSimpleSortParams(0)}>
-                                Count
-                              </Th>
-                            </Tr>
-                          </Thead>
-                          {suite.test_cases && suite.test_cases.sort(onSimpleSort).map((test_case, tc_idx) => (
-                            <Tbody key={test_case.name+tc_idx}>
-                              <Tr>
-                                <Td expand={{ rowIndex, isExpanded: isTestCaseExpanded(test_case.name), onToggle: () => setTestCaseExpanded(test_case.name, !isTestCaseExpanded(test_case.name))}}/>
-                                <Td>
-                                  {test_case.name}
-                                </Td>
-                                <Td>
-                                  {test_case.test_case_impact}
-                                </Td>
-                                <Td>
-                                  {test_case.count}
-                                </Td>
-                              </Tr>
-                              <Tr isExpanded={isTestCaseExpanded(test_case.name)}>
-                                <Td></Td>
-                                <Td colSpan={3}>
-                                  <ExpandableRowContent>
-                                    <TableComposable aria-label="Error messages" variant="compact">
-                                      <Thead>
-                                        <Tr>
-                                          <Th />
-                                          <Th width={10}>Job URL</Th>
-                                          <Th width={70}>Error</Th>
-                                          <Th width={20}>Failure Dates</Th>
-                                        </Tr>
-                                      </Thead>
-                                      {test_case.messages && test_case.messages.map((message, m_idx) => (
-                                        <Tbody key={message.job_id+m_idx}>
-                                        <Tr>
-                                          <Td></Td>
-                                          <Td dataLabel={columnNames.job_id}>
-                                            <a href={message.job_url} rel="noreferrer noopener" target='_blank'>{message.job_id}</a>
-                                          </Td>
-                                          <Td dataLabel="Error messages" onClick={expandPre} className='collapsedPre'>
-                                            <p  style={{textAlign: 'center', color: 'var(--pf-global--link--Color)', cursor: "pointer"}}><u>Show error</u></p>
-                                            <pre>
-                                              {message.error_message}
-                                            </pre>
-                                          </Td>
-                                          <Td dataLabel={columnNames.failure_date}>
-                                            {message.failure_date}
-                                          </Td>
-                                        </Tr>
-                                        </Tbody>
-                                        ))
-                                      }
-                                    </TableComposable>
-                                  </ExpandableRowContent>
-                                </Td>
-                              </Tr>
-                            </Tbody>
-                          ))}
-                        </TableComposable>
+                        <InnerNestedComposableTableNestedExpandable test_cases={suite.test_cases} rowIndex={rowIndex}></InnerNestedComposableTableNestedExpandable>
                       </Card>
                     </GridItem>
                   </Grid>
@@ -523,6 +546,7 @@ const FlakyTests: React.FunctionComponent = () => {
   const [toggles, setToggles] = React.useState<any>([])
   const [selectedSuite, setSelectedSuite] = React.useState<string>('')
   const [data, setData] = React.useState<any>([])
+  const [top10Data, setTop10Data] = React.useState<TestCase[]>([])
   const [pieData, setPieData] = React.useState<any>([])
   const [barData, setBarData] = React.useState<any>([])
   const [selectedRepo, setSelectedRepo] = React.useState<string>('')
@@ -587,6 +611,11 @@ const FlakyTests: React.FunctionComponent = () => {
       const organizedData = countSuiteFailures(data)
       setToggles(organizedData)
       setPieData(organizedData)
+      const allCases:TestCase[] = []
+      data.forEach(element => {
+        allCases.push(...element.test_cases)
+      })
+      setTop10Data(allCases.sort((a,b) => b.count - a.count))
     }
 
   }, [data]);
@@ -736,16 +765,19 @@ const FlakyTests: React.FunctionComponent = () => {
                     </Title>
                     <SpinnerBasic isLoading={loadingSpinner}></SpinnerBasic>
                     <ImpactChart data={barData} x="Date" y="global_impact" secondaryData={globalImpact}></ImpactChart>
-                    <Title headingLevel="h3">
-                      <span style={{paddingLeft: '1em'}}>Regression Chart</span>
-                    </Title>
-                    <RegressionChart data={barData} x="jobs_executed" y="global_impact"></RegressionChart>
                   </div>
                 </GridItem>
                 
               </Grid>  
             </GridItem>
             <GridItem style={{clear: 'both', minHeight: '1em'}} span={12}>
+            </GridItem>
+            <GridItem span={12}>
+              <Card className='card-no-border' style={{padding: "1em"}}>
+                <CardTitle>Top 20 Failing test cases</CardTitle>
+                <InnerNestedComposableTableNestedExpandable test_cases={top10Data.slice(0,20)} rowIndex={0}></InnerNestedComposableTableNestedExpandable>
+                <CardFooter></CardFooter>
+              </Card>
             </GridItem>
             <GridItem span={12}>
               <Toolbar id="toolbar-items">
