@@ -11,6 +11,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/api/server/middleware"
 	version "github.com/redhat-appstudio/quality-studio/api/server/router/version"
 	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/connectors/gcs"
 	"github.com/redhat-appstudio/quality-studio/pkg/connectors/github"
 	jiraAPI "github.com/redhat-appstudio/quality-studio/pkg/connectors/jira"
 	"github.com/redhat-appstudio/quality-studio/pkg/logger"
@@ -94,6 +95,7 @@ func main() {
 
 	jiraAPI := jiraAPI.NewJiraConfig()
 	githubClient := github.NewGithubClient(util.GetEnv(DefaultGithubTokenEnv, ""))
+	g := gcs.BucketHandleClient()
 
 	server := server.New(&server.Config{
 		Logger:  logger,
@@ -103,6 +105,7 @@ func main() {
 		CodeCov: codecov.NewCodeCoverageClient(),
 		Jira:    jiraAPI,
 		Db:      db,
+		GCS:     g,
 		Slack:   slack.New(util.GetEnv("SLACK_TOKEN", ""), slack.OptionDebug(true)),
 	})
 

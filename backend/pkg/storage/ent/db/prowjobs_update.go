@@ -61,9 +61,23 @@ func (pju *ProwJobsUpdate) SetTestsCount(i int64) *ProwJobsUpdate {
 	return pju
 }
 
+// SetNillableTestsCount sets the "tests_count" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableTestsCount(i *int64) *ProwJobsUpdate {
+	if i != nil {
+		pju.SetTestsCount(*i)
+	}
+	return pju
+}
+
 // AddTestsCount adds i to the "tests_count" field.
 func (pju *ProwJobsUpdate) AddTestsCount(i int64) *ProwJobsUpdate {
 	pju.mutation.AddTestsCount(i)
+	return pju
+}
+
+// ClearTestsCount clears the value of the "tests_count" field.
+func (pju *ProwJobsUpdate) ClearTestsCount() *ProwJobsUpdate {
+	pju.mutation.ClearTestsCount()
 	return pju
 }
 
@@ -74,9 +88,23 @@ func (pju *ProwJobsUpdate) SetFailedCount(i int64) *ProwJobsUpdate {
 	return pju
 }
 
+// SetNillableFailedCount sets the "failed_count" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableFailedCount(i *int64) *ProwJobsUpdate {
+	if i != nil {
+		pju.SetFailedCount(*i)
+	}
+	return pju
+}
+
 // AddFailedCount adds i to the "failed_count" field.
 func (pju *ProwJobsUpdate) AddFailedCount(i int64) *ProwJobsUpdate {
 	pju.mutation.AddFailedCount(i)
+	return pju
+}
+
+// ClearFailedCount clears the value of the "failed_count" field.
+func (pju *ProwJobsUpdate) ClearFailedCount() *ProwJobsUpdate {
+	pju.mutation.ClearFailedCount()
 	return pju
 }
 
@@ -87,9 +115,23 @@ func (pju *ProwJobsUpdate) SetSkippedCount(i int64) *ProwJobsUpdate {
 	return pju
 }
 
+// SetNillableSkippedCount sets the "skipped_count" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableSkippedCount(i *int64) *ProwJobsUpdate {
+	if i != nil {
+		pju.SetSkippedCount(*i)
+	}
+	return pju
+}
+
 // AddSkippedCount adds i to the "skipped_count" field.
 func (pju *ProwJobsUpdate) AddSkippedCount(i int64) *ProwJobsUpdate {
 	pju.mutation.AddSkippedCount(i)
+	return pju
+}
+
+// ClearSkippedCount clears the value of the "skipped_count" field.
+func (pju *ProwJobsUpdate) ClearSkippedCount() *ProwJobsUpdate {
+	pju.mutation.ClearSkippedCount()
 	return pju
 }
 
@@ -283,17 +325,26 @@ func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pju.mutation.AddedTestsCount(); ok {
 		_spec.AddField(prowjobs.FieldTestsCount, field.TypeInt64, value)
 	}
+	if pju.mutation.TestsCountCleared() {
+		_spec.ClearField(prowjobs.FieldTestsCount, field.TypeInt64)
+	}
 	if value, ok := pju.mutation.FailedCount(); ok {
 		_spec.SetField(prowjobs.FieldFailedCount, field.TypeInt64, value)
 	}
 	if value, ok := pju.mutation.AddedFailedCount(); ok {
 		_spec.AddField(prowjobs.FieldFailedCount, field.TypeInt64, value)
 	}
+	if pju.mutation.FailedCountCleared() {
+		_spec.ClearField(prowjobs.FieldFailedCount, field.TypeInt64)
+	}
 	if value, ok := pju.mutation.SkippedCount(); ok {
 		_spec.SetField(prowjobs.FieldSkippedCount, field.TypeInt64, value)
 	}
 	if value, ok := pju.mutation.AddedSkippedCount(); ok {
 		_spec.AddField(prowjobs.FieldSkippedCount, field.TypeInt64, value)
+	}
+	if pju.mutation.SkippedCountCleared() {
+		_spec.ClearField(prowjobs.FieldSkippedCount, field.TypeInt64)
 	}
 	if value, ok := pju.mutation.JobName(); ok {
 		_spec.SetField(prowjobs.FieldJobName, field.TypeString, value)
@@ -418,9 +469,23 @@ func (pjuo *ProwJobsUpdateOne) SetTestsCount(i int64) *ProwJobsUpdateOne {
 	return pjuo
 }
 
+// SetNillableTestsCount sets the "tests_count" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableTestsCount(i *int64) *ProwJobsUpdateOne {
+	if i != nil {
+		pjuo.SetTestsCount(*i)
+	}
+	return pjuo
+}
+
 // AddTestsCount adds i to the "tests_count" field.
 func (pjuo *ProwJobsUpdateOne) AddTestsCount(i int64) *ProwJobsUpdateOne {
 	pjuo.mutation.AddTestsCount(i)
+	return pjuo
+}
+
+// ClearTestsCount clears the value of the "tests_count" field.
+func (pjuo *ProwJobsUpdateOne) ClearTestsCount() *ProwJobsUpdateOne {
+	pjuo.mutation.ClearTestsCount()
 	return pjuo
 }
 
@@ -431,9 +496,23 @@ func (pjuo *ProwJobsUpdateOne) SetFailedCount(i int64) *ProwJobsUpdateOne {
 	return pjuo
 }
 
+// SetNillableFailedCount sets the "failed_count" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableFailedCount(i *int64) *ProwJobsUpdateOne {
+	if i != nil {
+		pjuo.SetFailedCount(*i)
+	}
+	return pjuo
+}
+
 // AddFailedCount adds i to the "failed_count" field.
 func (pjuo *ProwJobsUpdateOne) AddFailedCount(i int64) *ProwJobsUpdateOne {
 	pjuo.mutation.AddFailedCount(i)
+	return pjuo
+}
+
+// ClearFailedCount clears the value of the "failed_count" field.
+func (pjuo *ProwJobsUpdateOne) ClearFailedCount() *ProwJobsUpdateOne {
+	pjuo.mutation.ClearFailedCount()
 	return pjuo
 }
 
@@ -444,9 +523,23 @@ func (pjuo *ProwJobsUpdateOne) SetSkippedCount(i int64) *ProwJobsUpdateOne {
 	return pjuo
 }
 
+// SetNillableSkippedCount sets the "skipped_count" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableSkippedCount(i *int64) *ProwJobsUpdateOne {
+	if i != nil {
+		pjuo.SetSkippedCount(*i)
+	}
+	return pjuo
+}
+
 // AddSkippedCount adds i to the "skipped_count" field.
 func (pjuo *ProwJobsUpdateOne) AddSkippedCount(i int64) *ProwJobsUpdateOne {
 	pjuo.mutation.AddSkippedCount(i)
+	return pjuo
+}
+
+// ClearSkippedCount clears the value of the "skipped_count" field.
+func (pjuo *ProwJobsUpdateOne) ClearSkippedCount() *ProwJobsUpdateOne {
+	pjuo.mutation.ClearSkippedCount()
 	return pjuo
 }
 
@@ -664,17 +757,26 @@ func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, er
 	if value, ok := pjuo.mutation.AddedTestsCount(); ok {
 		_spec.AddField(prowjobs.FieldTestsCount, field.TypeInt64, value)
 	}
+	if pjuo.mutation.TestsCountCleared() {
+		_spec.ClearField(prowjobs.FieldTestsCount, field.TypeInt64)
+	}
 	if value, ok := pjuo.mutation.FailedCount(); ok {
 		_spec.SetField(prowjobs.FieldFailedCount, field.TypeInt64, value)
 	}
 	if value, ok := pjuo.mutation.AddedFailedCount(); ok {
 		_spec.AddField(prowjobs.FieldFailedCount, field.TypeInt64, value)
 	}
+	if pjuo.mutation.FailedCountCleared() {
+		_spec.ClearField(prowjobs.FieldFailedCount, field.TypeInt64)
+	}
 	if value, ok := pjuo.mutation.SkippedCount(); ok {
 		_spec.SetField(prowjobs.FieldSkippedCount, field.TypeInt64, value)
 	}
 	if value, ok := pjuo.mutation.AddedSkippedCount(); ok {
 		_spec.AddField(prowjobs.FieldSkippedCount, field.TypeInt64, value)
+	}
+	if pjuo.mutation.SkippedCountCleared() {
+		_spec.ClearField(prowjobs.FieldSkippedCount, field.TypeInt64)
 	}
 	if value, ok := pjuo.mutation.JobName(); ok {
 		_spec.SetField(prowjobs.FieldJobName, field.TypeString, value)

@@ -3486,7 +3486,7 @@ func (m *ProwJobsMutation) TestsCount() (r int64, exists bool) {
 // OldTestsCount returns the old "tests_count" field's value of the ProwJobs entity.
 // If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProwJobsMutation) OldTestsCount(ctx context.Context) (v int64, err error) {
+func (m *ProwJobsMutation) OldTestsCount(ctx context.Context) (v *int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldTestsCount is only allowed on UpdateOne operations")
 	}
@@ -3518,10 +3518,24 @@ func (m *ProwJobsMutation) AddedTestsCount() (r int64, exists bool) {
 	return *v, true
 }
 
+// ClearTestsCount clears the value of the "tests_count" field.
+func (m *ProwJobsMutation) ClearTestsCount() {
+	m.tests_count = nil
+	m.addtests_count = nil
+	m.clearedFields[prowjobs.FieldTestsCount] = struct{}{}
+}
+
+// TestsCountCleared returns if the "tests_count" field was cleared in this mutation.
+func (m *ProwJobsMutation) TestsCountCleared() bool {
+	_, ok := m.clearedFields[prowjobs.FieldTestsCount]
+	return ok
+}
+
 // ResetTestsCount resets all changes to the "tests_count" field.
 func (m *ProwJobsMutation) ResetTestsCount() {
 	m.tests_count = nil
 	m.addtests_count = nil
+	delete(m.clearedFields, prowjobs.FieldTestsCount)
 }
 
 // SetFailedCount sets the "failed_count" field.
@@ -3542,7 +3556,7 @@ func (m *ProwJobsMutation) FailedCount() (r int64, exists bool) {
 // OldFailedCount returns the old "failed_count" field's value of the ProwJobs entity.
 // If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProwJobsMutation) OldFailedCount(ctx context.Context) (v int64, err error) {
+func (m *ProwJobsMutation) OldFailedCount(ctx context.Context) (v *int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldFailedCount is only allowed on UpdateOne operations")
 	}
@@ -3574,10 +3588,24 @@ func (m *ProwJobsMutation) AddedFailedCount() (r int64, exists bool) {
 	return *v, true
 }
 
+// ClearFailedCount clears the value of the "failed_count" field.
+func (m *ProwJobsMutation) ClearFailedCount() {
+	m.failed_count = nil
+	m.addfailed_count = nil
+	m.clearedFields[prowjobs.FieldFailedCount] = struct{}{}
+}
+
+// FailedCountCleared returns if the "failed_count" field was cleared in this mutation.
+func (m *ProwJobsMutation) FailedCountCleared() bool {
+	_, ok := m.clearedFields[prowjobs.FieldFailedCount]
+	return ok
+}
+
 // ResetFailedCount resets all changes to the "failed_count" field.
 func (m *ProwJobsMutation) ResetFailedCount() {
 	m.failed_count = nil
 	m.addfailed_count = nil
+	delete(m.clearedFields, prowjobs.FieldFailedCount)
 }
 
 // SetSkippedCount sets the "skipped_count" field.
@@ -3598,7 +3626,7 @@ func (m *ProwJobsMutation) SkippedCount() (r int64, exists bool) {
 // OldSkippedCount returns the old "skipped_count" field's value of the ProwJobs entity.
 // If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProwJobsMutation) OldSkippedCount(ctx context.Context) (v int64, err error) {
+func (m *ProwJobsMutation) OldSkippedCount(ctx context.Context) (v *int64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldSkippedCount is only allowed on UpdateOne operations")
 	}
@@ -3630,10 +3658,24 @@ func (m *ProwJobsMutation) AddedSkippedCount() (r int64, exists bool) {
 	return *v, true
 }
 
+// ClearSkippedCount clears the value of the "skipped_count" field.
+func (m *ProwJobsMutation) ClearSkippedCount() {
+	m.skipped_count = nil
+	m.addskipped_count = nil
+	m.clearedFields[prowjobs.FieldSkippedCount] = struct{}{}
+}
+
+// SkippedCountCleared returns if the "skipped_count" field was cleared in this mutation.
+func (m *ProwJobsMutation) SkippedCountCleared() bool {
+	_, ok := m.clearedFields[prowjobs.FieldSkippedCount]
+	return ok
+}
+
 // ResetSkippedCount resets all changes to the "skipped_count" field.
 func (m *ProwJobsMutation) ResetSkippedCount() {
 	m.skipped_count = nil
 	m.addskipped_count = nil
+	delete(m.clearedFields, prowjobs.FieldSkippedCount)
 }
 
 // SetJobName sets the "job_name" field.
@@ -4372,6 +4414,15 @@ func (m *ProwJobsMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *ProwJobsMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(prowjobs.FieldTestsCount) {
+		fields = append(fields, prowjobs.FieldTestsCount)
+	}
+	if m.FieldCleared(prowjobs.FieldFailedCount) {
+		fields = append(fields, prowjobs.FieldFailedCount)
+	}
+	if m.FieldCleared(prowjobs.FieldSkippedCount) {
+		fields = append(fields, prowjobs.FieldSkippedCount)
+	}
 	if m.FieldCleared(prowjobs.FieldE2eFailedTestMessages) {
 		fields = append(fields, prowjobs.FieldE2eFailedTestMessages)
 	}
@@ -4395,6 +4446,15 @@ func (m *ProwJobsMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *ProwJobsMutation) ClearField(name string) error {
 	switch name {
+	case prowjobs.FieldTestsCount:
+		m.ClearTestsCount()
+		return nil
+	case prowjobs.FieldFailedCount:
+		m.ClearFailedCount()
+		return nil
+	case prowjobs.FieldSkippedCount:
+		m.ClearSkippedCount()
+		return nil
 	case prowjobs.FieldE2eFailedTestMessages:
 		m.ClearE2eFailedTestMessages()
 		return nil
@@ -4539,10 +4599,15 @@ type ProwSuitesMutation struct {
 	typ                string
 	id                 *int
 	job_id             *string
+	job_url            *string
+	job_name           *string
+	suite_name         *string
 	name               *string
 	status             *string
+	error_message      *string
 	time               *float64
 	addtime            *float64
+	created_at         *time.Time
 	clearedFields      map[string]struct{}
 	prow_suites        *string
 	clearedprow_suites bool
@@ -4685,6 +4750,114 @@ func (m *ProwSuitesMutation) ResetJobID() {
 	m.job_id = nil
 }
 
+// SetJobURL sets the "job_url" field.
+func (m *ProwSuitesMutation) SetJobURL(s string) {
+	m.job_url = &s
+}
+
+// JobURL returns the value of the "job_url" field in the mutation.
+func (m *ProwSuitesMutation) JobURL() (r string, exists bool) {
+	v := m.job_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJobURL returns the old "job_url" field's value of the ProwSuites entity.
+// If the ProwSuites object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwSuitesMutation) OldJobURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldJobURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldJobURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJobURL: %w", err)
+	}
+	return oldValue.JobURL, nil
+}
+
+// ResetJobURL resets all changes to the "job_url" field.
+func (m *ProwSuitesMutation) ResetJobURL() {
+	m.job_url = nil
+}
+
+// SetJobName sets the "job_name" field.
+func (m *ProwSuitesMutation) SetJobName(s string) {
+	m.job_name = &s
+}
+
+// JobName returns the value of the "job_name" field in the mutation.
+func (m *ProwSuitesMutation) JobName() (r string, exists bool) {
+	v := m.job_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJobName returns the old "job_name" field's value of the ProwSuites entity.
+// If the ProwSuites object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwSuitesMutation) OldJobName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldJobName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldJobName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJobName: %w", err)
+	}
+	return oldValue.JobName, nil
+}
+
+// ResetJobName resets all changes to the "job_name" field.
+func (m *ProwSuitesMutation) ResetJobName() {
+	m.job_name = nil
+}
+
+// SetSuiteName sets the "suite_name" field.
+func (m *ProwSuitesMutation) SetSuiteName(s string) {
+	m.suite_name = &s
+}
+
+// SuiteName returns the value of the "suite_name" field in the mutation.
+func (m *ProwSuitesMutation) SuiteName() (r string, exists bool) {
+	v := m.suite_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSuiteName returns the old "suite_name" field's value of the ProwSuites entity.
+// If the ProwSuites object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwSuitesMutation) OldSuiteName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSuiteName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSuiteName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSuiteName: %w", err)
+	}
+	return oldValue.SuiteName, nil
+}
+
+// ResetSuiteName resets all changes to the "suite_name" field.
+func (m *ProwSuitesMutation) ResetSuiteName() {
+	m.suite_name = nil
+}
+
 // SetName sets the "name" field.
 func (m *ProwSuitesMutation) SetName(s string) {
 	m.name = &s
@@ -4757,6 +4930,55 @@ func (m *ProwSuitesMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetErrorMessage sets the "error_message" field.
+func (m *ProwSuitesMutation) SetErrorMessage(s string) {
+	m.error_message = &s
+}
+
+// ErrorMessage returns the value of the "error_message" field in the mutation.
+func (m *ProwSuitesMutation) ErrorMessage() (r string, exists bool) {
+	v := m.error_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorMessage returns the old "error_message" field's value of the ProwSuites entity.
+// If the ProwSuites object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwSuitesMutation) OldErrorMessage(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorMessage: %w", err)
+	}
+	return oldValue.ErrorMessage, nil
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (m *ProwSuitesMutation) ClearErrorMessage() {
+	m.error_message = nil
+	m.clearedFields[prowsuites.FieldErrorMessage] = struct{}{}
+}
+
+// ErrorMessageCleared returns if the "error_message" field was cleared in this mutation.
+func (m *ProwSuitesMutation) ErrorMessageCleared() bool {
+	_, ok := m.clearedFields[prowsuites.FieldErrorMessage]
+	return ok
+}
+
+// ResetErrorMessage resets all changes to the "error_message" field.
+func (m *ProwSuitesMutation) ResetErrorMessage() {
+	m.error_message = nil
+	delete(m.clearedFields, prowsuites.FieldErrorMessage)
+}
+
 // SetTime sets the "time" field.
 func (m *ProwSuitesMutation) SetTime(f float64) {
 	m.time = &f
@@ -4811,6 +5033,55 @@ func (m *ProwSuitesMutation) AddedTime() (r float64, exists bool) {
 func (m *ProwSuitesMutation) ResetTime() {
 	m.time = nil
 	m.addtime = nil
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ProwSuitesMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ProwSuitesMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ProwSuites entity.
+// If the ProwSuites object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwSuitesMutation) OldCreatedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ClearCreatedAt clears the value of the "created_at" field.
+func (m *ProwSuitesMutation) ClearCreatedAt() {
+	m.created_at = nil
+	m.clearedFields[prowsuites.FieldCreatedAt] = struct{}{}
+}
+
+// CreatedAtCleared returns if the "created_at" field was cleared in this mutation.
+func (m *ProwSuitesMutation) CreatedAtCleared() bool {
+	_, ok := m.clearedFields[prowsuites.FieldCreatedAt]
+	return ok
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ProwSuitesMutation) ResetCreatedAt() {
+	m.created_at = nil
+	delete(m.clearedFields, prowsuites.FieldCreatedAt)
 }
 
 // SetProwSuitesID sets the "prow_suites" edge to the Repository entity by id.
@@ -4886,9 +5157,18 @@ func (m *ProwSuitesMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProwSuitesMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 9)
 	if m.job_id != nil {
 		fields = append(fields, prowsuites.FieldJobID)
+	}
+	if m.job_url != nil {
+		fields = append(fields, prowsuites.FieldJobURL)
+	}
+	if m.job_name != nil {
+		fields = append(fields, prowsuites.FieldJobName)
+	}
+	if m.suite_name != nil {
+		fields = append(fields, prowsuites.FieldSuiteName)
 	}
 	if m.name != nil {
 		fields = append(fields, prowsuites.FieldName)
@@ -4896,8 +5176,14 @@ func (m *ProwSuitesMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, prowsuites.FieldStatus)
 	}
+	if m.error_message != nil {
+		fields = append(fields, prowsuites.FieldErrorMessage)
+	}
 	if m.time != nil {
 		fields = append(fields, prowsuites.FieldTime)
+	}
+	if m.created_at != nil {
+		fields = append(fields, prowsuites.FieldCreatedAt)
 	}
 	return fields
 }
@@ -4909,12 +5195,22 @@ func (m *ProwSuitesMutation) Field(name string) (ent.Value, bool) {
 	switch name {
 	case prowsuites.FieldJobID:
 		return m.JobID()
+	case prowsuites.FieldJobURL:
+		return m.JobURL()
+	case prowsuites.FieldJobName:
+		return m.JobName()
+	case prowsuites.FieldSuiteName:
+		return m.SuiteName()
 	case prowsuites.FieldName:
 		return m.Name()
 	case prowsuites.FieldStatus:
 		return m.Status()
+	case prowsuites.FieldErrorMessage:
+		return m.ErrorMessage()
 	case prowsuites.FieldTime:
 		return m.Time()
+	case prowsuites.FieldCreatedAt:
+		return m.CreatedAt()
 	}
 	return nil, false
 }
@@ -4926,12 +5222,22 @@ func (m *ProwSuitesMutation) OldField(ctx context.Context, name string) (ent.Val
 	switch name {
 	case prowsuites.FieldJobID:
 		return m.OldJobID(ctx)
+	case prowsuites.FieldJobURL:
+		return m.OldJobURL(ctx)
+	case prowsuites.FieldJobName:
+		return m.OldJobName(ctx)
+	case prowsuites.FieldSuiteName:
+		return m.OldSuiteName(ctx)
 	case prowsuites.FieldName:
 		return m.OldName(ctx)
 	case prowsuites.FieldStatus:
 		return m.OldStatus(ctx)
+	case prowsuites.FieldErrorMessage:
+		return m.OldErrorMessage(ctx)
 	case prowsuites.FieldTime:
 		return m.OldTime(ctx)
+	case prowsuites.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown ProwSuites field %s", name)
 }
@@ -4948,6 +5254,27 @@ func (m *ProwSuitesMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetJobID(v)
 		return nil
+	case prowsuites.FieldJobURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJobURL(v)
+		return nil
+	case prowsuites.FieldJobName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJobName(v)
+		return nil
+	case prowsuites.FieldSuiteName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSuiteName(v)
+		return nil
 	case prowsuites.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -4962,12 +5289,26 @@ func (m *ProwSuitesMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
+	case prowsuites.FieldErrorMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorMessage(v)
+		return nil
 	case prowsuites.FieldTime:
 		v, ok := value.(float64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTime(v)
+		return nil
+	case prowsuites.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
 		return nil
 	}
 	return fmt.Errorf("unknown ProwSuites field %s", name)
@@ -5013,7 +5354,14 @@ func (m *ProwSuitesMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *ProwSuitesMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(prowsuites.FieldErrorMessage) {
+		fields = append(fields, prowsuites.FieldErrorMessage)
+	}
+	if m.FieldCleared(prowsuites.FieldCreatedAt) {
+		fields = append(fields, prowsuites.FieldCreatedAt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -5026,6 +5374,14 @@ func (m *ProwSuitesMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *ProwSuitesMutation) ClearField(name string) error {
+	switch name {
+	case prowsuites.FieldErrorMessage:
+		m.ClearErrorMessage()
+		return nil
+	case prowsuites.FieldCreatedAt:
+		m.ClearCreatedAt()
+		return nil
+	}
 	return fmt.Errorf("unknown ProwSuites nullable field %s", name)
 }
 
@@ -5036,14 +5392,29 @@ func (m *ProwSuitesMutation) ResetField(name string) error {
 	case prowsuites.FieldJobID:
 		m.ResetJobID()
 		return nil
+	case prowsuites.FieldJobURL:
+		m.ResetJobURL()
+		return nil
+	case prowsuites.FieldJobName:
+		m.ResetJobName()
+		return nil
+	case prowsuites.FieldSuiteName:
+		m.ResetSuiteName()
+		return nil
 	case prowsuites.FieldName:
 		m.ResetName()
 		return nil
 	case prowsuites.FieldStatus:
 		m.ResetStatus()
 		return nil
+	case prowsuites.FieldErrorMessage:
+		m.ResetErrorMessage()
+		return nil
 	case prowsuites.FieldTime:
 		m.ResetTime()
+		return nil
+	case prowsuites.FieldCreatedAt:
+		m.ResetCreatedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown ProwSuites field %s", name)

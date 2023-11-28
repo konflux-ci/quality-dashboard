@@ -310,6 +310,16 @@ func TestsCountLTE(v int64) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldLTE(FieldTestsCount, v))
 }
 
+// TestsCountIsNil applies the IsNil predicate on the "tests_count" field.
+func TestsCountIsNil() predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldIsNull(FieldTestsCount))
+}
+
+// TestsCountNotNil applies the NotNil predicate on the "tests_count" field.
+func TestsCountNotNil() predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldNotNull(FieldTestsCount))
+}
+
 // FailedCountEQ applies the EQ predicate on the "failed_count" field.
 func FailedCountEQ(v int64) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldEQ(FieldFailedCount, v))
@@ -350,6 +360,16 @@ func FailedCountLTE(v int64) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldLTE(FieldFailedCount, v))
 }
 
+// FailedCountIsNil applies the IsNil predicate on the "failed_count" field.
+func FailedCountIsNil() predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldIsNull(FieldFailedCount))
+}
+
+// FailedCountNotNil applies the NotNil predicate on the "failed_count" field.
+func FailedCountNotNil() predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldNotNull(FieldFailedCount))
+}
+
 // SkippedCountEQ applies the EQ predicate on the "skipped_count" field.
 func SkippedCountEQ(v int64) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldEQ(FieldSkippedCount, v))
@@ -388,6 +408,16 @@ func SkippedCountLT(v int64) predicate.ProwJobs {
 // SkippedCountLTE applies the LTE predicate on the "skipped_count" field.
 func SkippedCountLTE(v int64) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldLTE(FieldSkippedCount, v))
+}
+
+// SkippedCountIsNil applies the IsNil predicate on the "skipped_count" field.
+func SkippedCountIsNil() predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldIsNull(FieldSkippedCount))
+}
+
+// SkippedCountNotNil applies the NotNil predicate on the "skipped_count" field.
+func SkippedCountNotNil() predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldNotNull(FieldSkippedCount))
 }
 
 // JobNameEQ applies the EQ predicate on the "job_name" field.

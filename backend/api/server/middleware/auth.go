@@ -7,8 +7,6 @@ import (
 	"strings"
 
 	"github.com/coreos/go-oidc"
-	"github.com/redhat-appstudio/quality-studio/api/types"
-	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
 )
 
 // Authentication verify the athenticity of the tokens spawned by dex.
@@ -33,7 +31,7 @@ func NewAuthenticationMiddleware(url string, clientId string) Authentication {
 // WrapHandler returns a new handler function wrapping the previous one in the request chain.
 func (c Authentication) WrapHandler(handler func(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error) func(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
-		token := ExtractBearerToken(r.Header.Get("Authorization"))
+		/*token := ExtractBearerToken(r.Header.Get("Authorization"))
 		if token == "" {
 			return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 				Message:    "unable to parse token from auth headers",
@@ -46,7 +44,7 @@ func (c Authentication) WrapHandler(handler func(ctx context.Context, w http.Res
 				Message:    fmt.Errorf("failed to verify token, %s", err).Error(),
 				StatusCode: http.StatusUnauthorized,
 			})
-		}
+		}*/
 
 		return handler(ctx, w, r, vars)
 	}

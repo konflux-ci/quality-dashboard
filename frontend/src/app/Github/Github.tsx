@@ -46,8 +46,10 @@ export interface RepositoryInfo {
   coverage_trend: string,
   retest_avg: string;
   retest_before_merge_avg: string;
+  created_prs_in_time_range: string;
   open_prs: string;
   merged_prs: string;
+  merged_prs_in_time_range: string;
   time_to_merge_pr_avg_days: string;
 }
 
@@ -74,7 +76,7 @@ let GitHub = () => {
   // Triggers automatic validation when state variables change
   useEffect(() => {
     getAllRepositoriesWithOrgs(state.teams.Team, false, rangeDateTime).then((data: any) => {
-      let rps = new Array<RepositoryInfo>
+      const rps = new Array<RepositoryInfo>
       data.forEach((repository, _) => {
         rps.push({
           repository_name: repository.repoName,
@@ -90,8 +92,10 @@ let GitHub = () => {
           // https://github.com/redhat-appstudio/service-provider-integration-operator/pull/548#issuecomment-1494149514
           retest_avg: repository.prs?.summary.retest_avg == 0 || repository.prs?.summary.retest_avg == 0.01 ? 'N/A' : repository.prs?.summary.retest_avg,
           retest_before_merge_avg: repository.prs?.summary.retest_before_merge_avg == 0 || repository.prs?.summary.retest_before_merge_avg == 0.01 ? 'N/A' : repository.prs?.summary.retest_before_merge_avg,
+          created_prs_in_time_range: repository.prs?.summary?.created_prs_in_time_range,
           open_prs: repository.prs?.summary?.open_prs,
           merged_prs: repository.prs?.summary?.merged_prs,
+          merged_prs_in_time_range: repository.prs?.summary?.merged_prs_in_time_range,
           time_to_merge_pr_avg_days: repository.prs?.summary?.merge_avg + ' day(s)',
         });
       })
@@ -144,8 +148,10 @@ let GitHub = () => {
               // https://github.com/redhat-appstudio/service-provider-integration-operator/pull/548#issuecomment-1494149514
               retest_avg: repository.prs?.summary.retes_avg == 0 || repository.prs?.summary.retest_avg == 0.01 ? 'N/A' : repository.prs?.summary.retest_avg,
               retest_before_merge_avg: repository.prs?.summary.retest_before_merge_avg == 0 || repository.prs?.summary.retest_before_merge_avg == 0.01 ? 'N/A' : repository.prs?.summary.retest_before_merge_avg,
+              created_prs_in_time_range: repository.prs?.summary?.created_prs_in_time_range,
               open_prs: repository.prs?.summary?.open_prs,
               merged_prs: repository.prs?.summary?.merged_prs,
+              merged_prs_in_time_range: repository.prs?.summary?.merged_prs_in_time_range,
               time_to_merge_pr_avg_days: repository.prs?.summary?.merge_avg + ' day(s)',
             });
           })

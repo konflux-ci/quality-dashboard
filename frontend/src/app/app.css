@@ -1,3 +1,41 @@
 html, body, #root {
   height: 100%;
 }
+
+.expandedPre pre {
+  resize: vertical;
+  white-space: pre-wrap;
+  word-break: break-word; 
+  cursor: pointer;
+  padding: 1em;
+  font-size: 0.8em;
+}
+
+.collapsedPre pre {
+  white-space: pre-wrap;
+  word-break: break-word; 
+  height: 0em;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 1em;
+  text-overflow: ellipsis;
+}
+
+.expandedPre:hover, .collapsedPre:hover {
+  background-color: #F5F5F5;
+}
+
+.bg-white{
+  background-color: white;
+  padding: 1em;
+}
+
+.card-no-border {
+  box-shadow: none;
+}
+
+.spinner-loading{
+  padding: 3em;
+  position:absolute;
+  z-index: 99;
+}
