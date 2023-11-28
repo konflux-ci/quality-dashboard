@@ -68,8 +68,9 @@ type Storage interface {
 	GetOpenBugsMetricsByStatusAndPriority(priority, startDate, endDate string, team *db.Teams) (bugsMetrics jiraV1Alpha1.OpenBugsMetrics, err error)
 	CreatePullRequests(prs repoV1Alpha1.PullRequests, repo_id string) error
 	CreateFailure(f failureV1Alpha1.Failure, team_id uuid.UUID) error
-	UpdateBuildLogErrors(jobID, buildErrorLogs string) error
+	UpdateErrorMessages(jobID, buildErrorLogs, e2eErrorMessages string) error
 	GetAllProwJobs(startDate, endDate string) ([]*db.ProwJobs, error)
+	ListFailedProwJobsByRepository(repo *db.Repository) ([]*db.ProwJobs, error)
 
 	// Delete
 	DeleteRepository(repositoryName, gitOrganizationName string) error

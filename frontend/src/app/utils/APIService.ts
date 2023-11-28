@@ -543,7 +543,6 @@ async function getFailures(team: string, rangeDateTime: Date[]) {
       result.data = err.data;
     });
 
-  console.log("res", result)
   return result;
 }
 

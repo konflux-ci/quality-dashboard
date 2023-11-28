@@ -54,6 +54,10 @@ type Bugs struct {
 	Labels *string `json:"labels,omitempty"`
 	// Component holds the value of the "component" field.
 	Component *string `json:"component,omitempty"`
+	// Assignee holds the value of the "assignee" field.
+	Assignee *string `json:"assignee,omitempty"`
+	// Age holds the value of the "age" field.
+	Age *string `json:"age,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the BugsQuery when eager-loading is set.
 	Edges      BugsEdges `json:"edges"`
@@ -91,7 +95,7 @@ func (*Bugs) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case bugs.FieldResolutionTime, bugs.FieldAssignmentTime, bugs.FieldPrioritizationTime, bugs.FieldDaysWithoutAssignee, bugs.FieldDaysWithoutPriority, bugs.FieldDaysWithoutResolution:
 			values[i] = new(sql.NullFloat64)
-		case bugs.FieldJiraKey, bugs.FieldPriority, bugs.FieldStatus, bugs.FieldSummary, bugs.FieldURL, bugs.FieldProjectKey, bugs.FieldLabels, bugs.FieldComponent:
+		case bugs.FieldJiraKey, bugs.FieldPriority, bugs.FieldStatus, bugs.FieldSummary, bugs.FieldURL, bugs.FieldProjectKey, bugs.FieldLabels, bugs.FieldComponent, bugs.FieldAssignee, bugs.FieldAge:
 			values[i] = new(sql.NullString)
 		case bugs.FieldCreatedAt, bugs.FieldUpdatedAt, bugs.FieldResolvedAt:
 			values[i] = new(sql.NullTime)
@@ -237,6 +241,20 @@ func (b *Bugs) assignValues(columns []string, values []any) error {
 				b.Component = new(string)
 				*b.Component = value.String
 			}
+		case bugs.FieldAssignee:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field assignee", values[i])
+			} else if value.Valid {
+				b.Assignee = new(string)
+				*b.Assignee = value.String
+			}
+		case bugs.FieldAge:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field age", values[i])
+			} else if value.Valid {
+				b.Age = new(string)
+				*b.Age = value.String
+			}
 		case bugs.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field teams_bugs", values[i])
@@ -346,6 +364,16 @@ func (b *Bugs) String() string {
 	builder.WriteString(", ")
 	if v := b.Component; v != nil {
 		builder.WriteString("component=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := b.Assignee; v != nil {
+		builder.WriteString("assignee=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := b.Age; v != nil {
+		builder.WriteString("age=")
 		builder.WriteString(*v)
 	}
 	builder.WriteByte(')')

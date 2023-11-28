@@ -43,7 +43,7 @@ func getComponent(components []*jira.Component) string {
 		return components[0].Name
 	}
 
-	return "component-undefined"
+	return "undefined"
 }
 
 // CreateJiraBug saves provided jira bugs information in database.
@@ -75,6 +75,8 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetDaysWithoutResolution(jiraBugMetricsInfo.DaysWithoutResolution).
 				SetLabels(strings.Join(bug.Fields.Labels, ",")).
 				SetComponent(getComponent(bug.Fields.Components)).
+				SetAssignee(getAssignee(bug.Fields.Assignee)).
+				SetAge(getDays(bug.Fields.Created, bug.Fields.Resolutiondate, bug.Fields.Status.Name)).
 				Save(context.TODO())
 			if err != nil {
 				return convertDBError("failed to create bug: %w", err)
@@ -99,6 +101,8 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetDaysWithoutPriority(jiraBugMetricsInfo.DaysWithoutPriority).
 				SetDaysWithoutResolution(jiraBugMetricsInfo.DaysWithoutResolution).
 				SetLabels(strings.Join(bug.Fields.Labels, ",")).
+				SetAssignee(getAssignee(bug.Fields.Assignee)).
+				SetAge(getDays(bug.Fields.Created, bug.Fields.Resolutiondate, bug.Fields.Status.Name)).
 				SetComponent(getComponent(bug.Fields.Components))
 			createBulk = append(createBulk, createBulkByBug)
 			create = true
@@ -485,4 +489,31 @@ func (d *Database) GetAllOpenRHTAPBUGS(dateFrom, dateTo string) ([]*db.Bugs, err
 	}
 
 	return b, nil
+}
+
+func getAssignee(user *jira.User) string {
+	if user != nil {
+		return user.Key
+	}
+
+	return "unassigned"
+}
+
+func getDays(createdDate, resolutionDate jira.Time, status string) string {
+	firstDate := time.Time(createdDate)
+	secondDate := time.Now()
+
+	if status == "Closed" {
+		secondDate = time.Time(resolutionDate)
+	}
+
+	diff := secondDate.Sub(firstDate).Hours()
+
+	// diff in days
+	diff = diff / 24
+
+	// round diff to 2 decimal places
+	diff = math.Round(diff*100) / 100
+
+	return fmt.Sprintf("%.2f", diff)
 }
