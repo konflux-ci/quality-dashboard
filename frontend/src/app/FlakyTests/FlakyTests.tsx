@@ -26,7 +26,7 @@ import { Skeleton } from '@patternfly/react-core';
 import { Spinner } from '@patternfly/react-core';
 import { InfoCircleIcon } from "@patternfly/react-icons";
 import { Popover } from '@patternfly/react-core';
-import { Modal, Button } from '@patternfly/react-core';
+import { Modal, Button, Flex, FlexItem } from '@patternfly/react-core';
 
 const PREFERENCES_CACHE_NAME = "flakyCache"
 
@@ -780,18 +780,21 @@ const FlakyTests: React.FunctionComponent = () => {
             <GridItem style={{clear: 'both', minHeight: '1em'}} span={12}>
             </GridItem>
             <GridItem span={12}>
-              <Toolbar id="toolbar-items">
-                <ToolbarContent>
-                  <DropdownBasic selected={selectedSuite} toggles={
-                    [ <DropdownItem key={'all'} name="All failures"> All failures</DropdownItem>,
-                      ...toggles.sort((a,b) => b.count - a.count).map( (toggle, idx) => <DropdownItem key={idx} name={toggle.suite_name}> {toggle.suite_name} (<strong style={{color: 'red'}}>{toggle.count}</strong>) </DropdownItem> )
-                    ]
-                  } onSelect={onSuiteSelect} placeholder="Select a failing suite"></DropdownBasic>
-
-                  <Button variant="primary" onClick={handleModalToggle} ouiaId="ShowBasicModal" style={{margin: "auto 2em"}}>
-                    Show top 20 failing test cases
-                  </Button>
-                </ToolbarContent>
+              <Toolbar id="toolbar-items" style={{padding: '1em'}}>
+                <Flex>
+                  <FlexItem>
+                    <DropdownBasic selected={selectedSuite} toggles={
+                      [ <DropdownItem key={'all'} name="All failures"> All failures</DropdownItem>,
+                        ...toggles.sort((a,b) => b.count - a.count).map( (toggle, idx) => <DropdownItem key={idx} name={toggle.suite_name}> {toggle.suite_name} (<strong style={{color: 'red'}}>{toggle.count}</strong>) </DropdownItem> )
+                      ]
+                    } onSelect={onSuiteSelect} placeholder="Select a failing suite"></DropdownBasic>
+                  </FlexItem>
+                  <FlexItem align={{ default: 'alignRight' }}> 
+                    <Button variant="primary" onClick={handleModalToggle} ouiaId="ShowBasicModal" style={{margin: "auto 2em"}}>
+                      Show top 20 failing test cases
+                    </Button>
+                  </FlexItem>
+                </Flex>
               </Toolbar>
               <Modal
                 title="Basic modal"
