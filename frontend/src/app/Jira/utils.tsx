@@ -11,7 +11,7 @@ export const getIssuesByLabels = (issues: Issue[], labels: string[]) => {
     const filteredLabels = labels.filter(l => l != "all")
 
     const issuesByLabels = filteredLabels?.map((x) => {
-        const count = issues?.filter(y => y["labels"].includes(x) == true).length
+        const count = issues?.filter(y => y["labels"]?.includes(x) == true).length
         return {
             name: "Issues",
             x: x,
@@ -29,7 +29,7 @@ export const getIssuesByLabels = (issues: Issue[], labels: string[]) => {
 
 export const getIssuesByField = (issues: Issue[], label: string, field: string) => {
     const issuesByField = issues?.map((x) => {
-        const count = issues?.filter(y => y[field] == x[field] && y["labels"].includes(label) == true).length
+        const count = issues?.filter(y => y[field] == x[field] && y["labels"]?.includes(label) == true).length
 
         return {
             name: label,
