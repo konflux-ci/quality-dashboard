@@ -74,6 +74,14 @@ func (Bugs) Fields() []ent.Field {
 			SchemaType(textSchema).
 			Optional().
 			Nillable(),
+		field.Text("assignee").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
+		field.Text("age").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
 	}
 }
 
