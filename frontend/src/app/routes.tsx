@@ -32,7 +32,7 @@ export interface IAppRoute {
 
 export interface IAppRouteGroup {
   label: string;
-  routes: IAppRoute[];
+  routes: AppRouteConfig[];
 }
 
 export type AppRouteConfig = IAppRoute | IAppRouteGroup;
@@ -73,16 +73,6 @@ const routes: AppRouteConfig[] = [
     label: 'Plugins',
     routes: [
       {
-        component: FlakyTests,
-        exact: true,
-        isAsync: true,
-        isProtected: true,
-        label: 'Flaky Tests',
-        path: '/home/flaky',
-        title: 'Flaky Tests | Quality Studio',
-
-      },
-      {
         component: GitHub,
         exact: true,
         isAsync: true,
@@ -110,15 +100,6 @@ const routes: AppRouteConfig[] = [
         title: 'Bug SLIs | Quality Studio',
       },
       {
-        component: Reports,
-        exact: true,
-        isAsync: true,
-        isProtected: true,
-        label: 'Openshift CI',
-        path: '/reports/test',
-        title: 'Openshift CI | Quality Studio',
-      },
-      {
         component: CiFailures,
         exact: true,
         isAsync: true,
@@ -127,6 +108,27 @@ const routes: AppRouteConfig[] = [
         path: '/home/rhtapbugs-impact',
         title: 'RHTAPBUGS Impact on CI | Quality Studio',
       },
+      {
+        label: 'OpenShift CI',
+        routes: [{
+          component: Reports,
+          exact: true,
+          isAsync: true,
+          isProtected: true,
+          label: 'Tests Reports',
+          path: '/reports/test',
+          title: 'Tests Reports | Quality Studio',
+        }, {
+          component: FlakyTests,
+          exact: true,
+          isAsync: true,
+          isProtected: true,
+          label: 'Flaky Tests',
+          path: '/home/flaky',
+          title: 'Flaky Tests | Quality Studio',
+
+        },]
+      }
     ],
   },
 ];
@@ -159,10 +161,25 @@ const RouteWithTitleUpdates = ({ component: Component, isAsync = false, title, i
   )} />
 };
 
-const flattenedRoutes: IAppRoute[] = routes.reduce(
-  (flattened, route) => [...flattened, ...(route.routes ? route.routes : [route])],
-  [] as IAppRoute[]
-);
+const getRoutes = (routes) => {
+  const rts: IAppRoute[] = []
+
+  routes.map((mainRoute, _) => {
+      mainRoute.routes.map((secondaryRoutes, _) => {
+        if (secondaryRoutes.routes != undefined) {
+          secondaryRoutes.routes.map((r, _) => {
+            rts.push(r)
+          })
+        } else {
+          rts.push(secondaryRoutes)
+        }
+      })
+  })
+
+  return rts
+}
+
+const flattenedRoutes: IAppRoute[] = getRoutes(routes)
 
 const AppRoutes = (): React.ReactElement => {
   const { store } = React.useContext(ReactReduxContext);

@@ -224,9 +224,10 @@ export type DashboardCardProps = {
   title: string;
   body: string;
   subtext: string;
+  info: any;
 };
 
-export const DashboardCard = ({ cardType, title, body, subtext}: DashboardCardProps) => {
+export const DashboardCard = ({ cardType, title, body, subtext, info}: DashboardCardProps) => {
   const cardStyle = new Map();
   cardStyle.set('title-danger', { color: "#A30000", fontWeight: "semibold", fontSize: "0.8em" });
   cardStyle.set('title-success', { color: "#1E4F18", fontWeight: "semibold", fontSize: "0.8em" });
@@ -246,6 +247,7 @@ export const DashboardCard = ({ cardType, title, body, subtext}: DashboardCardPr
   cardStyle.set('subtext-default', { color: "black", fontWeight: "normal", fontSize: "0.7em", textAlign: "center" });
   cardStyle.set('subtext-help', { color: "grey", fontWeight: "normal", fontSize: "0.8em", textAlign: "left" });
   cardStyle.set('subtext-primary', { color: "#0066CC", fontWeight: "bold", fontSize: "1em", textAlign: "center" });
+  cardStyle.set('info', { color: "black", fontWeight: "bold", fontSize: "0.4em", textAlign: "center" });
 
   return (
     <Card style={{ width: "100%", height: "100%" }}>
@@ -258,9 +260,13 @@ export const DashboardCard = ({ cardType, title, body, subtext}: DashboardCardPr
         {cardType == 'danger' && <ExclamationCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></ExclamationCircleIcon>}
         {cardType == 'success' && <OkIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></OkIcon>}
 
-        <div style={cardStyle.get("subtext-" + cardType)}>
+        {subtext != "" && <div style={cardStyle.get("subtext-" + cardType)}>
           {subtext}
-        </div>
+        </div>}
+
+        {info != "" &&<div style={cardStyle.get("info")}>
+          {info}
+        </div>}
       </CardBody>
     </Card>
   )
