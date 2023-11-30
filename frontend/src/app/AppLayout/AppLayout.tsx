@@ -114,9 +114,9 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
       key={`${group.label}-${groupIndex}`}
       id={`${group.label}-${groupIndex}`}
       title={group.label}
-      isActive={group.routes.some((route) => route.path === location.pathname)}
+      isActive={false}
     >
-      {group.routes.map((route, idx) => route.label && renderNavItem(route, idx))}
+      {group.routes.map((route, idx) => route.routes ? route.label && renderNavGroup(route, 3) : route.label && renderNavItem(route, idx))}
     </NavExpandable>
   );
 

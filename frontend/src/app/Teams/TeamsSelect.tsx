@@ -67,6 +67,10 @@ export const BasicMasthead = () => {
     if (history.location.pathname == "/home/bug-slis" && team != null && team != event.target.dataset.value) {
       history.push('/home/bug-slis?team=' + event.target.dataset.value)
     }
+
+    if (history.location.pathname == "/home/flaky" && team != null && team != event.target.dataset.value) {
+      history.push('/home/flaky?team=' + event.target.dataset.value)
+    }
   }
 
   const currentTeamsAvailable = useSelector((state: any) => state.teams.TeamsAvailable);
