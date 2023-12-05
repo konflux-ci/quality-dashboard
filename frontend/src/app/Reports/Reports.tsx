@@ -8,12 +8,12 @@ import {
   EmptyStateBody,
   Title, TitleSizes,
   Alert, AlertGroup, AlertActionCloseButton,
-  Badge, Spinner,
+  Badge, Spinner, Breadcrumb, BreadcrumbItem,
 } from '@patternfly/react-core';
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
-import { getAllRepositoriesWithOrgs, getJobTypes, getProwJobStatistics, getProwJobs, getTeams } from '@app/utils/APIService';
+import { getAllRepositoriesWithOrgs, getFlakyData, getJobTypes, getProwJobStatistics, getProwJobs, getTeams } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
 import {
   JobsStatistics,
@@ -39,7 +39,7 @@ let Reports = () => {
   const [loadingState, setLoadingState] = useState(false);
   const [noData, setNoData] = useState(false);
   const [alerts, setAlerts] = React.useState<React.ReactNode[]>([]);
-
+  const [impact, setImpact] = useState("");
   const { store } = React.useContext(ReactReduxContext);
   const state = store.getState();
 
@@ -155,12 +155,12 @@ let Reports = () => {
     const team = params.get("team")
 
     if ((team != null) && (team != state.teams.Team)) {
-        getTeams().then(res => {
-          if (!validateParam(res.data, team)) {
-            setLoadingState(false)
-            setIsInvalid(true)
-          }
-        })
+      getTeams().then(res => {
+        if (!validateParam(res.data, team)) {
+          setLoadingState(false)
+          setIsInvalid(true)
+        }
+      })
     }
 
     if (state.teams.Team != "") {
@@ -256,6 +256,13 @@ let Reports = () => {
       setprowJobsStats(stats)
       setLoadingState(false)
       setProwVisible(true)
+
+      if (stats != null) {
+        const data = await getFlakyData(currentTeam, stats.jobs[0].name, repoName, rangeDateTime[0].toISOString(), rangeDateTime[1].toISOString(), repoOrg)
+        setImpact(data.data.global_impact)
+      } else {
+        setImpact("")
+      }
     }
     catch (e) {
       // Set UI to empty page
@@ -306,9 +313,9 @@ let Reports = () => {
 
   if (prowJobsStats) {
     prowJobsStats.jobs[selectedJob].metrics.map(metric => {
-      beautifiedData["SUCCESS_RATE_INDEX"].data.push({ name: 'success_rate', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (metric.total_jobs > 0 ? (100 * metric.success_count / metric.total_jobs).toFixed(2) : 0)})
-      beautifiedData["FAILURE_RATE_INDEX"].data.push({ name: 'failure_rate', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: +  (metric.total_jobs > 0 ? (100 * metric.failure_count / metric.total_jobs).toFixed(2) : 0)})
-      beautifiedData["CI_FAILED_RATE_INDEX"].data.push({ name: 'ci_failed_rate', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (metric.total_jobs > 0 ? (100 * metric.ci_failed_count / metric.total_jobs).toFixed(2) : 0)})
+      beautifiedData["SUCCESS_RATE_INDEX"].data.push({ name: 'success_rate', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (metric.total_jobs > 0 ? (100 * metric.success_count / metric.total_jobs).toFixed(2) : 0) })
+      beautifiedData["FAILURE_RATE_INDEX"].data.push({ name: 'failure_rate', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: +  (metric.total_jobs > 0 ? (100 * metric.failure_count / metric.total_jobs).toFixed(2) : 0) })
+      beautifiedData["CI_FAILED_RATE_INDEX"].data.push({ name: 'ci_failed_rate', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (metric.total_jobs > 0 ? (100 * metric.ci_failed_count / metric.total_jobs).toFixed(2) : 0) })
     });
 
     beautifiedData["SUCCESS_RATE_INDEX"].style = { data: { stroke: "rgba(30, 79, 24, 0.9)", strokeWidth: 2 } }
@@ -316,20 +323,20 @@ let Reports = () => {
     beautifiedData["CI_FAILED_RATE_INDEX"].style = { data: { stroke: "rgba(240, 171, 0, 0.9)", strokeWidth: 2 } }
 
     beautifiedData["SUCCESS_RATE_AVG_INDEX"].data = [
-      { name: 'success_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_from).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.success_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2)},
-      { name: 'success_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_to).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.success_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2)}
+      { name: 'success_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_from).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.success_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) },
+      { name: 'success_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_to).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.success_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) }
     ]
     beautifiedData["SUCCESS_RATE_AVG_INDEX"].style = { data: { stroke: "rgba(30, 79, 24, 0.3)", strokeDasharray: 10, strokeWidth: 5 } }
 
     beautifiedData["FAILURE_RATE_AVG_INDEX"].data = [
-      { name: 'failure_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_from).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2)},
-      { name: 'failure_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_to).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2)}
+      { name: 'failure_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_from).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) },
+      { name: 'failure_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_to).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) }
     ]
     beautifiedData["FAILURE_RATE_AVG_INDEX"].style = { data: { stroke: "rgba(163, 0, 0, 0.3)", strokeDasharray: 10, strokeWidth: 5 } }
 
     beautifiedData["CI_FAILED_RATE_AVG_INDEX"].data = [
-      { name: 'ci_failed_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_from).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.ci_failed_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2)},
-      { name: 'ci_failed_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_to).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.ci_failed_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2)}
+      { name: 'ci_failed_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_from).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.ci_failed_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) },
+      { name: 'ci_failed_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_to).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.ci_failed_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) }
     ]
     beautifiedData["CI_FAILED_RATE_AVG_INDEX"].style = { data: { stroke: "rgba(240, 171, 0, 0.3)", strokeDasharray: 10, strokeWidth: 5 } }
   }
@@ -344,11 +351,25 @@ let Reports = () => {
   const start = rangeDateTime[0]
   const end = rangeDateTime[1]
 
+  useEffect(() => {
+    if (prowJobsStats != null) {
+      getFlakyData(currentTeam, prowJobsStats.jobs[selectedJob].name, repoName, start.toISOString(), end.toISOString(), repoOrg).then(res => { setImpact(res.data.global_impact) })
+    } else {
+      setImpact("")
+    }
+  }, [selectedJob]);
+
   return (
 
     <React.Fragment>
       {/* page title bar */}
       <Header info="Observe the CI metrics of all your ci's jobs."></Header>
+      <div style={{ marginTop: 15, marginBottom: 15, marginLeft: 15 }}>
+        <Breadcrumb>
+          <BreadcrumbItem>OpenShift CI</BreadcrumbItem>
+          <BreadcrumbItem>Tests Reports</BreadcrumbItem>
+        </Breadcrumb>
+      </div>
       <PageSection variant={PageSectionVariants.light}>
         <Title headingLevel="h3" size={TitleSizes['2xl']}>
           Tests Reports
@@ -439,39 +460,52 @@ let Reports = () => {
             {/* this section will show the job's chart over time and last execution stats */}
 
             {prowJobsStats !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
-              <GridItem span={3}><GitHubInfoCard repoName={prowJobsStats.repository_name} org={prowJobsStats.git_organization} data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_organization }]}></GitHubInfoCard></GridItem>
-              
-              <GridItem span={2}><DashboardCard 
-              cardType={'danger'} 
-              title="CI Failures Avg"
-              body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.ci_failed_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
-              subtext={prowJobsStats?.jobs != null ? (prowJobsStats.jobs[selectedJob].summary.ci_failed_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs) : "-"} 
-              ></DashboardCard></GridItem>
-              
-              <GridItem span={2}><DashboardCard 
-              cardType={'danger'} 
-              title="Failures Avg" 
-              body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
-              subtext={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.failure_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs : "-" }
+              <GridItem span={2}><GitHubInfoCard repoName={prowJobsStats.repository_name} org={prowJobsStats.git_organization} data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_organization }]}></GitHubInfoCard></GridItem>
+
+              <GridItem span={2}><DashboardCard
+                cardType={'danger'}
+                title="CI Failures Avg"
+                body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.ci_failed_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
+                subtext={prowJobsStats?.jobs != null ? (prowJobsStats.jobs[selectedJob].summary.ci_failed_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs) : "-"}
+                info=""
               ></DashboardCard></GridItem>
 
-              <GridItem span={2}><DashboardCard 
-              cardType={'success'} 
-              title="Passed Tests Avg" 
-              body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.success_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
-              subtext={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.success_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs : "-" }
+              <GridItem span={2}><DashboardCard
+                cardType={'danger'}
+                title="Failures Avg"
+                body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
+                subtext={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.failure_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs : "-"}
+                info=""
+             ></DashboardCard></GridItem>
+
+              <GridItem span={2}><DashboardCard
+                cardType={'success'}
+                title="Passed Tests Avg"
+                body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.success_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
+                subtext={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.success_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs : "-"}
+                info=""
               ></DashboardCard></GridItem>
 
-              <GridItem span={3}><DashboardCard 
-              cardType={'default'} 
-              title="Total CI Jobs Executed" 
-              body={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.total_jobs.toString() : "N/A"}
-              subtext=""
+              <GridItem span={2}><DashboardCard
+                cardType={'default'}
+                title="Total CI Jobs Executed"
+                body={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.total_jobs.toString() : "N/A"}
+                subtext=""
+                info=""
+              ></DashboardCard></GridItem>
+
+              <GridItem span={2}><DashboardCard
+                cardType={'default'}
+                title="Flaky Tests Impact"
+                body={impact != "" ? impact + "%" : "-"}
+                subtext=""
+                info={<a href={'/home/flaky?team=' + currentTeam + '&repository=' + repoName +
+                  '&job=' + prowJobsStats.jobs[selectedJob].name + '&start=' + start.toISOString() + '&end=' + end.toISOString()}>More info in Flaky page</a>}
               ></DashboardCard></GridItem>
 
               <GridItem span={4} rowSpan={4}><DashboardSimpleList title={<div>Jobs  <a href={ci_html} target="blank" rel="noopener noreferrer"><Badge style={{ float: "right" }}>{jobType} &nbsp; <ExternalLinkAltIcon></ExternalLinkAltIcon></Badge></a></div>} data={jobNames} onSelection={(value) => { setSelectedJob(value) }}></DashboardSimpleList></GridItem>
               <GridItem span={8} rowSpan={5}><DashboardLineChart data={beautifiedData}></DashboardLineChart></GridItem>
-              <GridItem span={4} rowSpan={1}><DashboardCard cardType={'help'} title="About this dashboard" body="Set of metrics gathered from Openshift CI" subtext=""></DashboardCard></GridItem>
+              <GridItem span={4} rowSpan={1}><DashboardCard cardType={'help'} title="About this dashboard" body="Set of metrics gathered from Openshift CI" subtext="" info=""></DashboardCard></GridItem>
 
               {prowJobs != null && <GridItem span={12}>
                 <FailedE2ETests failedProwJobs={getFailedProwJobsInE2ETests(prowJobs, jobType)} jobType={jobType}></FailedE2ETests>

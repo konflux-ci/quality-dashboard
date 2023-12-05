@@ -291,19 +291,19 @@ export const Jira = () => {
 
             if (isLabelSelected != "all") {
                 issuesSelected = bugsTable?.filter((x) => {
-                    if (x.labels.includes(isLabelSelected)) {
+                    if (x.labels?.includes(isLabelSelected)) {
                         return x
                     }
                 })
             }
 
-            setOpenIssuesTable(issuesSelected.filter((x) => {
+            setOpenIssuesTable(issuesSelected?.filter((x) => {
                 if (x.status != "Closed") {
                     return x
                 }
             }))
 
-            setClosedIssuesTable(issuesSelected.filter((x) => {
+            setClosedIssuesTable(issuesSelected?.filter((x) => {
                 if (x.status == "Closed") {
                     return x
                 }
@@ -562,7 +562,7 @@ export const Jira = () => {
                                 </FormGroup>
                             </Form>
                         </Modal>
-                        {(openIssuesTable.length > 0) && getIssuesByLabels(openIssuesTable, labels).filter((x) => {
+                        {(openIssuesTable.length > 0) && getIssuesByLabels(openIssuesTable, labels)?.filter((x) => {
                             if (x.y != 0) {
                                 return x
                             }
@@ -576,7 +576,7 @@ export const Jira = () => {
                                 </CardBody>
                             </GridItem>
                         }
-                        {(openIssuesTable.length > 0) && getIssuesByFields(openIssuesTable, labels, "component").filter((x) => {
+                        {(openIssuesTable.length > 0) && getIssuesByFields(openIssuesTable, labels, "component")?.filter((x) => {
                            let exists = false
                            x.filter((x) => {
                                 if (x.y != 0) {
