@@ -50,8 +50,8 @@ export const Overview = () => {
             Red Hat Quality Studio
           </Text>
           <Text component="p">
-            Observe, track and analyze StoneSoup quality metrics.
-            By creating a team or joining an existing one, you can be more informed about the code coverage, OpenShift CI prow jobs, and GitHub actions of the StoneSoup components.
+            Observe, track and analyze RHTAP quality metrics.
+            By creating a team or joining an existing one, you can be more informed about the code coverage, OpenShift CI prow jobs, and GitHub actions of the RHTAP components.
           </Text>
           <Button onClick={handleModalToggle} type="button" variant="primary"> <PlusIcon></PlusIcon>  {teamsEmpty() ? "Create your first team" : "Create team"} </Button>
         </TextContent>
