@@ -27,6 +27,22 @@ func (Failure) Fields() []ent.Field {
 			SchemaType(textSchema),
 		field.Text("error_message").
 			SchemaType(textSchema),
+		field.Text("title_from_jira").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
+		field.Time("created_date").
+			SchemaType(timeSchema).
+			Optional().
+			Nillable(),
+		field.Time("closed_date").
+			SchemaType(timeSchema).
+			Optional().
+			Nillable(),
+		field.Text("labels").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
 	}
 }
 

@@ -30,15 +30,29 @@ func (f *failureRouter) createFailure(ctx context.Context, w http.ResponseWriter
 		})
 	}
 
-	jiraStatus, err := f.Storage.GetJiraStatus(fr.JiraKey)
+	jiraBug, err := f.Storage.GetJiraBug(fr.JiraKey)
 	if err != nil {
-		f.Logger.Sugar().Warnf("Failed to get jira status:", err)
+		f.Logger.Sugar().Warnf("Failed to get jira :", err)
+	}
+
+	labels := ""
+	if jiraBug.Labels != nil {
+		labels = *jiraBug.Labels
+	}
+
+	titleFromJira := ""
+	if jiraBug.Summary != "" {
+		titleFromJira = jiraBug.Summary
 	}
 
 	err = f.Storage.CreateFailure(failureV1Alpha1.Failure{
-		JiraKey:      fr.JiraKey,
-		JiraStatus:   jiraStatus,
-		ErrorMessage: fr.ErrorMessage,
+		JiraKey:       fr.JiraKey,
+		TitleFromJira: titleFromJira,
+		JiraStatus:    jiraBug.Status,
+		ErrorMessage:  fr.ErrorMessage,
+		CreatedDate:   jiraBug.CreatedAt,
+		ClosedDate:    *jiraBug.ResolvedAt,
+		Labels:        labels,
 	}, team.ID)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{

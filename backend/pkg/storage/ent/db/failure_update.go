@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -44,6 +45,86 @@ func (fu *FailureUpdate) SetJiraStatus(s string) *FailureUpdate {
 // SetErrorMessage sets the "error_message" field.
 func (fu *FailureUpdate) SetErrorMessage(s string) *FailureUpdate {
 	fu.mutation.SetErrorMessage(s)
+	return fu
+}
+
+// SetTitleFromJira sets the "title_from_jira" field.
+func (fu *FailureUpdate) SetTitleFromJira(s string) *FailureUpdate {
+	fu.mutation.SetTitleFromJira(s)
+	return fu
+}
+
+// SetNillableTitleFromJira sets the "title_from_jira" field if the given value is not nil.
+func (fu *FailureUpdate) SetNillableTitleFromJira(s *string) *FailureUpdate {
+	if s != nil {
+		fu.SetTitleFromJira(*s)
+	}
+	return fu
+}
+
+// ClearTitleFromJira clears the value of the "title_from_jira" field.
+func (fu *FailureUpdate) ClearTitleFromJira() *FailureUpdate {
+	fu.mutation.ClearTitleFromJira()
+	return fu
+}
+
+// SetCreatedDate sets the "created_date" field.
+func (fu *FailureUpdate) SetCreatedDate(t time.Time) *FailureUpdate {
+	fu.mutation.SetCreatedDate(t)
+	return fu
+}
+
+// SetNillableCreatedDate sets the "created_date" field if the given value is not nil.
+func (fu *FailureUpdate) SetNillableCreatedDate(t *time.Time) *FailureUpdate {
+	if t != nil {
+		fu.SetCreatedDate(*t)
+	}
+	return fu
+}
+
+// ClearCreatedDate clears the value of the "created_date" field.
+func (fu *FailureUpdate) ClearCreatedDate() *FailureUpdate {
+	fu.mutation.ClearCreatedDate()
+	return fu
+}
+
+// SetClosedDate sets the "closed_date" field.
+func (fu *FailureUpdate) SetClosedDate(t time.Time) *FailureUpdate {
+	fu.mutation.SetClosedDate(t)
+	return fu
+}
+
+// SetNillableClosedDate sets the "closed_date" field if the given value is not nil.
+func (fu *FailureUpdate) SetNillableClosedDate(t *time.Time) *FailureUpdate {
+	if t != nil {
+		fu.SetClosedDate(*t)
+	}
+	return fu
+}
+
+// ClearClosedDate clears the value of the "closed_date" field.
+func (fu *FailureUpdate) ClearClosedDate() *FailureUpdate {
+	fu.mutation.ClearClosedDate()
+	return fu
+}
+
+// SetLabels sets the "labels" field.
+func (fu *FailureUpdate) SetLabels(s string) *FailureUpdate {
+	fu.mutation.SetLabels(s)
+	return fu
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (fu *FailureUpdate) SetNillableLabels(s *string) *FailureUpdate {
+	if s != nil {
+		fu.SetLabels(*s)
+	}
+	return fu
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (fu *FailureUpdate) ClearLabels() *FailureUpdate {
+	fu.mutation.ClearLabels()
 	return fu
 }
 
@@ -144,6 +225,30 @@ func (fu *FailureUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := fu.mutation.ErrorMessage(); ok {
 		_spec.SetField(failure.FieldErrorMessage, field.TypeString, value)
 	}
+	if value, ok := fu.mutation.TitleFromJira(); ok {
+		_spec.SetField(failure.FieldTitleFromJira, field.TypeString, value)
+	}
+	if fu.mutation.TitleFromJiraCleared() {
+		_spec.ClearField(failure.FieldTitleFromJira, field.TypeString)
+	}
+	if value, ok := fu.mutation.CreatedDate(); ok {
+		_spec.SetField(failure.FieldCreatedDate, field.TypeTime, value)
+	}
+	if fu.mutation.CreatedDateCleared() {
+		_spec.ClearField(failure.FieldCreatedDate, field.TypeTime)
+	}
+	if value, ok := fu.mutation.ClosedDate(); ok {
+		_spec.SetField(failure.FieldClosedDate, field.TypeTime, value)
+	}
+	if fu.mutation.ClosedDateCleared() {
+		_spec.ClearField(failure.FieldClosedDate, field.TypeTime)
+	}
+	if value, ok := fu.mutation.Labels(); ok {
+		_spec.SetField(failure.FieldLabels, field.TypeString, value)
+	}
+	if fu.mutation.LabelsCleared() {
+		_spec.ClearField(failure.FieldLabels, field.TypeString)
+	}
 	if fu.mutation.FailuresCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -214,6 +319,86 @@ func (fuo *FailureUpdateOne) SetJiraStatus(s string) *FailureUpdateOne {
 // SetErrorMessage sets the "error_message" field.
 func (fuo *FailureUpdateOne) SetErrorMessage(s string) *FailureUpdateOne {
 	fuo.mutation.SetErrorMessage(s)
+	return fuo
+}
+
+// SetTitleFromJira sets the "title_from_jira" field.
+func (fuo *FailureUpdateOne) SetTitleFromJira(s string) *FailureUpdateOne {
+	fuo.mutation.SetTitleFromJira(s)
+	return fuo
+}
+
+// SetNillableTitleFromJira sets the "title_from_jira" field if the given value is not nil.
+func (fuo *FailureUpdateOne) SetNillableTitleFromJira(s *string) *FailureUpdateOne {
+	if s != nil {
+		fuo.SetTitleFromJira(*s)
+	}
+	return fuo
+}
+
+// ClearTitleFromJira clears the value of the "title_from_jira" field.
+func (fuo *FailureUpdateOne) ClearTitleFromJira() *FailureUpdateOne {
+	fuo.mutation.ClearTitleFromJira()
+	return fuo
+}
+
+// SetCreatedDate sets the "created_date" field.
+func (fuo *FailureUpdateOne) SetCreatedDate(t time.Time) *FailureUpdateOne {
+	fuo.mutation.SetCreatedDate(t)
+	return fuo
+}
+
+// SetNillableCreatedDate sets the "created_date" field if the given value is not nil.
+func (fuo *FailureUpdateOne) SetNillableCreatedDate(t *time.Time) *FailureUpdateOne {
+	if t != nil {
+		fuo.SetCreatedDate(*t)
+	}
+	return fuo
+}
+
+// ClearCreatedDate clears the value of the "created_date" field.
+func (fuo *FailureUpdateOne) ClearCreatedDate() *FailureUpdateOne {
+	fuo.mutation.ClearCreatedDate()
+	return fuo
+}
+
+// SetClosedDate sets the "closed_date" field.
+func (fuo *FailureUpdateOne) SetClosedDate(t time.Time) *FailureUpdateOne {
+	fuo.mutation.SetClosedDate(t)
+	return fuo
+}
+
+// SetNillableClosedDate sets the "closed_date" field if the given value is not nil.
+func (fuo *FailureUpdateOne) SetNillableClosedDate(t *time.Time) *FailureUpdateOne {
+	if t != nil {
+		fuo.SetClosedDate(*t)
+	}
+	return fuo
+}
+
+// ClearClosedDate clears the value of the "closed_date" field.
+func (fuo *FailureUpdateOne) ClearClosedDate() *FailureUpdateOne {
+	fuo.mutation.ClearClosedDate()
+	return fuo
+}
+
+// SetLabels sets the "labels" field.
+func (fuo *FailureUpdateOne) SetLabels(s string) *FailureUpdateOne {
+	fuo.mutation.SetLabels(s)
+	return fuo
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (fuo *FailureUpdateOne) SetNillableLabels(s *string) *FailureUpdateOne {
+	if s != nil {
+		fuo.SetLabels(*s)
+	}
+	return fuo
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (fuo *FailureUpdateOne) ClearLabels() *FailureUpdateOne {
+	fuo.mutation.ClearLabels()
 	return fuo
 }
 
@@ -337,6 +522,30 @@ func (fuo *FailureUpdateOne) sqlSave(ctx context.Context) (_node *Failure, err e
 	}
 	if value, ok := fuo.mutation.ErrorMessage(); ok {
 		_spec.SetField(failure.FieldErrorMessage, field.TypeString, value)
+	}
+	if value, ok := fuo.mutation.TitleFromJira(); ok {
+		_spec.SetField(failure.FieldTitleFromJira, field.TypeString, value)
+	}
+	if fuo.mutation.TitleFromJiraCleared() {
+		_spec.ClearField(failure.FieldTitleFromJira, field.TypeString)
+	}
+	if value, ok := fuo.mutation.CreatedDate(); ok {
+		_spec.SetField(failure.FieldCreatedDate, field.TypeTime, value)
+	}
+	if fuo.mutation.CreatedDateCleared() {
+		_spec.ClearField(failure.FieldCreatedDate, field.TypeTime)
+	}
+	if value, ok := fuo.mutation.ClosedDate(); ok {
+		_spec.SetField(failure.FieldClosedDate, field.TypeTime, value)
+	}
+	if fuo.mutation.ClosedDateCleared() {
+		_spec.ClearField(failure.FieldClosedDate, field.TypeTime)
+	}
+	if value, ok := fuo.mutation.Labels(); ok {
+		_spec.SetField(failure.FieldLabels, field.TypeString, value)
+	}
+	if fuo.mutation.LabelsCleared() {
+		_spec.ClearField(failure.FieldLabels, field.TypeString)
 	}
 	if fuo.mutation.FailuresCleared() {
 		edge := &sqlgraph.EdgeSpec{
