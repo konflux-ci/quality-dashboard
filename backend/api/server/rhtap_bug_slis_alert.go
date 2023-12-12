@@ -2,10 +2,8 @@ package server
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/redhat-appstudio/quality-studio/api/server/router/jira"
-	"github.com/redhat-appstudio/quality-studio/pkg/constants"
 	"github.com/robfig/cron"
 	"github.com/slack-go/slack"
 	"go.uber.org/zap"
@@ -114,10 +112,12 @@ func slisByTeam(bugs []jira.Bug) []Team {
 }
 
 func (s *Server) sendAlerts() {
-	startDate := time.Now().AddDate(-2, 0, 0).Format(constants.DateFormat)
-	toDate := time.Now().Format(constants.DateFormat)
+	// startDate := time.Now().AddDate(-2, 0, 0).Format(constants.DateFormat)
+	// toDate := time.Now().Format(constants.DateFormat)
 
-	bugs, err := s.cfg.Storage.GetAllOpenRHTAPBUGS(startDate, toDate)
+	// bugs, err := s.cfg.Storage.GetAllOpenRHTAPBUGS(startDate, toDate)
+
+	bugs, err := s.cfg.Storage.GetAllOpenRHTAPBUGS()
 	if err != nil {
 		s.cfg.Logger.Sugar().Errorf("Failed to get all open RHTAP Bug SLOs", zap.Error(err))
 	}
