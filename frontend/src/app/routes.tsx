@@ -12,12 +12,9 @@ import { GitHub } from './Github/Github';
 import { Config } from './Config/Config';
 import { refreshTokenFlow } from '@app/utils/oauth'
 import { CiFailures } from './CiFailures/CiFailures';
-<<<<<<< HEAD
 import { BugSLIs } from './BugSLIs/MainPage';
 import { FlakyTests } from './FlakyTests/FlakyTests';
-=======
 import { Links } from './Links/Links';
->>>>>>> 26c6cf3 (AD-148 Add page with links to status pages)
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -76,6 +73,7 @@ const routes: AppRouteConfig[] = [
         exact: true,
         isAsync: true,
         label: 'Links',
+        isProtected: true,
         path: '/home/Links',
         title: 'Links | Quality Studio',
       },
@@ -88,12 +86,8 @@ const routes: AppRouteConfig[] = [
         component: GitHub,
         exact: true,
         isAsync: true,
-<<<<<<< HEAD
         isProtected: true,
-        label: 'Github',
-=======
         label: 'GitHub',
->>>>>>> 26c6cf3 (AD-148 Add page with links to status pages)
         path: '/home/github',
         title: 'GitHub | Quality Studio',
       },
@@ -110,16 +104,10 @@ const routes: AppRouteConfig[] = [
         component: BugSLIs,
         exact: true,
         isAsync: true,
-<<<<<<< HEAD
         isProtected: true,
         label: 'Bug SLIs',
         path: '/home/bug-slis',
         title: 'Bug SLIs | Quality Studio',
-=======
-        label: 'OpenShift CI',
-        path: '/reports/test',
-        title: 'OpenShift CI | Quality Studio',
->>>>>>> 26c6cf3 (AD-148 Add page with links to status pages)
       },
       {
         component: CiFailures,
