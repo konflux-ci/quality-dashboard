@@ -1,9 +1,11 @@
 import React, { useState, useLayoutEffect, useRef } from 'react';
 import { ExclamationCircleIcon, OkIcon, HelpIcon, ExternalLinkAltIcon, GithubIcon } from '@patternfly/react-icons';
 import { Card, CardTitle, CardBody, Badge, Icon } from '@patternfly/react-core';
-import { Chart, ChartAxis, ChartLine, ChartGroup, ChartLegend, createContainer } from '@patternfly/react-charts';
+import { Chart, ChartAxis, ChartLine, ChartGroup, ChartLegend, createContainer, ChartTooltip, ChartStack, ChartBar } from '@patternfly/react-charts';
 import { SimpleList, SimpleListItem } from '@patternfly/react-core';
 import { getLabels } from './utils';
+import chart_color_orange_300 from '@patternfly/react-tokens/dist/esm/chart_color_orange_300';
+import chart_color_red_100 from '@patternfly/react-tokens/dist/esm/chart_color_red_100';
 
 /* 
 Some common useful types definition
@@ -26,7 +28,9 @@ export interface JobsEntity {
 export interface MetricsSummary {
   success_count: number;
   failure_count: number;
-  ci_failed_count: number;
+  failure_by_e2e_tests_count: number;
+  failure_by_build_errors_count: number;
+  not_scheduled_count: number;
   date_from: string;
   date_to: string;
   total_jobs: number;
@@ -35,7 +39,7 @@ export interface MetricsSummary {
 export interface MetricsEntity {
   success_count: number;
   failure_count: number;
-  ci_failed_count: number;
+  not_scheduled_count: number;
   total_jobs: number;
   date: string;
 }
@@ -197,7 +201,7 @@ export const GitHubInfoCard = ({ data, org, repoName }: { data: InfoCardProp[], 
         <div style={{ textAlign: 'center' }}>
           <Icon size="xl" iconSize="xl">
             <a href={"https://github.com/" + org + "/" + repoName} target="blank" rel="noopener noreferrer">
-              <GithubIcon/>
+              <GithubIcon />
             </a>
           </Icon>
         </div>
@@ -223,11 +227,13 @@ export type DashboardCardProps = {
   cardType?: 'default' | 'danger' | 'success' | 'warning' | 'primary' | 'help';
   title: string;
   body: string;
+  subtitle: string;
   subtext: string;
   info: any;
+  summary: MetricsSummary;
 };
 
-export const DashboardCard = ({ cardType, title, body, subtext, info}: DashboardCardProps) => {
+export const DashboardCard = ({ cardType, title, subtitle, body, subtext, info, summary }: DashboardCardProps) => {
   const cardStyle = new Map();
   cardStyle.set('title-danger', { color: "#A30000", fontWeight: "semibold", fontSize: "0.8em" });
   cardStyle.set('title-success', { color: "#1E4F18", fontWeight: "semibold", fontSize: "0.8em" });
@@ -251,9 +257,14 @@ export const DashboardCard = ({ cardType, title, body, subtext, info}: Dashboard
 
   return (
     <Card style={{ width: "100%", height: "100%" }}>
-      <CardTitle style={cardStyle.get("title-" + cardType)}>
+      <CardTitle>
         {cardType == 'help' && <HelpIcon style={{ marginRight: "5px", fontSize: "1.1em", fontWeight: "bold", verticalAlign: "middle" }}></HelpIcon>}
-        {title}
+        <div style={cardStyle.get("title-" + cardType)}>
+          {title}
+        </div>
+        <div style={{ fontWeight: "normal", fontSize: "0.7em" }}>
+          {subtitle}
+        </div>
       </CardTitle>
       <CardBody style={cardStyle.get("body-" + cardType)}>
         {body}
@@ -264,9 +275,65 @@ export const DashboardCard = ({ cardType, title, body, subtext, info}: Dashboard
           {subtext}
         </div>}
 
-        {info != "" &&<div style={cardStyle.get("info")}>
+        {info != "" && <div style={cardStyle.get("info")}>
           {info}
         </div>}
+
+        {title == "Failures Avg" && summary?.failure_by_build_errors_count != undefined &&
+        <div style={{marginTop: 40}}>
+            <Chart
+              ariaDesc="Mock incidents chart"
+              ariaTitle="Mock stack chart"
+              domainPadding={{ x: [30, 25] }}
+              legendData={[
+                {
+                  name: 'Build Errors: ' + summary?.failure_by_build_errors_count, symbol: { fill: chart_color_red_100.value } },
+                { name: 'Flaky Tests: ' + summary?.failure_by_e2e_tests_count, symbol: { fill: chart_color_orange_300.value } },
+              ]}
+              legendPosition="bottom"
+              height={50}
+              padding={{
+                bottom: 40,
+                left: 0,
+                right: 0,
+                top: 0
+              }}
+              width={350}
+              showAxis={false}
+            >
+              <ChartStack
+                horizontal
+                colorScale={[
+                  chart_color_red_100.value,
+                  chart_color_orange_300.value,
+                ]}
+              >
+                <ChartBar
+                  data={[
+                    {
+                      name: 'Build Errors',
+                      x: '',
+                      y: summary?.failure_by_build_errors_count,
+                      label: 'Build Errors',
+                    }
+                  ]}
+                  labelComponent={<ChartTooltip constrainToVisibleArea />}
+                />
+                <ChartBar
+                  data={[
+                    {
+                      name: 'Flaky Tests',
+                      x: '',
+                      y: summary?.failure_by_e2e_tests_count,
+                      label: 'Flaky Tests',
+                    }
+                  ]}
+                  labelComponent={<ChartTooltip constrainToVisibleArea />}
+                />
+              </ChartStack>
+            </Chart>
+        </div>
+        }
       </CardBody>
     </Card>
   )

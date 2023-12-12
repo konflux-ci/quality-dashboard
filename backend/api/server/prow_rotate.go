@@ -60,10 +60,10 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 
 		var suites []byte
 		if job.Spec.Type == "periodic" {
-			suites = s.cfg.GCS.GetJobJunitContent("", "", "", job.Status.BuildID, job.Spec.Type, job.Spec.Job, "e2e-report.xml")
+			suites = s.cfg.GCS.GetJobJunitContent("", "", "", job.Status.BuildID, job.Spec.Type, job.Spec.Job)
 		} else if job.Spec.Type == "presubmit" {
 			suites = s.cfg.GCS.GetJobJunitContent(repo.GitOrganization, repo.RepositoryName, ExtractPullRequestNumberFromLabels(job.Labels),
-				job.Status.BuildID, job.Spec.Type, job.Spec.Job, "e2e-report.xml")
+				job.Status.BuildID, job.Spec.Type, job.Spec.Job)
 		}
 
 		if len(suites) > 0 {
@@ -79,7 +79,8 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 		totalErrorMessages := ""
 		for _, suite := range suitesXml.Suites {
 			for _, testCase := range suite.TestCases {
-				if testCase.Status == "failed" {
+				// hac prow jobs does not have status field in testCase
+				if testCase.FailureOutput != nil {
 					errorMsg := testCase.Name + ":\n" + testCase.FailureOutput.Message + "\n\n"
 					totalErrorMessages += errorMsg
 
@@ -87,30 +88,28 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 						JobID:          job.Status.BuildID,
 						JobName:        job.Spec.Job,
 						TestCaseName:   testCase.Name,
-						TestCaseStatus: testCase.Status,
+						TestCaseStatus: "failed",
 						TestTiming:     testCase.Duration,
 						JobType:        job.Spec.Type,
 						CreatedAt:      job.Status.StartTime,
+						ErrorMessage:   testCase.FailureOutput.Message,
+						JobURL:         job.Status.URL,
 					}
 
 					re := regexp.MustCompile(`\[It\]\s*\[([^\]]+)\]`)
 					matches := re.FindStringSubmatch(testCase.Name)
 
-					if len(matches) > 1 {
+					if jobSuite.JobName == "pull-ci-redhat-appstudio-infra-deployments-main-appstudio-hac-e2e-tests" {
+						jobSuite.SuiteName = suite.Name
+					} else if len(matches) > 1 {
 						jobSuite.SuiteName = matches[1]
 					}
 
-					jobSuite.JobURL = job.Status.URL
-
-					if testCase.Status == "failed" {
-						jobSuite.ErrorMessage = testCase.FailureOutput.Message
-					}
-
-					jobSuite.ErrorMessage = testCase.FailureOutput.Message
-
-					if err := s.cfg.Storage.CreateProwJobSuites(jobSuite, repo.ID); err != nil {
-						// nolint:all
-						s.cfg.Logger.Sugar().Info(err)
+					if jobSuite.SuiteName != "" {
+						if err := s.cfg.Storage.CreateProwJobSuites(jobSuite, repo.ID); err != nil {
+							// nolint:all
+							s.cfg.Logger.Sugar().Info(err)
+						}
 					}
 				}
 			}
@@ -207,7 +206,8 @@ func getBuildLogErrors(url string) string {
 	return buildErrorLogs
 }
 
-// temporary func to update build log error messages and error messages from "old" prow jobs
+// temporary func to update build log error messages and error messages from "old" hac prow jobs
+// since we were not collecting the junit-(...).xml for hac jobs
 func (s *Server) ErrorsUpdateInProwJobs() {
 	repos, err := s.cfg.Storage.ListAllRepositories()
 	if err != nil {
@@ -222,52 +222,73 @@ func (s *Server) ErrorsUpdateInProwJobs() {
 
 		for _, pj := range prowJobs {
 			errorMessages := ""
-			if pj.E2eFailedTestMessages == nil {
-				var suites []byte
-				if pj.JobType == "periodic" {
-					suites = s.cfg.GCS.GetJobJunitContent("", "", "", pj.JobID, pj.JobType, pj.JobName, "e2e-report.xml")
-				} else if pj.JobType == "presubmit" {
-					prNumber := getPRNumber(pj.JobURL)
+			// to cover the cases where we were not collecting e2e failed error messages like in hac jobs
+			var suites []byte
+			if pj.JobType == "periodic" {
+				suites = s.cfg.GCS.GetJobJunitContent("", "", "", pj.JobID, pj.JobType, pj.JobName)
+			} else if pj.JobType == "presubmit" {
+				prNumber := getPRNumber(pj.JobURL)
 
-					if prNumber != "" {
-						suites = s.cfg.GCS.GetJobJunitContent(repo.GitOrganization, repo.RepositoryName, prNumber,
-							pj.JobID, pj.JobType, pj.JobName, "e2e-report.xml")
-					} else {
-						s.cfg.Logger.Sugar().Warnf("Failed to get pr number from ", pj.JobURL)
-					}
+				if prNumber != "" {
+					suites = s.cfg.GCS.GetJobJunitContent("redhat-appstudio", "infra-deployments", prNumber,
+						pj.JobID, pj.JobType, pj.JobName)
+				} else {
+					s.cfg.Logger.Sugar().Warnf("Failed to get pr number from ", pj.JobURL)
 				}
-
-				suitesXml := prow.TestSuites{}
-				if len(suites) > 0 {
-					if err := xml.Unmarshal(suites, &suitesXml); err != nil {
-						s.cfg.Logger.Sugar().Warnf("Failed convert xml file to golang bytes ", err)
-						continue
-					}
-				}
-
-				for _, suite := range suitesXml.Suites {
-					errorMessages = getFailureMessages(suite)
-				}
-
-				if err := s.cfg.Storage.UpdateErrorMessages(pj.JobID, "", errorMessages); err != nil {
-					s.cfg.Logger.Sugar().Error("failed to update error messages ", err)
-				}
-
-			} else {
-				errorMessages = *pj.E2eFailedTestMessages
 			}
 
-			if errorMessages == "" && pj.BuildErrorLogs == nil {
-				buildErrors := getBuildLogErrors(pj.JobURL)
-				if buildErrors != "" {
-					if err := s.cfg.Storage.UpdateErrorMessages(pj.JobID, buildErrors, ""); err != nil {
-						s.cfg.Logger.Sugar().Error("failed to update build errors ", err)
+			suitesXml := prow.TestSuites{}
+			if len(suites) > 0 {
+				if err := xml.Unmarshal(suites, &suitesXml); err != nil {
+					s.cfg.Logger.Sugar().Warnf("Failed convert xml file to golang bytes ", err)
+					continue
+				} else {
+					for _, suite := range suitesXml.Suites {
+						errorMessages = getFailureMessages(suite)
+
+						for _, testCase := range suite.TestCases {
+							if testCase.FailureOutput != nil {
+
+								jobSuite := prowV1Alpha1.JobSuites{
+									JobID:          pj.JobID,
+									JobName:        pj.JobName,
+									TestCaseName:   testCase.Name,
+									TestCaseStatus: "failed",
+									TestTiming:     suite.Duration,
+									JobType:        pj.JobType,
+									CreatedAt:      pj.CreatedAt,
+									ErrorMessage:   testCase.FailureOutput.Message,
+									JobURL:         pj.JobURL,
+								}
+
+								re := regexp.MustCompile(`\[It\]\s*\[([^\]]+)\]`)
+								matches := re.FindStringSubmatch(suite.Name)
+
+								if jobSuite.JobName == "pull-ci-redhat-appstudio-infra-deployments-main-appstudio-hac-e2e-tests" {
+									jobSuite.SuiteName = suite.Name
+								} else if len(matches) > 1 {
+									jobSuite.SuiteName = matches[1]
+								}
+
+								if jobSuite.SuiteName != "" {
+									if err := s.cfg.Storage.CreateProwJobSuites(jobSuite, repo.ID); err != nil {
+										// nolint:all
+										s.cfg.Logger.Sugar().Info(err)
+									}
+								}
+							}
+						}
+					}
+
+					if errorMessages != "" {
+						if err := s.cfg.Storage.UpdateErrorMessages(pj.JobID, "", errorMessages); err != nil {
+							s.cfg.Logger.Sugar().Error("failed to update error messages ", err)
+						}
 					}
 				}
 			}
 		}
 	}
-
 }
 
 func getPRNumber(url string) string {
@@ -286,7 +307,7 @@ func getFailureMessages(suite *prow.TestSuite) string {
 	msgs := ""
 
 	for _, testCase := range suite.TestCases {
-		if testCase.Status == "failed" {
+		if testCase.FailureOutput != nil {
 			msg := testCase.Name + ":\n" + testCase.FailureOutput.Message + "\n\n"
 			msgs += msg
 		}

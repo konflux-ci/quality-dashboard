@@ -30,6 +30,8 @@ type GitRepositoryRequest struct {
 func (s *jobRouter) getProwJobs(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	repositoryName := r.URL.Query()["repository_name"]
 	gitOrganization := r.URL.Query()["git_organization"]
+	startDate := r.URL.Query()["start_date"]
+	endDate := r.URL.Query()["end_date"]
 
 	if len(repositoryName) == 0 {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
@@ -39,6 +41,16 @@ func (s *jobRouter) getProwJobs(ctx context.Context, w http.ResponseWriter, r *h
 	} else if len(gitOrganization) == 0 {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "git_organization value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(startDate) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "start_date value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(endDate) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "end_date value not present in query",
 			StatusCode: 400,
 		})
 	}
@@ -51,7 +63,7 @@ func (s *jobRouter) getProwJobs(ctx context.Context, w http.ResponseWriter, r *h
 		})
 	}
 
-	prows, err := s.Storage.GetProwJobsResults(repoInfo)
+	prows, err := s.Storage.GetProwJobsResults(repoInfo, startDate[0], endDate[0])
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "failed to get repository from database; check if repository exist in quality studio",

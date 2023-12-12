@@ -483,9 +483,14 @@ async function getPullRequests(repoName: string, repoOrg: string, rangeDateTime:
   return result.data;
 }
 
-async function getProwJobs(repoName: string, repoOrg: string) {
+async function getProwJobs(repoName: string, repoOrg: string, rangeDateTime: Date[]) {
+  const start_date = formatDate(rangeDateTime[0]);
+  const end_date = formatDate(rangeDateTime[1]);
   const result: ApiResponse = { code: 0, data: {} };
-  const subPath = '/api/quality/prow/results/get?repository_name=' + repoName + '&git_organization=' + repoOrg
+  const subPath = '/api/quality/prow/results/get?repository_name=' + repoName +
+    '&git_organization=' + repoOrg +
+    '&start_date=' + start_date +
+    '&end_date=' + end_date;
   const uri = API_URL + subPath;
   await axios
     .get(uri)
@@ -647,7 +652,7 @@ async function getRepositoriesWithJobs(team: string) {
 
 async function getFlakyData(team: string, job: string, repo: string, startDate: string, endDate: string, gitOrg: string) {
   const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
-  const subPath = '/api/quality/suites/ocurrencies';
+  const subPath = '/api/quality/suites/occurrences';
   const uri = API_URL + subPath;
 
   await axios
@@ -698,6 +703,8 @@ async function getGlobalImpactData(team: string, job: string, repo: string, star
       result.code = err.response.status;
       result.data = err.response.data;
     });
+
+    console.log(result)
   return result;
 }
 
