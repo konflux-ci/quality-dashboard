@@ -34,40 +34,43 @@ export const BugSLIs = () => {
     const state = store.getState();
     const currentTeam = useSelector((state: any) => state.teams.Team);
     const params = new URLSearchParams(window.location.search);
-    const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(800));
+    // const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(800));
     const [bugSLIs, setBugSLIs] = useState<Info>();
     const history = useHistory();
     const [isSelected, setIsSelected] = React.useState('resolution');
     const [bugsTable, setBugsTable] = useState<Array<Bug>>([]);
 
-    function handleChange(event, from, to) {
-        setRangeDateTime([from, to]);
-        params.set('start', formatDate(from));
-        params.set('end', formatDate(to));
-        history.push(window.location.pathname + '?' + params.toString());
-    }
+    // function handleChange(event, from, to) {
+    //     setRangeDateTime([from, to]);
+    //     params.set('start', formatDate(from));
+    //     params.set('end', formatDate(to));
+    //     history.push(window.location.pathname + '?' + params.toString());
+    // }
 
-    useEffect(() => {
-        if (state.teams.Team != '') {
-            getBugSLIs(state.teams.Team, rangeDateTime).then((data: any) => {
-                setBugSLIs(data.data)
-            });
-        }
-    }, [rangeDateTime]);
+    // useEffect(() => {
+    //     if (state.teams.Team != '') {
+    //         getBugSLIs(state.teams.Team, rangeDateTime).then((data: any) => {
+    //             setBugSLIs(data.data)
+    //         });
+    //     }
+    // }, [rangeDateTime]);
 
     useEffect(() => {
         if (bugSLIs?.global_sli != undefined) {
             switch (isSelected) {
                 case "resolution":
+                    bugSLIs.resolution_time_sli.bugs.sort((a, b) => (a.resolution_sli.signal < b.resolution_sli.signal ? -1 : 1));
                     setBugsTable(bugSLIs.resolution_time_sli.bugs)
                     setLoadingState(false)
                     break;
                 case "response":
                     setLoadingState(false)
+                    bugSLIs.response_time_sli.bugs.sort((a, b) => (a.response_sli.signal < b.response_sli.signal ? -1 : 1));
                     setBugsTable(bugSLIs.response_time_sli.bugs)
                     break;
                 case "triage":
                     setLoadingState(false)
+                    bugSLIs.triage_time_sli.bugs.sort((a, b) => (a.triage_sli.signal < b.triage_sli.signal ? -1 : 1));
                     setBugsTable(bugSLIs.triage_time_sli.bugs)
                     break;
             }
@@ -94,7 +97,8 @@ export const BugSLIs = () => {
             const start = params.get('start');
             const end = params.get('end');
 
-            getBugSLIs(state.teams.Team, rangeDateTime).then((data: any) => {
+            // getBugSLIs(state.teams.Team, rangeDateTime).then((data: any) => {
+            getBugSLIs(state.teams.Team).then((data: any) => {
                 if (data.data.length < 1 && (team == state.teams.Team || team == null)) {
                     // setLoadingState(false)
                     history.push('/home/bug-slis?team=' + currentTeam);
@@ -105,21 +109,21 @@ export const BugSLIs = () => {
 
                     if (start == null || end == null) {
                         // first click on page or team
-                        const start_date = formatDate(rangeDateTime[0]);
-                        const end_date = formatDate(rangeDateTime[1]);
+                        // const start_date = formatDate(rangeDateTime[0]);
+                        // const end_date = formatDate(rangeDateTime[1]);
 
                         setLoadingState(false)
 
                         history.push(
                             '/home/bug-slis?team=' +
-                            currentTeam +
-                            '&start=' +
-                            start_date +
-                            '&end=' +
-                            end_date
+                            currentTeam
+                            // '&start=' +
+                            // start_date +
+                            // '&end=' +
+                            // end_date
                         );
                     } else {
-                        setRangeDateTime([new Date(start), new Date(end)]);
+                        // setRangeDateTime([new Date(start), new Date(end)]);
 
                         history.push(
                             '/home/bug-slis?team=' + currentTeam +
@@ -132,8 +136,8 @@ export const BugSLIs = () => {
         }
     }, [setBugSLIs, currentTeam]);
 
-    const start = rangeDateTime[0];
-    const end = rangeDateTime[1];
+    // const start = rangeDateTime[0];
+    // const end = rangeDateTime[1];
 
     const handleItemClick = (isSelected: boolean, event: React.MouseEvent<any> | React.KeyboardEvent | MouseEvent) => {
         const id = event.currentTarget.id;
@@ -169,13 +173,13 @@ export const BugSLIs = () => {
                 {!loadingState && (bugSLIs?.global_sli != undefined) &&
                     (
                         <Grid hasGutter>
-                            <GridItem>
+                            {/* <GridItem>
                                 <DateTimeRangePicker
                                     startDate={start}
                                     endDate={end}
                                     handleChange={(event, from, to) => handleChange(event, from, to)}
                                 ></DateTimeRangePicker>
-                            </GridItem>
+                            </GridItem> */}
                             <InfoBanner />
                             <GridItem span={3} rowSpan={12}>
                                 <CustomSLIChartDonutCard
@@ -221,7 +225,7 @@ export const BugSLIs = () => {
                             <GridItem>
                                 <Card style={{ textAlign: 'center' }}>
                                     <CardTitle>
-                                        Component's Bug SLIs
+                                        Bug SLOs by Components
                                     </CardTitle>
                                     <CardBody>
                                     <SLIsStackChart bugSLIs={bugSLIs}></SLIsStackChart>
