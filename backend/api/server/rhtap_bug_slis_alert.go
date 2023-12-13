@@ -16,30 +16,30 @@ type Team struct {
 
 func getMention(team string) string {
 	switch team {
-	// case "quality":
-	// 	return "<!subteam^S02G2PFJ4AV|appstudio-qe-team> and <!subteam^S03E4H1JLF5|hacbs-qe-team>"
-	// case "spi":
-	// 	return "<!subteam^SLRSHSU1K|spi-rhtap-team>"
-	// case "has":
-	// 	return "<!subteam^S04MSCVRF4Z|app-has>"
-	// case "integration":
-	// 	return "<!subteam^S041261DDEW|rhtap-test-team>"
-	// case "pipeline":
-	// 	return "<!subteam^S03GF42RBE2|plnsvc-team>"
-	// case "gitops":
-	// 	return "<!subteam^S01AC8DU22C|gitops-team>"
-	// case "build":
-	// 	return "<!subteam^S014L5WTRBP|build-api-team>"
-	// case "release":
-	// 	return "<!subteam^S03SVBS426R|stonesoup-release-team>"
-	// case "o11y":
-	// 	return "<!subteam^S04S21ECL8K|rhtap-o11y-all>"
-	// case "ec":
-	// 	return "<!subteam^S04123TQ599|hacbs-contract-team>"
-	// case "hac":
-	// 	return "<!subteam^S02J1EUMMNV|hac-core-team>"
-	// case "sandbox":
-	// 	return "<!subteam^SKBFYSRAL|sandbox-team>"
+	case "quality":
+		return "<!subteam^S02G2PFJ4AV|appstudio-qe-team> and <!subteam^S03E4H1JLF5|hacbs-qe-team>"
+	case "spi":
+		return "<!subteam^SLRSHSU1K|spi-rhtap-team>"
+	case "has":
+		return "<!subteam^S04MSCVRF4Z|app-has>"
+	case "integration":
+		return "<!subteam^S041261DDEW|rhtap-test-team>"
+	case "pipeline":
+		return "<!subteam^S03GF42RBE2|plnsvc-team>"
+	case "gitops":
+		return "<!subteam^S01AC8DU22C|gitops-team>"
+	case "build":
+		return "<!subteam^S014L5WTRBP|build-api-team>"
+	case "release":
+		return "<!subteam^S03SVBS426R|stonesoup-release-team>"
+	case "o11y":
+		return "<!subteam^S04S21ECL8K|rhtap-o11y-all>"
+	case "ec":
+		return "<!subteam^S04123TQ599|hacbs-contract-team>"
+	case "hac":
+		return "<!subteam^S02J1EUMMNV|hac-core-team>"
+	case "sandbox":
+		return "<!subteam^SKBFYSRAL|sandbox-team>"
 	default:
 		return ""
 	}
