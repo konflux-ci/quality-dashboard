@@ -278,62 +278,6 @@ export const DashboardCard = ({ cardType, title, subtitle, body, subtext, info, 
         {info != "" && <div style={cardStyle.get("info")}>
           {info}
         </div>}
-
-        {title == "Failures Avg" && summary?.failure_by_build_errors_count != undefined &&
-        <div style={{marginTop: 40}}>
-            <Chart
-              ariaDesc="Mock incidents chart"
-              ariaTitle="Mock stack chart"
-              domainPadding={{ x: [30, 25] }}
-              legendData={[
-                {
-                  name: 'Build Errors: ' + summary?.failure_by_build_errors_count, symbol: { fill: chart_color_red_100.value } },
-                { name: 'Flaky Tests: ' + summary?.failure_by_e2e_tests_count, symbol: { fill: chart_color_orange_300.value } },
-              ]}
-              legendPosition="bottom"
-              height={50}
-              padding={{
-                bottom: 40,
-                left: 0,
-                right: 0,
-                top: 0
-              }}
-              width={350}
-              showAxis={false}
-            >
-              <ChartStack
-                horizontal
-                colorScale={[
-                  chart_color_red_100.value,
-                  chart_color_orange_300.value,
-                ]}
-              >
-                <ChartBar
-                  data={[
-                    {
-                      name: 'Build Errors',
-                      x: '',
-                      y: summary?.failure_by_build_errors_count,
-                      label: 'Build Errors',
-                    }
-                  ]}
-                  labelComponent={<ChartTooltip constrainToVisibleArea />}
-                />
-                <ChartBar
-                  data={[
-                    {
-                      name: 'Flaky Tests',
-                      x: '',
-                      y: summary?.failure_by_e2e_tests_count,
-                      label: 'Flaky Tests',
-                    }
-                  ]}
-                  labelComponent={<ChartTooltip constrainToVisibleArea />}
-                />
-              </ChartStack>
-            </Chart>
-        </div>
-        }
       </CardBody>
     </Card>
   )

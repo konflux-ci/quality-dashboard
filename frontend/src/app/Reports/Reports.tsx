@@ -460,9 +460,9 @@ let Reports = () => {
             {/* this section will show the job's chart over time and last execution stats */}
 
             {prowJobsStats !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
-              <GridItem span={3} rowSpan={2}><GitHubInfoCard repoName={prowJobsStats.repository_name} org={prowJobsStats.git_organization} data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_organization }]}></GitHubInfoCard></GridItem>
+              <GridItem span={2} rowSpan={1}><GitHubInfoCard repoName={prowJobsStats.repository_name} org={prowJobsStats.git_organization} data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_organization }]}></GitHubInfoCard></GridItem>
 
-              <GridItem span={3} rowSpan={2}><DashboardCard
+              <GridItem span={2} rowSpan={1}><DashboardCard
                 cardType={'success'}
                 title="Passed Tests Avg"
                 subtitle="Includes all the jobs that succeeded."
@@ -472,7 +472,8 @@ let Reports = () => {
                 summary={prowJobsStats?.jobs[selectedJob]?.summary}
               ></DashboardCard></GridItem>
 
-              <GridItem span={3} rowSpan={2}><DashboardCard
+
+              <GridItem span={4} rowSpan={1}><DashboardCard
                 cardType={'danger'}
                 title="CI Failures Avg"
                 subtitle="Includes all the jobs that failed because of Openshift CI failures (cases where the job was not scheduled, for example)."
@@ -482,12 +483,12 @@ let Reports = () => {
                 summary={prowJobsStats?.jobs[selectedJob]?.summary}
               ></DashboardCard></GridItem>
 
-              <GridItem span={3} rowSpan={2}><DashboardCard
+              <GridItem span={4} rowSpan={1}><DashboardCard
                 cardType={'danger'}
                 title="Failures Avg"
                 subtitle="Includes all the jobs that failed while running, either by build errors (cluster request, rhtap installation, for example) or by flaky tests."
                 body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
-                subtext={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.failure_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs : "-"}
+                subtext={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.failure_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs + " (Build Errors: " + prowJobsStats.jobs[selectedJob].summary?.failure_by_build_errors_count + ", Flaky Tests: " + prowJobsStats.jobs[selectedJob].summary?.failure_by_e2e_tests_count + ")" : "-"}
                 info=""
                 summary={prowJobsStats?.jobs[selectedJob]?.summary}
               ></DashboardCard></GridItem>
@@ -495,7 +496,7 @@ let Reports = () => {
               <GridItem span={4} rowSpan={1}><DashboardCard
                 cardType={'default'}
                 title="Total CI Jobs Executed"
-                subtitle=""
+                subtitle={"Includes all the jobs of " + prowJobsStats.jobs[selectedJob].name + ".  For more details, observe the Jobs card below."}
                 body={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.total_jobs.toString() : "N/A"}
                 subtext=""
                 info=""
