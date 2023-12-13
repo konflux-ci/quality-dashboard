@@ -595,16 +595,17 @@ async function bugExists(jiraKey: string, teamName: string) {
   return result;
 }
 
-async function getBugSLIs(team: string, rangeDateTime: Date[]) {
+// async function getBugSLIs(team: string, rangeDateTime: Date[]) {
+async function getBugSLIs(team: string) {
   const result: ApiResponse = { code: 0, data: {} };
-  const start_date = formatDate(rangeDateTime[0]);
-  const end_date = formatDate(rangeDateTime[1]);
+  // const start_date = formatDate(rangeDateTime[0]);
+  // const end_date = formatDate(rangeDateTime[1]);
 
-  const subPath = '/api/quality/jira/slis/list?team_name=' + team +
-    '&start_date=' +
-    start_date +
-    '&end_date=' +
-    end_date
+  const subPath = '/api/quality/jira/slis/list?team_name=' + team
+    // '&start_date=' +
+    // start_date +
+    // '&end_date=' +
+    // end_date
 
   const uri = API_URL + subPath;
   await axios

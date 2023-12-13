@@ -290,22 +290,23 @@ func (s *jiraRouter) bugExists(ctx context.Context, w http.ResponseWriter, r *ht
 }
 
 func (s *jiraRouter) getBugSLIs(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
-	startDate := r.URL.Query()["start_date"]
-	endDate := r.URL.Query()["end_date"]
+	// startDate := r.URL.Query()["start_date"]
+	// endDate := r.URL.Query()["end_date"]
 
-	if len(startDate) == 0 {
-		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
-			Message:    "start_date value not present in query",
-			StatusCode: 400,
-		})
-	} else if len(endDate) == 0 {
-		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
-			Message:    "end_date value not present in query",
-			StatusCode: 400,
-		})
-	}
+	// if len(startDate) == 0 {
+	// 	return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+	// 		Message:    "start_date value not present in query",
+	// 		StatusCode: 400,
+	// 	})
+	// } else if len(endDate) == 0 {
+	// 	return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+	// 		Message:    "end_date value not present in query",
+	// 		StatusCode: 400,
+	// 	})
+	// }
 
-	bugs, err := s.Storage.GetAllOpenRHTAPBUGS(startDate[0], endDate[0])
+	// bugs, err := s.Storage.GetAllOpenRHTAPBUGS(startDate[0], endDate[0])
+	bugs, err := s.Storage.GetAllOpenRHTAPBUGS()
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
