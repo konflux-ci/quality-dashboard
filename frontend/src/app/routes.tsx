@@ -14,6 +14,7 @@ import { refreshTokenFlow } from '@app/utils/oauth'
 import { CiFailures } from './CiFailures/CiFailures';
 import { BugSLIs } from './BugSLIs/MainPage';
 import { FlakyTests } from './FlakyTests/FlakyTests';
+import { Links } from './Links/Links';
 
 let routeFocusTimer: number;
 export interface IAppRoute {
@@ -67,6 +68,15 @@ const routes: AppRouteConfig[] = [
         path: '/home/config',
         title: 'Config | Quality Studio',
       },
+      {
+        component: Links,
+        exact: true,
+        isAsync: true,
+        label: 'Links',
+        isProtected: true,
+        path: '/home/Links',
+        title: 'Links | Quality Studio',
+      },
     ],
   },
   {
@@ -77,9 +87,9 @@ const routes: AppRouteConfig[] = [
         exact: true,
         isAsync: true,
         isProtected: true,
-        label: 'Github',
+        label: 'GitHub',
         path: '/home/github',
-        title: 'Github | Quality Studio',
+        title: 'GitHub | Quality Studio',
       },
       {
         component: Jira,

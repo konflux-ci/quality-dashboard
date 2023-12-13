@@ -197,7 +197,21 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
     });
     // End of sort helpers
 
-    const getColor = (sli) => {
+
+    const getSLI = (bug: Bug, selected: string) => {
+        switch (selected) {
+            case "response":
+                return bug.response_sli.signal
+            case "resolution":
+                return bug.resolution_sli.signal
+            default:
+                return bug.triage_sli.signal
+        }
+    }
+
+    const getColor = (bug: Bug, selected: string) => {
+        const sli = getSLI(bug, selected)
+
         if (sli == "red") {
             return "#FA8A8A"
         } else if (sli == "yellow") {
@@ -261,7 +275,7 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
                 <Tbody>
                     {bugSLIsPage.map((bug, index) => {
                         return (
-                            <Tr key={index} style={{ background: getColor(bug.global_sli) }} {...(index % 2 === 0 && { isStriped: true })} >
+                            <Tr key={index} style={{ background: getColor(bug, selected) }} {...(index % 2 === 0 && { isStriped: true })} >
                                 <Td dataLabel={columnNames.jira_key}>
                                     <div>
                                         <a href={"https://issues.redhat.com/browse/" + bug.jira_key} target="blank" rel="noopener noreferrer">{bug.jira_key}</a>
