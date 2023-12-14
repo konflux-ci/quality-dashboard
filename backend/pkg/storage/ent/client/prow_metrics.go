@@ -89,7 +89,7 @@ func (d *Database) getMetricsSummaryByDay(repo *db.Repository, job, jobType, sta
 }
 
 func getProwMetricsByDay(jobs []*db.ProwJobs, date string) prowV1Alpha1.Metrics {
-	var success_total, failed_total, ci_failed_total float64
+	var success_total, failed_rate_total, not_scheduled_total, failure_by_e2e_tests_total, failure_by_build_errors_total float64
 
 	for _, j := range jobs {
 		if j.State == string(prow.SuccessState) {
@@ -97,26 +97,35 @@ func getProwMetricsByDay(jobs []*db.ProwJobs, date string) prowV1Alpha1.Metrics 
 		}
 
 		if j.State == string(prow.ErrorState) {
-			ci_failed_total++
+			not_scheduled_total++
 		}
 
 		if j.State == string(prow.FailureState) {
-			failed_total++
+			if j.BuildErrorLogs != nil && *j.BuildErrorLogs != "" {
+				failure_by_build_errors_total++
+			}
+			if j.E2eFailedTestMessages != nil && *j.E2eFailedTestMessages != "" {
+				failure_by_e2e_tests_total++
+			}
+
+			failed_rate_total++
 		}
 	}
 
 	return prowV1Alpha1.Metrics{
-		Date:          date,
-		SuccessCount:  success_total,
-		FailureCount:  failed_total,
-		CiFailedCount: ci_failed_total,
-		TotalJobs:     success_total + ci_failed_total + failed_total,
+		Date:                        date,
+		SuccessCount:                success_total,
+		FailureCount:                failed_rate_total,
+		JobFailedByE2ETestsCount:    failure_by_e2e_tests_total,
+		JobFailedByBuildErrorsCount: failure_by_build_errors_total,
+		JobNotScheduledCount:        not_scheduled_total,
+		TotalJobs:                   success_total + not_scheduled_total + failed_rate_total,
 	}
 
 }
 
 func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, jobName, jobType, startDate, endDate string) prowV1Alpha1.Jobs {
-	var success_total, failed_rate_total, ci_failed_total float64
+	var success_total, failed_rate_total, not_scheduled_total, failure_by_e2e_tests_total, failure_by_build_errors_total float64
 
 	for _, j := range jobs {
 		if j.State == string(prow.SuccessState) {
@@ -124,10 +133,17 @@ func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, j
 		}
 
 		if j.State == string(prow.ErrorState) {
-			ci_failed_total++
+			not_scheduled_total++
 		}
 
 		if j.State == string(prow.FailureState) {
+			if j.BuildErrorLogs != nil && *j.BuildErrorLogs != "" {
+				failure_by_build_errors_total++
+			}
+			if j.E2eFailedTestMessages != nil && *j.E2eFailedTestMessages != "" {
+				failure_by_e2e_tests_total++
+			}
+
 			failed_rate_total++
 		}
 	}
@@ -137,12 +153,14 @@ func (d *Database) getProwJobSummary(jobs []*db.ProwJobs, repo *db.Repository, j
 		Name:    jobName,
 		Metrics: metricsByDat,
 		Summary: prowV1Alpha1.Summary{
-			DateFrom:       startDate,
-			DateTo:         endDate,
-			SuccessCount:   success_total,
-			JobFailedCount: failed_rate_total,
-			CIFailedCount:  ci_failed_total,
-			TotalJobs:      success_total + failed_rate_total + ci_failed_total,
+			DateFrom:                    startDate,
+			DateTo:                      endDate,
+			SuccessCount:                success_total,
+			JobFailedCount:              failed_rate_total,
+			JobFailedByE2ETestsCount:    failure_by_e2e_tests_total,
+			JobFailedByBuildErrorsCount: failure_by_build_errors_total,
+			JobNotScheduledCount:        not_scheduled_total,
+			TotalJobs:                   success_total + failed_rate_total + not_scheduled_total,
 		},
 	}
 }

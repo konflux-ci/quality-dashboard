@@ -250,7 +250,7 @@ let Reports = () => {
       // Get statistics and metrics
       const stats = await getProwJobStatistics(repoName, repoOrg, jobType, rangeDateTime)
       // Get jobs
-      const prowJobs = await getProwJobs(repoName, repoOrg)
+      const prowJobs = await getProwJobs(repoName, repoOrg, rangeDateTime)
       setProwJobs(prowJobs)
       // Set UI for showing data and disable spinner
       setprowJobsStats(stats)
@@ -315,7 +315,7 @@ let Reports = () => {
     prowJobsStats.jobs[selectedJob].metrics.map(metric => {
       beautifiedData["SUCCESS_RATE_INDEX"].data.push({ name: 'success_rate', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (metric.total_jobs > 0 ? (100 * metric.success_count / metric.total_jobs).toFixed(2) : 0) })
       beautifiedData["FAILURE_RATE_INDEX"].data.push({ name: 'failure_rate', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: +  (metric.total_jobs > 0 ? (100 * metric.failure_count / metric.total_jobs).toFixed(2) : 0) })
-      beautifiedData["CI_FAILED_RATE_INDEX"].data.push({ name: 'ci_failed_rate', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (metric.total_jobs > 0 ? (100 * metric.ci_failed_count / metric.total_jobs).toFixed(2) : 0) })
+      beautifiedData["CI_FAILED_RATE_INDEX"].data.push({ name: 'ci_failed_rate', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (metric.total_jobs > 0 ? (100 * metric.not_scheduled_count / metric.total_jobs).toFixed(2) : 0) })
     });
 
     beautifiedData["SUCCESS_RATE_INDEX"].style = { data: { stroke: "rgba(30, 79, 24, 0.9)", strokeWidth: 2 } }
@@ -335,8 +335,8 @@ let Reports = () => {
     beautifiedData["FAILURE_RATE_AVG_INDEX"].style = { data: { stroke: "rgba(163, 0, 0, 0.3)", strokeDasharray: 10, strokeWidth: 5 } }
 
     beautifiedData["CI_FAILED_RATE_AVG_INDEX"].data = [
-      { name: 'ci_failed_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_from).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.ci_failed_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) },
-      { name: 'ci_failed_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_to).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.ci_failed_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) }
+      { name: 'ci_failed_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_from).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.not_scheduled_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) },
+      { name: 'ci_failed_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_to).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.not_scheduled_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) }
     ]
     beautifiedData["CI_FAILED_RATE_AVG_INDEX"].style = { data: { stroke: "rgba(240, 171, 0, 0.3)", strokeDasharray: 10, strokeWidth: 5 } }
   }
@@ -460,55 +460,75 @@ let Reports = () => {
             {/* this section will show the job's chart over time and last execution stats */}
 
             {prowJobsStats !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
-              <GridItem span={2}><GitHubInfoCard repoName={prowJobsStats.repository_name} org={prowJobsStats.git_organization} data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_organization }]}></GitHubInfoCard></GridItem>
+              <GridItem span={2} rowSpan={1}><GitHubInfoCard repoName={prowJobsStats.repository_name} org={prowJobsStats.git_organization} data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_organization }]}></GitHubInfoCard></GridItem>
 
-              <GridItem span={2}><DashboardCard
-                cardType={'danger'}
-                title="CI Failures Avg"
-                body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.ci_failed_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
-                subtext={prowJobsStats?.jobs != null ? (prowJobsStats.jobs[selectedJob].summary.ci_failed_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs) : "-"}
-                info=""
-              ></DashboardCard></GridItem>
-
-              <GridItem span={2}><DashboardCard
-                cardType={'danger'}
-                title="Failures Avg"
-                body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
-                subtext={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.failure_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs : "-"}
-                info=""
-             ></DashboardCard></GridItem>
-
-              <GridItem span={2}><DashboardCard
+              <GridItem span={2} rowSpan={1}><DashboardCard
                 cardType={'success'}
                 title="Passed Tests Avg"
+                subtitle="Includes all the jobs that succeeded."
                 body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.success_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
                 subtext={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.success_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs : "-"}
                 info=""
+                summary={prowJobsStats?.jobs[selectedJob]?.summary}
               ></DashboardCard></GridItem>
 
-              <GridItem span={2}><DashboardCard
+
+              <GridItem span={4} rowSpan={1}><DashboardCard
+                cardType={'danger'}
+                title="CI Failures Avg"
+                subtitle="Includes all the jobs that failed because of Openshift CI failures (cases where the job was not scheduled, for example)."
+                body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.not_scheduled_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
+                subtext={prowJobsStats?.jobs != null ? (prowJobsStats.jobs[selectedJob].summary.not_scheduled_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs) : "-"}
+                info=""
+                summary={prowJobsStats?.jobs[selectedJob]?.summary}
+              ></DashboardCard></GridItem>
+
+              <GridItem span={4} rowSpan={1}><DashboardCard
+                cardType={'danger'}
+                title="Failures Avg"
+                subtitle="Includes all the jobs that failed while running, either by build errors (cluster request, rhtap installation, for example) or by flaky tests."
+                body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
+                subtext={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.failure_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs + " (Build Errors: " + prowJobsStats.jobs[selectedJob].summary?.failure_by_build_errors_count + ", Flaky Tests: " + prowJobsStats.jobs[selectedJob].summary?.failure_by_e2e_tests_count + ")" : "-"}
+                info=""
+                summary={prowJobsStats?.jobs[selectedJob]?.summary}
+              ></DashboardCard></GridItem>
+
+              <GridItem span={4} rowSpan={1}><DashboardCard
                 cardType={'default'}
                 title="Total CI Jobs Executed"
+                subtitle={"Includes all the jobs of " + prowJobsStats.jobs[selectedJob].name + ".  For more details, observe the Jobs card below."}
                 body={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.total_jobs.toString() : "N/A"}
                 subtext=""
                 info=""
+                summary={prowJobsStats?.jobs[selectedJob]?.summary}
               ></DashboardCard></GridItem>
 
-              <GridItem span={2}><DashboardCard
+              <GridItem span={4} rowSpan={1}><DashboardCard
                 cardType={'default'}
                 title="Flaky Tests Impact"
-                body={impact != "" ? impact + "%" : "-"}
+                subtitle={"Includes all the jobs that failed because of flaky e2e tests. From the  all the " + prowJobsStats.jobs[selectedJob].summary.total_jobs + " jobs, " + prowJobsStats.jobs[selectedJob].summary.failure_by_e2e_tests_count + " failed with flaky tests." }
+                body={impact != "" ? impact + "%" : "-"}                subtext=""
+                info={prowJobsStats.jobs[selectedJob].summary.failure_by_e2e_tests_count != 0 ? <a href={'/home/flaky?team=' + currentTeam + '&repository=' + repoName +
+                  '&job=' + prowJobsStats.jobs[selectedJob].name + '&start=' + start.toISOString() + '&end=' + end.toISOString()}>More info in Flaky page</a> : <div></div>}
+                summary={prowJobsStats?.jobs[selectedJob]?.summary}
+              ></DashboardCard></GridItem>
+
+              <GridItem span={4} rowSpan={1}><DashboardCard
+                cardType={'default'}
+                title="Build Errors Impact"
+                subtitle={"Includes all the jobs that failed because of build errors (cluster request, rhtap installation, for example). From the  all the " + prowJobsStats.jobs[selectedJob].summary.total_jobs + " jobs, " + prowJobsStats.jobs[selectedJob].summary.failure_by_build_errors_count + " failed with build errors."}
+                body={prowJobsStats.jobs[selectedJob].summary.failure_by_build_errors_count != 0 ? (100 * prowJobsStats.jobs[selectedJob].summary.failure_by_build_errors_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
                 subtext=""
-                info={<a href={'/home/flaky?team=' + currentTeam + '&repository=' + repoName +
-                  '&job=' + prowJobsStats.jobs[selectedJob].name + '&start=' + start.toISOString() + '&end=' + end.toISOString()}>More info in Flaky page</a>}
+                info=""
+                summary={prowJobsStats?.jobs[selectedJob]?.summary}
               ></DashboardCard></GridItem>
 
               <GridItem span={4} rowSpan={4}><DashboardSimpleList title={<div>Jobs  <a href={ci_html} target="blank" rel="noopener noreferrer"><Badge style={{ float: "right" }}>{jobType} &nbsp; <ExternalLinkAltIcon></ExternalLinkAltIcon></Badge></a></div>} data={jobNames} onSelection={(value) => { setSelectedJob(value) }}></DashboardSimpleList></GridItem>
               <GridItem span={8} rowSpan={5}><DashboardLineChart data={beautifiedData}></DashboardLineChart></GridItem>
-              <GridItem span={4} rowSpan={1}><DashboardCard cardType={'help'} title="About this dashboard" body="Set of metrics gathered from Openshift CI" subtext="" info=""></DashboardCard></GridItem>
+              <GridItem span={4} rowSpan={1}><DashboardCard cardType={'help'} title="About this dashboard" subtitle="" body="Set of metrics gathered from Openshift CI" subtext="" info="" summary={prowJobsStats?.jobs[selectedJob]?.summary}></DashboardCard></GridItem>
 
               {prowJobs != null && <GridItem span={12}>
-                <FailedE2ETests failedProwJobs={getFailedProwJobsInE2ETests(prowJobs, jobType)} jobType={jobType}></FailedE2ETests>
+                <FailedE2ETests failedProwJobs={getFailedProwJobsInE2ETests(prowJobs, prowJobsStats.jobs[selectedJob].name)} jobName={prowJobsStats.jobs[selectedJob].name}></FailedE2ETests>
               </GridItem>}
             </Grid>
             }
