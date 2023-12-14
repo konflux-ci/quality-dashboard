@@ -262,7 +262,7 @@ export const DashboardCard = ({ cardType, title, subtitle, body, subtext, info, 
         <div style={cardStyle.get("title-" + cardType)}>
           {title}
         </div>
-        <div style={{ fontWeight: "normal", fontSize: "0.7em" }}>
+        <div style={{ fontWeight: "normal", fontSize: "0.7em", height: 50 }}>
           {subtitle}
         </div>
       </CardTitle>
