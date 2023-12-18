@@ -34,6 +34,9 @@ type JiraBugMetricsInfo struct {
 	// current number of days that a bug is not resolved (for open bugs)
 	DaysWithoutResolution float64
 
+	// current number of days that a bug does not have component assigned (for open bugs)
+	DaysWithoutComponent float64
+
 	// if the bub is resolved
 	BugIsResolved bool
 }
@@ -73,6 +76,7 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetDaysWithoutAssignee(jiraBugMetricsInfo.DaysWithoutAssignee).
 				SetDaysWithoutPriority(jiraBugMetricsInfo.DaysWithoutPriority).
 				SetDaysWithoutResolution(jiraBugMetricsInfo.DaysWithoutResolution).
+				SetDaysWithoutComponent(jiraBugMetricsInfo.DaysWithoutComponent).
 				SetLabels(strings.Join(bug.Fields.Labels, ",")).
 				SetComponent(getComponent(bug.Fields.Components)).
 				SetAssignee(getAssignee(bug.Fields.Assignee)).
@@ -100,6 +104,7 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetDaysWithoutAssignee(jiraBugMetricsInfo.DaysWithoutAssignee).
 				SetDaysWithoutPriority(jiraBugMetricsInfo.DaysWithoutPriority).
 				SetDaysWithoutResolution(jiraBugMetricsInfo.DaysWithoutResolution).
+				SetDaysWithoutComponent(jiraBugMetricsInfo.DaysWithoutComponent).
 				SetLabels(strings.Join(bug.Fields.Labels, ",")).
 				SetAssignee(getAssignee(bug.Fields.Assignee)).
 				SetAge(getDays(bug.Fields.Created, bug.Fields.Resolutiondate, bug.Fields.Status.Name)).
@@ -358,6 +363,18 @@ func (d *Database) DeleteJiraBugsByProject(projectKey string, team *db.Teams) er
 	return nil
 }
 
+func (d *Database) DeleteJiraBugByJiraKey(jiraKey string) error {
+	_, err := d.client.Bugs.Delete().
+		Where(predicate.Bugs(bugs.JiraKey(jiraKey))).
+		Exec(context.TODO())
+
+	if err != nil {
+		return convertDBError("failed to delete jira bug: %w", err)
+	}
+
+	return nil
+}
+
 func BeginningOfMonth(date time.Time) time.Time {
 	return date.AddDate(0, 0, -date.Day()+1)
 }
@@ -411,6 +428,7 @@ func (d *Database) getJiraBugMetrics(bug jira.Issue) JiraBugMetricsInfo {
 		DaysWithoutAssignee:   -1,
 		DaysWithoutPriority:   -1,
 		DaysWithoutResolution: -1,
+		DaysWithoutComponent:  -1,
 		BugIsResolved:         false,
 	}
 
@@ -469,6 +487,11 @@ func (d *Database) getJiraBugMetrics(bug jira.Issue) JiraBugMetricsInfo {
 	// priority was not defined
 	if bug.Fields.Priority == nil || bug.Fields.Priority.Name == "Undefined" {
 		jiraBugMetric.DaysWithoutPriority = workingDaysSinceCreation
+	}
+
+	// component was not defined
+	if len(bug.Fields.Components) == 0 {
+		jiraBugMetric.DaysWithoutComponent = workingDaysSinceCreation
 	}
 
 	return jiraBugMetric

@@ -136,6 +136,11 @@ func DaysWithoutResolution(v float64) predicate.Bugs {
 	return predicate.Bugs(sql.FieldEQ(FieldDaysWithoutResolution, v))
 }
 
+// DaysWithoutComponent applies equality check predicate on the "days_without_component" field. It's identical to DaysWithoutComponentEQ.
+func DaysWithoutComponent(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldDaysWithoutComponent, v))
+}
+
 // Labels applies equality check predicate on the "labels" field. It's identical to LabelsEQ.
 func Labels(v string) predicate.Bugs {
 	return predicate.Bugs(sql.FieldEQ(FieldLabels, v))
@@ -974,6 +979,56 @@ func DaysWithoutResolutionIsNil() predicate.Bugs {
 // DaysWithoutResolutionNotNil applies the NotNil predicate on the "days_without_resolution" field.
 func DaysWithoutResolutionNotNil() predicate.Bugs {
 	return predicate.Bugs(sql.FieldNotNull(FieldDaysWithoutResolution))
+}
+
+// DaysWithoutComponentEQ applies the EQ predicate on the "days_without_component" field.
+func DaysWithoutComponentEQ(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldEQ(FieldDaysWithoutComponent, v))
+}
+
+// DaysWithoutComponentNEQ applies the NEQ predicate on the "days_without_component" field.
+func DaysWithoutComponentNEQ(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNEQ(FieldDaysWithoutComponent, v))
+}
+
+// DaysWithoutComponentIn applies the In predicate on the "days_without_component" field.
+func DaysWithoutComponentIn(vs ...float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldIn(FieldDaysWithoutComponent, vs...))
+}
+
+// DaysWithoutComponentNotIn applies the NotIn predicate on the "days_without_component" field.
+func DaysWithoutComponentNotIn(vs ...float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotIn(FieldDaysWithoutComponent, vs...))
+}
+
+// DaysWithoutComponentGT applies the GT predicate on the "days_without_component" field.
+func DaysWithoutComponentGT(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGT(FieldDaysWithoutComponent, v))
+}
+
+// DaysWithoutComponentGTE applies the GTE predicate on the "days_without_component" field.
+func DaysWithoutComponentGTE(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldGTE(FieldDaysWithoutComponent, v))
+}
+
+// DaysWithoutComponentLT applies the LT predicate on the "days_without_component" field.
+func DaysWithoutComponentLT(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLT(FieldDaysWithoutComponent, v))
+}
+
+// DaysWithoutComponentLTE applies the LTE predicate on the "days_without_component" field.
+func DaysWithoutComponentLTE(v float64) predicate.Bugs {
+	return predicate.Bugs(sql.FieldLTE(FieldDaysWithoutComponent, v))
+}
+
+// DaysWithoutComponentIsNil applies the IsNil predicate on the "days_without_component" field.
+func DaysWithoutComponentIsNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldIsNull(FieldDaysWithoutComponent))
+}
+
+// DaysWithoutComponentNotNil applies the NotNil predicate on the "days_without_component" field.
+func DaysWithoutComponentNotNil() predicate.Bugs {
+	return predicate.Bugs(sql.FieldNotNull(FieldDaysWithoutComponent))
 }
 
 // LabelsEQ applies the EQ predicate on the "labels" field.

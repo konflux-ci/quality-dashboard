@@ -42,6 +42,7 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
         days_without_assignee: 'Days Without Assignment',
         days_without_priority: 'Days Without Prioritization',
         days_without_resolution: 'Days Without Resolution',
+        days_without_component: 'Days Without Component',
     };
 
     useEffect(
@@ -94,6 +95,8 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
         columns.push({ column: 'days_without_assignee', label: 'Days Without Assignment' },)
     } else if (selected == "resolution") {
         columns.push({ column: 'days_without_resolution', label: 'Days Without Resolution' },)
+    } else if (selected == "component") {
+        columns.push({ column: 'days_without_component', label: 'Days Without Component' },)
     } else {
         columns.push({ column: 'days_without_priority', label: 'Days Without Prioritization' },)
     }
@@ -204,6 +207,8 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
                 return bug.response_sli.signal
             case "resolution":
                 return bug.resolution_sli.signal
+            case "component":
+                return bug.component_assignment_sli.signal
             default:
                 return bug.triage_sli.signal
         }
@@ -218,6 +223,7 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
             return "#FAEE84"
         }
     }
+
     const getInfo = (label) => {
         if (label == 'Days Without Assignment' || label == 'Days Without Prioritization' || label == 'Days Without Resolution') {
             return fillPopOver(label, "Only considers working days.")
@@ -226,7 +232,7 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
     }
 
     return (
-        <div>
+        <div style={{ width: '100%', height: '100%' }}>
             <Pagination
                 perPageComponent="button"
                 itemCount={count}
@@ -275,7 +281,7 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
                 <Tbody>
                     {bugSLIsPage.map((bug, index) => {
                         return (
-                            <Tr key={index} style={{ background: getColor(bug, selected) }} {...(index % 2 === 0 && { isStriped: true })} >
+                            <Tr key={index} style={{ minWidth: "fitContent", maxWidth: "fitContent", background: getColor(bug, selected) }} {...(index % 2 === 0 && { isStriped: true })} >
                                 <Td dataLabel={columnNames.jira_key}>
                                     <div>
                                         <a href={"https://issues.redhat.com/browse/" + bug.jira_key} target="blank" rel="noopener noreferrer">{bug.jira_key}</a>
@@ -284,11 +290,12 @@ export const OverviewTable: React.FC<{ bugSLIs: Array<Bug>, selected: string }> 
                                 <Td dataLabel={columnNames.summary}>{bug.summary}</Td>
                                 <Td dataLabel={columnNames.priority}>{bug.priority}</Td>
                                 <Td dataLabel={columnNames.component}>{bug.component}</Td>
-                                <Td dataLabel={columnNames.labels}>{bug.labels}</Td>
+                                <Td modifier="breakWord" dataLabel={columnNames.labels}>{bug.labels != "" ? bug.labels : "-"}</Td>
                                 <Td dataLabel={columnNames.status}>{bug.status}</Td>
                                 {selected == "response" && <Td dataLabel={columnNames.days_without_assignee}>{bug.days_without_assignee}</Td>}
                                 {selected == "resolution" && <Td dataLabel={columnNames.days_without_resolution}>{bug.days_without_resolution}</Td>}
-                                {selected == "triage" && <Td dataLabel={columnNames.days_without_priority}>{bug.days_without_priority}</Td>}
+                                {selected == "priority" && <Td dataLabel={columnNames.days_without_priority}>{bug.days_without_priority}</Td>}
+                                {selected == "component" && <Td dataLabel={columnNames.days_without_component}>{bug.days_without_component}</Td>}
                             </Tr>
                         )
                     })}

@@ -50,6 +50,8 @@ type Bugs struct {
 	DaysWithoutPriority *float64 `json:"days_without_priority,omitempty"`
 	// DaysWithoutResolution holds the value of the "days_without_resolution" field.
 	DaysWithoutResolution *float64 `json:"days_without_resolution,omitempty"`
+	// DaysWithoutComponent holds the value of the "days_without_component" field.
+	DaysWithoutComponent *float64 `json:"days_without_component,omitempty"`
 	// Labels holds the value of the "labels" field.
 	Labels *string `json:"labels,omitempty"`
 	// Component holds the value of the "component" field.
@@ -93,7 +95,7 @@ func (*Bugs) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case bugs.FieldResolved:
 			values[i] = new(sql.NullBool)
-		case bugs.FieldResolutionTime, bugs.FieldAssignmentTime, bugs.FieldPrioritizationTime, bugs.FieldDaysWithoutAssignee, bugs.FieldDaysWithoutPriority, bugs.FieldDaysWithoutResolution:
+		case bugs.FieldResolutionTime, bugs.FieldAssignmentTime, bugs.FieldPrioritizationTime, bugs.FieldDaysWithoutAssignee, bugs.FieldDaysWithoutPriority, bugs.FieldDaysWithoutResolution, bugs.FieldDaysWithoutComponent:
 			values[i] = new(sql.NullFloat64)
 		case bugs.FieldJiraKey, bugs.FieldPriority, bugs.FieldStatus, bugs.FieldSummary, bugs.FieldURL, bugs.FieldProjectKey, bugs.FieldLabels, bugs.FieldComponent, bugs.FieldAssignee, bugs.FieldAge:
 			values[i] = new(sql.NullString)
@@ -227,6 +229,13 @@ func (b *Bugs) assignValues(columns []string, values []any) error {
 				b.DaysWithoutResolution = new(float64)
 				*b.DaysWithoutResolution = value.Float64
 			}
+		case bugs.FieldDaysWithoutComponent:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field days_without_component", values[i])
+			} else if value.Valid {
+				b.DaysWithoutComponent = new(float64)
+				*b.DaysWithoutComponent = value.Float64
+			}
 		case bugs.FieldLabels:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field labels", values[i])
@@ -354,6 +363,11 @@ func (b *Bugs) String() string {
 	builder.WriteString(", ")
 	if v := b.DaysWithoutResolution; v != nil {
 		builder.WriteString("days_without_resolution=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	builder.WriteString(", ")
+	if v := b.DaysWithoutComponent; v != nil {
+		builder.WriteString("days_without_component=")
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")

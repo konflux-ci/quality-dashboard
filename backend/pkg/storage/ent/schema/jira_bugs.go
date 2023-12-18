@@ -66,6 +66,10 @@ func (Bugs) Fields() []ent.Field {
 			SchemaType(textSchema).
 			Optional().
 			Nillable(),
+		field.Float("days_without_component").
+			SchemaType(textSchema).
+			Optional().
+			Nillable(),
 		field.Text("labels").
 			SchemaType(textSchema).
 			Optional().

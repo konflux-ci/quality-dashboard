@@ -1,8 +1,8 @@
 import React from 'react';
-import { Chart, ChartAxis, ChartBar, ChartGroup, ChartStack, ChartThemeColor, ChartVoronoiContainer } from '@patternfly/react-charts';
+import { Chart, ChartAxis, ChartBar, ChartStack, ChartVoronoiContainer } from '@patternfly/react-charts';
 
 
-const getData = (bugs, name, search) =>  {
+const getData = (bugs, name, search) => {
     return bugs?.map((x) => {
         return {
             name: name,
@@ -21,16 +21,18 @@ export const SLIsStackChart = (props) => {
     const bugs = props.bugSLIs.bugs
     const resolution = getData(bugs, "Bugs Meeting Resolution Time Bug SLO", "resolution_sli")
     const response = getData(bugs, "Bugs Meeting Response Time Bug SLO", "response_sli")
-    const triage = getData(bugs, "Bugs Meeting Triage Time Bug SLO", "triage_sli")
+    const triage = getData(bugs, "Bugs Meeting Priority Triage Time Bug SLO", "triage_sli")
+    const component = getData(bugs, "Bugs Meeting Component Assignment Triage Time Bug SLO", "component_assignment_sli")
 
     return <div>
         {(resolution.length > 0 || response.length > 0 || triage.length > 0) && <div style={{ margin: 'auto', height: '275px', width: '800px' }}>
             <Chart
                 containerComponent={<ChartVoronoiContainer labels={({ datum }) => `${datum.name}: ${datum.y} (Red: ${datum.red}, Yellow: ${datum.yellow})`} constrainToVisibleArea />}
-                legendData={[{ name: 'Bugs Meeting Resolution Time Bug SLO' }, { name: 'Bugs Meeting Response Time Bug SLO' }, { name: 'Bugs Meeting Triage Time Bug SLO' }]}
+                legendData={[{ name: 'Bugs Meeting Resolution Time Bug SLO' }, { name: 'Bugs Meeting Response Time Bug SLO' }, { name: 'Bugs Meeting Priority Triage Time Bug SLO' }, { name: 'Bugs Meeting Component Assignment Triage Time Bug SLO' }]}
                 legendOrientation="horizontal"
                 legendPosition="bottom"
-                height={275}
+                legendAllowWrap={true}
+                height={250}
                 name="chart3"
                 padding={{
                     bottom: 75, // Adjusted to accommodate legend
@@ -47,6 +49,7 @@ export const SLIsStackChart = (props) => {
                     <ChartBar data={resolution} />
                     <ChartBar data={response} />
                     <ChartBar data={triage} />
+                    <ChartBar data={component} />
                 </ChartStack>
             </Chart>
         </div>

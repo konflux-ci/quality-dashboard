@@ -4,8 +4,6 @@ import _ from 'lodash';
 import { JobsStatistics } from '@app/utils/sharedComponents';
 import { sortGlobalSLI, teamIsNotEmpty } from '@app/utils/utils';
 import { formatDate } from '@app/Reports/utils';
-import { PrsStatistics } from '@app/Github/PullRequests';
-import { Job } from '@app/Reports/FailedE2ETests';
 
 type ApiResponse = {
   code: number;
@@ -602,10 +600,10 @@ async function getBugSLIs(team: string) {
   // const end_date = formatDate(rangeDateTime[1]);
 
   const subPath = '/api/quality/jira/slis/list?team_name=' + team
-    // '&start_date=' +
-    // start_date +
-    // '&end_date=' +
-    // end_date
+  // '&start_date=' +
+  // start_date +
+  // '&end_date=' +
+  // end_date
 
   const uri = API_URL + subPath;
   await axios
@@ -622,6 +620,7 @@ async function getBugSLIs(team: string) {
   sortGlobalSLI(result.data.resolution_time_sli.bugs)
   sortGlobalSLI(result.data.response_time_sli.bugs)
   sortGlobalSLI(result.data.triage_time_sli.bugs)
+  sortGlobalSLI(result.data.component_assignment_sli.bugs)
 
   return result;
 }
@@ -705,7 +704,7 @@ async function getGlobalImpactData(team: string, job: string, repo: string, star
       result.data = err.response.data;
     });
 
-    console.log(result)
+  console.log(result)
   return result;
 }
 
