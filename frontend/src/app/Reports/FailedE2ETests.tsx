@@ -27,11 +27,11 @@ const isValid = (e2e_failed_test_messages) => {
    return true
 }
 
-export const getFailedProwJobsInE2ETests = (prowJobs: Job[], jobType: string) => {
+export const getFailedProwJobsInE2ETests = (prowJobs: Job[], jobName: string) => {
     const failedProwJobs = new Array<Job>
 
     prowJobs?.map(job => {
-        if (isValid(job.e2e_failed_test_messages) && job.job_type == jobType) {
+        if (isValid(job.e2e_failed_test_messages) && job.job_name == jobName) {
             failedProwJobs.push(job)
         }
     })
@@ -43,7 +43,7 @@ export const getFailedProwJobsInE2ETests = (prowJobs: Job[], jobType: string) =>
 }
 
 
-export const FailedE2ETests: React.FC<{ failedProwJobs: any, jobType: string }> = ({ failedProwJobs, jobType }) => {
+export const FailedE2ETests: React.FC<{ failedProwJobs: any, jobName: string }> = ({ failedProwJobs, jobName }) => {
     const [failedProwJobsPage, setFailedProwJobsPage] = React.useState<Array<Job>>([]);
     const [page, setPage] = React.useState(1);
     const [perPage, setPerPage] = React.useState(4);
@@ -87,7 +87,7 @@ export const FailedE2ETests: React.FC<{ failedProwJobs: any, jobType: string }> 
     return (
         <React.Fragment>
             {failedProwJobs.length > 0 && <Card style={{ width: "100%", height: "100%", fontSize: "1rem" }}>
-                <CardTitle>Failed '{jobType}' Jobs In E2E Test Cases ({failedProwJobs.length})</CardTitle>
+                <CardTitle>Failed '{jobName}' Jobs In E2E Test Cases ({failedProwJobs.length})</CardTitle>
                 <CardBody>
                     <Pagination
                         perPageComponent="button"

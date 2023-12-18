@@ -8,7 +8,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
 )
 
-func (s *suitesRouter) getOcurrencies(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+func (s *suitesRouter) getOccurrences(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	gitOrganization := r.URL.Query()["git_org"]
 	repositoryName := r.URL.Query()["repository_name"]
 	jobName := r.URL.Query()["job_name"]
