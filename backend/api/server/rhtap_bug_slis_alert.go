@@ -66,9 +66,7 @@ func getMessage(alert jira.Alert, alertType string) string {
 
 func (s *Server) sendAlert(team, msg, color string) {
 	// channel: rhtap-bug-slis-alerts
-	// channelID := "C062AF1RFK8"
-
-	channelID := "C05S0USDKNE"
+	channelID := "C062AF1RFK8"
 
 	// get team mention
 	mention := getMention(team)
@@ -167,7 +165,7 @@ func (s *Server) SendBugSLIAlerts() {
 	cron := cron.New()
 
 	// every day at 9am
-	err := cron.AddFunc("0 33 11 * * *", func() {
+	err := cron.AddFunc("0 0 9 * * *", func() {
 		s.sendAlerts()
 	})
 	if err != nil {
