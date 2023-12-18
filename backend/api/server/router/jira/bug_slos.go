@@ -65,7 +65,7 @@ func GetComponentAssignmentTriageSLI(bug *db.Bugs) *Alert {
 
 	if bug.DaysWithoutComponent != nil {
 		if *bug.DaysWithoutComponent > 1 {
-			msg := fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for Component Assignment Triage Time. Bugs should be assigned between a maximum of 1 day. This issue has component undefined for %.2f days. Please, take a time to assign a component to it.\n\n",
+			msg := fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for Component Assignment Triage Time. Bugs should have component assigned between a maximum of 1 day. This issue has component undefined for %.2f days. Please, take a time to assign a component to it.\n\n",
 				bug.URL,
 				bug.JiraKey,
 				*bug.DaysWithoutComponent,
