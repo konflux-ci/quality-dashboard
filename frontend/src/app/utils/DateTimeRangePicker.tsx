@@ -1,5 +1,5 @@
 import { Flex, FlexItem, InputGroup, DatePicker, isValidDate, TimePicker, yyyyMMddFormat, Select, SelectOption, Button, Popover, InputGroupText } from '@patternfly/react-core';
-import { SearchIcon } from '@patternfly/react-icons';
+import { SearchIcon, CalendarAltIcon } from '@patternfly/react-icons';
 import React, { useEffect, useState } from 'react';
 import { formatDate, getRangeDateTime, getRangeDates, ranges } from '../Reports/utils';
 
@@ -101,12 +101,12 @@ export const DateTimeRangePicker = (props) => {
 
     return (
         <div>
-            <button ref={popoverRef}>
+            <Button variant="secondary" ref={popoverRef} style={{background: 'white'}}>
                 <InputGroupText id="searchFrom">
-                    <SearchIcon style={{ marginRight: "5px" }} />
+                    <CalendarAltIcon style={{ marginRight: "5px" }} />
                     {formatDate(from) + " to " + formatDate(to)}
                 </InputGroupText>
-            </button>
+            </Button>
             <Popover
                 aria-label={formatDate(from) + " " + formatDate(to)}
                 hasAutoWidth={true}
@@ -117,9 +117,15 @@ export const DateTimeRangePicker = (props) => {
                 headerContent={<div>Select date time range</div>}
                 position="auto"
                 bodyContent={
-                    <Flex style={{ minHeight: 300, display: 'flex' }} direction={{ default: 'row' }}>
-                        <Flex direction={{ default: 'column' }}>
+                    <Flex direction={{ default: 'column' }}>
                             <Flex direction={{ default: 'column' }}>
+                                <FlexItem>
+                                    <Select placeholderText="Search quick ranges" isOpen={quickRangeToggle} onToggle={setQuickRangeToggle} selections={quickRange} onSelect={setQuickRangeOnChange} aria-label="Select Input" toggleIcon={<SearchIcon />}>
+                                        {ranges.map((value, index) => (
+                                            <SelectOption key={index} value={index}>{value.type}</SelectOption>
+                                        ))}
+                                    </Select>
+                                </FlexItem>
                                 <FlexItem>
                                     From
                                     <InputGroup>
@@ -165,14 +171,6 @@ export const DateTimeRangePicker = (props) => {
                                 </FlexItem>
                             </Flex>
                         </Flex>
-                        <Flex style={{ marginLeft: 15 }} direction={{ default: 'row' }}>
-                            <Select placeholderText="Search quick ranges" isOpen={quickRangeToggle} onToggle={setQuickRangeToggle} selections={quickRange} onSelect={setQuickRangeOnChange} aria-label="Select Input" toggleIcon={<SearchIcon />}>
-                                {ranges.map((value, index) => (
-                                    <SelectOption key={index} value={index}>{value.type}</SelectOption>
-                                ))}
-                            </Select>
-                        </Flex>
-                    </Flex>
                 }
                 reference={popoverRef}
             />

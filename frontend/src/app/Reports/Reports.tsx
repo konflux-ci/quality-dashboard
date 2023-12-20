@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CopyIcon, CubesIcon, ExclamationCircleIcon, ExternalLinkAltIcon } from '@patternfly/react-icons';
+import { CopyIcon, CubesIcon, ExclamationCircleIcon, OkIcon, InfoCircleIcon } from '@patternfly/react-icons';
 import {
   PageSection, PageSectionVariants,
   EmptyState,
@@ -8,7 +8,7 @@ import {
   EmptyStateBody,
   Title, TitleSizes,
   Alert, AlertGroup, AlertActionCloseButton,
-  Badge, Spinner, Breadcrumb, BreadcrumbItem,
+  Spinner, Breadcrumb, BreadcrumbItem, Tooltip
 } from '@patternfly/react-core';
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
@@ -17,18 +17,19 @@ import { getAllRepositoriesWithOrgs, getFlakyData, getJobTypes, getProwJobStatis
 import { Grid, GridItem } from '@patternfly/react-core';
 import {
   JobsStatistics,
-  DashboardCard,
-  GitHubInfoCard,
   DashboardLineChart,
-  DashboardSimpleList,
   SimpleListData,
   DashboardLineChartData
 } from '@app/utils/sharedComponents';
+import { Card, CardTitle, CardBody, CardFooter } from '@patternfly/react-core';
+import { Flex, FlexItem } from '@patternfly/react-core';
+
+import { Divider, TextVariants, Text } from '@patternfly/react-core';
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { formatDate, getRangeDates } from './utils';
 import { DateTimeRangePicker } from '../utils/DateTimeRangePicker';
-import { FailedE2ETests, Job, getFailedProwJobsInE2ETests } from './FailedE2ETests';
+import { Job } from './FailedE2ETests';
 import { validateRepositoryParams, validateParam } from '@app/utils/utils';
 import { Header } from '@app/utils/Header';
 
@@ -53,6 +54,7 @@ let Reports = () => {
   const [jobType, setjobType] = useState("");
   const [jobTypes, setJobTypes] = useState<string[]>([]);
   const [jobTypeToggle, setjobTypeToggle] = useState(false);
+  const [jobNameToggle, setjobNameToggle] = useState(false);
   const [repoNameToggle, setRepoNameToggle] = useState(false);
   const currentTeam = useSelector((state: any) => state.teams.Team);
   const history = useHistory();
@@ -92,6 +94,7 @@ let Reports = () => {
     clearRepo()
     clearRangeDateTime()
     setIsInvalid(false)
+    clearJobName()
   }
 
   // Reset params
@@ -111,6 +114,13 @@ let Reports = () => {
   const clearJobType = () => {
     setjobType("");
     setjobTypeToggle(false);
+    setjobNameToggle(false);
+  }
+
+  const clearJobName = () => {
+    setSelectedJobObject({});
+    setSelectedJob(0);
+    setjobNameToggle(false);
   }
 
   // Reset rangeDateTime
@@ -126,6 +136,7 @@ let Reports = () => {
     else {
       setjobType(selection);
       setjobTypeToggle(false);
+      setjobNameToggle(false);
       setIsInvalid(false)
       params.set("job_type", selection)
       history.push(window.location.pathname + '?' + params.toString());
@@ -236,6 +247,8 @@ let Reports = () => {
   */
 
   const [selectedJob, setSelectedJob] = useState(0)
+  const [selectedJobObject, setSelectedJobObject] = useState({})
+
   const [prowJobsStats, setprowJobsStats] = useState<JobsStatistics | null>(null);
   const [prowJobs, setProwJobs] = useState<Job[] | null>(null);
 
@@ -296,13 +309,13 @@ let Reports = () => {
     }
   }
 
-  let ci_html: string = prowJobsStats?.jobs != null ? "https://prow.ci.openshift.org/?repo=" + prowJobsStats?.git_organization + "%2F" + prowJobsStats?.repository_name + "&type=" + prowJobsStats?.type : ''
+  const ci_html: string = prowJobsStats?.jobs != null ? "https://prow.ci.openshift.org/?repo=" + prowJobsStats?.git_organization + "%2F" + prowJobsStats?.repository_name + "&type=" + prowJobsStats?.type : ''
 
   // Extract a simple list of jobs from data: this will be used to let users select the job they want to see details for
-  let jobNames: SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function (job, index) { return { "value": job.name + " (Total: " + job.summary.total_jobs + ")", "index": index, "href": ci_html + "&job=" + job.name } }) : []
+  const jobNames: SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function (job, index) { return { "value": job.name + " (Total: " + job.summary.total_jobs + ")", "index": index, "href": ci_html + "&job=" + job.name } }) : []
 
   // Prepare data for the line chart
-  let beautifiedData: DashboardLineChartData = {
+  const beautifiedData: DashboardLineChartData = {
     "SUCCESS_RATE_INDEX": { data: [] },
     "FAILURE_RATE_INDEX": { data: [] },
     "CI_FAILED_RATE_INDEX": { data: [] },
@@ -363,8 +376,8 @@ let Reports = () => {
 
     <React.Fragment>
       {/* page title bar */}
-      <Header info="Observe the CI metrics of all your ci's jobs."></Header>
-      <div style={{ marginTop: 15, marginBottom: 15, marginLeft: 15 }}>
+      <Header info="Observe the CI metrics of all your Ci jobs."></Header>
+      <div style={{ padding: 15, background: "white", border: "1px solid lightgrey" }}>
         <Breadcrumb>
           <BreadcrumbItem>OpenShift CI</BreadcrumbItem>
           <BreadcrumbItem>Tests Reports</BreadcrumbItem>
@@ -378,13 +391,11 @@ let Reports = () => {
           </Button>
         </Title>
       </PageSection>
-      {/* main content  */}
-      <PageSection>
-        {/* alertGroup will show toast notification (on the top left) when an error occurs */}
-        <AlertGroup isToast isLiveRegion> {alerts} </AlertGroup>
+
+      <PageSection variant={PageSectionVariants.light} style={{ padding: "10px 5px", background: "white" }}>  
         {/* the following toolbar will contain the form (dropdowns and button) to request data to the server */}
-        <Toolbar style={{ width: prowVisible ? '100%' : '100%', margin: prowVisible ? 'auto' : '0 auto' }}>
-          <ToolbarContent style={{ textAlign: 'center' }}>
+        <Toolbar style={{ width: prowVisible ? '100%' : '100%', margin: prowVisible ? 'auto' : '0', padding: 0 }}>
+          <ToolbarContent style={{ textAlign: 'left' }}>
             <ToolbarItem style={{ minWidth: "20%", maxWidth: "40%" }}>
               <span id="typeahead-select" hidden>
                 Select a state
@@ -412,7 +423,7 @@ let Reports = () => {
                 ))}
               </Select>
             </ToolbarItem>
-            <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent" }}>
+            <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent", border: 'none' }}>
               <DateTimeRangePicker
                 startDate={start}
                 endDate={end}
@@ -420,11 +431,28 @@ let Reports = () => {
               >
               </DateTimeRangePicker>
             </ToolbarItem>
+          </ToolbarContent>
+          <ToolbarContent style={{ textAlign: 'left' }}>
+            {repoName && jobType &&
+              <ToolbarItem style={{ minWidth: "20%", maxWidth: "40%" }}>
+              
+                <Select isOpen={jobNameToggle} onToggle={setjobNameToggle} selections={jobNames[selectedJob] ? jobNames[selectedJob].value : "Select a job"} onSelect={(e, value) => { setSelectedJob(value.index); setSelectedJobObject(value); setjobNameToggle(false) }} aria-label="Select Input">
+                  { jobNames.map((value, index) => (
+                    <SelectOption key={index} isPlaceholder={false} value={value}>{value.value}</SelectOption>
+                  ))}
+                </Select>
+              </ToolbarItem>
+            }
             <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent" }}>
-              <Button variant="link" onClick={clearParams}>Clear</Button>
+              <Button variant="link" onClick={clearParams}>Clear all selections</Button>
             </ToolbarItem>
           </ToolbarContent>
         </Toolbar>
+      </PageSection>
+      {/* main content  */}
+      <PageSection>
+        {/* alertGroup will show toast notification (on the top left) when an error occurs */}
+        <AlertGroup isToast isLiveRegion> {alerts} </AlertGroup>
         {/* if the server has not provided any data or if the clear button is clicked or if the page is in its initial state, this empty placeholder will be shown */}
         {loadingState && <div style={{ width: '100%', textAlign: "center" }}>
           <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />
@@ -456,80 +484,185 @@ let Reports = () => {
         }
         {/* this section will show statistics and details about job and suites */}
         <React.Fragment>
-          {prowVisible && <div style={{ marginTop: '20px' }}>
+          {prowVisible && <div>
             {/* this section will show the job's chart over time and last execution stats */}
-
-            {prowJobsStats !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
-              <GridItem span={2} rowSpan={1}><GitHubInfoCard repoName={prowJobsStats.repository_name} org={prowJobsStats.git_organization} data={[{ title: "Repository", value: prowJobsStats.repository_name }, { title: "Organization", value: prowJobsStats.git_organization }]}></GitHubInfoCard></GridItem>
-
-              <GridItem span={2} rowSpan={1}><DashboardCard
-                cardType={'success'}
-                title="Passed Tests Avg"
-                subtitle="Includes all the jobs that succeeded."
-                body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.success_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
-                subtext={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.success_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs : "-"}
-                info=""
-                summary={prowJobsStats?.jobs[selectedJob]?.summary}
-              ></DashboardCard></GridItem>
-
-
-              <GridItem span={4} rowSpan={1}><DashboardCard
-                cardType={'danger'}
-                title="CI Failures Avg"
-                subtitle="Includes all the jobs that failed because of Openshift CI failures (cases where the job was not scheduled, for example)."
-                body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.not_scheduled_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
-                subtext={prowJobsStats?.jobs != null ? (prowJobsStats.jobs[selectedJob].summary.not_scheduled_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs) : "-"}
-                info=""
-                summary={prowJobsStats?.jobs[selectedJob]?.summary}
-              ></DashboardCard></GridItem>
-
-              <GridItem span={4} rowSpan={1}><DashboardCard
-                cardType={'danger'}
-                title="Failures Avg"
-                subtitle="Includes all the jobs that failed while running, either by build errors (cluster request, rhtap installation, for example) or by flaky tests."
-                body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
-                subtext={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.failure_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs + " (Build Errors: " + prowJobsStats.jobs[selectedJob].summary?.failure_by_build_errors_count + ", Flaky Tests: " + prowJobsStats.jobs[selectedJob].summary?.failure_by_e2e_tests_count + ")" : "-"}
-                info=""
-                summary={prowJobsStats?.jobs[selectedJob]?.summary}
-              ></DashboardCard></GridItem>
-
-              <GridItem span={4} rowSpan={1}><DashboardCard
-                cardType={'default'}
-                title="Total CI Jobs Executed"
-                subtitle={"Includes all the jobs of " + prowJobsStats.jobs[selectedJob].name + ".  For more details, observe the Jobs card below."}
-                body={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.total_jobs.toString() : "N/A"}
-                subtext=""
-                info=""
-                summary={prowJobsStats?.jobs[selectedJob]?.summary}
-              ></DashboardCard></GridItem>
-
-              <GridItem span={4} rowSpan={1}><DashboardCard
-                cardType={'default'}
-                title="Flaky Tests Impact"
-                subtitle={"Includes all the jobs that failed because of flaky e2e tests. From the  all the " + prowJobsStats.jobs[selectedJob].summary.total_jobs + " jobs, " + prowJobsStats.jobs[selectedJob].summary.failure_by_e2e_tests_count + " failed with flaky tests." }
-                body={impact != "" ? impact + "%" : "-"}                subtext=""
-                info={prowJobsStats.jobs[selectedJob].summary.failure_by_e2e_tests_count != 0 ? <a href={'/home/flaky?team=' + currentTeam + '&repository=' + repoName +
-                  '&job=' + prowJobsStats.jobs[selectedJob].name + '&start=' + start.toISOString() + '&end=' + end.toISOString()}>More info in Flaky page</a> : <div></div>}
-                summary={prowJobsStats?.jobs[selectedJob]?.summary}
-              ></DashboardCard></GridItem>
-
-              <GridItem span={4} rowSpan={1}><DashboardCard
-                cardType={'default'}
-                title="Build Errors Impact"
-                subtitle={"Includes all the jobs that failed because of build errors (cluster request, rhtap installation, for example). From the  all the " + prowJobsStats.jobs[selectedJob].summary.total_jobs + " jobs, " + prowJobsStats.jobs[selectedJob].summary.failure_by_build_errors_count + " failed with build errors."}
-                body={prowJobsStats.jobs[selectedJob].summary.failure_by_build_errors_count != 0 ? (100 * prowJobsStats.jobs[selectedJob].summary.failure_by_build_errors_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
-                subtext=""
-                info=""
-                summary={prowJobsStats?.jobs[selectedJob]?.summary}
-              ></DashboardCard></GridItem>
-
-              <GridItem span={4} rowSpan={4}><DashboardSimpleList title={<div>Jobs  <a href={ci_html} target="blank" rel="noopener noreferrer"><Badge style={{ float: "right" }}>{jobType} &nbsp; <ExternalLinkAltIcon></ExternalLinkAltIcon></Badge></a></div>} data={jobNames} onSelection={(value) => { setSelectedJob(value) }}></DashboardSimpleList></GridItem>
-              <GridItem span={8} rowSpan={5}><DashboardLineChart data={beautifiedData}></DashboardLineChart></GridItem>
-              <GridItem span={4} rowSpan={1}><DashboardCard cardType={'help'} title="About this dashboard" subtitle="" body="Set of metrics gathered from Openshift CI" subtext="" info="" summary={prowJobsStats?.jobs[selectedJob]?.summary}></DashboardCard></GridItem>
-
-              {prowJobs != null && <GridItem span={12}>
-                <FailedE2ETests failedProwJobs={getFailedProwJobsInE2ETests(prowJobs, prowJobsStats.jobs[selectedJob].name)} jobName={prowJobsStats.jobs[selectedJob].name}></FailedE2ETests>
-              </GridItem>}
+            {prowJobsStats !== null && 
+              <Grid hasGutter sm={6} md={4} lg={3} xl2={1}>
+                <GridItem span={12} rowSpan={1}>
+                  <Card>
+                    <CardTitle component="h1"><Title headingLevel="h1"><InfoCircleIcon style={{ fontSize: "2rem"}}></InfoCircleIcon></Title></CardTitle>
+                    <CardBody>
+                      <Text component={TextVariants.p}>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Qrudqwb, vjdskbnvckjvdsnvckjdsn.</Text>
+                    </CardBody>
+                  </Card>
+                </GridItem>
+                <GridItem span={5} rowSpan={1}>
+                  <Card>
+                    <CardTitle component="h1"><Title headingLevel="h1">Jobs Executed</Title></CardTitle>
+                    <CardBody>
+                      <Text component={TextVariants.p}>Number of jobs executed in the selected time range, with success and failure rate. </Text>
+                      <br></br>
+                      <Flex className="example-border" justifyContent={{ default: 'justifyContentSpaceBetween' }}>
+                        <FlexItem></FlexItem>
+                        <FlexItem>
+                          <Card style={{border: 'none', boxShadow: "none", textAlign: "center"}}>
+                            <CardTitle component="h1">
+                              <Title headingLevel="h1"  size={TitleSizes['4xl']}>
+                                {prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.total_jobs : "-"}
+                              </Title>
+                            </CardTitle>
+                            <CardBody>
+                              <Title headingLevel="h1">Total</Title>
+                            </CardBody>
+                            <CardFooter style={{color: "black"}}>
+                              Job Runs 
+                              <Tooltip content={ <div>Total number of jobs executed in the selected time range</div> }>
+                                <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
+                              </Tooltip>
+                            </CardFooter>
+                          </Card>
+                        </FlexItem>
+                        <Divider orientation={{ default: 'vertical' }} />
+                        <FlexItem>
+                          <Card style={{border: 'none', boxShadow: "none", textAlign: "center", color: "#1E4F18"}}>
+                            <CardTitle component="h1">
+                              <Title headingLevel="h1" size={TitleSizes['4xl']}>
+                                {prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.success_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
+                              </Title>
+                            </CardTitle>
+                            <CardBody>
+                              <Title headingLevel="h1">
+                                {prowJobsStats?.jobs != null ? ( prowJobsStats.jobs[selectedJob].summary.success_count +"/" +prowJobsStats.jobs[selectedJob].summary.total_jobs ) : "-"}
+                                <OkIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></OkIcon>
+                              </Title>
+                            </CardBody>
+                            <CardFooter style={{color: "black"}}>
+                              Completed Jobs 
+                              <Tooltip content={ <div>Count and percentage of jobs that completed successfully</div> }>
+                                <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
+                              </Tooltip>
+                            </CardFooter>
+                          </Card>
+                        </FlexItem>
+                        <Divider orientation={{ default: 'vertical' }} />
+                        <FlexItem>
+                          <Card style={{border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000"}}>
+                            <CardTitle component="h1">
+                              <Title headingLevel="h1" size={TitleSizes['4xl']}>
+                                {prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
+                              </Title>
+                            </CardTitle>
+                            <CardBody>
+                              <Title headingLevel="h1">
+                                {prowJobsStats?.jobs != null ? ( prowJobsStats.jobs[selectedJob].summary.failure_count +"/" +prowJobsStats.jobs[selectedJob].summary.total_jobs ) : "-"}
+                                <ExclamationCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></ExclamationCircleIcon>
+                              </Title>
+                            </CardBody>
+                            <CardFooter style={{color: "black"}}>
+                              Failed Jobs 
+                              <Tooltip content={ <div>Count and percentage of jobs that failed. See the Failures card to understand the most relevant reasons of failure.</div> }>
+                                <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
+                              </Tooltip>
+                            </CardFooter>
+                          </Card>
+                        </FlexItem>
+                        <FlexItem></FlexItem>
+                      </Flex>
+                    </CardBody>
+                  </Card>
+                </GridItem>
+                <GridItem span={7} rowSpan={1}>
+                  <Card>
+                    <CardTitle component="h1"><Title headingLevel="h1">Failures</Title></CardTitle>
+                    <CardBody>
+                      <Text component={TextVariants.p}>The percentage of failures grouped by most common reasons, considering the failed jobs in the selected time range.</Text>
+                      <br></br>
+                      <Flex className="example-border" justifyContent={{ default: 'justifyContentSpaceBetween' }}>
+                        <FlexItem></FlexItem>
+                        <FlexItem>
+                          <Card style={{border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000"}}>
+                            <CardTitle component="h1">
+                              <Title headingLevel="h1" size={TitleSizes['4xl']}>
+                                {prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.not_scheduled_count / prowJobsStats.jobs[selectedJob].summary.failure_count).toFixed(2) + "%" : "-"}
+                              </Title>
+                            </CardTitle>
+                            <CardBody>
+                              <Title headingLevel="h1">
+                                {prowJobsStats?.jobs != null ? ( prowJobsStats.jobs[selectedJob].summary.not_scheduled_count +"/" +prowJobsStats.jobs[selectedJob].summary.failure_count ) : "-"}
+                              </Title>
+                            </CardBody>
+                            <CardFooter style={{color: "black"}}>
+                              CI Fail 
+                              <Tooltip content={ <div>Count and percentage of jobs that failed due to CI infrastructure, considering the failing jobs in the selected period of time.</div> }>
+                                <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
+                              </Tooltip>
+                            </CardFooter>
+                          </Card>
+                        </FlexItem>
+                        <Divider orientation={{ default: 'vertical' }} />
+                        <FlexItem>
+                          <Card style={{border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000"}}>
+                            <CardTitle component="h1">
+                              <Title headingLevel="h1"  size={TitleSizes['4xl']}>
+                                {impact != "" ? impact + "%" : "-"}
+                              </Title>
+                            </CardTitle>
+                            <CardBody>
+                              <Title headingLevel="h1">7/28</Title>
+                            </CardBody>
+                            <CardFooter style={{color: "black"}}> 
+                              {prowJobsStats.jobs[selectedJob].summary.failure_by_e2e_tests_count != 0 ? <a href={'/home/flaky?team=' + currentTeam + '&repository=' + repoName + '&job=' + prowJobsStats.jobs[selectedJob].name + '&start=' + start.toISOString() + '&end=' + end.toISOString()}>Flaky Tests (see more)</a> : <div></div>}
+                              <Tooltip content={ <div>Count and percentage of jobs that failed due to flaky tests, considering the failing jobs in the selected period of time. See the flaky tests page to see more details.</div> }>
+                                <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
+                              </Tooltip>
+                            </CardFooter>
+                          </Card>
+                        </FlexItem>
+                        <Divider orientation={{ default: 'vertical' }} />
+                        <FlexItem>
+                          <Card style={{border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000"}}>
+                          <CardTitle component="h1">
+                              <Title headingLevel="h1" size={TitleSizes['4xl']}>
+                                {prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.failure_by_build_errors_count / prowJobsStats.jobs[selectedJob].summary.failure_count).toFixed(2) + "%" : "-"}
+                              </Title>
+                            </CardTitle>
+                            <CardBody>
+                              <Title headingLevel="h1">
+                                {prowJobsStats?.jobs != null ? ( prowJobsStats.jobs[selectedJob].summary.failure_by_build_errors_count +"/" +prowJobsStats.jobs[selectedJob].summary.failure_count ) : "-"}
+                              </Title>
+                            </CardBody>
+                            <CardFooter style={{color: "black"}}>
+                              Other reasons
+                              <Tooltip content={ <div>Count and percentage of jobs that failed due to other reasons (like RHTAP installation failures, cluster build errors, etc.) considering the failing jobs in the selected period of time.</div> }>
+                                <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
+                              </Tooltip>
+                            </CardFooter>
+                          </Card>
+                        </FlexItem>
+                        <Divider orientation={{ default: 'vertical' }} />
+                        <FlexItem>
+                          <Card style={{border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000"}}>
+                            <CardTitle component="h1"><Title headingLevel="h1" size={TitleSizes['4xl']}>6.18%</Title></CardTitle>
+                            <CardBody>
+                              <Title headingLevel="h1"> 6/28 </Title>
+                            </CardBody>
+                            <CardFooter style={{color: "black"}}>
+                              CI Fail 
+                              <Tooltip content={ <div>Count and percentage of jobs that failed due to external services outage (like Github, Quay.io, etc.), considering the failing jobs in the selected period of time.</div> }>
+                                <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
+                              </Tooltip>
+                            </CardFooter>
+                          </Card>
+                        </FlexItem>
+                        <FlexItem></FlexItem>
+                      </Flex>
+                    </CardBody>
+                  </Card>
+                </GridItem>
+              </Grid>
+            }
+            {prowJobsStats !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>      
+              <GridItem span={12} rowSpan={5}><DashboardLineChart data={beautifiedData}></DashboardLineChart></GridItem>
             </Grid>
             }
 
