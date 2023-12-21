@@ -17,6 +17,14 @@ const (
 	FieldJiraStatus = "jira_status"
 	// FieldErrorMessage holds the string denoting the error_message field in the database.
 	FieldErrorMessage = "error_message"
+	// FieldTitleFromJira holds the string denoting the title_from_jira field in the database.
+	FieldTitleFromJira = "title_from_jira"
+	// FieldCreatedDate holds the string denoting the created_date field in the database.
+	FieldCreatedDate = "created_date"
+	// FieldClosedDate holds the string denoting the closed_date field in the database.
+	FieldClosedDate = "closed_date"
+	// FieldLabels holds the string denoting the labels field in the database.
+	FieldLabels = "labels"
 	// EdgeFailures holds the string denoting the failures edge name in mutations.
 	EdgeFailures = "failures"
 	// TeamsFieldID holds the string denoting the ID field of the Teams.
@@ -38,6 +46,10 @@ var Columns = []string{
 	FieldJiraKey,
 	FieldJiraStatus,
 	FieldErrorMessage,
+	FieldTitleFromJira,
+	FieldCreatedDate,
+	FieldClosedDate,
+	FieldLabels,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "failures"

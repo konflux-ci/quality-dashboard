@@ -26,6 +26,10 @@ func (d *Database) CreateFailure(f failureV1Alpha1.Failure, team_id uuid.UUID) e
 			Where(predicate.Failure(failure.JiraKey(f.JiraKey))).
 			SetJiraStatus(f.JiraStatus).
 			SetErrorMessage(f.ErrorMessage).
+			SetTitleFromJira(f.TitleFromJira).
+			SetCreatedDate(f.CreatedDate).
+			SetClosedDate(f.ClosedDate).
+			SetLabels(f.Labels).
 			Save(context.TODO())
 		if err != nil {
 			return convertDBError("failed to update failure: %w", err)
@@ -35,6 +39,10 @@ func (d *Database) CreateFailure(f failureV1Alpha1.Failure, team_id uuid.UUID) e
 			SetJiraKey(f.JiraKey).
 			SetJiraStatus(f.JiraStatus).
 			SetErrorMessage(f.ErrorMessage).
+			SetTitleFromJira(f.TitleFromJira).
+			SetCreatedDate(f.CreatedDate).
+			SetClosedDate(f.ClosedDate).
+			SetLabels(f.Labels).
 			Save(context.TODO())
 		if err != nil {
 			return convertDBError("create failure: %w", err)
@@ -111,13 +119,17 @@ func (d *Database) GetFailuresByDate(team *db.Teams, startDate, endDate string) 
 		}
 
 		failures = append(failures, &failureV1Alpha1.Failure{
-			TeamID:       team.ID,
-			TeamName:     team.TeamName,
-			JiraID:       failure.ID,
-			JiraKey:      failure.JiraKey,
-			JiraStatus:   failure.JiraStatus,
-			ErrorMessage: failure.ErrorMessage,
-			Frequency:    frequency,
+			TeamID:        team.ID,
+			TeamName:      team.TeamName,
+			JiraID:        failure.ID,
+			JiraKey:       failure.JiraKey,
+			TitleFromJira: *failure.TitleFromJira,
+			JiraStatus:    failure.JiraStatus,
+			ErrorMessage:  failure.ErrorMessage,
+			Frequency:     frequency,
+			CreatedDate:   *failure.CreatedDate,
+			ClosedDate:    *failure.ClosedDate,
+			Labels:        *failure.Labels,
 		})
 	}
 
