@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Header } from '@app/utils/Header';
-import { TextContent, Text, TextVariants, CardFooter, Spinner, EmptyState, EmptyStateVariant, EmptyStateIcon, Breadcrumb, BreadcrumbItem } from '@patternfly/react-core';
+import { TextContent, Text, TextVariants, CardFooter, Spinner, EmptyState, EmptyStateVariant, EmptyStateIcon, Breadcrumb, BreadcrumbItem, ToolbarItem } from '@patternfly/react-core';
 import { PageSection, PageSectionVariants, Title, TitleSizes } from '@patternfly/react-core';
 import { DropdownItem } from '@patternfly/react-core';
 import { Grid, GridItem, } from '@patternfly/react-core';
@@ -14,8 +14,10 @@ import { Modal, Button, Flex, FlexItem } from '@patternfly/react-core';
 import { Flakey, FlakeyObject, TestCase } from './Types';
 import { ImpactChart } from './Charts';
 import { ComposableTableNestedExpandable, InnerNestedComposableTableNestedExpandable } from './Tables';
-import { DatePickerMinMax, DropdownBasic, SpinnerBasic } from './utils';
+import { DropdownBasic, SpinnerBasic } from './utils';
 import { useHistory } from 'react-router-dom';
+import { formatDate, getRangeDates } from '@app/Reports/utils';
+import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 
 
 const PREFERENCES_CACHE_NAME = "flakyCache"
@@ -31,8 +33,6 @@ const FlakyTests: React.FunctionComponent = () => {
   const [jobs, setJobs] = React.useState<Array<any>>([])
   const [globalImpact, setGlobalImpact] = React.useState<any>([])
   const [selectedJob, setSelectedJob] = React.useState<string>('')
-  const [startDate, setStartDate] = React.useState<string | undefined>(undefined)
-  const [endDate, setEndDate] = React.useState<string | undefined>(undefined)
   const [loadingSpinner, setLoadingSpinner] = React.useState<boolean>(false)
   const currentTeam = useSelector((state: any) => state.teams.Team);
   const params = new URLSearchParams(window.location.search);
@@ -40,6 +40,12 @@ const FlakyTests: React.FunctionComponent = () => {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [loadingState, setLoadingState] = React.useState(false);
   const [isEmpty, setIsEmpty] = React.useState(false);
+  const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(15));
+
+  // Reset rangeDateTime
+  const clearRangeDateTime = () => {
+    setRangeDateTime(getRangeDates(15))
+  }
 
   const handleModalToggle = () => {
     setIsModalOpen(!isModalOpen);
@@ -103,13 +109,8 @@ const FlakyTests: React.FunctionComponent = () => {
             const repository = cache[currentTeam].repository
             setSelectedRepo(repository)
 
-            const sd = new Date(Date.now() - 12096e5).setUTCHours(0, 0, 0, 0);
-            const start_date = new Date(sd).toISOString()
-            setStartDate(start_date)
-
-            const ed = new Date(Date.now()).setUTCHours(23, 59, 0, 0);
-            const end_date = new Date(ed).toISOString()
-            setEndDate(end_date)
+            const start_date = formatDate(rangeDateTime[0])
+            const end_date = formatDate(rangeDateTime[1])
 
             history.push('/home/flaky?team=' + currentTeam + '&repository=' + repository
               + '&job=' + job + '&start=' + start_date + '&end=' + end_date)
@@ -119,8 +120,7 @@ const FlakyTests: React.FunctionComponent = () => {
         } else {
           setSelectedRepo(repo)
           setSelectedJob(job_name)
-          setStartDate(start)
-          setEndDate(end)
+          setRangeDateTime([new Date(start), new Date(end)])
 
           history.push('/home/flaky?team=' + currentTeam + '&repository=' + repo +
             '&job=' + job_name + '&start=' + start + '&end=' + end)
@@ -149,12 +149,12 @@ const FlakyTests: React.FunctionComponent = () => {
 
 
   React.useEffect(() => {
-    if (selectedJob && selectedRepo && startDate && endDate) {
+    if (selectedJob && selectedRepo && rangeDateTime) {
       fetchData()
       saveCachePreferences()
     }
 
-  }, [selectedJob, selectedRepo, startDate, endDate]);
+  }, [selectedJob, selectedRepo, rangeDateTime]);
 
   const onSuiteSelect = (value) => {
     setSelectedSuite(value)
@@ -171,6 +171,7 @@ const FlakyTests: React.FunctionComponent = () => {
     setData([])
     setSelectedSuite('')
     setIsEmpty(false)
+    clearRangeDateTime()
   }
 
   const fillJobs = (value) => {
@@ -202,32 +203,17 @@ const FlakyTests: React.FunctionComponent = () => {
     }
   }
 
-  const onDatesChange = (value: string, date: Date, name: string) => {
-    if (name == 'start-date') {
-      const start_date = new Date(value).toISOString()
-      setStartDate(start_date)
-      params.set('start', start_date);
-      history.push(window.location.pathname + '?' + params.toString());
-    }
-    if (name == 'end-date') {
-      const end_date = new Date(new Date(value).setUTCHours(23, 59, 0, 0)).toISOString()
-      setEndDate(end_date)
-      params.set('end', end_date);
-      history.push(window.location.pathname + '?' + params.toString());
-    }
-  }
-
   const fetchData = () => {
     setLoadingSpinner(true)
     if (startDate && endDate && selectedRepo && selectedRepo) {
-      getFlakyData(currentTeam, selectedJob, selectedRepo, startDate, endDate, "redhat-appstudio").then(res => {
+      getFlakyData(currentTeam, selectedJob, selectedRepo, rangeDateTime, "redhat-appstudio").then(res => {
         if (res.code == 200) {
           const impact: FlakeyObject = res.data
           if (impact && impact.suites) {
             setData(res.data.suites)
           }
           if (impact && impact.global_impact) {
-            const gd = [{ Date: startDate.split('T')[0], global_impact: res.data.global_impact }, { Date: endDate.split('T')[0], global_impact: res.data.global_impact }]
+            const gd = [{ Date: rangeDateTime[0].toISOString().split('T')[0], global_impact: res.data.global_impact }, { Date: rangeDateTime[1].toISOString().split('T')[0], global_impact: res.data.global_impact }]
             setGlobalImpact(gd)
           }
           setLoadingSpinner(false)
@@ -235,7 +221,7 @@ const FlakyTests: React.FunctionComponent = () => {
           console.log("error", res)
         }
       })
-      getGlobalImpactData(currentTeam, selectedJob, selectedRepo, startDate, endDate, "redhat-appstudio").then(res => {
+      getGlobalImpactData(currentTeam, selectedJob, selectedRepo, rangeDateTime, "redhat-appstudio").then(res => {
         if (res.code == 200) {
           const impact: any = res.data
           if (impact && impact.length > 0) {
@@ -249,10 +235,21 @@ const FlakyTests: React.FunctionComponent = () => {
     }
   }
 
+  function handleChange(event, from, to) {
+    setRangeDateTime([from, to])
+    params.set("start", formatDate(from))
+    params.set("end", formatDate(to))
+    history.push(window.location.pathname + '?' + params.toString());
+  }
+
+  const startDate = rangeDateTime[0]
+  const endDate = rangeDateTime[1]
+
+
   return (
     <React.Fragment>
       <Header info="Observe the impact of the flaky tests that are affecting CI."></Header>
-      <div style={{marginTop: 15, marginBottom: 15, marginLeft: 15}}>
+      <div style={{ marginTop: 15, marginBottom: 15, marginLeft: 15 }}>
         <Breadcrumb>
           <BreadcrumbItem>OpenShift CI</BreadcrumbItem>
           <BreadcrumbItem>Flaky Tests</BreadcrumbItem>
@@ -289,14 +286,24 @@ const FlakyTests: React.FunctionComponent = () => {
                 <GridItem span={12}>
                   <Toolbar id="toolbar-items">
                     <ToolbarContent>
-                      <DropdownBasic selected={selectedRepo} toggles={
-                        repositories.map((repo, idx) => <DropdownItem key={idx} name={repo.Repository.Name}> {repo.Repository.Name} </DropdownItem>)
-                      } onSelect={onRepoSelect} placeholder="Select a repository"></DropdownBasic>
-                      <DropdownBasic selected={selectedJob} toggles={
-                        jobs.map((job, idx) => <DropdownItem key={idx} name={job}> {job} </DropdownItem>)
-                      } onSelect={onJobSelect} placeholder="Select a job"></DropdownBasic>
-                      <DatePickerMinMax onChange={onDatesChange} selectedDate={startDate} name="start-date" ></DatePickerMinMax>
-                      <DatePickerMinMax onChange={onDatesChange} selectedDate={endDate} name="end-date" ></DatePickerMinMax>
+                      <ToolbarItem>
+                        <DropdownBasic selected={selectedRepo} toggles={
+                          repositories.map((repo, idx) => <DropdownItem key={idx} name={repo.Repository.Name}> {repo.Repository.Name} </DropdownItem>)
+                        } onSelect={onRepoSelect} placeholder="Select a repository"></DropdownBasic>
+                      </ToolbarItem>
+                      <ToolbarItem>
+                        <DropdownBasic selected={selectedJob} toggles={
+                          jobs.map((job, idx) => <DropdownItem key={idx} name={job}> {job} </DropdownItem>)
+                        } onSelect={onJobSelect} placeholder="Select a job"></DropdownBasic>
+                      </ToolbarItem>
+                      <ToolbarItem style={{ minWidth: "fitContent", maxWidth: "fitContent" }}>
+                        <DateTimeRangePicker
+                          startDate={startDate}
+                          endDate={endDate}
+                          handleChange={(event, from, to) => handleChange(event, from, to)}
+                        >
+                        </DateTimeRangePicker>
+                      </ToolbarItem>
                     </ToolbarContent>
                   </Toolbar>
                 </GridItem>
@@ -367,8 +374,8 @@ const FlakyTests: React.FunctionComponent = () => {
             )
           }
         </div>
-      </PageSection>
-    </React.Fragment>
+      </PageSection >
+    </React.Fragment >
   )
 }
 

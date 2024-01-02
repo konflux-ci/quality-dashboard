@@ -620,7 +620,6 @@ async function getBugSLIs(team: string) {
   sortGlobalSLI(result.data.resolution_time_sli.bugs)
   sortGlobalSLI(result.data.response_time_sli.bugs)
   sortGlobalSLI(result.data.triage_time_sli.bugs)
-  sortGlobalSLI(result.data.component_assignment_sli.bugs)
 
   return result;
 }
@@ -650,10 +649,12 @@ async function getRepositoriesWithJobs(team: string) {
   return result;
 }
 
-async function getFlakyData(team: string, job: string, repo: string, startDate: string, endDate: string, gitOrg: string) {
+async function getFlakyData(team: string, job: string, repo: string, rangeDateTime: Date[], gitOrg: string) {
   const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
   const subPath = '/api/quality/suites/occurrences';
   const uri = API_URL + subPath;
+  const startDate = rangeDateTime[0].toISOString();
+  const endDate = rangeDateTime[1].toISOString();
 
   await axios
     .get(uri, {
@@ -678,10 +679,12 @@ async function getFlakyData(team: string, job: string, repo: string, startDate: 
   return result;
 }
 
-async function getGlobalImpactData(team: string, job: string, repo: string, startDate: string, endDate: string, gitOrg: string) {
+async function getGlobalImpactData(team: string, job: string, repo: string, rangeDateTime: Date[], gitOrg: string) {
   const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
   const subPath = '/api/quality/suites/flaky/trends';
   const uri = API_URL + subPath;
+  const startDate = rangeDateTime[0].toISOString();
+  const endDate = rangeDateTime[1].toISOString();
 
   await axios
     .get(uri, {
