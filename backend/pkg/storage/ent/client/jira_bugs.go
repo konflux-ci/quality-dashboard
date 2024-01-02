@@ -393,6 +393,17 @@ func getProjectKey(bugKey string) string {
 	return ""
 }
 
+func (d *Database) GetJiraBug(key string) (*db.Bugs, error) {
+	bug, err := d.client.Bugs.Query().
+		Where(bugs.JiraKey(key)).
+		First(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return bug, nil
+}
+
 func (d *Database) GetJiraStatus(key string) (string, error) {
 	bug, err := d.client.Bugs.Query().
 		Where(bugs.JiraKey(key)).

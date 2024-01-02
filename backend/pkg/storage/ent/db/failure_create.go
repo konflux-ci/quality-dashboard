@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -39,6 +40,62 @@ func (fc *FailureCreate) SetJiraStatus(s string) *FailureCreate {
 // SetErrorMessage sets the "error_message" field.
 func (fc *FailureCreate) SetErrorMessage(s string) *FailureCreate {
 	fc.mutation.SetErrorMessage(s)
+	return fc
+}
+
+// SetTitleFromJira sets the "title_from_jira" field.
+func (fc *FailureCreate) SetTitleFromJira(s string) *FailureCreate {
+	fc.mutation.SetTitleFromJira(s)
+	return fc
+}
+
+// SetNillableTitleFromJira sets the "title_from_jira" field if the given value is not nil.
+func (fc *FailureCreate) SetNillableTitleFromJira(s *string) *FailureCreate {
+	if s != nil {
+		fc.SetTitleFromJira(*s)
+	}
+	return fc
+}
+
+// SetCreatedDate sets the "created_date" field.
+func (fc *FailureCreate) SetCreatedDate(t time.Time) *FailureCreate {
+	fc.mutation.SetCreatedDate(t)
+	return fc
+}
+
+// SetNillableCreatedDate sets the "created_date" field if the given value is not nil.
+func (fc *FailureCreate) SetNillableCreatedDate(t *time.Time) *FailureCreate {
+	if t != nil {
+		fc.SetCreatedDate(*t)
+	}
+	return fc
+}
+
+// SetClosedDate sets the "closed_date" field.
+func (fc *FailureCreate) SetClosedDate(t time.Time) *FailureCreate {
+	fc.mutation.SetClosedDate(t)
+	return fc
+}
+
+// SetNillableClosedDate sets the "closed_date" field if the given value is not nil.
+func (fc *FailureCreate) SetNillableClosedDate(t *time.Time) *FailureCreate {
+	if t != nil {
+		fc.SetClosedDate(*t)
+	}
+	return fc
+}
+
+// SetLabels sets the "labels" field.
+func (fc *FailureCreate) SetLabels(s string) *FailureCreate {
+	fc.mutation.SetLabels(s)
+	return fc
+}
+
+// SetNillableLabels sets the "labels" field if the given value is not nil.
+func (fc *FailureCreate) SetNillableLabels(s *string) *FailureCreate {
+	if s != nil {
+		fc.SetLabels(*s)
+	}
 	return fc
 }
 
@@ -186,6 +243,22 @@ func (fc *FailureCreate) createSpec() (*Failure, *sqlgraph.CreateSpec) {
 		_spec.SetField(failure.FieldErrorMessage, field.TypeString, value)
 		_node.ErrorMessage = value
 	}
+	if value, ok := fc.mutation.TitleFromJira(); ok {
+		_spec.SetField(failure.FieldTitleFromJira, field.TypeString, value)
+		_node.TitleFromJira = &value
+	}
+	if value, ok := fc.mutation.CreatedDate(); ok {
+		_spec.SetField(failure.FieldCreatedDate, field.TypeTime, value)
+		_node.CreatedDate = &value
+	}
+	if value, ok := fc.mutation.ClosedDate(); ok {
+		_spec.SetField(failure.FieldClosedDate, field.TypeTime, value)
+		_node.ClosedDate = &value
+	}
+	if value, ok := fc.mutation.Labels(); ok {
+		_spec.SetField(failure.FieldLabels, field.TypeString, value)
+		_node.Labels = &value
+	}
 	if nodes := fc.mutation.FailuresIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -294,6 +367,78 @@ func (u *FailureUpsert) UpdateErrorMessage() *FailureUpsert {
 	return u
 }
 
+// SetTitleFromJira sets the "title_from_jira" field.
+func (u *FailureUpsert) SetTitleFromJira(v string) *FailureUpsert {
+	u.Set(failure.FieldTitleFromJira, v)
+	return u
+}
+
+// UpdateTitleFromJira sets the "title_from_jira" field to the value that was provided on create.
+func (u *FailureUpsert) UpdateTitleFromJira() *FailureUpsert {
+	u.SetExcluded(failure.FieldTitleFromJira)
+	return u
+}
+
+// ClearTitleFromJira clears the value of the "title_from_jira" field.
+func (u *FailureUpsert) ClearTitleFromJira() *FailureUpsert {
+	u.SetNull(failure.FieldTitleFromJira)
+	return u
+}
+
+// SetCreatedDate sets the "created_date" field.
+func (u *FailureUpsert) SetCreatedDate(v time.Time) *FailureUpsert {
+	u.Set(failure.FieldCreatedDate, v)
+	return u
+}
+
+// UpdateCreatedDate sets the "created_date" field to the value that was provided on create.
+func (u *FailureUpsert) UpdateCreatedDate() *FailureUpsert {
+	u.SetExcluded(failure.FieldCreatedDate)
+	return u
+}
+
+// ClearCreatedDate clears the value of the "created_date" field.
+func (u *FailureUpsert) ClearCreatedDate() *FailureUpsert {
+	u.SetNull(failure.FieldCreatedDate)
+	return u
+}
+
+// SetClosedDate sets the "closed_date" field.
+func (u *FailureUpsert) SetClosedDate(v time.Time) *FailureUpsert {
+	u.Set(failure.FieldClosedDate, v)
+	return u
+}
+
+// UpdateClosedDate sets the "closed_date" field to the value that was provided on create.
+func (u *FailureUpsert) UpdateClosedDate() *FailureUpsert {
+	u.SetExcluded(failure.FieldClosedDate)
+	return u
+}
+
+// ClearClosedDate clears the value of the "closed_date" field.
+func (u *FailureUpsert) ClearClosedDate() *FailureUpsert {
+	u.SetNull(failure.FieldClosedDate)
+	return u
+}
+
+// SetLabels sets the "labels" field.
+func (u *FailureUpsert) SetLabels(v string) *FailureUpsert {
+	u.Set(failure.FieldLabels, v)
+	return u
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *FailureUpsert) UpdateLabels() *FailureUpsert {
+	u.SetExcluded(failure.FieldLabels)
+	return u
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *FailureUpsert) ClearLabels() *FailureUpsert {
+	u.SetNull(failure.FieldLabels)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -381,6 +526,90 @@ func (u *FailureUpsertOne) SetErrorMessage(v string) *FailureUpsertOne {
 func (u *FailureUpsertOne) UpdateErrorMessage() *FailureUpsertOne {
 	return u.Update(func(s *FailureUpsert) {
 		s.UpdateErrorMessage()
+	})
+}
+
+// SetTitleFromJira sets the "title_from_jira" field.
+func (u *FailureUpsertOne) SetTitleFromJira(v string) *FailureUpsertOne {
+	return u.Update(func(s *FailureUpsert) {
+		s.SetTitleFromJira(v)
+	})
+}
+
+// UpdateTitleFromJira sets the "title_from_jira" field to the value that was provided on create.
+func (u *FailureUpsertOne) UpdateTitleFromJira() *FailureUpsertOne {
+	return u.Update(func(s *FailureUpsert) {
+		s.UpdateTitleFromJira()
+	})
+}
+
+// ClearTitleFromJira clears the value of the "title_from_jira" field.
+func (u *FailureUpsertOne) ClearTitleFromJira() *FailureUpsertOne {
+	return u.Update(func(s *FailureUpsert) {
+		s.ClearTitleFromJira()
+	})
+}
+
+// SetCreatedDate sets the "created_date" field.
+func (u *FailureUpsertOne) SetCreatedDate(v time.Time) *FailureUpsertOne {
+	return u.Update(func(s *FailureUpsert) {
+		s.SetCreatedDate(v)
+	})
+}
+
+// UpdateCreatedDate sets the "created_date" field to the value that was provided on create.
+func (u *FailureUpsertOne) UpdateCreatedDate() *FailureUpsertOne {
+	return u.Update(func(s *FailureUpsert) {
+		s.UpdateCreatedDate()
+	})
+}
+
+// ClearCreatedDate clears the value of the "created_date" field.
+func (u *FailureUpsertOne) ClearCreatedDate() *FailureUpsertOne {
+	return u.Update(func(s *FailureUpsert) {
+		s.ClearCreatedDate()
+	})
+}
+
+// SetClosedDate sets the "closed_date" field.
+func (u *FailureUpsertOne) SetClosedDate(v time.Time) *FailureUpsertOne {
+	return u.Update(func(s *FailureUpsert) {
+		s.SetClosedDate(v)
+	})
+}
+
+// UpdateClosedDate sets the "closed_date" field to the value that was provided on create.
+func (u *FailureUpsertOne) UpdateClosedDate() *FailureUpsertOne {
+	return u.Update(func(s *FailureUpsert) {
+		s.UpdateClosedDate()
+	})
+}
+
+// ClearClosedDate clears the value of the "closed_date" field.
+func (u *FailureUpsertOne) ClearClosedDate() *FailureUpsertOne {
+	return u.Update(func(s *FailureUpsert) {
+		s.ClearClosedDate()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *FailureUpsertOne) SetLabels(v string) *FailureUpsertOne {
+	return u.Update(func(s *FailureUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *FailureUpsertOne) UpdateLabels() *FailureUpsertOne {
+	return u.Update(func(s *FailureUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *FailureUpsertOne) ClearLabels() *FailureUpsertOne {
+	return u.Update(func(s *FailureUpsert) {
+		s.ClearLabels()
 	})
 }
 
@@ -634,6 +863,90 @@ func (u *FailureUpsertBulk) SetErrorMessage(v string) *FailureUpsertBulk {
 func (u *FailureUpsertBulk) UpdateErrorMessage() *FailureUpsertBulk {
 	return u.Update(func(s *FailureUpsert) {
 		s.UpdateErrorMessage()
+	})
+}
+
+// SetTitleFromJira sets the "title_from_jira" field.
+func (u *FailureUpsertBulk) SetTitleFromJira(v string) *FailureUpsertBulk {
+	return u.Update(func(s *FailureUpsert) {
+		s.SetTitleFromJira(v)
+	})
+}
+
+// UpdateTitleFromJira sets the "title_from_jira" field to the value that was provided on create.
+func (u *FailureUpsertBulk) UpdateTitleFromJira() *FailureUpsertBulk {
+	return u.Update(func(s *FailureUpsert) {
+		s.UpdateTitleFromJira()
+	})
+}
+
+// ClearTitleFromJira clears the value of the "title_from_jira" field.
+func (u *FailureUpsertBulk) ClearTitleFromJira() *FailureUpsertBulk {
+	return u.Update(func(s *FailureUpsert) {
+		s.ClearTitleFromJira()
+	})
+}
+
+// SetCreatedDate sets the "created_date" field.
+func (u *FailureUpsertBulk) SetCreatedDate(v time.Time) *FailureUpsertBulk {
+	return u.Update(func(s *FailureUpsert) {
+		s.SetCreatedDate(v)
+	})
+}
+
+// UpdateCreatedDate sets the "created_date" field to the value that was provided on create.
+func (u *FailureUpsertBulk) UpdateCreatedDate() *FailureUpsertBulk {
+	return u.Update(func(s *FailureUpsert) {
+		s.UpdateCreatedDate()
+	})
+}
+
+// ClearCreatedDate clears the value of the "created_date" field.
+func (u *FailureUpsertBulk) ClearCreatedDate() *FailureUpsertBulk {
+	return u.Update(func(s *FailureUpsert) {
+		s.ClearCreatedDate()
+	})
+}
+
+// SetClosedDate sets the "closed_date" field.
+func (u *FailureUpsertBulk) SetClosedDate(v time.Time) *FailureUpsertBulk {
+	return u.Update(func(s *FailureUpsert) {
+		s.SetClosedDate(v)
+	})
+}
+
+// UpdateClosedDate sets the "closed_date" field to the value that was provided on create.
+func (u *FailureUpsertBulk) UpdateClosedDate() *FailureUpsertBulk {
+	return u.Update(func(s *FailureUpsert) {
+		s.UpdateClosedDate()
+	})
+}
+
+// ClearClosedDate clears the value of the "closed_date" field.
+func (u *FailureUpsertBulk) ClearClosedDate() *FailureUpsertBulk {
+	return u.Update(func(s *FailureUpsert) {
+		s.ClearClosedDate()
+	})
+}
+
+// SetLabels sets the "labels" field.
+func (u *FailureUpsertBulk) SetLabels(v string) *FailureUpsertBulk {
+	return u.Update(func(s *FailureUpsert) {
+		s.SetLabels(v)
+	})
+}
+
+// UpdateLabels sets the "labels" field to the value that was provided on create.
+func (u *FailureUpsertBulk) UpdateLabels() *FailureUpsertBulk {
+	return u.Update(func(s *FailureUpsert) {
+		s.UpdateLabels()
+	})
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (u *FailureUpsertBulk) ClearLabels() *FailureUpsertBulk {
+	return u.Update(func(s *FailureUpsert) {
+		s.ClearLabels()
 	})
 }
 

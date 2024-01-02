@@ -79,6 +79,10 @@ var (
 		{Name: "jira_key", Type: field.TypeString, Unique: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "jira_status", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "error_message", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "title_from_jira", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "created_date", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "closed_date", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "labels", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "teams_failures", Type: field.TypeUUID, Nullable: true},
 	}
 	// FailuresTable holds the schema information for the "failures" table.
@@ -89,7 +93,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "failures_teams_failures",
-				Columns:    []*schema.Column{FailuresColumns[4]},
+				Columns:    []*schema.Column{FailuresColumns[8]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

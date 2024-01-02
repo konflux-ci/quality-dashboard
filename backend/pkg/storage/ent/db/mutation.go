@@ -2818,6 +2818,10 @@ type FailureMutation struct {
 	jira_key        *string
 	jira_status     *string
 	error_message   *string
+	title_from_jira *string
+	created_date    *time.Time
+	closed_date     *time.Time
+	labels          *string
 	clearedFields   map[string]struct{}
 	failures        *uuid.UUID
 	clearedfailures bool
@@ -3038,6 +3042,202 @@ func (m *FailureMutation) ResetErrorMessage() {
 	m.error_message = nil
 }
 
+// SetTitleFromJira sets the "title_from_jira" field.
+func (m *FailureMutation) SetTitleFromJira(s string) {
+	m.title_from_jira = &s
+}
+
+// TitleFromJira returns the value of the "title_from_jira" field in the mutation.
+func (m *FailureMutation) TitleFromJira() (r string, exists bool) {
+	v := m.title_from_jira
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitleFromJira returns the old "title_from_jira" field's value of the Failure entity.
+// If the Failure object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FailureMutation) OldTitleFromJira(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitleFromJira is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitleFromJira requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitleFromJira: %w", err)
+	}
+	return oldValue.TitleFromJira, nil
+}
+
+// ClearTitleFromJira clears the value of the "title_from_jira" field.
+func (m *FailureMutation) ClearTitleFromJira() {
+	m.title_from_jira = nil
+	m.clearedFields[failure.FieldTitleFromJira] = struct{}{}
+}
+
+// TitleFromJiraCleared returns if the "title_from_jira" field was cleared in this mutation.
+func (m *FailureMutation) TitleFromJiraCleared() bool {
+	_, ok := m.clearedFields[failure.FieldTitleFromJira]
+	return ok
+}
+
+// ResetTitleFromJira resets all changes to the "title_from_jira" field.
+func (m *FailureMutation) ResetTitleFromJira() {
+	m.title_from_jira = nil
+	delete(m.clearedFields, failure.FieldTitleFromJira)
+}
+
+// SetCreatedDate sets the "created_date" field.
+func (m *FailureMutation) SetCreatedDate(t time.Time) {
+	m.created_date = &t
+}
+
+// CreatedDate returns the value of the "created_date" field in the mutation.
+func (m *FailureMutation) CreatedDate() (r time.Time, exists bool) {
+	v := m.created_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedDate returns the old "created_date" field's value of the Failure entity.
+// If the Failure object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FailureMutation) OldCreatedDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedDate: %w", err)
+	}
+	return oldValue.CreatedDate, nil
+}
+
+// ClearCreatedDate clears the value of the "created_date" field.
+func (m *FailureMutation) ClearCreatedDate() {
+	m.created_date = nil
+	m.clearedFields[failure.FieldCreatedDate] = struct{}{}
+}
+
+// CreatedDateCleared returns if the "created_date" field was cleared in this mutation.
+func (m *FailureMutation) CreatedDateCleared() bool {
+	_, ok := m.clearedFields[failure.FieldCreatedDate]
+	return ok
+}
+
+// ResetCreatedDate resets all changes to the "created_date" field.
+func (m *FailureMutation) ResetCreatedDate() {
+	m.created_date = nil
+	delete(m.clearedFields, failure.FieldCreatedDate)
+}
+
+// SetClosedDate sets the "closed_date" field.
+func (m *FailureMutation) SetClosedDate(t time.Time) {
+	m.closed_date = &t
+}
+
+// ClosedDate returns the value of the "closed_date" field in the mutation.
+func (m *FailureMutation) ClosedDate() (r time.Time, exists bool) {
+	v := m.closed_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldClosedDate returns the old "closed_date" field's value of the Failure entity.
+// If the Failure object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FailureMutation) OldClosedDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldClosedDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldClosedDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldClosedDate: %w", err)
+	}
+	return oldValue.ClosedDate, nil
+}
+
+// ClearClosedDate clears the value of the "closed_date" field.
+func (m *FailureMutation) ClearClosedDate() {
+	m.closed_date = nil
+	m.clearedFields[failure.FieldClosedDate] = struct{}{}
+}
+
+// ClosedDateCleared returns if the "closed_date" field was cleared in this mutation.
+func (m *FailureMutation) ClosedDateCleared() bool {
+	_, ok := m.clearedFields[failure.FieldClosedDate]
+	return ok
+}
+
+// ResetClosedDate resets all changes to the "closed_date" field.
+func (m *FailureMutation) ResetClosedDate() {
+	m.closed_date = nil
+	delete(m.clearedFields, failure.FieldClosedDate)
+}
+
+// SetLabels sets the "labels" field.
+func (m *FailureMutation) SetLabels(s string) {
+	m.labels = &s
+}
+
+// Labels returns the value of the "labels" field in the mutation.
+func (m *FailureMutation) Labels() (r string, exists bool) {
+	v := m.labels
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLabels returns the old "labels" field's value of the Failure entity.
+// If the Failure object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FailureMutation) OldLabels(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLabels is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLabels requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLabels: %w", err)
+	}
+	return oldValue.Labels, nil
+}
+
+// ClearLabels clears the value of the "labels" field.
+func (m *FailureMutation) ClearLabels() {
+	m.labels = nil
+	m.clearedFields[failure.FieldLabels] = struct{}{}
+}
+
+// LabelsCleared returns if the "labels" field was cleared in this mutation.
+func (m *FailureMutation) LabelsCleared() bool {
+	_, ok := m.clearedFields[failure.FieldLabels]
+	return ok
+}
+
+// ResetLabels resets all changes to the "labels" field.
+func (m *FailureMutation) ResetLabels() {
+	m.labels = nil
+	delete(m.clearedFields, failure.FieldLabels)
+}
+
 // SetFailuresID sets the "failures" edge to the Teams entity by id.
 func (m *FailureMutation) SetFailuresID(id uuid.UUID) {
 	m.failures = &id
@@ -3111,7 +3311,7 @@ func (m *FailureMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FailureMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 7)
 	if m.jira_key != nil {
 		fields = append(fields, failure.FieldJiraKey)
 	}
@@ -3120,6 +3320,18 @@ func (m *FailureMutation) Fields() []string {
 	}
 	if m.error_message != nil {
 		fields = append(fields, failure.FieldErrorMessage)
+	}
+	if m.title_from_jira != nil {
+		fields = append(fields, failure.FieldTitleFromJira)
+	}
+	if m.created_date != nil {
+		fields = append(fields, failure.FieldCreatedDate)
+	}
+	if m.closed_date != nil {
+		fields = append(fields, failure.FieldClosedDate)
+	}
+	if m.labels != nil {
+		fields = append(fields, failure.FieldLabels)
 	}
 	return fields
 }
@@ -3135,6 +3347,14 @@ func (m *FailureMutation) Field(name string) (ent.Value, bool) {
 		return m.JiraStatus()
 	case failure.FieldErrorMessage:
 		return m.ErrorMessage()
+	case failure.FieldTitleFromJira:
+		return m.TitleFromJira()
+	case failure.FieldCreatedDate:
+		return m.CreatedDate()
+	case failure.FieldClosedDate:
+		return m.ClosedDate()
+	case failure.FieldLabels:
+		return m.Labels()
 	}
 	return nil, false
 }
@@ -3150,6 +3370,14 @@ func (m *FailureMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldJiraStatus(ctx)
 	case failure.FieldErrorMessage:
 		return m.OldErrorMessage(ctx)
+	case failure.FieldTitleFromJira:
+		return m.OldTitleFromJira(ctx)
+	case failure.FieldCreatedDate:
+		return m.OldCreatedDate(ctx)
+	case failure.FieldClosedDate:
+		return m.OldClosedDate(ctx)
+	case failure.FieldLabels:
+		return m.OldLabels(ctx)
 	}
 	return nil, fmt.Errorf("unknown Failure field %s", name)
 }
@@ -3180,6 +3408,34 @@ func (m *FailureMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetErrorMessage(v)
 		return nil
+	case failure.FieldTitleFromJira:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitleFromJira(v)
+		return nil
+	case failure.FieldCreatedDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedDate(v)
+		return nil
+	case failure.FieldClosedDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetClosedDate(v)
+		return nil
+	case failure.FieldLabels:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLabels(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Failure field %s", name)
 }
@@ -3209,7 +3465,20 @@ func (m *FailureMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *FailureMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(failure.FieldTitleFromJira) {
+		fields = append(fields, failure.FieldTitleFromJira)
+	}
+	if m.FieldCleared(failure.FieldCreatedDate) {
+		fields = append(fields, failure.FieldCreatedDate)
+	}
+	if m.FieldCleared(failure.FieldClosedDate) {
+		fields = append(fields, failure.FieldClosedDate)
+	}
+	if m.FieldCleared(failure.FieldLabels) {
+		fields = append(fields, failure.FieldLabels)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -3222,6 +3491,20 @@ func (m *FailureMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *FailureMutation) ClearField(name string) error {
+	switch name {
+	case failure.FieldTitleFromJira:
+		m.ClearTitleFromJira()
+		return nil
+	case failure.FieldCreatedDate:
+		m.ClearCreatedDate()
+		return nil
+	case failure.FieldClosedDate:
+		m.ClearClosedDate()
+		return nil
+	case failure.FieldLabels:
+		m.ClearLabels()
+		return nil
+	}
 	return fmt.Errorf("unknown Failure nullable field %s", name)
 }
 
@@ -3237,6 +3520,18 @@ func (m *FailureMutation) ResetField(name string) error {
 		return nil
 	case failure.FieldErrorMessage:
 		m.ResetErrorMessage()
+		return nil
+	case failure.FieldTitleFromJira:
+		m.ResetTitleFromJira()
+		return nil
+	case failure.FieldCreatedDate:
+		m.ResetCreatedDate()
+		return nil
+	case failure.FieldClosedDate:
+		m.ResetClosedDate()
+		return nil
+	case failure.FieldLabels:
+		m.ResetLabels()
 		return nil
 	}
 	return fmt.Errorf("unknown Failure field %s", name)
