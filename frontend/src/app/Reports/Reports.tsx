@@ -57,7 +57,7 @@ let Reports = () => {
   const currentTeam = useSelector((state: any) => state.teams.Team);
   const history = useHistory();
   const params = new URLSearchParams(window.location.search);
-  const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(10));
+  const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(15));
   const [isInvalid, setIsInvalid] = useState(false);
 
   // Called onChange of the repository dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
@@ -115,7 +115,7 @@ let Reports = () => {
 
   // Reset rangeDateTime
   const clearRangeDateTime = () => {
-    setRangeDateTime(getRangeDates(10))
+    setRangeDateTime(getRangeDates(15))
   }
 
   // Called onChange of the jobType dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
@@ -258,7 +258,7 @@ let Reports = () => {
       setProwVisible(true)
 
       if (stats != null) {
-        const data = await getFlakyData(currentTeam, stats.jobs[0].name, repoName, rangeDateTime[0].toISOString(), rangeDateTime[1].toISOString(), repoOrg)
+        const data = await getFlakyData(currentTeam, stats.jobs[0].name, repoName, rangeDateTime, repoOrg)
         setImpact(data.data.global_impact)
       } else {
         setImpact("")
@@ -353,11 +353,21 @@ let Reports = () => {
 
   useEffect(() => {
     if (prowJobsStats != null) {
-      getFlakyData(currentTeam, prowJobsStats.jobs[selectedJob].name, repoName, start.toISOString(), end.toISOString(), repoOrg).then(res => { setImpact(res.data.global_impact) })
+      getFlakyData(currentTeam, prowJobsStats.jobs[selectedJob].name, repoName, rangeDateTime, repoOrg).then(res => { setImpact(res.data.global_impact) })
     } else {
       setImpact("")
     }
   }, [selectedJob]);
+
+  const getPercentage = (success_count, total_jobs) => {
+    const percentage = (100 * success_count / total_jobs)
+
+    if (isNaN(percentage)) {
+      return "-"
+    }
+
+    return percentage.toFixed(2) + "%"
+  }
 
   return (
 
@@ -466,7 +476,7 @@ let Reports = () => {
                 cardType={'success'}
                 title="Passed Tests Avg"
                 subtitle="Includes all the jobs that succeeded."
-                body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.success_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
+                body={prowJobsStats?.jobs != null ? getPercentage(prowJobsStats.jobs[selectedJob].summary.success_count, prowJobsStats.jobs[selectedJob].summary.total_jobs) : "-"}
                 subtext={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.success_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs : "-"}
                 info=""
                 summary={prowJobsStats?.jobs[selectedJob]?.summary}
@@ -477,7 +487,7 @@ let Reports = () => {
                 cardType={'danger'}
                 title="CI Failures Avg"
                 subtitle="Includes all the jobs that failed because of Openshift CI failures (cases where the job was not scheduled, for example)."
-                body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.not_scheduled_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
+                body={prowJobsStats?.jobs != null ? getPercentage(prowJobsStats.jobs[selectedJob].summary.not_scheduled_count, prowJobsStats.jobs[selectedJob].summary.total_jobs) : "-"}
                 subtext={prowJobsStats?.jobs != null ? (prowJobsStats.jobs[selectedJob].summary.not_scheduled_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs) : "-"}
                 info=""
                 summary={prowJobsStats?.jobs[selectedJob]?.summary}
@@ -487,7 +497,7 @@ let Reports = () => {
                 cardType={'danger'}
                 title="Failures Avg"
                 subtitle="Includes all the jobs that failed while running, either by build errors (cluster request, rhtap installation, for example) or by flaky tests."
-                body={prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
+                body={prowJobsStats?.jobs != null ? getPercentage(prowJobsStats.jobs[selectedJob].summary.failure_count, prowJobsStats.jobs[selectedJob].summary.total_jobs) : "-"}
                 subtext={prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.failure_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs + " (Build Errors: " + prowJobsStats.jobs[selectedJob].summary?.failure_by_build_errors_count + ", Flaky Tests: " + prowJobsStats.jobs[selectedJob].summary?.failure_by_e2e_tests_count + ")" : "-"}
                 info=""
                 summary={prowJobsStats?.jobs[selectedJob]?.summary}
@@ -506,8 +516,8 @@ let Reports = () => {
               <GridItem span={4} rowSpan={1}><DashboardCard
                 cardType={'default'}
                 title="Flaky Tests Impact"
-                subtitle={"Includes all the jobs that failed because of flaky e2e tests. From the  all the " + prowJobsStats.jobs[selectedJob].summary.total_jobs + " jobs, " + prowJobsStats.jobs[selectedJob].summary.failure_by_e2e_tests_count + " failed with flaky tests." }
-                body={impact != "" ? impact + "%" : "-"}                subtext=""
+                subtitle={"Includes all the jobs that failed because of flaky e2e tests. From the  all the " + prowJobsStats.jobs[selectedJob].summary.total_jobs + " jobs, " + prowJobsStats.jobs[selectedJob].summary.failure_by_e2e_tests_count + " failed with flaky tests."}
+                body={impact != "" ? impact + "%" : "-"} subtext=""
                 info={prowJobsStats.jobs[selectedJob].summary.failure_by_e2e_tests_count != 0 ? <a href={'/home/flaky?team=' + currentTeam + '&repository=' + repoName +
                   '&job=' + prowJobsStats.jobs[selectedJob].name + '&start=' + start.toISOString() + '&end=' + end.toISOString()}>More info in Flaky page</a> : <div></div>}
                 summary={prowJobsStats?.jobs[selectedJob]?.summary}
