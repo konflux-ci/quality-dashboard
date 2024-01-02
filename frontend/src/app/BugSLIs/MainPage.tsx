@@ -97,8 +97,8 @@ export const BugSLIs = () => {
             setBugSLIs({} as Info)
 
             const team = params.get('team');
-            const start = params.get('start');
-            const end = params.get('end');
+            // const start = params.get('start');
+            // const end = params.get('end');
 
             // getBugSLIs(state.teams.Team, rangeDateTime).then((data: any) => {
             getBugSLIs(state.teams.Team).then((data: any) => {
@@ -110,7 +110,7 @@ export const BugSLIs = () => {
                 if (team == state.teams.Team || team == null) {
                     setBugSLIs(data.data)
 
-                    if (start == null || end == null) {
+                    // if (start == null || end == null) {
                         // first click on page or team
                         // const start_date = formatDate(rangeDateTime[0]);
                         // const end_date = formatDate(rangeDateTime[1]);
@@ -125,15 +125,15 @@ export const BugSLIs = () => {
                             // '&end=' +
                             // end_date
                         );
-                    } else {
-                        // setRangeDateTime([new Date(start), new Date(end)]);
+                    // } else {
+                    //     // setRangeDateTime([new Date(start), new Date(end)]);
 
-                        history.push(
-                            '/home/bug-slis?team=' + currentTeam +
-                            '&start=' + start +
-                            '&end=' + end
-                        );
-                    }
+                    //     history.push(
+                    //         '/home/bug-slis?team=' + currentTeam +
+                    //         '&start=' + start +
+                    //         '&end=' + end
+                    //     );
+                    // }
                 }
             });
         }

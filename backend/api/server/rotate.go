@@ -81,12 +81,15 @@ func shouldBeDeleted(jiraKey string, bugs []jira.Issue) bool {
 			return false
 		}
 	}
+	fmt.Println("Deleted bug: ", jiraKey)
 	return true
 }
 
 func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
 	bugs := s.cfg.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys))
+	fmt.Println("[rotateJiraBugs] bugs", bugs)
 	if err := s.cfg.Storage.CreateJiraBug(bugs, team); err != nil {
+		fmt.Println("[rotateJiraBugs] err create", err)
 		return err
 	}
 
