@@ -43,6 +43,8 @@ const (
 	FieldDaysWithoutPriority = "days_without_priority"
 	// FieldDaysWithoutResolution holds the string denoting the days_without_resolution field in the database.
 	FieldDaysWithoutResolution = "days_without_resolution"
+	// FieldDaysWithoutComponent holds the string denoting the days_without_component field in the database.
+	FieldDaysWithoutComponent = "days_without_component"
 	// FieldLabels holds the string denoting the labels field in the database.
 	FieldLabels = "labels"
 	// FieldComponent holds the string denoting the component field in the database.
@@ -85,6 +87,7 @@ var Columns = []string{
 	FieldDaysWithoutAssignee,
 	FieldDaysWithoutPriority,
 	FieldDaysWithoutResolution,
+	FieldDaysWithoutComponent,
 	FieldLabels,
 	FieldComponent,
 	FieldAssignee,

@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/andygrunwald/go-jira"
 	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
@@ -73,12 +74,36 @@ func staticRotationStrategy() rotationStrategy {
 	}
 }
 
+func shouldBeDeleted(jiraKey string, bugs []jira.Issue) bool {
+	for _, bug := range bugs {
+		if bug.Key == jiraKey {
+			return false
+		}
+	}
+	return true
+}
+
 func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
 	bugs := s.cfg.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys))
 	if err := s.cfg.Storage.CreateJiraBug(bugs, team); err != nil {
 		return err
 	}
 
+	// clean bugs that changed project or jira type
+	bugsInDb, err := s.cfg.Storage.GetAllJiraBugs()
+
+	if err != nil {
+		return err
+	}
+
+	for _, bugInDb := range bugsInDb {
+		deleted := shouldBeDeleted(bugInDb.JiraKey, bugs)
+		if deleted {
+			if err := s.cfg.Storage.DeleteJiraBugByJiraKey(bugInDb.JiraKey); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 

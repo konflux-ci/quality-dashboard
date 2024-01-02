@@ -19,7 +19,7 @@ export const CustomChartDonut = (props) => {
             padding={{
                 bottom: 70, // Adjusted to accommodate legend
                 left: 20,
-                right: 50, // Adjusted to accommodate subTitle
+                right: 20, // Adjusted to accommodate subTitle
                 top: 20
             }}
             width={350}

@@ -78,6 +78,7 @@ type Storage interface {
 	DeleteRepository(repositoryName, gitOrganizationName string) error
 	DeleteTeam(teamName string) (bool, error)
 	DeleteJiraBugsByProject(projectKey string, team *db.Teams) error
+	DeleteJiraBugByJiraKey(jiraKey string) error
 	DeleteFailure(teamID, failureID uuid.UUID) error
 }
 
