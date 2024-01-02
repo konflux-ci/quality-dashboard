@@ -185,6 +185,20 @@ func (bc *BugsCreate) SetNillableDaysWithoutResolution(f *float64) *BugsCreate {
 	return bc
 }
 
+// SetDaysWithoutComponent sets the "days_without_component" field.
+func (bc *BugsCreate) SetDaysWithoutComponent(f float64) *BugsCreate {
+	bc.mutation.SetDaysWithoutComponent(f)
+	return bc
+}
+
+// SetNillableDaysWithoutComponent sets the "days_without_component" field if the given value is not nil.
+func (bc *BugsCreate) SetNillableDaysWithoutComponent(f *float64) *BugsCreate {
+	if f != nil {
+		bc.SetDaysWithoutComponent(*f)
+	}
+	return bc
+}
+
 // SetLabels sets the "labels" field.
 func (bc *BugsCreate) SetLabels(s string) *BugsCreate {
 	bc.mutation.SetLabels(s)
@@ -465,6 +479,10 @@ func (bc *BugsCreate) createSpec() (*Bugs, *sqlgraph.CreateSpec) {
 	if value, ok := bc.mutation.DaysWithoutResolution(); ok {
 		_spec.SetField(bugs.FieldDaysWithoutResolution, field.TypeFloat64, value)
 		_node.DaysWithoutResolution = &value
+	}
+	if value, ok := bc.mutation.DaysWithoutComponent(); ok {
+		_spec.SetField(bugs.FieldDaysWithoutComponent, field.TypeFloat64, value)
+		_node.DaysWithoutComponent = &value
 	}
 	if value, ok := bc.mutation.Labels(); ok {
 		_spec.SetField(bugs.FieldLabels, field.TypeString, value)
@@ -815,6 +833,30 @@ func (u *BugsUpsert) AddDaysWithoutResolution(v float64) *BugsUpsert {
 // ClearDaysWithoutResolution clears the value of the "days_without_resolution" field.
 func (u *BugsUpsert) ClearDaysWithoutResolution() *BugsUpsert {
 	u.SetNull(bugs.FieldDaysWithoutResolution)
+	return u
+}
+
+// SetDaysWithoutComponent sets the "days_without_component" field.
+func (u *BugsUpsert) SetDaysWithoutComponent(v float64) *BugsUpsert {
+	u.Set(bugs.FieldDaysWithoutComponent, v)
+	return u
+}
+
+// UpdateDaysWithoutComponent sets the "days_without_component" field to the value that was provided on create.
+func (u *BugsUpsert) UpdateDaysWithoutComponent() *BugsUpsert {
+	u.SetExcluded(bugs.FieldDaysWithoutComponent)
+	return u
+}
+
+// AddDaysWithoutComponent adds v to the "days_without_component" field.
+func (u *BugsUpsert) AddDaysWithoutComponent(v float64) *BugsUpsert {
+	u.Add(bugs.FieldDaysWithoutComponent, v)
+	return u
+}
+
+// ClearDaysWithoutComponent clears the value of the "days_without_component" field.
+func (u *BugsUpsert) ClearDaysWithoutComponent() *BugsUpsert {
+	u.SetNull(bugs.FieldDaysWithoutComponent)
 	return u
 }
 
@@ -1243,6 +1285,34 @@ func (u *BugsUpsertOne) UpdateDaysWithoutResolution() *BugsUpsertOne {
 func (u *BugsUpsertOne) ClearDaysWithoutResolution() *BugsUpsertOne {
 	return u.Update(func(s *BugsUpsert) {
 		s.ClearDaysWithoutResolution()
+	})
+}
+
+// SetDaysWithoutComponent sets the "days_without_component" field.
+func (u *BugsUpsertOne) SetDaysWithoutComponent(v float64) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetDaysWithoutComponent(v)
+	})
+}
+
+// AddDaysWithoutComponent adds v to the "days_without_component" field.
+func (u *BugsUpsertOne) AddDaysWithoutComponent(v float64) *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.AddDaysWithoutComponent(v)
+	})
+}
+
+// UpdateDaysWithoutComponent sets the "days_without_component" field to the value that was provided on create.
+func (u *BugsUpsertOne) UpdateDaysWithoutComponent() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateDaysWithoutComponent()
+	})
+}
+
+// ClearDaysWithoutComponent clears the value of the "days_without_component" field.
+func (u *BugsUpsertOne) ClearDaysWithoutComponent() *BugsUpsertOne {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearDaysWithoutComponent()
 	})
 }
 
@@ -1846,6 +1916,34 @@ func (u *BugsUpsertBulk) UpdateDaysWithoutResolution() *BugsUpsertBulk {
 func (u *BugsUpsertBulk) ClearDaysWithoutResolution() *BugsUpsertBulk {
 	return u.Update(func(s *BugsUpsert) {
 		s.ClearDaysWithoutResolution()
+	})
+}
+
+// SetDaysWithoutComponent sets the "days_without_component" field.
+func (u *BugsUpsertBulk) SetDaysWithoutComponent(v float64) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.SetDaysWithoutComponent(v)
+	})
+}
+
+// AddDaysWithoutComponent adds v to the "days_without_component" field.
+func (u *BugsUpsertBulk) AddDaysWithoutComponent(v float64) *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.AddDaysWithoutComponent(v)
+	})
+}
+
+// UpdateDaysWithoutComponent sets the "days_without_component" field to the value that was provided on create.
+func (u *BugsUpsertBulk) UpdateDaysWithoutComponent() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.UpdateDaysWithoutComponent()
+	})
+}
+
+// ClearDaysWithoutComponent clears the value of the "days_without_component" field.
+func (u *BugsUpsertBulk) ClearDaysWithoutComponent() *BugsUpsertBulk {
+	return u.Update(func(s *BugsUpsert) {
+		s.ClearDaysWithoutComponent()
 	})
 }
 

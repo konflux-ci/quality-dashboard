@@ -8,9 +8,9 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 )
 
-// GetTriageSLI should return red when priority is not defined for more than 2 days on untriaged bugs
-// GetTriageSLI should return yellow when priority is not defined for more than 1 day but less than 2 days on untriaged bugs
-func GetTriageSLI(bug *db.Bugs) *Alert {
+// GetPriorityTriageSLI should return red when priority is not defined for more than 2 days on untriaged bugs
+// GetPriorityTriageSLI should return yellow when priority is not defined for more than 1 day but less than 2 days on untriaged bugs
+func GetPriorityTriageSLI(bug *db.Bugs) *Alert {
 	alert := &Alert{Signal: "green"}
 
 	if bug.Labels != nil && bug.DaysWithoutPriority != nil && strings.Contains(*bug.Labels, "untriaged") {
@@ -20,7 +20,7 @@ func GetTriageSLI(bug *db.Bugs) *Alert {
 
 		if *bug.DaysWithoutPriority > 2 {
 			alert.Signal = "red"
-			msg = fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for Triage Time. %s",
+			msg = fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for Priority Triage Time. %s",
 				bug.URL,
 				bug.JiraKey,
 				msg,
@@ -28,7 +28,7 @@ func GetTriageSLI(bug *db.Bugs) *Alert {
 			alert.AlertMessage = &msg
 		} else if *bug.DaysWithoutPriority > 1 {
 			alert.Signal = "yellow"
-			msg = fmt.Sprintf("Issue <%s|%s> is almost not meeting defined Bug SLO for Triage Time. %s",
+			msg = fmt.Sprintf("Issue <%s|%s> is almost not meeting defined Bug SLO for Priority Triage Time. %s",
 				bug.URL,
 				bug.JiraKey,
 				msg,
@@ -50,6 +50,25 @@ func GetResponseSLI(bug *db.Bugs) *Alert {
 				bug.URL,
 				bug.JiraKey,
 				*bug.DaysWithoutAssignee,
+			)
+			alert.AlertMessage = &msg
+			alert.Signal = "red"
+		}
+	}
+
+	return alert
+}
+
+// GetComponentAssignmentTriageSLI should return red if there is no component assigned for more than 1 day
+func GetComponentAssignmentTriageSLI(bug *db.Bugs) *Alert {
+	alert := &Alert{Signal: "green"}
+
+	if bug.DaysWithoutComponent != nil {
+		if *bug.DaysWithoutComponent > 1 {
+			msg := fmt.Sprintf("Issue <%s|%s> is not meeting defined Bug SLO for Component Assignment Triage Time. Bugs should have component assigned between a maximum of 1 day. This issue has component undefined for %.2f days. Please, take a time to assign a component to it.\n\n",
+				bug.URL,
+				bug.JiraKey,
+				*bug.DaysWithoutComponent,
 			)
 			alert.AlertMessage = &msg
 			alert.Signal = "red"
@@ -121,10 +140,10 @@ func GetMetric(currentInfo Metric, currentSignal, targetSignal string, value flo
 	return currentInfo
 }
 
-func GetGlobalSLI(triageSLI, responseSLI, resolutionSLI string) string {
-	if triageSLI == "red" || responseSLI == "red" || resolutionSLI == "red" {
+func GetGlobalSLI(triageSLI, responseSLI, resolutionSLI, componentSLI string) string {
+	if triageSLI == "red" || responseSLI == "red" || resolutionSLI == "red" || componentSLI == "red" {
 		return "red"
-	} else if triageSLI == "yellow" || responseSLI == "yellow" || resolutionSLI == "yellow" {
+	} else if triageSLI == "yellow" || responseSLI == "yellow" || resolutionSLI == "yellow" || componentSLI == "yellow" {
 		return "yellow"
 	}
 
@@ -145,32 +164,36 @@ func GetSLI(info GlobalSLI, targetSLI string) GlobalSLI {
 
 func GetBugSLIs(bugs []*db.Bugs) BugSlisInfo {
 	info := BugSlisInfo{
-		GlobalSLI:         GlobalSLI{GreenSLI: 0, YellowSLI: 0, RedSLI: 0},
-		TriageTimeSLI:     SLI{Bugs: []Bug{}, Red: Metric{}, Yellow: Metric{}},
-		ResponseTimeSLI:   SLI{Bugs: []Bug{}, Red: Metric{}, Yellow: Metric{}},
-		ResolutionTimeSLI: SLI{Bugs: []Bug{}, Red: Metric{}, Yellow: Metric{}},
-		Bugs:              []Bug{},
+		GlobalSLI:                    GlobalSLI{GreenSLI: 0, YellowSLI: 0, RedSLI: 0},
+		TriageTimeSLI:                SLI{Bugs: []Bug{}, Red: Metric{}, Yellow: Metric{}},
+		ResponseTimeSLI:              SLI{Bugs: []Bug{}, Red: Metric{}, Yellow: Metric{}},
+		ResolutionTimeSLI:            SLI{Bugs: []Bug{}, Red: Metric{}, Yellow: Metric{}},
+		ComponentAssignmentTriageSLI: SLI{Bugs: []Bug{}, Red: Metric{}, Yellow: Metric{}},
+		Bugs:                         []Bug{},
 	}
 
 	for _, bug := range bugs {
-		TriageSLI := GetTriageSLI(bug)
+		TriageSLI := GetPriorityTriageSLI(bug)
+		ComponentAssignmentTriageSLI := GetComponentAssignmentTriageSLI(bug)
 		ResponseSLI := GetResponseSLI(bug)
 		ResolutionSLI := GetResolutionSLI(bug)
-		GlobalSLI := GetGlobalSLI(TriageSLI.Signal, ResponseSLI.Signal, ResolutionSLI.Signal)
+		GlobalSLI := GetGlobalSLI(TriageSLI.Signal, ResponseSLI.Signal, ResolutionSLI.Signal, ComponentAssignmentTriageSLI.Signal)
 
 		new := Bug{
-			JiraKey:               bug.JiraKey,
-			JiraURL:               bug.URL,
-			Priority:              bug.Priority,
-			Status:                bug.Status,
-			Summary:               bug.Summary,
-			TriageSLI:             TriageSLI,
-			ResponseSLI:           ResponseSLI,
-			ResolutionSLI:         ResolutionSLI,
-			GlobalSLI:             GlobalSLI,
-			DaysWithoutAssignee:   bug.DaysWithoutAssignee,
-			DaysWithoutPriority:   bug.DaysWithoutPriority,
-			DaysWithoutResolution: bug.DaysWithoutResolution,
+			JiraKey:                      bug.JiraKey,
+			JiraURL:                      bug.URL,
+			Priority:                     bug.Priority,
+			Status:                       bug.Status,
+			Summary:                      bug.Summary,
+			TriageSLI:                    TriageSLI,
+			ResponseSLI:                  ResponseSLI,
+			ResolutionSLI:                ResolutionSLI,
+			ComponentAssignmentTriageSLI: ComponentAssignmentTriageSLI,
+			GlobalSLI:                    GlobalSLI,
+			DaysWithoutAssignee:          bug.DaysWithoutAssignee,
+			DaysWithoutPriority:          bug.DaysWithoutPriority,
+			DaysWithoutResolution:        bug.DaysWithoutResolution,
+			DaysWithoutComponent:         bug.DaysWithoutComponent,
 		}
 
 		if bug.Labels != nil {
@@ -202,6 +225,10 @@ func GetBugSLIs(bugs []*db.Bugs) BugSlisInfo {
 
 		if ResolutionSLI.Signal != "green" {
 			info.ResolutionTimeSLI.Bugs = append(info.ResolutionTimeSLI.Bugs, new)
+		}
+
+		if ComponentAssignmentTriageSLI.Signal != "green" {
+			info.ComponentAssignmentTriageSLI.Bugs = append(info.ComponentAssignmentTriageSLI.Bugs, new)
 		}
 
 		info.GlobalSLI = GetSLI(info.GlobalSLI, GlobalSLI)

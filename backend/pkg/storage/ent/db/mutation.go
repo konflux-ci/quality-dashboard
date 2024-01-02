@@ -73,6 +73,8 @@ type BugsMutation struct {
 	adddays_without_priority   *float64
 	days_without_resolution    *float64
 	adddays_without_resolution *float64
+	days_without_component     *float64
+	adddays_without_component  *float64
 	labels                     *string
 	component                  *string
 	assignee                   *string
@@ -968,6 +970,76 @@ func (m *BugsMutation) ResetDaysWithoutResolution() {
 	delete(m.clearedFields, bugs.FieldDaysWithoutResolution)
 }
 
+// SetDaysWithoutComponent sets the "days_without_component" field.
+func (m *BugsMutation) SetDaysWithoutComponent(f float64) {
+	m.days_without_component = &f
+	m.adddays_without_component = nil
+}
+
+// DaysWithoutComponent returns the value of the "days_without_component" field in the mutation.
+func (m *BugsMutation) DaysWithoutComponent() (r float64, exists bool) {
+	v := m.days_without_component
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDaysWithoutComponent returns the old "days_without_component" field's value of the Bugs entity.
+// If the Bugs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BugsMutation) OldDaysWithoutComponent(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDaysWithoutComponent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDaysWithoutComponent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDaysWithoutComponent: %w", err)
+	}
+	return oldValue.DaysWithoutComponent, nil
+}
+
+// AddDaysWithoutComponent adds f to the "days_without_component" field.
+func (m *BugsMutation) AddDaysWithoutComponent(f float64) {
+	if m.adddays_without_component != nil {
+		*m.adddays_without_component += f
+	} else {
+		m.adddays_without_component = &f
+	}
+}
+
+// AddedDaysWithoutComponent returns the value that was added to the "days_without_component" field in this mutation.
+func (m *BugsMutation) AddedDaysWithoutComponent() (r float64, exists bool) {
+	v := m.adddays_without_component
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDaysWithoutComponent clears the value of the "days_without_component" field.
+func (m *BugsMutation) ClearDaysWithoutComponent() {
+	m.days_without_component = nil
+	m.adddays_without_component = nil
+	m.clearedFields[bugs.FieldDaysWithoutComponent] = struct{}{}
+}
+
+// DaysWithoutComponentCleared returns if the "days_without_component" field was cleared in this mutation.
+func (m *BugsMutation) DaysWithoutComponentCleared() bool {
+	_, ok := m.clearedFields[bugs.FieldDaysWithoutComponent]
+	return ok
+}
+
+// ResetDaysWithoutComponent resets all changes to the "days_without_component" field.
+func (m *BugsMutation) ResetDaysWithoutComponent() {
+	m.days_without_component = nil
+	m.adddays_without_component = nil
+	delete(m.clearedFields, bugs.FieldDaysWithoutComponent)
+}
+
 // SetLabels sets the "labels" field.
 func (m *BugsMutation) SetLabels(s string) {
 	m.labels = &s
@@ -1237,7 +1309,7 @@ func (m *BugsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *BugsMutation) Fields() []string {
-	fields := make([]string, 0, 20)
+	fields := make([]string, 0, 21)
 	if m.jira_key != nil {
 		fields = append(fields, bugs.FieldJiraKey)
 	}
@@ -1285,6 +1357,9 @@ func (m *BugsMutation) Fields() []string {
 	}
 	if m.days_without_resolution != nil {
 		fields = append(fields, bugs.FieldDaysWithoutResolution)
+	}
+	if m.days_without_component != nil {
+		fields = append(fields, bugs.FieldDaysWithoutComponent)
 	}
 	if m.labels != nil {
 		fields = append(fields, bugs.FieldLabels)
@@ -1338,6 +1413,8 @@ func (m *BugsMutation) Field(name string) (ent.Value, bool) {
 		return m.DaysWithoutPriority()
 	case bugs.FieldDaysWithoutResolution:
 		return m.DaysWithoutResolution()
+	case bugs.FieldDaysWithoutComponent:
+		return m.DaysWithoutComponent()
 	case bugs.FieldLabels:
 		return m.Labels()
 	case bugs.FieldComponent:
@@ -1387,6 +1464,8 @@ func (m *BugsMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDaysWithoutPriority(ctx)
 	case bugs.FieldDaysWithoutResolution:
 		return m.OldDaysWithoutResolution(ctx)
+	case bugs.FieldDaysWithoutComponent:
+		return m.OldDaysWithoutComponent(ctx)
 	case bugs.FieldLabels:
 		return m.OldLabels(ctx)
 	case bugs.FieldComponent:
@@ -1516,6 +1595,13 @@ func (m *BugsMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDaysWithoutResolution(v)
 		return nil
+	case bugs.FieldDaysWithoutComponent:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDaysWithoutComponent(v)
+		return nil
 	case bugs.FieldLabels:
 		v, ok := value.(string)
 		if !ok {
@@ -1570,6 +1656,9 @@ func (m *BugsMutation) AddedFields() []string {
 	if m.adddays_without_resolution != nil {
 		fields = append(fields, bugs.FieldDaysWithoutResolution)
 	}
+	if m.adddays_without_component != nil {
+		fields = append(fields, bugs.FieldDaysWithoutComponent)
+	}
 	return fields
 }
 
@@ -1590,6 +1679,8 @@ func (m *BugsMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedDaysWithoutPriority()
 	case bugs.FieldDaysWithoutResolution:
 		return m.AddedDaysWithoutResolution()
+	case bugs.FieldDaysWithoutComponent:
+		return m.AddedDaysWithoutComponent()
 	}
 	return nil, false
 }
@@ -1641,6 +1732,13 @@ func (m *BugsMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddDaysWithoutResolution(v)
 		return nil
+	case bugs.FieldDaysWithoutComponent:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddDaysWithoutComponent(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Bugs numeric field %s", name)
 }
@@ -1666,6 +1764,9 @@ func (m *BugsMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(bugs.FieldDaysWithoutResolution) {
 		fields = append(fields, bugs.FieldDaysWithoutResolution)
+	}
+	if m.FieldCleared(bugs.FieldDaysWithoutComponent) {
+		fields = append(fields, bugs.FieldDaysWithoutComponent)
 	}
 	if m.FieldCleared(bugs.FieldLabels) {
 		fields = append(fields, bugs.FieldLabels)
@@ -1710,6 +1811,9 @@ func (m *BugsMutation) ClearField(name string) error {
 		return nil
 	case bugs.FieldDaysWithoutResolution:
 		m.ClearDaysWithoutResolution()
+		return nil
+	case bugs.FieldDaysWithoutComponent:
+		m.ClearDaysWithoutComponent()
 		return nil
 	case bugs.FieldLabels:
 		m.ClearLabels()
@@ -1778,6 +1882,9 @@ func (m *BugsMutation) ResetField(name string) error {
 		return nil
 	case bugs.FieldDaysWithoutResolution:
 		m.ResetDaysWithoutResolution()
+		return nil
+	case bugs.FieldDaysWithoutComponent:
+		m.ResetDaysWithoutComponent()
 		return nil
 	case bugs.FieldLabels:
 		m.ResetLabels()

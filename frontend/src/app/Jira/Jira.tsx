@@ -8,8 +8,6 @@ import {
     Grid,
     GridItem,
     Pagination,
-    Chip,
-    ChipGroup,
     ToggleGroup,
     ToggleGroupItem,
     Spinner,

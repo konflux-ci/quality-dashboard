@@ -6,20 +6,22 @@ type Alert struct {
 }
 
 type Bug struct {
-	JiraKey               string   `json:"jira_key"`
-	JiraURL               string   `json:"jira_url"`
-	Status                string   `json:"status"`
-	Summary               string   `json:"summary"`
-	Priority              string   `json:"priority"`
-	Labels                string   `json:"labels"`
-	Component             string   `json:"component"`
-	TriageSLI             *Alert   `json:"triage_sli"`
-	ResponseSLI           *Alert   `json:"response_sli"`
-	ResolutionSLI         *Alert   `json:"resolution_sli"`
-	GlobalSLI             string   `json:"global_sli"`
-	DaysWithoutAssignee   *float64 `json:"days_without_assignee"`
-	DaysWithoutPriority   *float64 `json:"days_without_priority"`
-	DaysWithoutResolution *float64 `json:"days_without_resolution"`
+	JiraKey                      string   `json:"jira_key"`
+	JiraURL                      string   `json:"jira_url"`
+	Status                       string   `json:"status"`
+	Summary                      string   `json:"summary"`
+	Priority                     string   `json:"priority"`
+	Labels                       string   `json:"labels"`
+	Component                    string   `json:"component"`
+	TriageSLI                    *Alert   `json:"triage_sli"`
+	ResponseSLI                  *Alert   `json:"response_sli"`
+	ResolutionSLI                *Alert   `json:"resolution_sli"`
+	ComponentAssignmentTriageSLI *Alert   `json:"component_assignment_sli"`
+	GlobalSLI                    string   `json:"global_sli"`
+	DaysWithoutAssignee          *float64 `json:"days_without_assignee"`
+	DaysWithoutPriority          *float64 `json:"days_without_priority"`
+	DaysWithoutResolution        *float64 `json:"days_without_resolution"`
+	DaysWithoutComponent         *float64 `json:"days_without_component"`
 }
 
 type Metric struct {
@@ -41,9 +43,10 @@ type SLI struct {
 }
 
 type BugSlisInfo struct {
-	GlobalSLI         GlobalSLI `json:"global_sli"`
-	TriageTimeSLI     SLI       `json:"triage_time_sli"`
-	ResponseTimeSLI   SLI       `json:"response_time_sli"`
-	ResolutionTimeSLI SLI       `json:"resolution_time_sli"`
-	Bugs              []Bug     `json:"bugs"`
+	GlobalSLI                    GlobalSLI `json:"global_sli"`
+	TriageTimeSLI                SLI       `json:"triage_time_sli"`
+	ResponseTimeSLI              SLI       `json:"response_time_sli"`
+	ResolutionTimeSLI            SLI       `json:"resolution_time_sli"`
+	ComponentAssignmentTriageSLI SLI       `json:"component_assignment_sli"`
+	Bugs                         []Bug     `json:"bugs"`
 }
