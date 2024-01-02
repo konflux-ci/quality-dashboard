@@ -46,6 +46,7 @@ type Storage interface {
 	GetAllOpenRHTAPBUGS() ([]*db.Bugs, error)
 	GetPullRequestsByRepository(repositoryName, organization, startDate, endDate string) (repoV1Alpha1.PullRequestsInfo, error)
 	GetFrequency(team *db.Teams, errorMessage, startDate, endDate string) (float64, error)
+	GetJiraBug(key string) (*db.Bugs, error)
 	GetJiraStatus(key string) (string, error)
 	GetFailuresByDate(team *db.Teams, startDate, endDate string) ([]*failureV1Alpha1.Failure, error)
 	GetAllFailures(team *db.Teams) ([]*db.Failure, error)
