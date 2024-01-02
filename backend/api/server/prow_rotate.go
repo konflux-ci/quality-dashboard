@@ -5,12 +5,10 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
 
-	"github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
 
@@ -121,7 +119,7 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 			buildErrorLogs = getBuildLogErrors(job.Status.URL)
 		}
 
-		if err := s.cfg.Storage.CreateProwJobResults(v1alpha1.Job{
+		if err := s.cfg.Storage.CreateProwJobResults(prowV1Alpha1.Job{
 			JobID:     job.Status.BuildID,
 			CreatedAt: job.Status.StartTime,
 			State:     string(job.Status.State),
@@ -185,7 +183,7 @@ func fetchSuitesXml(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }
 func getBuildLogErrors(url string) string {
 	buildErrorLogs := ""

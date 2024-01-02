@@ -11,10 +11,10 @@ func (s *Server) UpdateFailuresByTeam() {
 		failures, _ := s.cfg.Storage.GetAllFailures(team)
 
 		for _, failure := range failures {
-
 			jiraBug, err := s.cfg.Storage.GetJiraBug(failure.JiraKey)
 			if err != nil {
 				s.cfg.Logger.Sugar().Warnf("Failed to get jira :", err)
+				return
 			}
 
 			// if jiraStatus == "Closed" {
