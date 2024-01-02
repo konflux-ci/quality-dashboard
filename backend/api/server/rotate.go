@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/andygrunwald/go-jira"
@@ -89,13 +90,18 @@ func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
 		return err
 	}
 
-	// clean bugs that changed project or jira type
-	bugsInDb, err := s.cfg.Storage.GetAllJiraBugs()
+	projects := strings.Split(team.JiraKeys, ",")
+	bugsInDb := make([]*db.Bugs, 0)
 
-	if err != nil {
-		return err
+	for _, project := range projects {
+		bgs, err := s.cfg.Storage.GetAllJiraBugsByProject(project)
+		if err != nil {
+			return err
+		}
+		bugsInDb = append(bugsInDb, bgs...)
 	}
 
+	// clean bugs that changed project or jira type
 	for _, bugInDb := range bugsInDb {
 		deleted := shouldBeDeleted(bugInDb.JiraKey, bugs)
 		if deleted {

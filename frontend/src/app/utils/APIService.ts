@@ -707,7 +707,6 @@ async function getGlobalImpactData(team: string, job: string, repo: string, rang
       result.data = err.response.data;
     });
 
-  console.log(result)
   return result;
 }
 
