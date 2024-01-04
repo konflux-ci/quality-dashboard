@@ -535,7 +535,7 @@ func (d *Database) GetAllOpenRHTAPBUGS() ([]*db.Bugs, error) {
 }
 
 // GetAllOpenRHTAPBUGSForSliAlerts gets all the RHTAPBUGS that are open
-// except issues with status as "Waiting" or "Release Pending"
+// except bugs with status as "Waiting" or "Release Pending"
 func (d *Database) GetAllOpenRHTAPBUGSForSliAlerts() ([]*db.Bugs, error) {
 	b, err := d.client.Bugs.Query().
 		Where(predicate.Bugs(bugs.StatusNotIn("Waiting", "Release Pending", "Closed"))).
