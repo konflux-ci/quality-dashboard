@@ -617,6 +617,8 @@ async function getBugSLIs(team: string) {
       result.data = err.response.data;
     });
 
+  console.log("result of getBugSLIs", result)
+
   sortGlobalSLI(result.data.resolution_time_sli.bugs)
   sortGlobalSLI(result.data.response_time_sli.bugs)
   sortGlobalSLI(result.data.triage_time_sli.bugs)
@@ -707,7 +709,6 @@ async function getGlobalImpactData(team: string, job: string, repo: string, rang
       result.data = err.response.data;
     });
 
-  console.log(result)
   return result;
 }
 

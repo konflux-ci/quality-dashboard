@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/andygrunwald/go-jira"
@@ -80,22 +81,30 @@ func shouldBeDeleted(jiraKey string, bugs []jira.Issue) bool {
 			return false
 		}
 	}
+	fmt.Println("Deleted bug: ", jiraKey)
 	return true
 }
 
 func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
 	bugs := s.cfg.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys))
+	fmt.Println("[rotateJiraBugs] bugs", bugs)
 	if err := s.cfg.Storage.CreateJiraBug(bugs, team); err != nil {
+		fmt.Println("[rotateJiraBugs] err create", err)
 		return err
+	}
+
+	projects := strings.Split(team.JiraKeys, ",")
+	bugsInDb := make([]*db.Bugs, 0)
+
+	for _, project := range projects {
+		bgs, err := s.cfg.Storage.GetAllJiraBugsByProject(project)
+		if err != nil {
+			return err
+		}
+		bugsInDb = append(bugsInDb, bgs...)
 	}
 
 	// clean bugs that changed project or jira type
-	bugsInDb, err := s.cfg.Storage.GetAllJiraBugs()
-
-	if err != nil {
-		return err
-	}
-
 	for _, bugInDb := range bugsInDb {
 		deleted := shouldBeDeleted(bugInDb.JiraKey, bugs)
 		if deleted {
