@@ -195,7 +195,7 @@ Currently, we have defined three Service Level Objectives (SLOs):
 
 And three Service Level Indicators (SLIs):
 - **green**: means that the bug meets the defined SLO.
-- **yellow**: means that the bug is almost not meeting the defined SLO.
+- **yellow**: means that the bug is almost meeting the defined SLO.
 - **red**: means that the bug is not meeting the defined SLO.
 
 | **SLO**                          | **Target Value**                                                                                                                                    | **SLIs**                                                                                                                                                                                                                                                   |
