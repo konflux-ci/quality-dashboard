@@ -43,7 +43,11 @@ type JiraBugMetricsInfo struct {
 
 func getComponent(components []*jira.Component) string {
 	if len(components) != 0 {
-		return components[0].Name
+		component := components[0].Name
+		if component == "docs" && len(components) > 1 {
+			component = components[1].Name
+		}
+		return component
 	}
 
 	return "undefined"
