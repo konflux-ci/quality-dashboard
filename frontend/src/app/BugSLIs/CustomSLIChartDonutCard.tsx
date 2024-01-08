@@ -58,7 +58,7 @@ export const CustomSLIChartDonutCard = (props) => {
                     {title}
                     {props.title == 'Resolution Time Bug SLI' && (
                         help(
-                            <div><b>Number of Blocker, Critical, and Major bugs that meet Resolution Time Bug SLO.</b>
+                            <div><b>Number of Blocker, Critical, and Major bugs that do not meet Resolution Time Bug SLO.</b>
                                 <br /><br /><b>Red Blocker Bug Resolution Time SLI:</b> Unresolved for more than 10 days.
                                 <br /><br /><b>Yellow Blocker Bug Resolution Time SLI:</b> Unresolved for more than 5 days.
                                 <br /><br /><b>Red Critical Bug Resolution Time SLI:</b> Unresolved for more than 20 days.
@@ -68,13 +68,13 @@ export const CustomSLIChartDonutCard = (props) => {
                             </div>)
                     )}
                     {props.title == 'Response Time Bug SLI' && (
-                        help(<div><b>Number of Blocker and Critical bugs that meet Response Time Bug SLO.</b> <br /><br /><b>Red SLI</b>: Unassigned for more than 2 days on Blocker and Critical bugs.</div>)
+                        help(<div><b>Number of Blocker and Critical bugs that do not meet Response Time Bug SLO.</b> <br /><br /><b>Red SLI</b>: Unassigned for more than 2 days on Blocker and Critical bugs.</div>)
                     )}
                     {props.title == 'Priority Triage Time Bug SLI' && (
-                        help(<div><b>Number of untriaged bugs that meet Priority Triage Time Bug SLO.</b> <br /><br /><b>Red SLI</b>: Priority undefined for more than 2 days on untriaged bugs. <br /><br /> <b>Yellow SLI</b>: Priority undefined for more than 1 day on untriaged bugs.</div>)
+                        help(<div><b>Number of untriaged bugs that do not meet Priority Triage Time Bug SLO.</b> <br /><br /><b>Red SLI</b>: Priority undefined for more than 2 days on untriaged bugs. <br /><br /> <b>Yellow SLI</b>: Priority undefined for more than 1 day on untriaged bugs.</div>)
                     )}
                     {props.title == 'Component Assignment Triage Time SLI' && (
-                        help(<div><b>Number of bugs that meet Component Assignment Triage Time Bug SLO.</b> <br /><br /><b>Red SLI</b>: Component undefined for more than 1 day.</div>)
+                        help(<div><b>Number of bugs that do not meet Component Assignment Triage Time Bug SLO.</b> <br /><br /><b>Red SLI</b>: Component undefined for more than 1 day.</div>)
                     )}
                     {props.title == 'Global Bug SLI Status' && (
                         help(<div>Global Status of each opened bug.</div>)
