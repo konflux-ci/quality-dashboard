@@ -1,6 +1,8 @@
 package util
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"math"
 	"os"
 	"strconv"
@@ -90,4 +92,10 @@ func CheckIfEnvironmentExists(env string) bool {
 // Round float64 to 2 decimals
 func RoundTo(n float64, decimals uint32) float64 {
 	return math.Round(n*math.Pow(10, float64(decimals))) / math.Pow(10, float64(decimals))
+}
+
+func GenerateRandomString(length int) string {
+	bytes := make([]byte, (length+1)/2)
+	rand.Read(bytes)
+	return base64.URLEncoding.EncodeToString(bytes)[:length]
 }

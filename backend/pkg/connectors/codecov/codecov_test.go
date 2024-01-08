@@ -3,9 +3,9 @@ package codecov
 import (
 	"testing"
 
-	"github.com/devfile/library/pkg/util"
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/client"
+	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
