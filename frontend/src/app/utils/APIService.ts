@@ -2,10 +2,8 @@
 import axios, { AxiosResponse } from 'axios';
 import _ from 'lodash';
 import { JobsStatistics } from '@app/utils/sharedComponents';
-import { sortGlobalSLI, teamIsNotEmpty } from '@app/utils/utils';
+import { getRepoNameFormatted, sortGlobalSLI, teamIsNotEmpty } from '@app/utils/utils';
 import { formatDate } from '@app/Reports/utils';
-import { PrsStatistics } from '@app/Github/PullRequests';
-import { Job } from '@app/Reports/FailedE2ETests';
 
 type ApiResponse = {
   code: number;
@@ -193,6 +191,7 @@ async function getAllRepositoriesWithOrgs(team: string, openshift: boolean, rang
     repoAndOrgs = result.data.map((row) => {
       return {
         repoName: row.repository_name,
+        repoNameFormatted: getRepoNameFormatted(row.repository_name),
         organization: row.git_organization,
         description: row.description,
         url: row.git_url,

@@ -84,3 +84,15 @@ export const getLabels = (datum, prefix) => {
 export function sortGlobalSLI(bugs) {
   bugs.sort((a, b) => (a.global_sli > b.global_sli ? 1 : -1));
 }
+
+export const getRepoNameFormatted = (repoName) => {
+  if (repoName == "infra-deployments") {
+    return "RHTAP E2E Tests"
+  }
+
+  let formattedRepoName = repoName
+  formattedRepoName = formattedRepoName.replaceAll("-", " ");
+  formattedRepoName = formattedRepoName.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  formattedRepoName = formattedRepoName.replace("E2e", "E2E");
+  return "Individual Component - " + formattedRepoName
+}
