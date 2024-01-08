@@ -1,6 +1,8 @@
 package client
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"math"
 	"time"
@@ -125,4 +127,10 @@ func getWorkingDays(fromDate, toDate time.Time) float64 {
 	}
 
 	return workingDays
+}
+
+func generateRandomString(length int) string {
+	bytes := make([]byte, length/2)
+	rand.Read(bytes) // Ignoring the error for simplicity
+	return hex.EncodeToString(bytes)[:length]
 }
