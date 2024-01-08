@@ -3,11 +3,10 @@ package client
 import (
 	"testing"
 
-	"github.com/devfile/library/pkg/util"
 	"github.com/google/uuid"
 	s "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
-	"github.com/redhat-appstudio/quality-studio/pkg/utils"
+	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,7 +30,7 @@ func TestCreateRepository(t *testing.T) {
 	err = storage.DeleteRepository(toCreate.Name, toCreate.Owner.Login)
 	assert.NoError(t, err)
 
-	teamName := "team" + utils.GenerateRandomString(6)
+	teamName := "team" + util.GenerateRandomString(6)
 	teamDescription := teamName
 
 	// create a team
