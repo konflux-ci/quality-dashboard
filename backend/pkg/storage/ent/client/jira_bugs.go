@@ -353,6 +353,17 @@ func (d *Database) GetAllJiraBugs() ([]*db.Bugs, error) {
 	return bugsAll, nil
 }
 
+func (d *Database) GetAllJiraBugsByProject(project string) ([]*db.Bugs, error) {
+	bugsAll, err := d.client.Bugs.Query().
+		Where(predicate.Bugs(bugs.ProjectKey(project))).
+		All(context.Background())
+	if err != nil {
+		return nil, convertDBError("failed to return bugs: %w", err)
+	}
+
+	return bugsAll, nil
+}
+
 func (d *Database) DeleteJiraBugsByProject(projectKey string, team *db.Teams) error {
 	_, err := d.client.Bugs.Delete().Where(predicate.Bugs(bugs.ProjectKey(projectKey))).Exec(context.TODO())
 
