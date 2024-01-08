@@ -3,10 +3,10 @@ package client
 import (
 	"testing"
 
-	"github.com/devfile/library/pkg/util"
 	"github.com/google/uuid"
 	s "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
+	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
