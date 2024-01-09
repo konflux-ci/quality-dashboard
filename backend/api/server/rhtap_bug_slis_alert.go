@@ -119,7 +119,7 @@ func (s *Server) sendAlerts() {
 
 	// bugs, err := s.cfg.Storage.GetAllOpenRHTAPBUGS(startDate, toDate)
 
-	bugs, err := s.cfg.Storage.GetAllOpenRHTAPBUGS()
+	bugs, err := s.cfg.Storage.GetAllOpenRHTAPBUGSForSliAlerts()
 	if err != nil {
 		s.cfg.Logger.Sugar().Errorf("Failed to get all open RHTAP Bug SLOs", zap.Error(err))
 	}
