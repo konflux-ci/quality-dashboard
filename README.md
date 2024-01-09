@@ -211,7 +211,8 @@ You can also find metrics regarding how many bugs are not meeting or almost not 
 
 #### Bug SLIs alerts
 The SLIs alerts are sent daily at 9 AM by the RHTAP QE bot in the [rhtap-bug-slis-alerts](https://app.slack.com/client/E030G10V24F/C062AF1RFK8) channel.
-To send the alerts daily, we are using a chron job. You can find all the code on [rhtap_bug_slis_alert.go](https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/api/server/rhtap_bug_slis_alert.go#L143).
+To send the alerts daily, we are using a chron job. You can find all the code on [rhtap_bug_slis_alert.go](https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/api/server/rhtap_bug_slis_alert.go).
+Note that bugs with status as "Waiting" and "Release Pending" are excluded.
 
 #### How Bug SLIs are being got?
 As the first step, we need to know how many days the issues have not been resolved, prioritized, or assigned. So, when adding or updating a Jira Issue Bug, we need to keep this information on the bugs db table through ['DaysWithoutAssignee', 'DaysWithoutPriority', and 'DaysWithoutResolution' fields](https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/pkg/storage/ent/client/jira_bugs.go#L73C6-L75).

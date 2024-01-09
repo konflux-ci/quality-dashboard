@@ -534,6 +534,21 @@ func (d *Database) GetAllOpenRHTAPBUGS() ([]*db.Bugs, error) {
 	return b, nil
 }
 
+// GetAllOpenRHTAPBUGSForSliAlerts gets all the RHTAPBUGS that are open
+// except bugs with status as "Waiting" or "Release Pending"
+func (d *Database) GetAllOpenRHTAPBUGSForSliAlerts() ([]*db.Bugs, error) {
+	b, err := d.client.Bugs.Query().
+		Where(predicate.Bugs(bugs.StatusNotIn("Waiting", "Release Pending", "Closed"))).
+		Where(predicate.Bugs(bugs.ProjectKey("RHTAPBUGS"))).
+		All(context.TODO())
+
+	if err != nil {
+		return nil, convertDBError("failed to return bugs: %w", err)
+	}
+
+	return b, nil
+}
+
 func getAssignee(user *jira.User) string {
 	if user != nil {
 		return user.Key

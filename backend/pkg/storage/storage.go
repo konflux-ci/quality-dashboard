@@ -44,6 +44,7 @@ type Storage interface {
 	GetAllJiraBugsByProject(project string) ([]*db.Bugs, error)
 	// GetAllOpenRHTAPBUGS(dateFrom, dateTo string) ([]*db.Bugs, error)
 	GetAllOpenRHTAPBUGS() ([]*db.Bugs, error)
+	GetAllOpenRHTAPBUGSForSliAlerts() ([]*db.Bugs, error)
 	GetPullRequestsByRepository(repositoryName, organization, startDate, endDate string) (repoV1Alpha1.PullRequestsInfo, error)
 	GetFrequency(team *db.Teams, errorMessage, startDate, endDate string) (float64, error)
 	GetJiraBug(key string) (*db.Bugs, error)

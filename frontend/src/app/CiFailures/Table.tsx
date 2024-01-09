@@ -171,8 +171,8 @@ export const ComposableTable: React.FC<{ failures: any, modal: any }> = ({ failu
 
     // Sort helpers
     const getSortableRowValues = (failure: FailureInfo): (string | number)[] => {
-        const { jira_key, jira_status, error_message, frequency } = failure;
-        return [jira_key, jira_status, error_message, frequency];
+        const { jira_key, title_from_jira, jira_status, error_message, frequency, created_date, closed_date, labels } = failure;
+        return [jira_key, title_from_jira, jira_status, error_message, frequency, created_date, closed_date, labels];
     };
 
     const sortRows = (rows) => {
