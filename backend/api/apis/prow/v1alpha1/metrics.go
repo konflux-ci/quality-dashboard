@@ -2,69 +2,83 @@ package v1alpha1
 
 // JobsMetrics return a set of ci metric for every repository in quality studio database
 type JobsMetrics struct {
-	// Indicate a GitHub repository name. "e2e-tests", "kubernetes"
-	RepositoryName string `json:"repository_name"`
-
-	// PostSubmits, periodics or presubmits
-	JobType string `json:"type"`
-
 	// Indicate a GitHub organization name
 	GitOrganization string `json:"git_organization"`
 
-	// A set of Jobs
-	Jobs []Jobs `json:"jobs"`
-}
+	// Indicate a GitHub repository name. "e2e-tests", "kubernetes"
+	RepositoryName string `json:"repository_name"`
 
-// Metrics for specific job name
-type Jobs struct {
 	// Name of a prow job
-	Name string `json:"name"`
+	JobName string `json:"name"`
 
-	// Metadata about jobs
-	Summary Summary `json:"summary"`
+	// A set of metrics about a specific job name
+	JobsRuns JobsRuns `json:"jobs_runs"`
 
-	// Set of metrics about job
-	Metrics []Metrics `json:"metrics"`
+	// Metrics which show how CI jobs are impacted
+	JobsImpacts JobsImpacts `json:"jobs_impacts"`
 }
 
-// Set of Metrics for a specific job
-type Metrics struct {
-	// Return the count of successful jobs
-	SuccessCount float64 `json:"success_count"`
+// Return basic metrics for a specific job in prow
+type JobsRuns struct {
+	// All the jobs executed for a job
+	Total int `json:"total"`
 
-	// Return the count of failed jobs
-	FailureCount float64 `json:"failure_count"`
+	// Total number of jobs which finished in success
+	Success int `json:"success"`
 
-	// Return the count of failed jobs due to e2e tests errors
-	JobFailedByE2ETestsCount float64 `json:"failure_by_e2e_tests_count"`
+	// Total number of jobs which finished in fail
+	Failures int `json:"failures"`
 
-	// Return the count of failed jobs due to build errors like installation errors
-	JobFailedByBuildErrorsCount float64 `json:"failure_by_build_errors_count"`
+	// Percentage of all success jobs executed for a specific job
+	SuccessPercentage float64 `json:"success_percentage"`
 
-	// Return the count of jobs that were not scheduled
-	JobNotScheduledCount float64 `json:"not_scheduled_count"`
-
-	// Return the total number of jobs
-	TotalJobs float64 `json:"total_jobs"`
-
-	// Return the date
-	Date string `json:"date"`
+	// Percentage of all success jobs executed for a specific job
+	FailedPercentage float64 `json:"failed_percentage"`
 }
 
-type Summary struct {
-	DateFrom string `json:"date_from"`
+// Indicate why Openshift CI jobs are failing
+type JobsImpacts struct {
+	// Show trends of infrastructure impact in ci jobs
+	InfrastructureImpact InfrastructureImpact `json:"infrastructure_impact"`
 
-	DateTo string `json:"date_to"`
+	// Show trends about flaky tests impact in ci jobs
+	FlakyTestsImpact FlakyTestsImpact `json:"flaky_tests_impact"`
 
-	SuccessCount float64 `json:"success_count"`
+	// Show trends about flaky tests impact in ci jobs
+	ExternalServicesImpact ExternalServicesImpact `json:"external_services_impact"`
 
-	JobFailedCount float64 `json:"failure_count"`
+	// Show trends about undetected failures by quality dashboard impact in ci jobs
+	UnknowFailuresImpact UnknowFailuresImpact `json:"unknown_failures_impact"`
+}
 
-	JobFailedByE2ETestsCount float64 `json:"failure_by_e2e_tests_count"`
+type InfrastructureImpact struct {
+	// Number of total jobs executed in ci
+	Total int `json:"total"`
 
-	JobFailedByBuildErrorsCount float64 `json:"failure_by_build_errors_count"`
+	// The percentage of the total job impacted
+	Percentage float64 `json:"percentage"`
+}
 
-	JobNotScheduledCount float64 `json:"not_scheduled_count"`
+type FlakyTestsImpact struct {
+	// Number of total jobs executed in ci
+	Total int64 `json:"total"`
 
-	TotalJobs float64 `json:"total_jobs"`
+	// The percentage of the total job impacted
+	Percentage int64 `json:"percentage"`
+}
+
+type ExternalServicesImpact struct {
+	// Number of total jobs executed in ci
+	Total int64 `json:"total"`
+
+	// The percentage of the total job impacted
+	Percentage int64 `json:"percentage"`
+}
+
+type UnknowFailuresImpact struct {
+	// Number of total jobs executed in ci
+	Total int64 `json:"total"`
+
+	// The percentage of the total job impacted
+	Percentage int64 `json:"percentage"`
 }

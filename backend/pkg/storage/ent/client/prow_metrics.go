@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
@@ -11,8 +10,96 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
 )
 
+func (d *Database) ObtainProwMetricsByJob(gitOrganization string, repositoryName string, jobName string, startDate string, endDate string) *prowV1Alpha1.JobsMetrics {
+	repo, err := d.client.Repository.Query().Where(repository.GitOrganization(gitOrganization)).Where(repository.RepositoryName(repositoryName)).First(context.Background())
+	if err != nil {
+		return nil
+	}
+
+	dbJobs, err := d.client.Repository.QueryProwJobs(repo).
+		Where(prowjobs.JobName(jobName)).
+		Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
+			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
+		}).
+		All(context.Background())
+	if err != nil {
+		return nil
+	}
+
+	numberOfSuccessJobs, _ := d.GetNumberOfSuccessJobs(repo, jobName, startDate, endDate)
+
+	numberOfFailedJobs, _ := d.GetNumberOfFailedJobs(repo, jobName, startDate, endDate)
+	numberOfInfraImpactJobs, _ := d.GetNumberOfInfraImpact(repo, jobName, startDate, endDate)
+
+	flaky, _ := d.GetSuitesFailureFrequency(gitOrganization, repositoryName, jobName, startDate, endDate)
+
+	return &prowV1Alpha1.JobsMetrics{
+		GitOrganization: gitOrganization,
+		RepositoryName:  repositoryName,
+		JobName:         jobName,
+		JobsRuns: prowV1Alpha1.JobsRuns{
+			Total:             len(dbJobs),
+			Success:           numberOfSuccessJobs,
+			Failures:          numberOfFailedJobs,
+			SuccessPercentage: util.RoundTo((float64(numberOfSuccessJobs)/float64(len(dbJobs)))*100, 2),
+			FailedPercentage:  util.RoundTo((float64(numberOfFailedJobs)/float64(len(dbJobs)))*100, 2),
+		},
+		JobsImpacts: prowV1Alpha1.JobsImpacts{
+			InfrastructureImpact: prowV1Alpha1.InfrastructureImpact{
+				Total:      numberOfInfraImpactJobs,
+				Percentage: util.RoundTo((float64(numberOfInfraImpactJobs)/float64(len(dbJobs)))*100, 2),
+			},
+			FlakyTestsImpact: prowV1Alpha1.FlakyTestsImpact{
+				Percentage: int64(flaky.GlobalImpact),
+				Total:      int64(flaky.JobsExecuted),
+			},
+		},
+	}
+}
+
+func (d *Database) GetNumberOfSuccessJobs(repo *db.Repository, jobName string, startDate string, endDate string) (totalSuccess int, err error) {
+	return d.client.Repository.QueryProwJobs(repo).
+		Where(prowjobs.JobName(jobName)).
+		Where(prowjobs.State(string(prow.SuccessState))).
+		Where(func(s *sql.Selector) { // "merged_at BETWEEN ? AND 2022-08-17", "2022-08-16"
+			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
+		}).
+		Aggregate(
+			db.Count(),
+		).
+		Int(context.Background())
+}
+
+func (d *Database) GetNumberOfFailedJobs(repo *db.Repository, jobName string, startDate string, endDate string) (totalSuccess int, err error) {
+	return d.client.Repository.QueryProwJobs(repo).
+		Where(prowjobs.JobName(jobName)).
+		Where(prowjobs.State(string(prow.FailureState))).
+		Where(func(s *sql.Selector) { // "merged_at BETWEEN ? AND 2022-08-17", "2022-08-16"
+			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
+		}).
+		Aggregate(
+			db.Count(),
+		).
+		Int(context.Background())
+}
+
+func (d *Database) GetNumberOfInfraImpact(repo *db.Repository, jobName string, startDate string, endDate string) (totalSuccess int, err error) {
+	return d.client.Repository.QueryProwJobs(repo).
+		Where(prowjobs.JobName(jobName)).
+		Where(prowjobs.State(string(prow.ErrorState))).
+		Where(func(s *sql.Selector) { // "merged_at BETWEEN ? AND 2022-08-17", "2022-08-16"
+			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
+		}).
+		Aggregate(
+			db.Count(),
+		).
+		Int(context.Background())
+}
+
+/*
 func (d *Database) GetMetrics(gitOrganization, repoName, jobType, startDate, endDate string) (prowV1Alpha1.JobsMetrics, error) {
 	var metrics prowV1Alpha1.JobsMetrics
 	metrics.GitOrganization = gitOrganization
@@ -190,3 +277,4 @@ func removeDuplicateStr(strSlice []string) []string {
 	}
 	return list
 }
+*/

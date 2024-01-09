@@ -21,6 +21,8 @@ const (
 	ProwEndpoint       = "https://prow.ci.openshift.org/prowjobs.js"
 )
 
+var JunitRegexpSearch = regexp.MustCompile(`(j?unit|e2e)-?[0-9a-z]+\.xml`)
+
 func (s *Server) UpdateProwStatusByTeam() {
 	prowjobs, err := fetchJobsJSON(ProwEndpoint)
 	if err != nil {
@@ -58,10 +60,10 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 
 		var suites []byte
 		if job.Spec.Type == "periodic" {
-			suites = s.cfg.GCS.GetJobJunitContent("", "", "", job.Status.BuildID, job.Spec.Type, job.Spec.Job)
+			suites = s.cfg.GCS.GetJobJunitContent("", "", "", job.Status.BuildID, job.Spec.Type, job.Spec.Job, JunitRegexpSearch)
 		} else if job.Spec.Type == "presubmit" {
 			suites = s.cfg.GCS.GetJobJunitContent(repo.GitOrganization, repo.RepositoryName, ExtractPullRequestNumberFromLabels(job.Labels),
-				job.Status.BuildID, job.Spec.Type, job.Spec.Job)
+				job.Status.BuildID, job.Spec.Type, job.Spec.Job, JunitRegexpSearch)
 		}
 
 		if len(suites) > 0 {
@@ -223,13 +225,13 @@ func (s *Server) ErrorsUpdateInProwJobs() {
 			// to cover the cases where we were not collecting e2e failed error messages like in hac jobs
 			var suites []byte
 			if pj.JobType == "periodic" {
-				suites = s.cfg.GCS.GetJobJunitContent("", "", "", pj.JobID, pj.JobType, pj.JobName)
+				suites = s.cfg.GCS.GetJobJunitContent("", "", "", pj.JobID, pj.JobType, pj.JobName, JunitRegexpSearch)
 			} else if pj.JobType == "presubmit" {
 				prNumber := getPRNumber(pj.JobURL)
 
 				if prNumber != "" {
 					suites = s.cfg.GCS.GetJobJunitContent("redhat-appstudio", "infra-deployments", prNumber,
-						pj.JobID, pj.JobType, pj.JobName)
+						pj.JobID, pj.JobType, pj.JobName, JunitRegexpSearch)
 				} else {
 					s.cfg.Logger.Sugar().Warnf("Failed to get pr number from ", pj.JobURL)
 				}
