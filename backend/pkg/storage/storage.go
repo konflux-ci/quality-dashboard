@@ -42,6 +42,8 @@ type Storage interface {
 	ListRepositoriesQualityInfo(team *db.Teams, startDate, endDate string) ([]RepositoryQualityInfo, error)
 	GetAllJiraBugs() ([]*db.Bugs, error)
 	GetAllJiraBugsByProject(project string) ([]*db.Bugs, error)
+	GetJobsNameAndType(repo *db.Repository) ([]*db.ProwJobs, error)
+
 	// GetAllOpenRHTAPBUGS(dateFrom, dateTo string) ([]*db.Bugs, error)
 	GetAllOpenRHTAPBUGS() ([]*db.Bugs, error)
 	GetPullRequestsByRepository(repositoryName, organization, startDate, endDate string) (repoV1Alpha1.PullRequestsInfo, error)

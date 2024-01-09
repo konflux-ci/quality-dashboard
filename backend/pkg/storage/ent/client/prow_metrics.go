@@ -60,6 +60,37 @@ func (d *Database) ObtainProwMetricsByJob(gitOrganization string, repositoryName
 	}
 }
 
+func (d *Database) GetJobsNameAndType(repo *db.Repository) ([]*db.ProwJobs, error) {
+	dbJobs, err := d.client.Repository.QueryProwJobs(repo).
+		Select(prowjobs.FieldJobName).
+		Select(prowjobs.FieldJobType).
+		All(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Create a map to store unique values of the jobNames
+	uniqueProwJobs := make(map[string]*db.ProwJobs)
+
+	// Iterate through the original array
+	for _, s := range dbJobs {
+		if _, found := uniqueProwJobs[s.JobName]; !found {
+			uniqueProwJobs[s.JobName] = s
+		}
+	}
+
+	// Create a new array to store unique structs
+	var prowJobs []*db.ProwJobs
+
+	// Iterate through the map and append unique structs to the new array
+	for _, value := range uniqueProwJobs {
+		prowJobs = append(prowJobs, value)
+	}
+
+	return prowJobs, nil
+}
+
 func (d *Database) GetNumberOfSuccessJobs(repo *db.Repository, jobName string, startDate string, endDate string) (totalSuccess int, err error) {
 	return d.client.Repository.QueryProwJobs(repo).
 		Where(prowjobs.JobName(jobName)).
