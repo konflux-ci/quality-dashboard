@@ -567,7 +567,6 @@ let Reports = () => {
                                 <CardBody>
                                   <Title headingLevel="h1" style={{minHeight: "2em"}}>
                                     {prowJobsStats.jobs_runs ? prowJobsStats.jobs_runs.success_percentage : "-"}%
-                                    <OkIcon style={{ fontSize: "1rem", margin: "0 5px" }}></OkIcon>
                                   </Title>
                                 </CardBody>
                                 <CardFooter style={{ color: "black" }}>
@@ -589,7 +588,6 @@ let Reports = () => {
                                 <CardBody>
                                   <Title headingLevel="h1" style={{minHeight: "2em"}}>
                                     {prowJobsStats.jobs_runs ? prowJobsStats.jobs_runs.failed_percentage : "-"}%
-                                    <ExclamationCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></ExclamationCircleIcon>
                                   </Title>
                                 </CardBody>
                                 <CardFooter style={{ color: "black" }}>
