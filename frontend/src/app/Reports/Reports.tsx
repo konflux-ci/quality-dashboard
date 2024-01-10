@@ -386,7 +386,26 @@ let Reports = () => {
 
             } 
             else {
-              clearAll()
+              setRepoName(data[0].Repository.Name)
+              setRepoNameFormatted(data[0].Repository.Name)
+              setRepoOrg(data[0].Repository.Owner.Login)
+              setjobType("presubmit") // all repos in OpenShift CI have presubmit type job
+
+              getJobNamesAndTypes(data[0].Repository.Name, data[0].Repository.Owner.Login)
+                .then((data: any) => {
+                  setJobMeta(data)
+                  setJobTypes(data.map(el => el.job_type).filter((value, index, self) => self.indexOf(value) === index))
+                  setJobNames(data.map(el => el.job_name).filter((value, index, self) => self.indexOf(value) === index))
+                  setjobName(data[0].job_name)
+                  setjobType(data[0].job_type)
+                }
+              );
+
+              const start_date = formatDate(rangeDateTime[0])
+              const end_date = formatDate(rangeDateTime[1])
+
+              history.push('/reports/test?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName
+                + '&job_type=presubmit' + '&start=' + start_date + '&end=' + end_date)
               setLoadingState(false)
             }
 
@@ -513,13 +532,13 @@ let Reports = () => {
                   <Grid hasGutter>
                     <GridItem span={5} rowSpan={1}>
                       <Card style={{minHeight: "30vh"}}>
-                        <CardTitle><Title headingLevel="h1">Jobs Executed</Title></CardTitle>
+                        <CardTitle>Jobs Executed</CardTitle>
                         <CardBody>
                           <Text component={TextVariants.p} style={{minHeight: "2em"}}>Number of jobs executed in the selected time range, with success and failure rate. </Text>
                           <Flex className="example-border" justifyContent={{ default: 'justifyContentSpaceEvenly' }} flexWrap={{ default: 'nowrap' }} direction={{ default: 'column', sm: 'row' }}>
                             <FlexItem>
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center" }}>
-                                <CardTitle component="h1">
+                                <CardTitle>
                                   <Title headingLevel="h1" size={TitleSizes['2xl']}>
                                     {prowJobsStats.jobs_runs ? prowJobsStats.jobs_runs.total : "-"}
                                   </Title>
@@ -538,7 +557,7 @@ let Reports = () => {
                             <Divider orientation={{ default: 'vertical' }} />
                             <FlexItem>
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center", color: "#1E4F18" }}>
-                                <CardTitle component="h1">
+                                <CardTitle>
                                   <Title headingLevel="h1" size={TitleSizes['2xl']}>
                                     {prowJobsStats.jobs_runs ? prowJobsStats.jobs_runs.success : "-"}
                                   </Title>
@@ -560,7 +579,7 @@ let Reports = () => {
                             <Divider orientation={{ default: 'vertical' }} />
                             <FlexItem>
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000" }}>
-                                <CardTitle component="h1">
+                                <CardTitle>
                                   <Title headingLevel="h1" size={TitleSizes['2xl']}>
                                     {prowJobsStats.jobs_runs ? prowJobsStats.jobs_runs.failures : "-"}
                                   </Title>
@@ -586,14 +605,14 @@ let Reports = () => {
                     </GridItem>
                     <GridItem span={7} rowSpan={1}>
                       <Card style={{minHeight: "30vh"}}>
-                        <CardTitle><Title headingLevel="h1">Failures</Title></CardTitle>
+                        <CardTitle>Failures</CardTitle>
                         <CardBody>
                           <Text component={TextVariants.p} style={{minHeight: "2em"}}>The percentage of failures grouped by most common reasons, considering the failed jobs in the selected time range.</Text>
                           <Flex className="example-border" justifyContent={{ default: 'justifyContentSpaceBetween' }} flexWrap={{ default: 'nowrap' }} direction={{ default: 'column', sm: 'row' }}>
                             <FlexItem></FlexItem>
                             <FlexItem>
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000" }}>
-                                <CardTitle component="h1">
+                                <CardTitle>
                                   <Title headingLevel="h1" size={TitleSizes['2xl']}>
                                     {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.infrastructure_impact.total : "-"}
                                   </Title>
@@ -614,7 +633,7 @@ let Reports = () => {
                             <Divider orientation={{ default: 'vertical' }} />
                             <FlexItem>
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000" }}>
-                                <CardTitle component="h1">
+                                <CardTitle>
                                   <Title headingLevel="h1" size={TitleSizes['2xl']}>
                                   {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.external_services_impact.total : "-"}
                                   </Title>
@@ -635,7 +654,7 @@ let Reports = () => {
                             <Divider orientation={{ default: 'vertical' }} />
                             <FlexItem>
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000" }}>
-                                <CardTitle component="h1">
+                                <CardTitle>
                                   <Title headingLevel="h1" size={TitleSizes['2xl']}>
                                     {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.flaky_tests_impact.total : "-"}
                                   </Title>
@@ -658,7 +677,7 @@ let Reports = () => {
                             <Divider orientation={{ default: 'vertical' }} />
                             <FlexItem>
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000" }}>
-                                <CardTitle component="h1">
+                                <CardTitle >
                                   <Title headingLevel="h1" size={TitleSizes['2xl']}>
                                     {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.unknown_failures_impact.total : "-"}
                                   </Title>
