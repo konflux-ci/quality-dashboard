@@ -182,8 +182,10 @@ let Reports = () => {
           setJobMeta(data)
           setJobTypes(data.map(el => el.job_type).filter((value, index, self) => self.indexOf(value) === index))
           setJobNames(data.map(el => el.job_name).filter((value, index, self) => self.indexOf(value) === index))
-          setjobType("presubmit") // all repos in OpenShift CI have presubmit type job
-          params.set("job_type", "presubmit")
+          setjobType(data[0].job_type)
+          setjobName(data[0].job_name)
+          params.set("job_type", data[0].job_type)
+          params.set("job_name", data[0].job_name)
           params.set("start", formatDate(rangeDateTime[0]))
           params.set("end", formatDate(rangeDateTime[1]))
           history.push(window.location.pathname + '?' + params.toString());
@@ -666,7 +668,7 @@ let Reports = () => {
                                 </CardBody>
                                 <CardFooter style={{ color: "black" }}>
                                   <div style={{minHeight: "3em"}}>
-                                    {prowJobsStats ? <a href={'/home/flaky?team=' + currentTeam + '&repository=' + repoName + '&job=' + jobName + '&start=' + start.toISOString() + '&end=' + end.toISOString()}>Flaky Tests (see more)</a> : "Flaky Tests"}
+                                    {prowJobsStats ? <a href={'/home/flaky?team=' + currentTeam + '&repository=' + repoName + '&job=' + jobName + '&start=' + start.toISOString() + '&end=' + end.toISOString()}>Flaky Tests</a> : "Flaky Tests"}
                                   </div>
                                   <Tooltip content={<div>Count and percentage of jobs that failed due to flaky tests, considering the failing jobs in the selected period of time. See the flaky tests page to see more details.</div>}>
                                     <InfoCircleIcon></InfoCircleIcon>
