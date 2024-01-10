@@ -58,7 +58,7 @@ export function isValidTeam() {
 
 // validateRepositoryParams validates if the 'repository' and 'organization' exists in 'repos'
 export function validateRepositoryParams(repos, repository, organization) {
-  if (repos.find((r) => r.organization == organization && r.repoName == repository)) {
+  if (repos.find((r) => r.Repository.Owner.Login == organization && r.Repository.Name == repository)) {
     return true;
   }
   return false;

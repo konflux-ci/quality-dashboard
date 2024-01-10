@@ -724,12 +724,40 @@ async function getGlobalImpactData(team: string, job: string, repo: string, star
   return result;
 }
 
+async function listTeamRepos(team: string) {
+  let repos = [];
+
+  if (!teamIsNotEmpty(team)) return repos;
+
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/prow/repositories/list?team_name=' + team 
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  if (result.code != 200) {
+    throw 'Error fetching data from server.';
+  } else {
+    repos = result.data.sort((a, b) => (a.repository_name < b.repository_name ? -1 : 1));
+  }
+  return repos;
+}
+
 export {
   getVersion,
   getRepositories,
   createRepository,
   getWorkflowByRepositoryName,
   getAllRepositoriesWithOrgs,
+  listTeamRepos,
   getLatestProwJob,
   getProwJobStatistics,
   getProwJobs,

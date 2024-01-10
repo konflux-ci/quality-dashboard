@@ -23,7 +23,7 @@ import {
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
-import { getAllRepositoriesWithOrgs, getFlakyData, getJobTypes, getProwJobStatistics, getProwJobs, getTeams, getJobNamesAndTypes } from '@app/utils/APIService';
+import { getFlakyData, getProwJobStatistics, getTeams, getJobNamesAndTypes, listTeamRepos } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
 import {
   JobsStatistics,
@@ -58,7 +58,7 @@ let Reports = () => {
   Toolbar dropdowns logic and helpers
   */
 
-  const [repositories, setRepositories] = useState<{ repoName: string, repoNameFormatted: string, organization: string, isPlaceholder?: boolean }[]>([]);
+  const [repositories, setRepositories] = useState<any[]>([]);
   const [repoName, setRepoName] = useState("");
   const [repoNameFormatted, setRepoNameFormatted] = useState("");
   const [repoOrg, setRepoOrg] = useState("");
@@ -170,14 +170,14 @@ let Reports = () => {
       clearRepo()
     }
     else {
-      setRepoName(repositories[selection].repoName);
-      setRepoNameFormatted(repositories[selection].repoNameFormatted);
-      setRepoOrg(repositories[selection].organization);
+      setRepoName(repositories[selection].Repository.Name);
+      setRepoNameFormatted(repositories[selection].Repository.Name);
+      setRepoOrg(repositories[selection].Repository.Owner.Login);
       setRepoNameToggle(false)
-      params.set("repository", repositories[selection].repoName)
-      params.set("organization", repositories[selection].organization)
+      params.set("repository", repositories[selection].Repository.Name)
+      params.set("organization", repositories[selection].Repository.Owner.Login)
 
-      getJobNamesAndTypes(repositories[selection].repoName, repositories[selection].organization)
+      getJobNamesAndTypes(repositories[selection].Repository.Name, repositories[selection].Repository.Owner.Login)
         .then((data: any) => {
           setJobMeta(data)
           setJobTypes(data.map(el => el.job_type).filter((value, index, self) => self.indexOf(value) === index))
@@ -350,7 +350,7 @@ let Reports = () => {
       const start = params.get("start")
       const end = params.get("end")
 
-      getAllRepositoriesWithOrgs(state.teams.Team, true, rangeDateTime)
+      listTeamRepos(state.teams.Team)
         .then((data: any) => {
           let dropDescr = ""
           if (data.length < 1 && (team == state.teams.Team || team == null)) {
@@ -367,7 +367,7 @@ let Reports = () => {
 
               if (validateRepositoryParams(data, repository, organization)) {
                 setRepoName(repository)
-                setRepoNameFormatted(getRepoNameFormatted(repository))
+                setRepoNameFormatted(repository)
                 setRepoOrg(organization)
                 setRangeDateTime([new Date(start), new Date(end)])
                 getJobNamesAndTypes(repository, organization)
@@ -434,7 +434,7 @@ let Reports = () => {
                     placeholderText="Select a repository"
                   >
                     {repositories.map((value, index) => (
-                      <SelectOption key={index} value={index} description={value.repoName + "/" + value.organization} isDisabled={value.isPlaceholder}>{value.repoNameFormatted}</SelectOption>
+                      <SelectOption key={index} value={index} description={value.Repository.Name + "/" + value.Repository.Owner.Login} isDisabled={value.isPlaceholder}>{value.Repository.Name}</SelectOption>
                     ))}
                   </Select>
                 </ToolbarItem>
@@ -513,10 +513,9 @@ let Reports = () => {
                   <Grid hasGutter>
                     <GridItem span={5} rowSpan={1}>
                       <Card style={{minHeight: "30vh"}}>
-                        <CardTitle component="h1"><Title headingLevel="h1">Jobs Executed</Title></CardTitle>
+                        <CardTitle><Title headingLevel="h1">Jobs Executed</Title></CardTitle>
                         <CardBody>
-                          <Text component={TextVariants.p}>Number of jobs executed in the selected time range, with success and failure rate. </Text>
-                          <br></br>
+                          <Text component={TextVariants.p} style={{minHeight: "2em"}}>Number of jobs executed in the selected time range, with success and failure rate. </Text>
                           <Flex className="example-border" justifyContent={{ default: 'justifyContentSpaceEvenly' }} flexWrap={{ default: 'nowrap' }} direction={{ default: 'column', sm: 'row' }}>
                             <FlexItem>
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center" }}>
@@ -526,12 +525,12 @@ let Reports = () => {
                                   </Title>
                                 </CardTitle>
                                 <CardBody>
-                                  <Title headingLevel="h1">Total</Title>
+                                  <Title headingLevel="h1" style={{minHeight: "2em"}}>Total</Title>
                                 </CardBody>
                                 <CardFooter style={{ color: "black" }}>
-                                  Job Runs
+                                  <div style={{minHeight: "3em"}}>Job Runs</div>
                                   <Tooltip content={<div>Total number of jobs executed in the selected time range.</div>}>
-                                    <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
+                                    <InfoCircleIcon></InfoCircleIcon>
                                   </Tooltip>
                                 </CardFooter>
                               </Card>
@@ -545,15 +544,15 @@ let Reports = () => {
                                   </Title>
                                 </CardTitle>
                                 <CardBody>
-                                  <Title headingLevel="h1">
+                                  <Title headingLevel="h1" style={{minHeight: "2em"}}>
                                     {prowJobsStats.jobs_runs ? prowJobsStats.jobs_runs.success_percentage : "-"}%
-                                    <OkIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></OkIcon>
+                                    <OkIcon style={{ fontSize: "1rem", margin: "0 5px" }}></OkIcon>
                                   </Title>
                                 </CardBody>
                                 <CardFooter style={{ color: "black" }}>
-                                  Completed Jobs
+                                  <div style={{minHeight: "3em"}}>Completed Jobs</div>
                                   <Tooltip content={<div>Count and percentage of jobs that completed successfully.</div>}>
-                                    <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
+                                    <InfoCircleIcon></InfoCircleIcon>
                                   </Tooltip>
                                 </CardFooter>
                               </Card>
@@ -567,15 +566,15 @@ let Reports = () => {
                                   </Title>
                                 </CardTitle>
                                 <CardBody>
-                                  <Title headingLevel="h1">
+                                  <Title headingLevel="h1" style={{minHeight: "2em"}}>
                                     {prowJobsStats.jobs_runs ? prowJobsStats.jobs_runs.failed_percentage : "-"}%
                                     <ExclamationCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></ExclamationCircleIcon>
                                   </Title>
                                 </CardBody>
                                 <CardFooter style={{ color: "black" }}>
-                                  Failed Jobs
+                                  <div style={{minHeight: "3em"}}>Failed Jobs</div>
                                   <Tooltip content={<div>Count and percentage of jobs that failed. See the Failures card to understand the most relevant reasons of failure.</div>}>
-                                    <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
+                                    <InfoCircleIcon></InfoCircleIcon>
                                   </Tooltip>
                                 </CardFooter>
                               </Card>
@@ -587,11 +586,11 @@ let Reports = () => {
                     </GridItem>
                     <GridItem span={7} rowSpan={1}>
                       <Card style={{minHeight: "30vh"}}>
-                        <CardTitle component="h1"><Title headingLevel="h1">Failures</Title></CardTitle>
+                        <CardTitle><Title headingLevel="h1">Failures</Title></CardTitle>
                         <CardBody>
-                          <Text component={TextVariants.p}>The percentage of failures grouped by most common reasons, considering the failed jobs in the selected time range.</Text>
-                          <br></br>
+                          <Text component={TextVariants.p} style={{minHeight: "2em"}}>The percentage of failures grouped by most common reasons, considering the failed jobs in the selected time range.</Text>
                           <Flex className="example-border" justifyContent={{ default: 'justifyContentSpaceBetween' }} flexWrap={{ default: 'nowrap' }} direction={{ default: 'column', sm: 'row' }}>
+                            <FlexItem></FlexItem>
                             <FlexItem>
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000" }}>
                                 <CardTitle component="h1">
@@ -600,14 +599,14 @@ let Reports = () => {
                                   </Title>
                                 </CardTitle>
                                 <CardBody>
-                                  <Title headingLevel="h1">
+                                  <Title headingLevel="h1" style={{minHeight: "2em"}}>
                                     {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.infrastructure_impact.percentage : "-"}%
                                   </Title>
                                 </CardBody>
                                 <CardFooter style={{ color: "black" }}>
-                                  CI Fail
+                                  <div style={{minHeight: "3em"}}>CI Fail</div>
                                   <Tooltip content={<div>Count and percentage of jobs that failed due to CI infrastructure (cases where the job was not scheduled, for example), considering the failing jobs in the selected period of time.</div>}>
-                                    <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
+                                    <InfoCircleIcon></InfoCircleIcon>
                                   </Tooltip>
                                 </CardFooter>
                               </Card>
@@ -621,14 +620,14 @@ let Reports = () => {
                                   </Title>
                                 </CardTitle>
                                 <CardBody>
-                                  <Title headingLevel="h1"> 
+                                  <Title headingLevel="h1" style={{minHeight: "2em"}}> 
                                   {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.external_services_impact.percentage : "-"}%
                                   </Title>
                                 </CardBody>
                                 <CardFooter style={{ color: "black" }}>
-                                  External Services Outage
+                                  <div style={{minHeight: "3em"}}>External Services Outage</div>
                                   <Tooltip content={<div>Count and percentage of jobs that failed due to external services outage (like Github, Quay.io, etc.), considering the failing jobs in the selected period of time.</div>}>
-                                    <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
+                                    <InfoCircleIcon></InfoCircleIcon>
                                   </Tooltip>
                                 </CardFooter>
                               </Card>
@@ -642,14 +641,16 @@ let Reports = () => {
                                   </Title>
                                 </CardTitle>
                                 <CardBody>
-                                  <Title headingLevel="h1">
+                                  <Title headingLevel="h1" style={{minHeight: "2em"}}>
                                     {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.flaky_tests_impact.percentage : "-"}%
                                   </Title>
                                 </CardBody>
                                 <CardFooter style={{ color: "black" }}>
-                                  {prowJobsStats ? <a href={'/home/flaky?team=' + currentTeam + '&repository=' + repoName + '&job=' + jobName + '&start=' + start.toISOString() + '&end=' + end.toISOString()}>Flaky Tests (see more)</a> : "Flaky Tests"}
+                                  <div style={{minHeight: "3em"}}>
+                                    {prowJobsStats ? <a href={'/home/flaky?team=' + currentTeam + '&repository=' + repoName + '&job=' + jobName + '&start=' + start.toISOString() + '&end=' + end.toISOString()}>Flaky Tests (see more)</a> : "Flaky Tests"}
+                                  </div>
                                   <Tooltip content={<div>Count and percentage of jobs that failed due to flaky tests, considering the failing jobs in the selected period of time. See the flaky tests page to see more details.</div>}>
-                                    <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
+                                    <InfoCircleIcon></InfoCircleIcon>
                                   </Tooltip>
                                 </CardFooter>
                               </Card>
@@ -663,14 +664,14 @@ let Reports = () => {
                                   </Title>
                                 </CardTitle>
                                 <CardBody>
-                                  <Title headingLevel="h1">
+                                  <Title headingLevel="h1" style={{minHeight: "2em"}}>
                                     {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.unknown_failures_impact.percentage : "-"}%
                                   </Title>
                                 </CardBody>
                                 <CardFooter style={{ color: "black" }}>
-                                  Other reasons
+                                  <div style={{minHeight: "3em"}}>Other reasons</div>
                                   <Tooltip content={<div>Count and percentage of jobs that failed due to other reasons (like RHTAP installation failures, cluster build errors, etc.) considering the failing jobs in the selected period of time.</div>}>
-                                    <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
+                                    <InfoCircleIcon></InfoCircleIcon>
                                   </Tooltip>
                                 </CardFooter>
                               </Card>
