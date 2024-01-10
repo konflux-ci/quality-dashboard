@@ -7,6 +7,7 @@ import (
 
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
+	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
 )
 
 func convertDBError(t string, err error) error {
@@ -137,4 +138,14 @@ func removeDuplicateStr(strSlice []string) []string {
 		}
 	}
 	return list
+}
+
+func CalculatePercentage(x float64, y float64) float64 {
+	result := util.RoundTo(x/y*100, 2)
+
+	if math.IsNaN(result) {
+		return 0
+	}
+
+	return result
 }

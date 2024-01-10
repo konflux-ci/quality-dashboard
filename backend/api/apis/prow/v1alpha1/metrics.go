@@ -11,6 +11,12 @@ type JobsMetrics struct {
 	// Name of a prow job
 	JobName string `json:"name"`
 
+	// From date where start to measure jobs impact
+	StartDate string `json:"start_date"`
+
+	// // From date where stop to measure jobs impact
+	EndDate string `json:"end_date"`
+
 	// A set of metrics about a specific job name
 	JobsRuns JobsRuns `json:"jobs_runs"`
 
@@ -61,24 +67,24 @@ type InfrastructureImpact struct {
 
 type FlakyTestsImpact struct {
 	// Number of total jobs executed in ci
-	Total int64 `json:"total"`
+	Total int `json:"total"`
 
 	// The percentage of the total job impacted
-	Percentage int64 `json:"percentage"`
+	Percentage float64 `json:"percentage"`
 }
 
 type ExternalServicesImpact struct {
 	// Number of total jobs executed in ci
-	Total int64 `json:"total"`
+	Total int `json:"total"`
 
 	// The percentage of the total job impacted
-	Percentage int64 `json:"percentage"`
+	Percentage float64 `json:"percentage"`
 }
 
 type UnknowFailuresImpact struct {
 	// Number of total jobs executed in ci
-	Total int64 `json:"total"`
+	Total int `json:"total"`
 
 	// The percentage of the total job impacted
-	Percentage int64 `json:"percentage"`
+	Percentage int `json:"percentage"`
 }

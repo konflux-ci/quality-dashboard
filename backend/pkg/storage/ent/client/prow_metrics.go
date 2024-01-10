@@ -10,7 +10,6 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
-	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
 )
 
 func (d *Database) ObtainProwMetricsByJob(gitOrganization string, repositoryName string, jobName string, startDate string, endDate string) *prowV1Alpha1.JobsMetrics {
@@ -36,25 +35,35 @@ func (d *Database) ObtainProwMetricsByJob(gitOrganization string, repositoryName
 
 	flaky, _ := d.GetSuitesFailureFrequency(gitOrganization, repositoryName, jobName, startDate, endDate)
 
+	fmt.Println(flaky)
+
+	extImpct, _ := d.GetJobsImpactedByAnExternalService(repo, jobName, startDate, endDate)
+
 	return &prowV1Alpha1.JobsMetrics{
 		GitOrganization: gitOrganization,
 		RepositoryName:  repositoryName,
 		JobName:         jobName,
+		StartDate:       startDate,
+		EndDate:         endDate,
 		JobsRuns: prowV1Alpha1.JobsRuns{
 			Total:             len(dbJobs),
 			Success:           numberOfSuccessJobs,
 			Failures:          numberOfFailedJobs,
-			SuccessPercentage: util.RoundTo((float64(numberOfSuccessJobs)/float64(len(dbJobs)))*100, 2),
-			FailedPercentage:  util.RoundTo((float64(numberOfFailedJobs)/float64(len(dbJobs)))*100, 2),
+			SuccessPercentage: CalculatePercentage(float64(numberOfSuccessJobs), float64(len(dbJobs))),
+			FailedPercentage:  CalculatePercentage(float64(numberOfFailedJobs), float64(len(dbJobs))),
 		},
 		JobsImpacts: prowV1Alpha1.JobsImpacts{
 			InfrastructureImpact: prowV1Alpha1.InfrastructureImpact{
 				Total:      numberOfInfraImpactJobs,
-				Percentage: util.RoundTo((float64(numberOfInfraImpactJobs)/float64(len(dbJobs)))*100, 2),
+				Percentage: CalculatePercentage(float64(numberOfInfraImpactJobs), float64(len(dbJobs))),
 			},
 			FlakyTestsImpact: prowV1Alpha1.FlakyTestsImpact{
-				Percentage: int64(flaky.GlobalImpact),
-				Total:      int64(flaky.JobsExecuted),
+				Percentage: flaky.GlobalImpact,
+				Total:      flaky.JobsAffectedByFlayTests,
+			},
+			ExternalServicesImpact: prowV1Alpha1.ExternalServicesImpact{
+				Percentage: CalculatePercentage(float64(extImpct), float64(len(dbJobs))),
+				Total:      extImpct,
 			},
 		},
 	}
@@ -121,6 +130,19 @@ func (d *Database) GetNumberOfInfraImpact(repo *db.Repository, jobName string, s
 	return d.client.Repository.QueryProwJobs(repo).
 		Where(prowjobs.JobName(jobName)).
 		Where(prowjobs.State(string(prow.ErrorState))).
+		Where(func(s *sql.Selector) { // "merged_at BETWEEN ? AND 2022-08-17", "2022-08-16"
+			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
+		}).
+		Aggregate(
+			db.Count(),
+		).
+		Int(context.Background())
+}
+
+func (d *Database) GetJobsImpactedByAnExternalService(repo *db.Repository, jobName string, startDate string, endDate string) (totalSuccess int, err error) {
+	return d.client.Repository.QueryProwJobs(repo).
+		Where(prowjobs.JobName(jobName)).
+		Where(prowjobs.ExternalServicesImpact(true)).
 		Where(func(s *sql.Selector) { // "merged_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 		}).

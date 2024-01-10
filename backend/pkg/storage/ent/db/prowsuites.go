@@ -31,6 +31,8 @@ type ProwSuites struct {
 	Status string `json:"status,omitempty"`
 	// ErrorMessage holds the value of the "error_message" field.
 	ErrorMessage *string `json:"error_message,omitempty"`
+	// ExternalServicesImpact holds the value of the "external_services_impact" field.
+	ExternalServicesImpact *bool `json:"external_services_impact,omitempty"`
 	// Time holds the value of the "time" field.
 	Time float64 `json:"time,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -68,6 +70,8 @@ func (*ProwSuites) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case prowsuites.FieldExternalServicesImpact:
+			values[i] = new(sql.NullBool)
 		case prowsuites.FieldTime:
 			values[i] = new(sql.NullFloat64)
 		case prowsuites.FieldID:
@@ -141,6 +145,13 @@ func (ps *ProwSuites) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ps.ErrorMessage = new(string)
 				*ps.ErrorMessage = value.String
+			}
+		case prowsuites.FieldExternalServicesImpact:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field external_services_impact", values[i])
+			} else if value.Valid {
+				ps.ExternalServicesImpact = new(bool)
+				*ps.ExternalServicesImpact = value.Bool
 			}
 		case prowsuites.FieldTime:
 			if value, ok := values[i].(*sql.NullFloat64); !ok {
@@ -216,6 +227,11 @@ func (ps *ProwSuites) String() string {
 	if v := ps.ErrorMessage; v != nil {
 		builder.WriteString("error_message=")
 		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := ps.ExternalServicesImpact; v != nil {
+		builder.WriteString("external_services_impact=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
 	builder.WriteString("time=")

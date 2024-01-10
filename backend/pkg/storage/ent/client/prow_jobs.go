@@ -21,6 +21,7 @@ func (d *Database) CreateProwJobResults(job prowV1Alpha1.Job, repo_id string) er
 		SetJobURL(job.JobURL).
 		SetCiFailed(job.CIFailed).
 		SetDuration(job.Duration).
+		SetExternalServicesImpact(job.ExternalServiceImpact).
 		// E2EFailedTestMessages and BuildErrorLogs are used to get the impact of RHTAPBUGS
 		SetE2eFailedTestMessages(job.E2EFailedTestMessages).
 		SetBuildErrorLogs(job.BuildErrorLogs).

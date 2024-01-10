@@ -85,6 +85,26 @@ func (psu *ProwSuitesUpdate) ClearErrorMessage() *ProwSuitesUpdate {
 	return psu
 }
 
+// SetExternalServicesImpact sets the "external_services_impact" field.
+func (psu *ProwSuitesUpdate) SetExternalServicesImpact(b bool) *ProwSuitesUpdate {
+	psu.mutation.SetExternalServicesImpact(b)
+	return psu
+}
+
+// SetNillableExternalServicesImpact sets the "external_services_impact" field if the given value is not nil.
+func (psu *ProwSuitesUpdate) SetNillableExternalServicesImpact(b *bool) *ProwSuitesUpdate {
+	if b != nil {
+		psu.SetExternalServicesImpact(*b)
+	}
+	return psu
+}
+
+// ClearExternalServicesImpact clears the value of the "external_services_impact" field.
+func (psu *ProwSuitesUpdate) ClearExternalServicesImpact() *ProwSuitesUpdate {
+	psu.mutation.ClearExternalServicesImpact()
+	return psu
+}
+
 // SetTime sets the "time" field.
 func (psu *ProwSuitesUpdate) SetTime(f float64) *ProwSuitesUpdate {
 	psu.mutation.ResetTime()
@@ -217,6 +237,12 @@ func (psu *ProwSuitesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if psu.mutation.ErrorMessageCleared() {
 		_spec.ClearField(prowsuites.FieldErrorMessage, field.TypeString)
 	}
+	if value, ok := psu.mutation.ExternalServicesImpact(); ok {
+		_spec.SetField(prowsuites.FieldExternalServicesImpact, field.TypeBool, value)
+	}
+	if psu.mutation.ExternalServicesImpactCleared() {
+		_spec.ClearField(prowsuites.FieldExternalServicesImpact, field.TypeBool)
+	}
 	if value, ok := psu.mutation.Time(); ok {
 		_spec.SetField(prowsuites.FieldTime, field.TypeFloat64, value)
 	}
@@ -337,6 +363,26 @@ func (psuo *ProwSuitesUpdateOne) SetNillableErrorMessage(s *string) *ProwSuitesU
 // ClearErrorMessage clears the value of the "error_message" field.
 func (psuo *ProwSuitesUpdateOne) ClearErrorMessage() *ProwSuitesUpdateOne {
 	psuo.mutation.ClearErrorMessage()
+	return psuo
+}
+
+// SetExternalServicesImpact sets the "external_services_impact" field.
+func (psuo *ProwSuitesUpdateOne) SetExternalServicesImpact(b bool) *ProwSuitesUpdateOne {
+	psuo.mutation.SetExternalServicesImpact(b)
+	return psuo
+}
+
+// SetNillableExternalServicesImpact sets the "external_services_impact" field if the given value is not nil.
+func (psuo *ProwSuitesUpdateOne) SetNillableExternalServicesImpact(b *bool) *ProwSuitesUpdateOne {
+	if b != nil {
+		psuo.SetExternalServicesImpact(*b)
+	}
+	return psuo
+}
+
+// ClearExternalServicesImpact clears the value of the "external_services_impact" field.
+func (psuo *ProwSuitesUpdateOne) ClearExternalServicesImpact() *ProwSuitesUpdateOne {
+	psuo.mutation.ClearExternalServicesImpact()
 	return psuo
 }
 
@@ -495,6 +541,12 @@ func (psuo *ProwSuitesUpdateOne) sqlSave(ctx context.Context) (_node *ProwSuites
 	}
 	if psuo.mutation.ErrorMessageCleared() {
 		_spec.ClearField(prowsuites.FieldErrorMessage, field.TypeString)
+	}
+	if value, ok := psuo.mutation.ExternalServicesImpact(); ok {
+		_spec.SetField(prowsuites.FieldExternalServicesImpact, field.TypeBool, value)
+	}
+	if psuo.mutation.ExternalServicesImpactCleared() {
+		_spec.ClearField(prowsuites.FieldExternalServicesImpact, field.TypeBool)
 	}
 	if value, ok := psuo.mutation.Time(); ok {
 		_spec.SetField(prowsuites.FieldTime, field.TypeFloat64, value)

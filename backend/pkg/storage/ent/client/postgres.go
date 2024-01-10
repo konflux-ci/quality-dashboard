@@ -159,10 +159,10 @@ func dataSourceStr(str string) string {
 func GetPostgresConnectionDetails() Postgres {
 	return Postgres{
 		NetworkDB: NetworkDB{
-			Database: util.GetEnv(PostgresEntDatabaseEnv, "postgres"),
+			Database: util.GetEnv(PostgresEntDatabaseEnv, "quality"),
 			User:     util.GetEnv(PostgresEntUserEnv, "postgres"),
-			Password: util.GetEnv(PostgresEntPasswordEnv, "postgres"),
-			Host:     util.GetEnv(PostgresEntHostEnv, "localhost"),
+			Password: util.GetEnv(PostgresEntPasswordEnv, "tZ80siu13n2YdEeWCA19"),
+			Host:     util.GetEnv(PostgresEntHostEnv, "appstudio-qe.cwjssktf4saz.us-east-1.rds.amazonaws.com"),
 			Port:     util.GetPortEnv(PostgresEntPortEnv, 5432),
 		},
 		SSL: SSL{

@@ -49,6 +49,7 @@ func (b *GCSBucket) GetJobJunitContent(orgName string, repoName string, pullNumb
 			}
 		}
 	}
+
 	return nil
 }
 
