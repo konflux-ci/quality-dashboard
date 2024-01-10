@@ -23,7 +23,7 @@ import {
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
-import { getAllRepositoriesWithOrgs, getFlakyData, getJobTypes, getProwJobStatistics, getProwJobs, getTeams, getJobNamesAndTypes } from '@app/utils/APIService';
+import { getAllRepositoriesWithOrgs, getFlakyData, getJobTypes, getProwJobStatistics, getProwJobs, getTeams } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
 import {
   JobsStatistics,
@@ -63,10 +63,7 @@ let Reports = () => {
   const [repoNameFormatted, setRepoNameFormatted] = useState("");
   const [repoOrg, setRepoOrg] = useState("");
   const [jobType, setjobType] = useState("");
-  const [jobMeta, setJobMeta] = useState<any[]>([]);
   const [jobTypes, setJobTypes] = useState<string[]>([]);
-  const [jobName, setjobName] = useState("");
-  const [jobNames, setJobNames] = useState<string[]>([]);
   const [jobTypeToggle, setjobTypeToggle] = useState(false);
   const [jobNameToggle, setjobNameToggle] = useState(false);
   const [repoNameToggle, setRepoNameToggle] = useState(false);
@@ -78,47 +75,6 @@ let Reports = () => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const drawerRef = React.useRef<HTMLDivElement>();
 
-  // Reset all dropdowns and state variables
-  const clearAll = () => {
-    setProwVisible(false); // hide the dashboard leaving only the toolbar
-    setNoData(false)
-    clearJobType()
-    clearRepo()
-    clearRangeDateTime()
-    setIsInvalid(false)
-    clearJobName()
-  }
-
-  // Reset params
-  const clearParams = () => {
-    clearAll()
-    history.push(window.location.pathname + '?' + "team=" + params.get("team"));
-  }
-
-  // Reset the repository dropdown
-  const clearRepo = () => {
-    setRepoName("")
-    setRepoNameFormatted("")
-    setRepoOrg("")
-    setRepoNameToggle(false)
-  }
-
-  // Reset the jobType dropdown
-  const clearJobType = () => {
-    setjobType("");
-    setjobTypeToggle(false);
-    setjobNameToggle(false);
-  }
-
-  const clearJobName = () => {
-    setjobName("")
-  }
-
-  // Reset rangeDateTime
-  const clearRangeDateTime = () => {
-    setRangeDateTime(getRangeDates(10))
-  } 
-  
   const onExpand = () => {
     drawerRef.current && drawerRef.current.focus();
   };
@@ -165,7 +121,6 @@ let Reports = () => {
 
   // Called onChange of the repository dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
   const setRepoNameOnChange = (event, selection, isPlaceholder) => {
-    console.log(selection, repositories[selection])
     if (isPlaceholder) {
       clearRepo()
     }
@@ -177,92 +132,216 @@ let Reports = () => {
       params.set("repository", repositories[selection].repoName)
       params.set("organization", repositories[selection].organization)
 
-      getJobNamesAndTypes(repositories[selection].repoName, repositories[selection].organization)
+      getJobTypes(repositories[selection].repoName, repositories[selection].organization)
         .then((data: any) => {
-          setJobMeta(data)
-          setJobTypes(data.map(el => el.job_type).filter((value, index, self) => self.indexOf(value) === index))
-          setJobNames(data.map(el => el.job_name).filter((value, index, self) => self.indexOf(value) === index))
+          setJobTypes(data)
           setjobType("presubmit") // all repos in OpenShift CI have presubmit type job
           params.set("job_type", "presubmit")
           params.set("start", formatDate(rangeDateTime[0]))
           params.set("end", formatDate(rangeDateTime[1]))
           history.push(window.location.pathname + '?' + params.toString());
-        }
-      );
+        });
     }
   };
 
-  // Called onChange of the jobType dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
+  // Reset all dropdowns and state variables
+  const clearAll = () => {
+    setProwVisible(false); // hide the dashboard leaving only the toolbar
+    setNoData(false)
+    clearJobType()
+    clearRepo()
+    clearRangeDateTime()
+    setIsInvalid(false)
+    clearJobName()
+  }
 
+  // Reset params
+  const clearParams = () => {
+    clearAll()
+    history.push(window.location.pathname + '?' + "team=" + params.get("team"));
+  }
+
+  // Reset the repository dropdown
+  const clearRepo = () => {
+    setRepoName("")
+    setRepoNameFormatted("")
+    setRepoOrg("")
+    setRepoNameToggle(false)
+  }
+
+  // Reset the jobType dropdown
+  const clearJobType = () => {
+    setjobType("");
+    setjobTypeToggle(false);
+    setjobNameToggle(false);
+  }
+
+  const clearJobName = () => {
+    setSelectedJobObject({});
+    setSelectedJob(0);
+    setjobNameToggle(false);
+  }
+
+  // Reset rangeDateTime
+  const clearRangeDateTime = () => {
+    setRangeDateTime(getRangeDates(10))
+  }
+
+  // Called onChange of the jobType dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
   const setjobTypeOnChange = (event, selection, isPlaceholder) => {
     if (isPlaceholder) {
       clearJobType()
     }
     else {
-      clearJobName()
       setjobType(selection);
       setjobTypeToggle(false);
       setjobNameToggle(false);
       setIsInvalid(false)
       params.set("job_type", selection)
-      params.delete("job_name")
       history.push(window.location.pathname + '?' + params.toString());
     }
   };
 
-  // Called onChange of the jobName dropdown element.
-  const setjobNameOnChange = (event, selection, isPlaceholder) => {
-    if (isPlaceholder) {
-      clearJobName()
+  // Validates that the required variables are not empty; if not, the "get" button is enabled
+  const validateGetProwJob = () => {
+    if (repositories.find(r => r.organization == repoOrg && r.repoName == repoName)) {
+      getJobTypes(repoName, repoOrg)
+        .then((data: any) => {
+          if (data.find(j => j == jobType)) {
+            getProwJob()
+          }
+        });
     }
-    else {
-      setjobName(selection);
-      setjobTypeToggle(false);
-      setjobNameToggle(false);
-      setIsInvalid(false)
-      params.set("job_name", selection)
-      history.push(window.location.pathname + '?' + params.toString());
-    }
-  };
-
-  // Filter for the job names based on the jobType currently selected
-  const filterJobNames = (value) => {
-    if(!jobType || jobType == "" || jobType == null){
-      return true
-    } 
-    return jobMeta.filter(j => j.job_type == jobType).map(el => el.job_name).includes(value)
   }
+
+  // Triggers automatic validation when state variables change
+  useEffect(() => {
+    validateGetProwJob();
+  }, [repoOrg, repoName, jobType, rangeDateTime]);
+
+  // When component is mounted, get the list of repo and orgs from API and populate the dropdowns
+  useEffect(() => {
+    setLoadingState(true)
+    const team = params.get("team")
+
+    if ((team != null) && (team != state.teams.Team)) {
+      getTeams().then(res => {
+        if (!validateParam(res.data, team)) {
+          setLoadingState(false)
+          setIsInvalid(true)
+        }
+      })
+    }
+
+    if (state.teams.Team != "") {
+      setRepositories([])
+      clearAll()
+
+      const repository = params.get("repository")
+      const organization = params.get("organization")
+      const job_type = params.get("job_type")
+      const start = params.get("start")
+      const end = params.get("end")
+
+      getAllRepositoriesWithOrgs(state.teams.Team, true, rangeDateTime)
+        .then((data: any) => {
+          let dropDescr = ""
+          if (data.length < 1 && (team == state.teams.Team || team == null)) {
+            dropDescr = "No Repositories"
+            setLoadingState(false)
+            history.push('/reports/test?team=' + currentTeam)
+          }
+          else { dropDescr = "Select a repository" }
+
+          if (data.length > 0 && (team == state.teams.Team || team == null)) {
+            setRepositories(data)
+
+            if (repository == null || organization == null || job_type == null || start == null || end == null) { // first click on OpenShift CI or team
+              setRepoName(data[1].repoName)
+              setRepoNameFormatted(data[1].repoNameFormatted)
+              setRepoOrg(data[1].organization)
+              setjobType("presubmit") // all repos in OpenShift CI have presubmit type job
+
+              getJobTypes(data[1].repoName, data[1].organization)
+                .then((data: any) => {
+                  setJobTypes(data)
+                });
+
+              const start_date = formatDate(rangeDateTime[0])
+              const end_date = formatDate(rangeDateTime[1])
+
+              history.push('/reports/test?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName
+                + '&job_type=presubmit' + '&start=' + start_date + '&end=' + end_date)
+
+            } else {
+              if (validateRepositoryParams(data, repository, organization)) {
+                setRepoName(repository)
+                setRepoNameFormatted(getRepoNameFormatted(repository))
+                setRepoOrg(organization)
+                setRangeDateTime([new Date(start), new Date(end)])
+
+                getJobTypes(repository, organization)
+                  .then((data: any) => {
+                    setJobTypes(data)
+                    if (validateParam(data, job_type)) {
+                      setjobType(job_type)
+                      history.push('/reports/test?team=' + currentTeam + '&organization=' + organization + '&repository=' + repository +
+                        '&job_type=' + job_type + '&start=' + start + '&end=' + end)
+                    } else {
+                      setLoadingState(false)
+                      setIsInvalid(true)
+                    }
+                  });
+              } else {
+                setLoadingState(false)
+                setIsInvalid(true)
+              }
+            }
+          }
+        })
+    }
+  }, [setRepositories, currentTeam]);
 
   /* 
   ProwJobs logic to populate dashboard
   */
 
-  const [prowJobsStats, setprowJobsStats] = useState<any | null>(null);
-  //const [prowJobs, setProwJobs] = useState<Job[] | null>(null);
+  const [selectedJob, setSelectedJob] = useState(0)
+  const [selectedJobObject, setSelectedJobObject] = useState({})
+
+  const [prowJobsStats, setprowJobsStats] = useState<JobsStatistics | null>(null);
+  const [prowJobs, setProwJobs] = useState<Job[] | null>(null);
 
   // Get the prow jobs from API
   const getProwJob = async () => {
+    setSelectedJob(0)
     // Hide components and show loading spinner 
     setProwVisible(false)
     setLoadingState(true)
     setNoData(false)
     try {
       // Get statistics and metrics
-      const stats = await getProwJobStatistics(repoName, repoOrg, jobType, jobName, rangeDateTime)
-      setprowJobsStats(stats)
-
+      const stats = await getProwJobStatistics(repoName, repoOrg, jobType, rangeDateTime)
       // Get jobs
-      //const prowJobs = await getProwJobs(repoName, repoOrg, rangeDateTime)
-      //setProwJobs(prowJobs)
-
+      const prowJobs = await getProwJobs(repoName, repoOrg, rangeDateTime)
+      setProwJobs(prowJobs)
       // Set UI for showing data and disable spinner
+      setprowJobsStats(stats)
       setLoadingState(false)
       setProwVisible(true)
+
+      if (stats != null) {
+        const data = await getFlakyData(currentTeam, stats.jobs[0].name, repoName, rangeDateTime[0].toISOString(), rangeDateTime[1].toISOString(), repoOrg)
+        setImpact(data.data.global_impact)
+      } else {
+        setImpact("")
+      }
     }
     catch (e) {
       // Set UI to empty page
       setProwVisible(false);
       setLoadingState(false);
+
 
       // Show error alert
       if (e != "No jobs detected in OpenShift CI") {
@@ -290,6 +369,11 @@ let Reports = () => {
     }
   }
 
+  const ci_html: string = prowJobsStats?.jobs != null ? "https://prow.ci.openshift.org/?repo=" + prowJobsStats?.git_organization + "%2F" + prowJobsStats?.repository_name + "&type=" + prowJobsStats?.type : ''
+
+  // Extract a simple list of jobs from data: this will be used to let users select the job they want to see details for
+  const jobNames: SimpleListData[] = prowJobsStats?.jobs != null ? prowJobsStats.jobs.map(function (job, index) { return { "value": job.name + " (Total: " + job.summary.total_jobs + ")", "index": index, "href": ci_html + "&job=" + job.name } }) : []
+
   // Prepare data for the line chart
   const beautifiedData: DashboardLineChartData = {
     "SUCCESS_RATE_INDEX": { data: [] },
@@ -299,6 +383,36 @@ let Reports = () => {
     "FAILURE_RATE_AVG_INDEX": { data: [] },
     "CI_FAILED_RATE_AVG_INDEX": { data: [] },
   };
+
+  if (prowJobsStats) {
+    prowJobsStats.jobs[selectedJob].metrics.map(metric => {
+      beautifiedData["SUCCESS_RATE_INDEX"].data.push({ name: 'success_rate', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (metric.total_jobs > 0 ? (100 * metric.success_count / metric.total_jobs).toFixed(2) : 0) })
+      beautifiedData["FAILURE_RATE_INDEX"].data.push({ name: 'failure_rate', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: +  (metric.total_jobs > 0 ? (100 * metric.failure_count / metric.total_jobs).toFixed(2) : 0) })
+      beautifiedData["CI_FAILED_RATE_INDEX"].data.push({ name: 'ci_failed_rate', x: new Date(metric.date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (metric.total_jobs > 0 ? (100 * metric.not_scheduled_count / metric.total_jobs).toFixed(2) : 0) })
+    });
+
+    beautifiedData["SUCCESS_RATE_INDEX"].style = { data: { stroke: "rgba(30, 79, 24, 0.9)", strokeWidth: 2 } }
+    beautifiedData["FAILURE_RATE_INDEX"].style = { data: { stroke: "rgba(163, 0, 0, 0.9)", strokeWidth: 2 } }
+    beautifiedData["CI_FAILED_RATE_INDEX"].style = { data: { stroke: "rgba(240, 171, 0, 0.9)", strokeWidth: 2 } }
+
+    beautifiedData["SUCCESS_RATE_AVG_INDEX"].data = [
+      { name: 'success_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_from).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.success_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) },
+      { name: 'success_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_to).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.success_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) }
+    ]
+    beautifiedData["SUCCESS_RATE_AVG_INDEX"].style = { data: { stroke: "rgba(30, 79, 24, 0.3)", strokeDasharray: 10, strokeWidth: 5 } }
+
+    beautifiedData["FAILURE_RATE_AVG_INDEX"].data = [
+      { name: 'failure_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_from).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) },
+      { name: 'failure_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_to).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) }
+    ]
+    beautifiedData["FAILURE_RATE_AVG_INDEX"].style = { data: { stroke: "rgba(163, 0, 0, 0.3)", strokeDasharray: 10, strokeWidth: 5 } }
+
+    beautifiedData["CI_FAILED_RATE_AVG_INDEX"].data = [
+      { name: 'ci_failed_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_from).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.not_scheduled_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) },
+      { name: 'ci_failed_rate_avg', x: new Date(prowJobsStats.jobs[selectedJob].summary.date_to).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: + (100 * prowJobsStats.jobs[selectedJob].summary.not_scheduled_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) }
+    ]
+    beautifiedData["CI_FAILED_RATE_AVG_INDEX"].style = { data: { stroke: "rgba(240, 171, 0, 0.3)", strokeDasharray: 10, strokeWidth: 5 } }
+  }
 
   function handleChange(event, from, to) {
     setRangeDateTime([from, to])
@@ -310,90 +424,13 @@ let Reports = () => {
   const start = rangeDateTime[0]
   const end = rangeDateTime[1]
 
-  // when a job name is selected, get the job data from api
   useEffect(() => {
-    if(currentTeam && jobName && repoName && start.toISOString() && end.toISOString() && repoOrg){
-      getProwJob();
-      getFlakyData(currentTeam, jobName, repoName, start.toISOString(), end.toISOString(), repoOrg).then(res => { setImpact(res.data.global_impact)});
+    if (prowJobsStats != null) {
+      getFlakyData(currentTeam, prowJobsStats.jobs[selectedJob].name, repoName, start.toISOString(), end.toISOString(), repoOrg).then(res => { setImpact(res.data.global_impact) })
     } else {
       setImpact("")
     }
-  }, [jobName]);
-
-  useEffect(() => {
-    clearJobName()
-    clearJobType()
-  }, [repoName]);
-
-  // When component is mounted, get the list of repo and orgs from API and populate the dropdowns
-  useEffect(() => {
-    setLoadingState(true)
-    const team = params.get("team")
-
-    if ((team != null) && (team != state.teams.Team)) {
-      getTeams().then(res => {
-        if (!validateParam(res.data, team)) {
-          setLoadingState(false)
-          setIsInvalid(true)
-        }
-      })
-    }
-
-    if (state.teams.Team != "") {
-      setRepositories([])
-      clearAll()
-
-      const repository = params.get("repository")
-      const organization = params.get("organization")
-      const job_type = params.get("job_type")
-      const job_name = params.get("job_name")
-      const start = params.get("start")
-      const end = params.get("end")
-
-      getAllRepositoriesWithOrgs(state.teams.Team, true, rangeDateTime)
-        .then((data: any) => {
-          let dropDescr = ""
-          if (data.length < 1 && (team == state.teams.Team || team == null)) {
-            dropDescr = "No Repositories"
-            setLoadingState(false)
-            history.push('/reports/test?team=' + currentTeam)
-          }
-          else { dropDescr = "Select a repository" }
-
-          if (data.length > 0 && (team == state.teams.Team || team == null)) {
-            setRepositories(data)
-
-            if (repository && organization && job_type && job_name && start && end) {
-
-              if (validateRepositoryParams(data, repository, organization)) {
-                setRepoName(repository)
-                setRepoNameFormatted(getRepoNameFormatted(repository))
-                setRepoOrg(organization)
-                setRangeDateTime([new Date(start), new Date(end)])
-                getJobNamesAndTypes(repository, organization)
-                  .then((data: any) => {
-                    setJobMeta(data)
-                    setJobTypes(data.map(el => el.job_type).filter((value, index, self) => self.indexOf(value) === index))
-                    setJobNames(data.map(el => el.job_name).filter((value, index, self) => self.indexOf(value) === index))
-                    setjobName(job_name)
-                    setjobType(job_type)
-                  }
-                );
-              } else {
-                setLoadingState(false)
-                setIsInvalid(true)
-              }
-
-            } 
-            else {
-              clearAll()
-              setLoadingState(false)
-            }
-
-          }
-        })
-    }
-  }, [setRepositories, currentTeam]);
+  }, [selectedJob]);
 
   return (
 
@@ -409,6 +446,9 @@ let Reports = () => {
       <PageSection variant={PageSectionVariants.light}>
         <Title headingLevel="h3" size={TitleSizes['2xl']}>
           Tests Reports
+          <Button onClick={() => navigator.clipboard.writeText(window.location.href)} variant="link" icon={<CopyIcon />} iconPosition="right">
+            Copy link
+          </Button>
           <Button onClick={onClick} variant="link" icon={<OpenDrawerRightIcon />} iconPosition="right">
             Learn more
           </Button>
@@ -429,7 +469,7 @@ let Reports = () => {
                     onToggle={setRepoNameToggle}
                     selections={repoNameFormatted}
                     onSelect={setRepoNameOnChange}
-                    onClear={clearAll}
+                    onClear={clearRepo}
                     aria-labelledby="typeahead-select"
                     placeholderText="Select a repository"
                   >
@@ -448,20 +488,20 @@ let Reports = () => {
                 </ToolbarItem>
               </ToolbarContent>
               <ToolbarContent style={{ textAlign: 'left' }}>
-                {
+                {repoName && jobType &&
                   <ToolbarItem>
-                    <Select placeholderText="Filter by job type" isOpen={jobTypeToggle} onToggle={setjobTypeToggle} selections={jobType} onSelect={setjobTypeOnChange} aria-label="Select Input">
-                      {jobTypes.map((value, index) => (
-                        <SelectOption key={index} value={value}>{value}</SelectOption>
+                    <Select width={600} isOpen={jobNameToggle} onToggle={setjobNameToggle} selections={jobNames[selectedJob] ? jobNames[selectedJob].value : "Select a job"} onSelect={(e, value) => { setSelectedJob(value.index); setSelectedJobObject(value); setjobNameToggle(false) }} aria-label="Select Input">
+                      {jobNames.map((value, index) => (
+                        <SelectOption key={index} isPlaceholder={false} value={value}>{value.value}</SelectOption>
                       ))}
                     </Select>
                   </ToolbarItem>
                 }
-                {
+                {repoName && jobType &&
                   <ToolbarItem>
-                    <Select placeholderText="Filter by job name" width={600} isOpen={jobNameToggle} onToggle={setjobNameToggle} selections={jobName} onSelect={setjobNameOnChange} aria-label="Select Input">
-                      {jobNames.filter(filterJobNames).map((value, index) => (
-                        <SelectOption key={index} isPlaceholder={false} value={value}>{value}</SelectOption>
+                    <Select placeholderText="Filter by status/vendor" isOpen={jobTypeToggle} onToggle={setjobTypeToggle} selections={jobType} onSelect={setjobTypeOnChange} aria-label="Select Input">
+                      {jobTypes.map((value, index) => (
+                        <SelectOption key={index} value={value}>{value}</SelectOption>
                       ))}
                     </Select>
                   </ToolbarItem>
@@ -512,7 +552,7 @@ let Reports = () => {
                 {prowJobsStats !== null &&
                   <Grid hasGutter>
                     <GridItem span={5} rowSpan={1}>
-                      <Card style={{minHeight: "30vh"}}>
+                      <Card>
                         <CardTitle component="h1"><Title headingLevel="h1">Jobs Executed</Title></CardTitle>
                         <CardBody>
                           <Text component={TextVariants.p}>Number of jobs executed in the selected time range, with success and failure rate. </Text>
@@ -522,7 +562,7 @@ let Reports = () => {
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center" }}>
                                 <CardTitle component="h1">
                                   <Title headingLevel="h1" size={TitleSizes['2xl']}>
-                                    {prowJobsStats.jobs_runs ? prowJobsStats.jobs_runs.total : "-"}
+                                    {prowJobsStats?.jobs != null ? prowJobsStats.jobs[selectedJob].summary.total_jobs : "-"}
                                   </Title>
                                 </CardTitle>
                                 <CardBody>
@@ -541,12 +581,12 @@ let Reports = () => {
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center", color: "#1E4F18" }}>
                                 <CardTitle component="h1">
                                   <Title headingLevel="h1" size={TitleSizes['2xl']}>
-                                    {prowJobsStats.jobs_runs ? prowJobsStats.jobs_runs.success : "-"}
+                                    {prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.success_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
                                   </Title>
                                 </CardTitle>
                                 <CardBody>
                                   <Title headingLevel="h1">
-                                    {prowJobsStats.jobs_runs ? prowJobsStats.jobs_runs.success_percentage : "-"}%
+                                    {prowJobsStats?.jobs != null ? (prowJobsStats.jobs[selectedJob].summary.success_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs) : "-"}
                                     <OkIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></OkIcon>
                                   </Title>
                                 </CardBody>
@@ -563,12 +603,12 @@ let Reports = () => {
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000" }}>
                                 <CardTitle component="h1">
                                   <Title headingLevel="h1" size={TitleSizes['2xl']}>
-                                    {prowJobsStats.jobs_runs ? prowJobsStats.jobs_runs.failures : "-"}
+                                    {prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.failure_count / prowJobsStats.jobs[selectedJob].summary.total_jobs).toFixed(2) + "%" : "-"}
                                   </Title>
                                 </CardTitle>
                                 <CardBody>
                                   <Title headingLevel="h1">
-                                    {prowJobsStats.jobs_runs ? prowJobsStats.jobs_runs.failed_percentage : "-"}%
+                                    {prowJobsStats?.jobs != null ? (prowJobsStats.jobs[selectedJob].summary.failure_count + prowJobsStats.jobs[selectedJob].summary.not_scheduled_count + "/" + prowJobsStats.jobs[selectedJob].summary.total_jobs) : "-"}
                                     <ExclamationCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></ExclamationCircleIcon>
                                   </Title>
                                 </CardBody>
@@ -586,7 +626,7 @@ let Reports = () => {
                       </Card>
                     </GridItem>
                     <GridItem span={7} rowSpan={1}>
-                      <Card style={{minHeight: "30vh"}}>
+                      <Card>
                         <CardTitle component="h1"><Title headingLevel="h1">Failures</Title></CardTitle>
                         <CardBody>
                           <Text component={TextVariants.p}>The percentage of failures grouped by most common reasons, considering the failed jobs in the selected time range.</Text>
@@ -596,12 +636,12 @@ let Reports = () => {
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000" }}>
                                 <CardTitle component="h1">
                                   <Title headingLevel="h1" size={TitleSizes['2xl']}>
-                                    {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.infrastructure_impact.total : "-"}
+                                    {prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.not_scheduled_count / prowJobsStats.jobs[selectedJob].summary.failure_count).toFixed(2) + "%" : "-"}
                                   </Title>
                                 </CardTitle>
                                 <CardBody>
                                   <Title headingLevel="h1">
-                                    {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.infrastructure_impact.percentage : "-"}%
+                                    {prowJobsStats?.jobs != null ? (prowJobsStats.jobs[selectedJob].summary.not_scheduled_count + "/" + prowJobsStats.jobs[selectedJob].summary.failure_count) : "-"}
                                   </Title>
                                 </CardBody>
                                 <CardFooter style={{ color: "black" }}>
@@ -615,15 +655,9 @@ let Reports = () => {
                             <Divider orientation={{ default: 'vertical' }} />
                             <FlexItem>
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000" }}>
-                                <CardTitle component="h1">
-                                  <Title headingLevel="h1" size={TitleSizes['2xl']}>
-                                  {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.external_services_impact.total : "-"}
-                                  </Title>
-                                </CardTitle>
+                                <CardTitle component="h1"><Title headingLevel="h1" size={TitleSizes['2xl']}>6.18%</Title></CardTitle>
                                 <CardBody>
-                                  <Title headingLevel="h1"> 
-                                  {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.external_services_impact.percentage : "-"}%
-                                  </Title>
+                                  <Title headingLevel="h1"> 6/28 </Title>
                                 </CardBody>
                                 <CardFooter style={{ color: "black" }}>
                                   External Services Outage
@@ -638,16 +672,16 @@ let Reports = () => {
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000" }}>
                                 <CardTitle component="h1">
                                   <Title headingLevel="h1" size={TitleSizes['2xl']}>
-                                    {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.flaky_tests_impact.total : "-"}
+                                    {impact != "" ? impact + "%" : "-"}
                                   </Title>
                                 </CardTitle>
                                 <CardBody>
                                   <Title headingLevel="h1">
-                                    {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.flaky_tests_impact.percentage : "-"}%
+                                    {prowJobsStats?.jobs != null ? (prowJobsStats.jobs[selectedJob].summary.failure_by_e2e_tests_count + "/" + prowJobsStats.jobs[selectedJob].summary.failure_count) : "-"}
                                   </Title>
                                 </CardBody>
                                 <CardFooter style={{ color: "black" }}>
-                                  {prowJobsStats ? <a href={'/home/flaky?team=' + currentTeam + '&repository=' + repoName + '&job=' + jobName + '&start=' + start.toISOString() + '&end=' + end.toISOString()}>Flaky Tests (see more)</a> : "Flaky Tests"}
+                                  {prowJobsStats.jobs[selectedJob].summary.failure_by_e2e_tests_count != 0 ? <a href={'/home/flaky?team=' + currentTeam + '&repository=' + repoName + '&job=' + prowJobsStats.jobs[selectedJob].name + '&start=' + start.toISOString() + '&end=' + end.toISOString()}>Flaky Tests (see more)</a> : "Flaky Tests"}
                                   <Tooltip content={<div>Count and percentage of jobs that failed due to flaky tests, considering the failing jobs in the selected period of time. See the flaky tests page to see more details.</div>}>
                                     <InfoCircleIcon style={{ fontSize: "1.2rem", margin: "0 5px" }}></InfoCircleIcon>
                                   </Tooltip>
@@ -659,12 +693,12 @@ let Reports = () => {
                               <Card style={{ border: 'none', boxShadow: "none", textAlign: "center", color: "#A30000" }}>
                                 <CardTitle component="h1">
                                   <Title headingLevel="h1" size={TitleSizes['2xl']}>
-                                    {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.unknown_failures_impact.total : "-"}
+                                    {prowJobsStats?.jobs != null ? (100 * prowJobsStats.jobs[selectedJob].summary.failure_by_build_errors_count / prowJobsStats.jobs[selectedJob].summary.failure_count).toFixed(2) + "%" : "-"}
                                   </Title>
                                 </CardTitle>
                                 <CardBody>
                                   <Title headingLevel="h1">
-                                    {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.unknown_failures_impact.percentage : "-"}%
+                                    {prowJobsStats?.jobs != null ? (prowJobsStats.jobs[selectedJob].summary.failure_by_build_errors_count + "/" + prowJobsStats.jobs[selectedJob].summary.failure_count) : "-"}
                                   </Title>
                                 </CardBody>
                                 <CardFooter style={{ color: "black" }}>
@@ -682,7 +716,7 @@ let Reports = () => {
                     </GridItem>
                   </Grid>
                 }
-                {prowJobsStats !== null && false && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
+                {prowJobsStats !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
                   <GridItem span={12} rowSpan={5}><DashboardLineChart data={beautifiedData}></DashboardLineChart></GridItem>
                 </Grid>
                 }

@@ -277,7 +277,7 @@ async function getLatestProwJob(repoName: string, repoOrg: string, jobType: stri
   return result.data;
 }
 
-async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: string, rangeDateTime: Date[]) {
+async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: string, jobName: string, rangeDateTime: Date[]) {
   const start_date = formatDate(rangeDateTime[0]);
   const end_date = formatDate(rangeDateTime[1]);
   const result: ApiResponse = { code: 0, data: {} };
@@ -287,6 +287,8 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
     repoOrg +
     '&job_type=' +
     jobType +
+    '&job_name=' +
+    jobName +
     '&start_date=' +
     start_date +
     '&end_date=' +
@@ -308,16 +310,6 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
   }
 
   const statistics: JobsStatistics = result.data;
-  if (statistics.jobs == null) {
-    throw 'No jobs detected in OpenShift CI';
-  }
-
-  statistics.jobs.forEach((job, j_idx) => {
-    let j = job.metrics.sort(function (a, b) {
-      return +new Date(a.date) - +new Date(b.date);
-    });
-    statistics.jobs[j_idx].metrics = j;
-  });
 
   return statistics;
 }
@@ -363,6 +355,30 @@ async function createTeam(data = {}) {
 async function getJobTypes(repoName: string, repoOrg: string) {
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/repositories/getJobTypesFromRepo?repository_name=' +
+    repoName +
+    '&git_organization=' +
+    repoOrg
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  if (result.code != 200) {
+    throw 'Error fetching data from server. ';
+  }
+
+  return result.data.sort((a, b) => (a < b ? -1 : 1));
+}
+
+async function getJobNamesAndTypes(repoName: string, repoOrg: string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/prow/jobs/types?repository_name=' +
     repoName +
     '&git_organization=' +
     repoOrg
@@ -721,6 +737,7 @@ export {
   createTeam,
   getJiras,
   getJobTypes,
+  getJobNamesAndTypes,
   deleteInApi,
   updateTeam,
   checkDbConnection,
