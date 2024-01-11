@@ -3,7 +3,6 @@ package jira
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/redhat-appstudio/quality-studio/api/types"
@@ -308,7 +307,6 @@ func (s *jiraRouter) getBugSLIs(ctx context.Context, w http.ResponseWriter, r *h
 
 	// bugs, err := s.Storage.GetAllOpenRHTAPBUGS(startDate[0], endDate[0])
 	bugs, err := s.Storage.GetAllOpenRHTAPBUGS()
-	fmt.Println("bugs", err, bugs)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
@@ -317,7 +315,6 @@ func (s *jiraRouter) getBugSLIs(ctx context.Context, w http.ResponseWriter, r *h
 	}
 
 	slis := GetBugSLIs(bugs)
-	fmt.Println("slis", slis)
 
 	return httputils.WriteJSON(w, http.StatusOK, slis)
 }

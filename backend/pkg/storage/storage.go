@@ -10,6 +10,7 @@ import (
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	jiraV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/jira/v1alpha1"
 	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
+	userV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/user/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 )
 
@@ -56,6 +57,8 @@ type Storage interface {
 	GetSuitesFailureFrequency(gitOrg string, repoName string, jobName string, startDate string, endDate string) (*prowV1Alpha1.FlakyFrequency, error)
 	GetProwFlakyTrendsMetrics(gitOrg string, repoName string, jobName string, startDate string, endDate string) []prowV1Alpha1.FlakyMetrics
 	GetProwJobsByRepoOrg(repo *db.Repository) ([]string, error)
+	GetUser(userEmail string) (*db.Users, error)
+	ListAllUsers() ([]*db.Users, error)
 
 	// POST
 	CreateRepository(p repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error)
@@ -74,6 +77,7 @@ type Storage interface {
 	UpdateErrorMessages(jobID, buildErrorLogs, e2eErrorMessages string) error
 	GetAllProwJobs(startDate, endDate string) ([]*db.ProwJobs, error)
 	ListFailedProwJobsByRepository(repo *db.Repository) ([]*db.ProwJobs, error)
+	CreateUser(u userV1Alpha1.User) error
 
 	// Delete
 	DeleteRepository(repositoryName, gitOrganizationName string) error

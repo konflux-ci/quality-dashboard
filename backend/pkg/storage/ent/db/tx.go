@@ -28,6 +28,8 @@ type Tx struct {
 	Repository *RepositoryClient
 	// Teams is the client for interacting with the Teams builders.
 	Teams *TeamsClient
+	// Users is the client for interacting with the Users builders.
+	Users *UsersClient
 	// Workflows is the client for interacting with the Workflows builders.
 	Workflows *WorkflowsClient
 
@@ -169,6 +171,7 @@ func (tx *Tx) init() {
 	tx.PullRequests = NewPullRequestsClient(tx.config)
 	tx.Repository = NewRepositoryClient(tx.config)
 	tx.Teams = NewTeamsClient(tx.config)
+	tx.Users = NewUsersClient(tx.config)
 	tx.Workflows = NewWorkflowsClient(tx.config)
 }
 

@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import rootReducer, { StateContext } from './reducer'
 import { getTeams } from '@app/utils/APIService';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { initialState } from '@app/store/initState';
 import { loadStateContext, stateContextExists } from '@app/utils/utils'
-import axios, { AxiosResponse } from 'axios';
-import { Route, RouteComponentProps, Switch, Redirect, useLocation, useHistory } from 'react-router-dom';
+import axios from 'axios';
+import { useHistory } from 'react-router-dom';
+import { UserConfig } from "@app/Teams/User";
 
 interface IContextProps {
     state: StateContext;
@@ -40,24 +41,35 @@ const Store = ({ children }) => {
         },
         error => {
             Promise.reject(error)
-    });
+        });
 
     axios.interceptors.response.use(
         response => response,
         error => {
-          if (error.response.status === 500) {
-            window.location.href = '/login?session_expired=true';
-          }
-    });
+            if (error.response.status === 500) {
+                window.location.href = '/login?session_expired=true';
+            }
+        });
 
     React.useEffect(() => {
-        if(state.auth.IDT){
-            getTeams().then(data => {
+        if (state.auth.IDT) {
+
+            getTeams().then(async data => {
                 if (data.data.length > 0) {
                     data.data.sort((a, b) => (a.team_name < b.team_name ? -1 : 1));
                     const loadedTeam = loadTeamSelection(data.data);
+
                     if (loadedTeam == null) { dispatch({ type: "SET_TEAM", data: data.data[0].team_name }) }
                     else { dispatch({ type: "SET_TEAM", data: loadedTeam }) }
+
+                    // set default team if configured
+                    if (state.auth.USER_CONFIG != "") {
+                        var userConfig = JSON.parse(state.auth.USER_CONFIG) as UserConfig;
+                        const userConfigDefaultTeam = userConfig.teams_configuration.default_team
+                        if (userConfigDefaultTeam != "" && userConfigDefaultTeam != "n/a") {
+                            dispatch({ type: "SET_TEAM", data: userConfigDefaultTeam })
+                        }
+                    }
 
                     const params = new URLSearchParams(window.location.search)
                     const team = params.get('team')

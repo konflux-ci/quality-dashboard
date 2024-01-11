@@ -18,7 +18,7 @@ import { Grid, GridItem } from '@patternfly/react-core';
 import { ComposableTable } from './Table';
 import { FormModal, ModalContext, useDefaultModalContextState, useModalContext } from './CreateFailure';
 import { ReactReduxContext, useSelector } from 'react-redux';
-import { getFailures, getTeams } from '@app/utils/APIService';
+import { getFailures, getTeams, listUsers } from '@app/utils/APIService';
 import { validateParam } from '@app/utils/utils';
 import { formatDate, getRangeDates } from '@app/Reports/utils';
 import { useHistory } from 'react-router-dom';

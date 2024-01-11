@@ -712,6 +712,73 @@ async function getGlobalImpactData(team: string, job: string, repo: string, rang
   return result;
 }
 
+async function createUser(userName: string, userEmail: string, userConfig: string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/users/create';
+  const uri = API_URL + subPath;
+  await axios
+    .request({
+      method: 'POST',
+      url: uri,
+      data: {
+        user_name: userName,
+        user_email: userEmail,
+        user_config: userConfig,
+      },
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  return result;
+}
+
+// useful for debug in Console
+async function listUsers() {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/users/get/all';
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
+async function getUser(userEmail: string) {
+  const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
+  const subPath = '/api/quality/users/get/user';
+  const uri = API_URL + subPath;
+
+  await axios
+    .get(uri, {
+      headers: {},
+      params: {
+        user_email: userEmail,
+      },
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
 export {
   getVersion,
   getRepositories,
@@ -739,5 +806,8 @@ export {
   getBugSLIs,
   getRepositoriesWithJobs,
   getFlakyData,
-  getGlobalImpactData
+  getGlobalImpactData,
+  createUser,
+  listUsers,
+  getUser
 };

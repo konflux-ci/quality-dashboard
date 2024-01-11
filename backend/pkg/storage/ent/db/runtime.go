@@ -10,6 +10,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/users"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/schema"
 )
@@ -104,6 +105,12 @@ func init() {
 	teamsDescID := teamsFields[0].Descriptor()
 	// teams.DefaultID holds the default value on creation for the id field.
 	teams.DefaultID = teamsDescID.Default.(func() uuid.UUID)
+	usersFields := schema.Users{}.Fields()
+	_ = usersFields
+	// usersDescID is the schema descriptor for id field.
+	usersDescID := usersFields[0].Descriptor()
+	// users.DefaultID holds the default value on creation for the id field.
+	users.DefaultID = usersDescID.Default.(func() uuid.UUID)
 	workflowsFields := schema.Workflows{}.Fields()
 	_ = workflowsFields
 	// workflowsDescWorkflowID is the schema descriptor for workflow_id field.

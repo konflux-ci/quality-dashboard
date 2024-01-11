@@ -105,6 +105,18 @@ func (f TeamsFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TeamsMutation", m)
 }
 
+// The UsersFunc type is an adapter to allow the use of ordinary
+// function as Users mutator.
+type UsersFunc func(context.Context, *db.UsersMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UsersFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.UsersMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.UsersMutation", m)
+}
+
 // The WorkflowsFunc type is an adapter to allow the use of ordinary
 // function as Workflows mutator.
 type WorkflowsFunc func(context.Context, *db.WorkflowsMutation) (db.Value, error)

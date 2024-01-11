@@ -19,6 +19,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/users"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 
 	"entgo.io/ent/dialect"
@@ -47,6 +48,8 @@ type Client struct {
 	Repository *RepositoryClient
 	// Teams is the client for interacting with the Teams builders.
 	Teams *TeamsClient
+	// Users is the client for interacting with the Users builders.
+	Users *UsersClient
 	// Workflows is the client for interacting with the Workflows builders.
 	Workflows *WorkflowsClient
 }
@@ -70,6 +73,7 @@ func (c *Client) init() {
 	c.PullRequests = NewPullRequestsClient(c.config)
 	c.Repository = NewRepositoryClient(c.config)
 	c.Teams = NewTeamsClient(c.config)
+	c.Users = NewUsersClient(c.config)
 	c.Workflows = NewWorkflowsClient(c.config)
 }
 
@@ -112,6 +116,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		PullRequests: NewPullRequestsClient(cfg),
 		Repository:   NewRepositoryClient(cfg),
 		Teams:        NewTeamsClient(cfg),
+		Users:        NewUsersClient(cfg),
 		Workflows:    NewWorkflowsClient(cfg),
 	}, nil
 }
@@ -140,6 +145,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		PullRequests: NewPullRequestsClient(cfg),
 		Repository:   NewRepositoryClient(cfg),
 		Teams:        NewTeamsClient(cfg),
+		Users:        NewUsersClient(cfg),
 		Workflows:    NewWorkflowsClient(cfg),
 	}, nil
 }
@@ -177,6 +183,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.PullRequests.Use(hooks...)
 	c.Repository.Use(hooks...)
 	c.Teams.Use(hooks...)
+	c.Users.Use(hooks...)
 	c.Workflows.Use(hooks...)
 }
 
@@ -191,6 +198,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.PullRequests.Intercept(interceptors...)
 	c.Repository.Intercept(interceptors...)
 	c.Teams.Intercept(interceptors...)
+	c.Users.Intercept(interceptors...)
 	c.Workflows.Intercept(interceptors...)
 }
 
@@ -213,6 +221,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Repository.mutate(ctx, m)
 	case *TeamsMutation:
 		return c.Teams.mutate(ctx, m)
+	case *UsersMutation:
+		return c.Users.mutate(ctx, m)
 	case *WorkflowsMutation:
 		return c.Workflows.mutate(ctx, m)
 	default:
@@ -1401,6 +1411,124 @@ func (c *TeamsClient) mutate(ctx context.Context, m *TeamsMutation) (Value, erro
 		return (&TeamsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown Teams mutation op: %q", m.Op())
+	}
+}
+
+// UsersClient is a client for the Users schema.
+type UsersClient struct {
+	config
+}
+
+// NewUsersClient returns a client for the Users from the given config.
+func NewUsersClient(c config) *UsersClient {
+	return &UsersClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `users.Hooks(f(g(h())))`.
+func (c *UsersClient) Use(hooks ...Hook) {
+	c.hooks.Users = append(c.hooks.Users, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `users.Intercept(f(g(h())))`.
+func (c *UsersClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Users = append(c.inters.Users, interceptors...)
+}
+
+// Create returns a builder for creating a Users entity.
+func (c *UsersClient) Create() *UsersCreate {
+	mutation := newUsersMutation(c.config, OpCreate)
+	return &UsersCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Users entities.
+func (c *UsersClient) CreateBulk(builders ...*UsersCreate) *UsersCreateBulk {
+	return &UsersCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Users.
+func (c *UsersClient) Update() *UsersUpdate {
+	mutation := newUsersMutation(c.config, OpUpdate)
+	return &UsersUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UsersClient) UpdateOne(u *Users) *UsersUpdateOne {
+	mutation := newUsersMutation(c.config, OpUpdateOne, withUsers(u))
+	return &UsersUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UsersClient) UpdateOneID(id uuid.UUID) *UsersUpdateOne {
+	mutation := newUsersMutation(c.config, OpUpdateOne, withUsersID(id))
+	return &UsersUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Users.
+func (c *UsersClient) Delete() *UsersDelete {
+	mutation := newUsersMutation(c.config, OpDelete)
+	return &UsersDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UsersClient) DeleteOne(u *Users) *UsersDeleteOne {
+	return c.DeleteOneID(u.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UsersClient) DeleteOneID(id uuid.UUID) *UsersDeleteOne {
+	builder := c.Delete().Where(users.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UsersDeleteOne{builder}
+}
+
+// Query returns a query builder for Users.
+func (c *UsersClient) Query() *UsersQuery {
+	return &UsersQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUsers},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Users entity by its id.
+func (c *UsersClient) Get(ctx context.Context, id uuid.UUID) (*Users, error) {
+	return c.Query().Where(users.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UsersClient) GetX(ctx context.Context, id uuid.UUID) *Users {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *UsersClient) Hooks() []Hook {
+	return c.hooks.Users
+}
+
+// Interceptors returns the client interceptors.
+func (c *UsersClient) Interceptors() []Interceptor {
+	return c.inters.Users
+}
+
+func (c *UsersClient) mutate(ctx context.Context, m *UsersMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UsersCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UsersUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UsersUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UsersDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Users mutation op: %q", m.Op())
 	}
 }
 
