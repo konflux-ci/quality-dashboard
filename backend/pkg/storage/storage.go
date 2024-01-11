@@ -43,6 +43,7 @@ type Storage interface {
 	GetAllJiraBugs() ([]*db.Bugs, error)
 	GetAllJiraBugsByProject(project string) ([]*db.Bugs, error)
 	GetJobsNameAndType(repo *db.Repository) ([]*db.ProwJobs, error)
+	GetMetricsSummaryByDay(repo *db.Repository, job, startDate, endDate string) []*prowV1Alpha1.JobsMetrics
 
 	// GetAllOpenRHTAPBUGS(dateFrom, dateTo string) ([]*db.Bugs, error)
 	GetAllOpenRHTAPBUGS() ([]*db.Bugs, error)

@@ -31,6 +31,7 @@ func NewRouter(storage storage.Storage) router.Router {
 		router.NewGetRoute("/prow/results/latest/get", r.getLatestSuitesExecution),
 		router.NewGetRoute("/prow/metrics/get", r.getProwMetrics),
 		router.NewGetRoute("/prow/repositories/list", r.listProwRepos),
+		router.NewGetRoute("/prow/metrics/daily", r.getProwMetricsByDay),
 	}
 
 	return r

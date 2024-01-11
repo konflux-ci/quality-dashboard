@@ -86,5 +86,5 @@ type UnknowFailuresImpact struct {
 	Total int `json:"total"`
 
 	// The percentage of the total job impacted
-	Percentage int `json:"percentage"`
+	Percentage float64 `json:"percentage"`
 }

@@ -11,7 +11,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-const OpenshiCiBucketName = "origin-ci-test"
+const OpenshiCiBucketName = "test-platform-results"
 
 type GCSBucket struct {
 	// retrieval mechanisms
@@ -37,6 +37,12 @@ func (b *GCSBucket) GetJobJunitContent(orgName string, repoName string, pullNumb
 
 	it := b.bkt.Objects(context.Background(), query)
 	for {
+		defer func() {
+			if panicInfo := recover(); panicInfo != nil {
+				return
+			}
+		}()
+
 		obj, err := it.Next()
 		if err == iterator.Done {
 			break
