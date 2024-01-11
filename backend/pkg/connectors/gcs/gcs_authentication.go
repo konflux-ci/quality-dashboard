@@ -11,7 +11,7 @@ import (
 	"google.golang.org/api/option"
 )
 
-const OpenshiCiBucketName = "origin-ci-test"
+const OpenshiCiBucketName = "test-platform-results"
 
 type GCSBucket struct {
 	// retrieval mechanisms
