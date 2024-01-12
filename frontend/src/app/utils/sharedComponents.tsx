@@ -1,11 +1,9 @@
 import React, { useState, useLayoutEffect, useRef } from 'react';
 import { ExclamationCircleIcon, OkIcon, HelpIcon, ExternalLinkAltIcon, GithubIcon } from '@patternfly/react-icons';
 import { Card, CardTitle, CardBody, Badge, Icon } from '@patternfly/react-core';
-import { Chart, ChartAxis, ChartLine, ChartGroup, ChartLegend, createContainer, ChartTooltip, ChartStack, ChartBar } from '@patternfly/react-charts';
+import { Chart, ChartAxis, ChartLine, ChartGroup, ChartLegend, createContainer } from '@patternfly/react-charts';
 import { SimpleList, SimpleListItem } from '@patternfly/react-core';
 import { getLabels } from './utils';
-import chart_color_orange_300 from '@patternfly/react-tokens/dist/esm/chart_color_orange_300';
-import chart_color_red_100 from '@patternfly/react-tokens/dist/esm/chart_color_red_100';
 
 /* 
 Some common useful types definition
@@ -42,6 +40,51 @@ export interface MetricsEntity {
   not_scheduled_count: number;
   total_jobs: number;
   date: string;
+}
+
+export interface JobMetric {
+  git_organization: string
+  repository_name: string
+  name: string
+  start_date: string
+  end_date: string
+  jobs_runs: JobsRuns
+  jobs_impacts: JobsImpacts
+}
+
+export interface JobsRuns {
+  total: number
+  success: number
+  failures: number
+  success_percentage: number
+  failed_percentage: number
+}
+
+export interface JobsImpacts {
+  infrastructure_impact: InfrastructureImpact
+  flaky_tests_impact: FlakyTestsImpact
+  external_services_impact: ExternalServicesImpact
+  unknown_failures_impact: UnknownFailuresImpact
+}
+
+export interface InfrastructureImpact {
+  total: number
+  percentage: number
+}
+
+export interface FlakyTestsImpact {
+  total: number
+  percentage: number
+}
+
+export interface ExternalServicesImpact {
+  total: number
+  percentage: number
+}
+
+export interface UnknownFailuresImpact {
+  total: number
+  percentage: number
 }
 
 /* 
@@ -112,7 +155,6 @@ export type DashboardLineChartData = {
 
 export const DashboardLineChart = ({ data, colorScale }: { data: DashboardLineChartData, colorScale?: string[] }) => {
   const ref = useRef<HTMLDivElement>(null);
-  let beautifiedData = data
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
   const ZoomVoronoiContainer = createContainer("zoom", "voronoi");
@@ -124,8 +166,8 @@ export const DashboardLineChart = ({ data, colorScale }: { data: DashboardLineCh
     }
   }, []);
 
-  const legendData = Object.keys(data).map((key, index) => {
-    let l = { name: key.toLowerCase().replace(/_/gi, " ") }
+  const legendData = Object.keys(data).map((key) => {
+    const l = { name: key.toLowerCase().replace(/_/gi, " ") }
     if (data[key].style.data.stroke) {
       l["symbol"] = { fill: data[key].style.data.stroke }
     }

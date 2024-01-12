@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CopyIcon, CubesIcon, ExclamationCircleIcon, OkIcon, InfoCircleIcon, OpenDrawerRightIcon } from '@patternfly/react-icons';
+import { CubesIcon, ExclamationCircleIcon, InfoCircleIcon, OpenDrawerRightIcon } from '@patternfly/react-icons';
 import {
   PageSection, PageSectionVariants,
   EmptyState,
@@ -11,7 +11,6 @@ import {
   Spinner, Breadcrumb, BreadcrumbItem, Tooltip,
   Drawer,
   DrawerContent,
-  DrawerContentBody,
   DrawerPanelContent,
   DrawerHead,
   DrawerActions,
@@ -23,13 +22,12 @@ import {
 import { Toolbar, ToolbarItem, ToolbarContent } from '@patternfly/react-core';
 import { Button } from '@patternfly/react-core';
 import { Select, SelectOption, SelectVariant } from '@patternfly/react-core';
-import { getFlakyData, getProwJobStatistics, getTeams, getJobNamesAndTypes, listTeamRepos } from '@app/utils/APIService';
+import { getFlakyData, getProwJobStatistics, getTeams, getJobNamesAndTypes, listTeamRepos, getProwJobMetricsDaily } from '@app/utils/APIService';
 import { Grid, GridItem } from '@patternfly/react-core';
 import {
-  JobsStatistics,
   DashboardLineChart,
-  SimpleListData,
-  DashboardLineChartData
+  DashboardLineChartData,
+  JobMetric
 } from '@app/utils/sharedComponents';
 import { Card, CardTitle, CardBody, CardFooter } from '@patternfly/react-core';
 import { Flex, FlexItem } from '@patternfly/react-core';
@@ -39,8 +37,7 @@ import { ReactReduxContext, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { formatDate, getRangeDates } from './utils';
 import { DateTimeRangePicker } from '../utils/DateTimeRangePicker';
-import { Job } from './FailedE2ETests';
-import { validateRepositoryParams, validateParam, getRepoNameFormatted } from '@app/utils/utils';
+import { validateRepositoryParams, validateParam } from '@app/utils/utils';
 import { Header } from '@app/utils/Header';
 
 // eslint-disable-next-line prefer-const
@@ -138,7 +135,7 @@ let Reports = () => {
           <TextContent>
             <Title headingLevel="h1">Test Reports</Title>
             <Text>
-              This page aims help you analyze the OpenShift CI prow jobs executions in your team's GitHub repositories.
+              This page aims help you analyze the OpenShift CI prow jobs executions in your team&apos;s GitHub repositories.
             </Text>
             <Title headingLevel="h1">Repositories</Title>
             <Text>
@@ -240,6 +237,8 @@ let Reports = () => {
   */
 
   const [prowJobsStats, setprowJobsStats] = useState<any | null>(null);
+  const [prowJobMetrics, setprowJobMetrics] = useState<DashboardLineChartData | null>(null);
+  const [prowJobFailuerMetrics, setprowJobFailureMetrics] = useState<DashboardLineChartData | null>(null);
   //const [prowJobs, setProwJobs] = useState<Job[] | null>(null);
 
   // Get the prow jobs from API
@@ -293,14 +292,7 @@ let Reports = () => {
   }
 
   // Prepare data for the line chart
-  const beautifiedData: DashboardLineChartData = {
-    "SUCCESS_RATE_INDEX": { data: [] },
-    "FAILURE_RATE_INDEX": { data: [] },
-    "CI_FAILED_RATE_INDEX": { data: [] },
-    "SUCCESS_RATE_AVG_INDEX": { data: [] },
-    "FAILURE_RATE_AVG_INDEX": { data: [] },
-    "CI_FAILED_RATE_AVG_INDEX": { data: [] },
-  };
+  
 
   function handleChange(event, from, to) {
     setRangeDateTime([from, to])
@@ -312,11 +304,50 @@ let Reports = () => {
   const start = rangeDateTime[0]
   const end = rangeDateTime[1]
 
+  const getChartData = async () => {
+    let data = await getProwJobMetricsDaily(repoName, repoOrg, jobType, jobName, rangeDateTime)
+    // sort the metrics by date
+    data = data.sort(function(a,b){
+      // Turn your strings into dates, and then subtract them
+      // to get a value that is either negative, positive, or zero.
+      return new Date(a.start_date).valueOf() - new Date(b.start_date).valueOf();
+    });
+
+    console.log(data)
+    const beautifiedData: DashboardLineChartData = {
+      "FAILED_JOB_RUNS": { data: [], style: { data: { stroke: "rgba(255, 0, 0, 0.6)", strokeWidth: 2 } } },
+      "SUCCESS_JOB_RUNS": { data: [], style: { data: { stroke: "rgba(60, 179, 113, 0.6)", strokeWidth: 2 } } },
+    };
+    
+    const beautifiedFailureData: DashboardLineChartData = {
+      "EXTERNAL_SERVICES_IMPACT": { data: [], style: { data: { stroke: "rgba(255, 165, 0, 0.7)", strokeWidth: 2 } } },
+      "FLAKY_TESTS_IMPACT": { data: [], style: { data: { stroke: "rgba(255, 0, 0, 0.7)", strokeWidth: 2 } } },
+      "INFRASTRUCTURE_IMPACT": { data: [], style: { data: { stroke: "rgba(106, 90, 205, 0.7)", strokeWidth: 2 } } },
+      "UNKNOWN_FAILURES_IMPACT": { data: [], style: { data: { stroke: "rgba(180, 180, 180, 0.7)", strokeWidth: 2 } } },
+    };
+
+    data.map(jobMetric => {
+      beautifiedData["FAILED_JOB_RUNS"].data.push({ name: 'failed_job_runs_%', x: new Date(jobMetric.start_date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: jobMetric.jobs_runs.failed_percentage })
+      beautifiedData["SUCCESS_JOB_RUNS"].data.push({ name: 'success_job_runs_%', x: new Date(jobMetric.start_date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: jobMetric.jobs_runs.success_percentage })
+
+      beautifiedFailureData["EXTERNAL_SERVICES_IMPACT"].data.push({ name: 'external_services_impact_%', x: new Date(jobMetric.start_date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: jobMetric.jobs_impacts.external_services_impact.percentage })
+      beautifiedFailureData["FLAKY_TESTS_IMPACT"].data.push({ name: 'flaky_tests_impact_%', x: new Date(jobMetric.start_date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: jobMetric.jobs_impacts.flaky_tests_impact.percentage })
+      beautifiedFailureData["INFRASTRUCTURE_IMPACT"].data.push({ name: 'infrasctructure_impact_%', x: new Date(jobMetric.start_date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: jobMetric.jobs_impacts.infrastructure_impact.percentage })
+      beautifiedFailureData["UNKNOWN_FAILURES_IMPACT"].data.push({ name: 'unknow_failures_impact_%', x: new Date(jobMetric.start_date).toLocaleDateString("en-US", { day: 'numeric', month: 'short' }), y: jobMetric.jobs_impacts.unknown_failures_impact.percentage })
+
+    })
+
+    setprowJobMetrics(beautifiedData)
+    setprowJobFailureMetrics(beautifiedFailureData)
+
+  }
+
   // when a job name is selected, get the job data from api
   useEffect(() => {
     if(currentTeam && jobName && repoName && start.toISOString() && end.toISOString() && repoOrg){
       getProwJob();
       getFlakyData(currentTeam, jobName, repoName, start.toISOString(), end.toISOString(), repoOrg).then(res => { setImpact(res.data.global_impact)});
+      getChartData()
     } else {
       setImpact("")
     }
@@ -702,8 +733,14 @@ let Reports = () => {
                     </GridItem>
                   </Grid>
                 }
-                {prowJobsStats !== null && false && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
-                  <GridItem span={12} rowSpan={5}><DashboardLineChart data={beautifiedData}></DashboardLineChart></GridItem>
+                {
+                prowJobMetrics !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
+                  <GridItem span={12} rowSpan={5}><DashboardLineChart data={prowJobMetrics}></DashboardLineChart></GridItem>
+                </Grid>
+                }
+                {
+                prowJobFailuerMetrics !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
+                  <GridItem span={12} rowSpan={5}><DashboardLineChart data={prowJobFailuerMetrics}></DashboardLineChart></GridItem>
                 </Grid>
                 }
 

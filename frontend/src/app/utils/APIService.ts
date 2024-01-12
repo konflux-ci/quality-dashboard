@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import axios, { AxiosResponse } from 'axios';
 import _ from 'lodash';
-import { JobsStatistics } from '@app/utils/sharedComponents';
+import { JobsStatistics, JobMetric } from '@app/utils/sharedComponents';
 import { getRepoNameFormatted, sortGlobalSLI, teamIsNotEmpty } from '@app/utils/utils';
 import { formatDate } from '@app/Reports/utils';
 
@@ -751,6 +751,43 @@ async function listTeamRepos(team: string) {
   return repos;
 }
 
+async function getProwJobMetricsDaily(repoName: string, repoOrg: string, jobType: string, jobName: string, rangeDateTime: Date[]) {
+  const start_date = formatDate(rangeDateTime[0]);
+  const end_date = formatDate(rangeDateTime[1]);
+  const result: ApiResponse = { code: 0, data: {} };
+  const uri = API_URL + '/api/quality/prow/metrics/daily?repository_name=' +
+    repoName +
+    '&git_organization=' +
+    repoOrg +
+    '&job_type=' +
+    jobType +
+    '&job_name=' +
+    jobName +
+    '&start_date=' +
+    start_date +
+    '&end_date=' +
+    end_date;
+
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  if (result.code != 200) {
+    throw 'Error fetching data from server. ';
+  }
+
+  const statistics: JobMetric[] = result.data;
+
+  return statistics;
+}
+
 export {
   getVersion,
   getRepositories,
@@ -780,5 +817,6 @@ export {
   getBugSLIs,
   getRepositoriesWithJobs,
   getFlakyData,
-  getGlobalImpactData
+  getGlobalImpactData,
+  getProwJobMetricsDaily
 };
