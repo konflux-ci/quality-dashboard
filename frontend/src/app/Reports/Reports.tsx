@@ -733,17 +733,16 @@ let Reports = () => {
                     </GridItem>
                   </Grid>
                 }
-                {
-                prowJobMetrics !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
-                  <GridItem span={12} rowSpan={5}><DashboardLineChart data={prowJobMetrics}></DashboardLineChart></GridItem>
+                <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
+                  {
+                  prowJobMetrics !== null && 
+                    <GridItem span={6} rowSpan={5}><DashboardLineChart data={prowJobMetrics}></DashboardLineChart></GridItem>
+                  }
+                  {
+                  prowJobFailuerMetrics !== null &&
+                    <GridItem span={6} rowSpan={5}><DashboardLineChart data={prowJobFailuerMetrics}></DashboardLineChart></GridItem>
+                  }
                 </Grid>
-                }
-                {
-                prowJobFailuerMetrics !== null && <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
-                  <GridItem span={12} rowSpan={5}><DashboardLineChart data={prowJobFailuerMetrics}></DashboardLineChart></GridItem>
-                </Grid>
-                }
-
               </div>
               }
             </React.Fragment>
