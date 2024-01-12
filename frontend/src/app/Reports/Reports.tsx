@@ -736,11 +736,15 @@ let Reports = () => {
                 <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
                   {
                   prowJobMetrics !== null && 
-                    <GridItem span={6} rowSpan={5}><DashboardLineChart data={prowJobMetrics}></DashboardLineChart></GridItem>
+                    <GridItem span={6} rowSpan={5}>
+                      <DashboardLineChart title="Success and Failure percentage" data={prowJobMetrics}></DashboardLineChart>
+                    </GridItem>
                   }
                   {
                   prowJobFailuerMetrics !== null &&
-                    <GridItem span={6} rowSpan={5}><DashboardLineChart data={prowJobFailuerMetrics}></DashboardLineChart></GridItem>
+                    <GridItem span={6} rowSpan={5}>
+                      <DashboardLineChart title="Failures reasons percentage" data={prowJobFailuerMetrics}></DashboardLineChart>
+                    </GridItem>
                   }
                 </Grid>
               </div>

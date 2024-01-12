@@ -1,6 +1,6 @@
 import React, { useState, useLayoutEffect, useRef } from 'react';
 import { ExclamationCircleIcon, OkIcon, HelpIcon, ExternalLinkAltIcon, GithubIcon } from '@patternfly/react-icons';
-import { Card, CardTitle, CardBody, Badge, Icon } from '@patternfly/react-core';
+import { Card, CardTitle, CardBody, Badge, Icon, Title } from '@patternfly/react-core';
 import { Chart, ChartAxis, ChartLine, ChartGroup, ChartLegend, createContainer } from '@patternfly/react-charts';
 import { SimpleList, SimpleListItem } from '@patternfly/react-core';
 import { getLabels } from './utils';
@@ -153,7 +153,7 @@ export type DashboardLineChartData = {
   [key: string]: DashboardLineChartSerie
 }
 
-export const DashboardLineChart = ({ data, colorScale }: { data: DashboardLineChartData, colorScale?: string[] }) => {
+export const DashboardLineChart = ({ data, colorScale, title }: { data: DashboardLineChartData, colorScale?: string[], title?:string }) => {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
@@ -187,10 +187,13 @@ export const DashboardLineChart = ({ data, colorScale }: { data: DashboardLineCh
   );
 
   return (
-    <div style={{ height: '100%', width: '100%', minHeight: "600px" }} className={"pf-c-card"} ref={ref}>
-      <div style={{ height: height + 'px', width: width + 'px', background: "white" }}>
+    <div style={{ padding: "1em", background: "white" }}>
+      {
+        title && <Title headingLevel='h2'>{title}</Title>
+      }
+    <div style={{ height: '100%', width: '100%', minHeight: "600px", border: "1px solid white"}} ref={ref}>
+      <div style={{ border: "none", height: height + 'px', width: width + 'px', background: "1px solid white" }}>
         <Chart
-          ariaDesc="Average number of pets"
           containerComponent={
             <ZoomVoronoiContainer
               labels={({ datum }) => getLabels(datum, "success_rate")}
@@ -223,6 +226,7 @@ export const DashboardLineChart = ({ data, colorScale }: { data: DashboardLineCh
           </ChartGroup>
         </Chart>
       </div>
+    </div>
     </div>
   )
 };
