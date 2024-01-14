@@ -34,7 +34,7 @@ type Storage interface {
 	GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error)
 	GetProwJobsResults(repo *db.Repository, startDate, endDate string) ([]*db.ProwJobs, error)
 	GetProwJobsResultsByJobID(jobID string) ([]*db.ProwJobs, error)
-	ObtainProwMetricsByJob(gitOrganization string, repositoryName string, jobType string, startDate string, endDate string) *prowV1Alpha1.JobsMetrics
+	ObtainProwMetricsByJob(gitOrganization string, repositoryName string, jobName string, startDate string, endDate string) (*prowV1Alpha1.JobsMetrics, error)
 	GetAllTeamsFromDB() ([]*db.Teams, error)
 	GetTeamByName(teamName string) (*db.Teams, error)
 	ListWorkflowsByRepository(repositoryName string) (w []repoV1Alpha1.Workflow, err error)

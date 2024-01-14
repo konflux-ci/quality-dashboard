@@ -54,7 +54,13 @@ func (s *jobRouter) getProwMetrics(ctx context.Context, w http.ResponseWriter, r
 		})
 	}
 
-	metrics := s.Storage.ObtainProwMetricsByJob(gitOrganization[0], repositoryName[0], jobType[0], startDate[0], endDate[0])
+	metrics, err := s.Storage.ObtainProwMetricsByJob(gitOrganization[0], repositoryName[0], jobType[0], startDate[0], endDate[0])
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "failed to get metrics",
+			StatusCode: 400,
+		})
+	}
 
 	return httputils.WriteJSON(w, http.StatusOK, metrics)
 }
@@ -102,8 +108,7 @@ func (s *jobRouter) getProwMetricsByDay(ctx context.Context, w http.ResponseWrit
 		})
 	}
 
-	suiterlandia := s.Storage.GetMetricsSummaryByDay(repoInfo, jobName[0], startDate[0], endDate[0])
-
+	metricsDay := s.Storage.GetMetricsSummaryByDay(repoInfo, jobName[0], startDate[0], endDate[0])
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "failed to get latest prow execution",
@@ -111,5 +116,5 @@ func (s *jobRouter) getProwMetricsByDay(ctx context.Context, w http.ResponseWrit
 		})
 	}
 
-	return httputils.WriteJSON(w, http.StatusOK, suiterlandia)
+	return httputils.WriteJSON(w, http.StatusOK, metricsDay)
 }

@@ -8,7 +8,9 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/pkg/ml"
+
+	//"github.com/redhat-appstudio/quality-studio/pkg/ml"
+
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
@@ -198,25 +200,7 @@ func (d *Database) GetProwFlakyTrendsMetrics(gitOrg string, repoName string, job
 		}
 	}
 
-	return d.calculateRegression(metrics)
-}
-
-func (d *Database) calculateRegression(ms []v1alpha1.FlakyMetrics) []v1alpha1.FlakyMetrics {
-	var x = []float64{}
-	var y = []float64{}
-	var lr ml.LinearRegression
-
-	for _, m := range ms {
-		x = append(x, float64(m.JobsExecuted))
-		y = append(y, m.GlobalImpact)
-	}
-
-	lr.Fit(x, y)
-	for i, m := range ms {
-		ms[i].Regression = lr.Predict(float64(m.JobsExecuted))
-	}
-
-	return ms
+	return metrics
 }
 
 func (d *Database) GetProwJobsByRepoOrg(repo *db.Repository) ([]string, error) {
