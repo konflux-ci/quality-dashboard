@@ -168,7 +168,7 @@ let Reports = () => {
     }
     else {
       setRepoName(repositories[selection].Repository.Name);
-      setRepoNameFormatted(repositories[selection].Repository.Name);
+      setRepoNameFormatted(getRepoNameFormatted(repositories[selection].Repository.Name));
       setRepoOrg(repositories[selection].Repository.Owner.Login);
       setRepoNameToggle(false)
       params.set("repository", repositories[selection].Repository.Name)
@@ -313,7 +313,6 @@ let Reports = () => {
       return new Date(a.start_date).valueOf() - new Date(b.start_date).valueOf();
     });
 
-    console.log(data)
     const beautifiedData: DashboardLineChartData = {
       "FAILED_JOB_RUNS": { data: [], style: { data: { stroke: "rgba(255, 0, 0, 0.6)", strokeWidth: 2 } } },
       "SUCCESS_JOB_RUNS": { data: [], style: { data: { stroke: "rgba(60, 179, 113, 0.6)", strokeWidth: 2 } } },
@@ -340,6 +339,18 @@ let Reports = () => {
     setprowJobMetrics(beautifiedData)
     setprowJobFailureMetrics(beautifiedFailureData)
 
+  }
+
+  const getRepoNameFormatted = (repoName) => {
+    if (repoName == "infra-deployments") {
+      return "RHTAP E2E Tests"
+    }
+  
+    let formattedRepoName = repoName
+    formattedRepoName = formattedRepoName.replaceAll("-", " ");
+    formattedRepoName = formattedRepoName.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    formattedRepoName = formattedRepoName.replace("E2e", "E2E");
+    return "Individual Component - " + formattedRepoName
   }
 
   // when a job name is selected, get the job data from api
@@ -400,7 +411,7 @@ let Reports = () => {
 
               if (validateRepositoryParams(data, repository, organization)) {
                 setRepoName(repository)
-                setRepoNameFormatted(repository)
+                setRepoNameFormatted(getRepoNameFormatted(repository))
                 setRepoOrg(organization)
                 setRangeDateTime([new Date(start), new Date(end)])
                 getJobNamesAndTypes(repository, organization)
@@ -420,7 +431,7 @@ let Reports = () => {
             } 
             else {
               setRepoName(data[0].Repository.Name)
-              setRepoNameFormatted(data[0].Repository.Name)
+              setRepoNameFormatted(getRepoNameFormatted(data[0].Repository.Name))
               setRepoOrg(data[0].Repository.Owner.Login)
               setjobType("presubmit") // all repos in OpenShift CI have presubmit type job
 
@@ -486,7 +497,7 @@ let Reports = () => {
                     placeholderText="Select a repository"
                   >
                     {repositories.map((value, index) => (
-                      <SelectOption key={index} value={index} description={value.Repository.Name + "/" + value.Repository.Owner.Login} isDisabled={value.isPlaceholder}>{value.Repository.Name}</SelectOption>
+                      <SelectOption key={index} value={index} description={value.Repository.Name + "/" + value.Repository.Owner.Login} isDisabled={value.isPlaceholder}>{getRepoNameFormatted(value.Repository.Name)}</SelectOption>
                     ))}
                   </Select>
                 </ToolbarItem>
