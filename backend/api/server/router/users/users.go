@@ -3,7 +3,6 @@ package users
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	userV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/user/v1alpha1"
@@ -22,7 +21,6 @@ func (s *usersRouter) createUser(ctx context.Context, w http.ResponseWriter, r *
 	}
 
 	err := s.Storage.CreateUser(user)
-	fmt.Println("error creating user:", err)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
@@ -68,8 +66,6 @@ func (s *usersRouter) listAllUsers(ctx context.Context, w http.ResponseWriter, r
 			StatusCode: http.StatusInternalServerError,
 		})
 	}
-
-	fmt.Println("aqui vai users", users)
 
 	return httputils.WriteJSON(w, http.StatusOK, users)
 }
