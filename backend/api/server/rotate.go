@@ -49,6 +49,9 @@ func (s *Server) rotate() error {
 		s.cfg.Logger.Sugar().Errorf("Failed to update cache", zap.Error(err))
 		return err
 	}
+
+	s.UpdateProwStatusByTeam()
+
 	for _, team := range teamArr {
 		if team.JiraKeys == "" {
 			continue
@@ -58,7 +61,6 @@ func (s *Server) rotate() error {
 		}
 	}
 
-	s.UpdateProwStatusByTeam()
 	s.UpdateFailuresByTeam()
 	err = s.UpdateDataBaseRepoByTeam()
 	if err != nil {
@@ -71,7 +73,7 @@ func (s *Server) rotate() error {
 
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
-		rotationFrequency: time.Minute * 40,
+		rotationFrequency: time.Second * 10,
 	}
 }
 
@@ -81,15 +83,12 @@ func shouldBeDeleted(jiraKey string, bugs []jira.Issue) bool {
 			return false
 		}
 	}
-	fmt.Println("Deleted bug: ", jiraKey)
 	return true
 }
 
 func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
 	bugs := s.cfg.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys))
-	fmt.Println("[rotateJiraBugs] bugs", bugs)
 	if err := s.cfg.Storage.CreateJiraBug(bugs, team); err != nil {
-		fmt.Println("[rotateJiraBugs] err create", err)
 		return err
 	}
 

@@ -172,6 +172,26 @@ func (pju *ProwJobsUpdate) AddCiFailed(i int16) *ProwJobsUpdate {
 	return pju
 }
 
+// SetExternalServicesImpact sets the "external_services_impact" field.
+func (pju *ProwJobsUpdate) SetExternalServicesImpact(b bool) *ProwJobsUpdate {
+	pju.mutation.SetExternalServicesImpact(b)
+	return pju
+}
+
+// SetNillableExternalServicesImpact sets the "external_services_impact" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableExternalServicesImpact(b *bool) *ProwJobsUpdate {
+	if b != nil {
+		pju.SetExternalServicesImpact(*b)
+	}
+	return pju
+}
+
+// ClearExternalServicesImpact clears the value of the "external_services_impact" field.
+func (pju *ProwJobsUpdate) ClearExternalServicesImpact() *ProwJobsUpdate {
+	pju.mutation.ClearExternalServicesImpact()
+	return pju
+}
+
 // SetE2eFailedTestMessages sets the "e2e_failed_test_messages" field.
 func (pju *ProwJobsUpdate) SetE2eFailedTestMessages(s string) *ProwJobsUpdate {
 	pju.mutation.SetE2eFailedTestMessages(s)
@@ -363,6 +383,12 @@ func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pju.mutation.AddedCiFailed(); ok {
 		_spec.AddField(prowjobs.FieldCiFailed, field.TypeInt16, value)
+	}
+	if value, ok := pju.mutation.ExternalServicesImpact(); ok {
+		_spec.SetField(prowjobs.FieldExternalServicesImpact, field.TypeBool, value)
+	}
+	if pju.mutation.ExternalServicesImpactCleared() {
+		_spec.ClearField(prowjobs.FieldExternalServicesImpact, field.TypeBool)
 	}
 	if value, ok := pju.mutation.E2eFailedTestMessages(); ok {
 		_spec.SetField(prowjobs.FieldE2eFailedTestMessages, field.TypeString, value)
@@ -577,6 +603,26 @@ func (pjuo *ProwJobsUpdateOne) SetCiFailed(i int16) *ProwJobsUpdateOne {
 // AddCiFailed adds i to the "ci_failed" field.
 func (pjuo *ProwJobsUpdateOne) AddCiFailed(i int16) *ProwJobsUpdateOne {
 	pjuo.mutation.AddCiFailed(i)
+	return pjuo
+}
+
+// SetExternalServicesImpact sets the "external_services_impact" field.
+func (pjuo *ProwJobsUpdateOne) SetExternalServicesImpact(b bool) *ProwJobsUpdateOne {
+	pjuo.mutation.SetExternalServicesImpact(b)
+	return pjuo
+}
+
+// SetNillableExternalServicesImpact sets the "external_services_impact" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableExternalServicesImpact(b *bool) *ProwJobsUpdateOne {
+	if b != nil {
+		pjuo.SetExternalServicesImpact(*b)
+	}
+	return pjuo
+}
+
+// ClearExternalServicesImpact clears the value of the "external_services_impact" field.
+func (pjuo *ProwJobsUpdateOne) ClearExternalServicesImpact() *ProwJobsUpdateOne {
+	pjuo.mutation.ClearExternalServicesImpact()
 	return pjuo
 }
 
@@ -795,6 +841,12 @@ func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, er
 	}
 	if value, ok := pjuo.mutation.AddedCiFailed(); ok {
 		_spec.AddField(prowjobs.FieldCiFailed, field.TypeInt16, value)
+	}
+	if value, ok := pjuo.mutation.ExternalServicesImpact(); ok {
+		_spec.SetField(prowjobs.FieldExternalServicesImpact, field.TypeBool, value)
+	}
+	if pjuo.mutation.ExternalServicesImpactCleared() {
+		_spec.ClearField(prowjobs.FieldExternalServicesImpact, field.TypeBool)
 	}
 	if value, ok := pjuo.mutation.E2eFailedTestMessages(); ok {
 		_spec.SetField(prowjobs.FieldE2eFailedTestMessages, field.TypeString, value)

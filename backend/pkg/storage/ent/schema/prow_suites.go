@@ -30,6 +30,10 @@ func (ProwSuites) Fields() []ent.Field {
 			Optional().
 			Nillable().
 			SchemaType(textSchema),
+		field.Bool("external_services_impact").
+			Optional().
+			Default(false).
+			Nillable(),
 		field.Float("time").
 			SchemaType(textSchema),
 		field.Time("created_at").

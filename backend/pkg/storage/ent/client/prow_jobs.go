@@ -21,6 +21,7 @@ func (d *Database) CreateProwJobResults(job prowV1Alpha1.Job, repo_id string) er
 		SetJobURL(job.JobURL).
 		SetCiFailed(job.CIFailed).
 		SetDuration(job.Duration).
+		SetExternalServicesImpact(job.ExternalServiceImpact).
 		// E2EFailedTestMessages and BuildErrorLogs are used to get the impact of RHTAPBUGS
 		SetE2eFailedTestMessages(job.E2EFailedTestMessages).
 		SetBuildErrorLogs(job.BuildErrorLogs).
@@ -81,7 +82,7 @@ func (d *Database) UpdateErrorMessages(jobID, buildErrorLogs, e2eErrorMessages s
 	return nil
 }
 
-func (d *Database) GetAllProwJobs(startDate, endDate string) ([]*db.ProwJobs, error) {
+func (d *Database) GetAllProwJobs(startDate string, endDate string) ([]*db.ProwJobs, error) {
 	prowJobs, err := d.client.ProwJobs.Query().
 		Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
