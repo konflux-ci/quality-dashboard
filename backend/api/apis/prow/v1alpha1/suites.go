@@ -28,6 +28,8 @@ type JobSuites struct {
 	// Return if is postsubmit, presubmit or periodic
 	JobType string `json:"job_type"`
 
+	ExternalServiceImpact bool `json:"external_service_impact"`
+
 	CreatedAt time.Time `json:"created_at"`
 
 	ErrorMessage string `json:"error_message"`
@@ -47,6 +49,8 @@ type FlakyFrequency struct {
 	JobName string `json:"job_name"`
 
 	JobsExecuted int `json:"jobs_executed"`
+
+	JobsAffectedByFlayTests int `json:"jobs_affected_by_flaky_tests"`
 
 	SuitesFailureFrequency []SuitesFailureFrequency `json:"suites"`
 }

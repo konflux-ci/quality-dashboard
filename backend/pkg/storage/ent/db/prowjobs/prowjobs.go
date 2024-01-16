@@ -29,6 +29,8 @@ const (
 	FieldJobURL = "job_url"
 	// FieldCiFailed holds the string denoting the ci_failed field in the database.
 	FieldCiFailed = "ci_failed"
+	// FieldExternalServicesImpact holds the string denoting the external_services_impact field in the database.
+	FieldExternalServicesImpact = "external_services_impact"
 	// FieldE2eFailedTestMessages holds the string denoting the e2e_failed_test_messages field in the database.
 	FieldE2eFailedTestMessages = "e2e_failed_test_messages"
 	// FieldSuitesXMLURL holds the string denoting the suites_xml_url field in the database.
@@ -62,6 +64,7 @@ var Columns = []string{
 	FieldState,
 	FieldJobURL,
 	FieldCiFailed,
+	FieldExternalServicesImpact,
 	FieldE2eFailedTestMessages,
 	FieldSuitesXMLURL,
 	FieldBuildErrorLogs,
@@ -87,3 +90,8 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// DefaultExternalServicesImpact holds the default value on creation for the "external_services_impact" field.
+	DefaultExternalServicesImpact bool
+)

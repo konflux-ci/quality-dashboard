@@ -21,6 +21,9 @@ const (
 	ProwEndpoint       = "https://prow.ci.openshift.org/prowjobs.js"
 )
 
+var JunitRegexpSearch = regexp.MustCompile(`(j?unit|e2e)-?[0-9a-z]+\.xml`)
+var ExternalServicesSearch = regexp.MustCompile(`services-status.json`)
+
 func (s *Server) UpdateProwStatusByTeam() {
 	prowjobs, err := fetchJobsJSON(ProwEndpoint)
 	if err != nil {
@@ -43,7 +46,6 @@ func (s *Server) UpdateProwStatusByTeam() {
 func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Repository) {
 	for _, job := range prowJobs {
 		suitesXml := prow.TestSuites{}
-
 		prowJobsInDatabase, _ := s.cfg.Storage.GetProwJobsResultsByJobID(job.Status.BuildID)
 
 		if len(prowJobsInDatabase) > 0 {
@@ -51,17 +53,14 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 			continue
 		}
 
-		s.cfg.Logger.Info("compiling job for analysis", zap.String("job_name", job.Spec.Job), zap.String("job_id", job.Status.BuildID),
-			zap.String("git_org", repo.GitOrganization), zap.String("repo_name", repo.RepositoryName), zap.String("job_status", string(job.Status.State)))
-
 		diff := job.Status.CompletionTime.Sub(job.Status.StartTime)
 
 		var suites []byte
 		if job.Spec.Type == "periodic" {
-			suites = s.cfg.GCS.GetJobJunitContent("", "", "", job.Status.BuildID, job.Spec.Type, job.Spec.Job)
+			suites = s.cfg.GCS.GetJobJunitContent("", "", "", job.Status.BuildID, job.Spec.Type, job.Spec.Job, JunitRegexpSearch)
 		} else if job.Spec.Type == "presubmit" {
 			suites = s.cfg.GCS.GetJobJunitContent(repo.GitOrganization, repo.RepositoryName, ExtractPullRequestNumberFromLabels(job.Labels),
-				job.Status.BuildID, job.Spec.Type, job.Spec.Job)
+				job.Status.BuildID, job.Spec.Type, job.Spec.Job, JunitRegexpSearch)
 		}
 
 		if len(suites) > 0 {
@@ -74,6 +73,8 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 		s.cfg.Logger.Info("successfully pulled data from gcs. Updating database", zap.String("job_name", job.Spec.Job), zap.String("job_id", job.Status.BuildID),
 			zap.String("git_org", repo.GitOrganization), zap.String("repo_name", repo.RepositoryName), zap.String("job_status", string(job.Status.State)))
 
+		isImpacted, _ := s.CheckIfJobIsImpactedByExternalServices(job, repo)
+
 		totalErrorMessages := ""
 		for _, suite := range suitesXml.Suites {
 			for _, testCase := range suite.TestCases {
@@ -83,15 +84,16 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 					totalErrorMessages += errorMsg
 
 					jobSuite := prowV1Alpha1.JobSuites{
-						JobID:          job.Status.BuildID,
-						JobName:        job.Spec.Job,
-						TestCaseName:   testCase.Name,
-						TestCaseStatus: "failed",
-						TestTiming:     testCase.Duration,
-						JobType:        job.Spec.Type,
-						CreatedAt:      job.Status.StartTime,
-						ErrorMessage:   testCase.FailureOutput.Message,
-						JobURL:         job.Status.URL,
+						JobID:                 job.Status.BuildID,
+						JobName:               job.Spec.Job,
+						TestCaseName:          testCase.Name,
+						TestCaseStatus:        "failed",
+						TestTiming:            testCase.Duration,
+						JobType:               job.Spec.Type,
+						CreatedAt:             job.Status.StartTime,
+						ErrorMessage:          testCase.FailureOutput.Message,
+						JobURL:                job.Status.URL,
+						ExternalServiceImpact: isImpacted,
 					}
 
 					re := regexp.MustCompile(`\[It\]\s*\[([^\]]+)\]`)
@@ -120,13 +122,14 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 		}
 
 		if err := s.cfg.Storage.CreateProwJobResults(prowV1Alpha1.Job{
-			JobID:     job.Status.BuildID,
-			CreatedAt: job.Status.StartTime,
-			State:     string(job.Status.State),
-			JobType:   job.Spec.Type,
-			JobName:   job.Spec.Job,
-			JobURL:    job.Status.URL,
-			Duration:  float64(diff),
+			JobID:                 job.Status.BuildID,
+			CreatedAt:             job.Status.StartTime,
+			State:                 string(job.Status.State),
+			JobType:               job.Spec.Type,
+			JobName:               job.Spec.Job,
+			JobURL:                job.Status.URL,
+			Duration:              float64(diff),
+			ExternalServiceImpact: isImpacted,
 			// E2EFailedTestMessages and BuildErrorLogs are used to get the impact of RHTAPBUGS
 			E2EFailedTestMessages: totalErrorMessages,
 			BuildErrorLogs:        buildErrorLogs,
@@ -134,6 +137,34 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 			s.cfg.Logger.Sugar().Errorf("failed to save prowJob", err)
 		}
 	}
+}
+
+func (s *Server) CheckIfJobIsImpactedByExternalServices(job prow.ProwJob, repo *db.Repository) (bool, error) {
+	var externalService HealthCheckStatus
+	var externalByteContent []byte
+
+	if job.Spec.Type == "periodic" {
+		externalByteContent = s.cfg.GCS.GetJobJunitContent("", "", "", job.Status.BuildID, job.Spec.Type, job.Spec.Job, ExternalServicesSearch)
+	} else if job.Spec.Type == "presubmit" {
+		externalByteContent = s.cfg.GCS.GetJobJunitContent(repo.GitOrganization, repo.RepositoryName, ExtractPullRequestNumberFromLabels(job.Labels),
+			job.Status.BuildID, job.Spec.Type, job.Spec.Job, ExternalServicesSearch)
+	}
+
+	if externalByteContent == nil {
+		return false, nil
+	}
+
+	if err := json.Unmarshal(externalByteContent, &externalService); err != nil {
+		return false, fmt.Errorf("failed to parse external service status %v", err)
+	}
+
+	for _, service := range externalService.ExternalServices {
+		if service.CurrentStatus.Status.Indicator != "none" {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func FilterProwJobsByRepository(gitOrg string, repoName string, prowJobs []prow.ProwJob) []prow.ProwJob {
@@ -223,13 +254,13 @@ func (s *Server) ErrorsUpdateInProwJobs() {
 			// to cover the cases where we were not collecting e2e failed error messages like in hac jobs
 			var suites []byte
 			if pj.JobType == "periodic" {
-				suites = s.cfg.GCS.GetJobJunitContent("", "", "", pj.JobID, pj.JobType, pj.JobName)
+				suites = s.cfg.GCS.GetJobJunitContent("", "", "", pj.JobID, pj.JobType, pj.JobName, JunitRegexpSearch)
 			} else if pj.JobType == "presubmit" {
 				prNumber := getPRNumber(pj.JobURL)
 
 				if prNumber != "" {
 					suites = s.cfg.GCS.GetJobJunitContent("redhat-appstudio", "infra-deployments", prNumber,
-						pj.JobID, pj.JobType, pj.JobName)
+						pj.JobID, pj.JobType, pj.JobName, JunitRegexpSearch)
 				} else {
 					s.cfg.Logger.Sugar().Warnf("Failed to get pr number from ", pj.JobURL)
 				}

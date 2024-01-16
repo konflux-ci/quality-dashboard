@@ -113,6 +113,20 @@ func (pjc *ProwJobsCreate) SetCiFailed(i int16) *ProwJobsCreate {
 	return pjc
 }
 
+// SetExternalServicesImpact sets the "external_services_impact" field.
+func (pjc *ProwJobsCreate) SetExternalServicesImpact(b bool) *ProwJobsCreate {
+	pjc.mutation.SetExternalServicesImpact(b)
+	return pjc
+}
+
+// SetNillableExternalServicesImpact sets the "external_services_impact" field if the given value is not nil.
+func (pjc *ProwJobsCreate) SetNillableExternalServicesImpact(b *bool) *ProwJobsCreate {
+	if b != nil {
+		pjc.SetExternalServicesImpact(*b)
+	}
+	return pjc
+}
+
 // SetE2eFailedTestMessages sets the "e2e_failed_test_messages" field.
 func (pjc *ProwJobsCreate) SetE2eFailedTestMessages(s string) *ProwJobsCreate {
 	pjc.mutation.SetE2eFailedTestMessages(s)
@@ -181,6 +195,7 @@ func (pjc *ProwJobsCreate) Mutation() *ProwJobsMutation {
 
 // Save creates the ProwJobs in the database.
 func (pjc *ProwJobsCreate) Save(ctx context.Context) (*ProwJobs, error) {
+	pjc.defaults()
 	return withHooks[*ProwJobs, ProwJobsMutation](ctx, pjc.sqlSave, pjc.mutation, pjc.hooks)
 }
 
@@ -203,6 +218,14 @@ func (pjc *ProwJobsCreate) Exec(ctx context.Context) error {
 func (pjc *ProwJobsCreate) ExecX(ctx context.Context) {
 	if err := pjc.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (pjc *ProwJobsCreate) defaults() {
+	if _, ok := pjc.mutation.ExternalServicesImpact(); !ok {
+		v := prowjobs.DefaultExternalServicesImpact
+		pjc.mutation.SetExternalServicesImpact(v)
 	}
 }
 
@@ -308,6 +331,10 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 	if value, ok := pjc.mutation.CiFailed(); ok {
 		_spec.SetField(prowjobs.FieldCiFailed, field.TypeInt16, value)
 		_node.CiFailed = value
+	}
+	if value, ok := pjc.mutation.ExternalServicesImpact(); ok {
+		_spec.SetField(prowjobs.FieldExternalServicesImpact, field.TypeBool, value)
+		_node.ExternalServicesImpact = &value
 	}
 	if value, ok := pjc.mutation.E2eFailedTestMessages(); ok {
 		_spec.SetField(prowjobs.FieldE2eFailedTestMessages, field.TypeString, value)
@@ -570,6 +597,24 @@ func (u *ProwJobsUpsert) UpdateCiFailed() *ProwJobsUpsert {
 // AddCiFailed adds v to the "ci_failed" field.
 func (u *ProwJobsUpsert) AddCiFailed(v int16) *ProwJobsUpsert {
 	u.Add(prowjobs.FieldCiFailed, v)
+	return u
+}
+
+// SetExternalServicesImpact sets the "external_services_impact" field.
+func (u *ProwJobsUpsert) SetExternalServicesImpact(v bool) *ProwJobsUpsert {
+	u.Set(prowjobs.FieldExternalServicesImpact, v)
+	return u
+}
+
+// UpdateExternalServicesImpact sets the "external_services_impact" field to the value that was provided on create.
+func (u *ProwJobsUpsert) UpdateExternalServicesImpact() *ProwJobsUpsert {
+	u.SetExcluded(prowjobs.FieldExternalServicesImpact)
+	return u
+}
+
+// ClearExternalServicesImpact clears the value of the "external_services_impact" field.
+func (u *ProwJobsUpsert) ClearExternalServicesImpact() *ProwJobsUpsert {
+	u.SetNull(prowjobs.FieldExternalServicesImpact)
 	return u
 }
 
@@ -877,6 +922,27 @@ func (u *ProwJobsUpsertOne) UpdateCiFailed() *ProwJobsUpsertOne {
 	})
 }
 
+// SetExternalServicesImpact sets the "external_services_impact" field.
+func (u *ProwJobsUpsertOne) SetExternalServicesImpact(v bool) *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetExternalServicesImpact(v)
+	})
+}
+
+// UpdateExternalServicesImpact sets the "external_services_impact" field to the value that was provided on create.
+func (u *ProwJobsUpsertOne) UpdateExternalServicesImpact() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateExternalServicesImpact()
+	})
+}
+
+// ClearExternalServicesImpact clears the value of the "external_services_impact" field.
+func (u *ProwJobsUpsertOne) ClearExternalServicesImpact() *ProwJobsUpsertOne {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearExternalServicesImpact()
+	})
+}
+
 // SetE2eFailedTestMessages sets the "e2e_failed_test_messages" field.
 func (u *ProwJobsUpsertOne) SetE2eFailedTestMessages(v string) *ProwJobsUpsertOne {
 	return u.Update(func(s *ProwJobsUpsert) {
@@ -988,6 +1054,7 @@ func (pjcb *ProwJobsCreateBulk) Save(ctx context.Context) ([]*ProwJobs, error) {
 	for i := range pjcb.builders {
 		func(i int, root context.Context) {
 			builder := pjcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ProwJobsMutation)
 				if !ok {
@@ -1346,6 +1413,27 @@ func (u *ProwJobsUpsertBulk) AddCiFailed(v int16) *ProwJobsUpsertBulk {
 func (u *ProwJobsUpsertBulk) UpdateCiFailed() *ProwJobsUpsertBulk {
 	return u.Update(func(s *ProwJobsUpsert) {
 		s.UpdateCiFailed()
+	})
+}
+
+// SetExternalServicesImpact sets the "external_services_impact" field.
+func (u *ProwJobsUpsertBulk) SetExternalServicesImpact(v bool) *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.SetExternalServicesImpact(v)
+	})
+}
+
+// UpdateExternalServicesImpact sets the "external_services_impact" field to the value that was provided on create.
+func (u *ProwJobsUpsertBulk) UpdateExternalServicesImpact() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.UpdateExternalServicesImpact()
+	})
+}
+
+// ClearExternalServicesImpact clears the value of the "external_services_impact" field.
+func (u *ProwJobsUpsertBulk) ClearExternalServicesImpact() *ProwJobsUpsertBulk {
+	return u.Update(func(s *ProwJobsUpsert) {
+		s.ClearExternalServicesImpact()
 	})
 }
 

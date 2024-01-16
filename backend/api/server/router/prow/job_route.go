@@ -25,11 +25,13 @@ func NewRouter(storage storage.Storage) router.Router {
 	logger, _ := logger.InitZap("info")
 	r.Logger = *logger
 	r.Storage = storage
-	r.routes = []router.Route{ // listProwRepos
+	r.routes = []router.Route{ // getProwJobsByType
 		router.NewGetRoute("/prow/results/get", r.getProwJobs),
+		router.NewGetRoute("/prow/jobs/types", r.getProwJobsByType),
 		router.NewGetRoute("/prow/results/latest/get", r.getLatestSuitesExecution),
 		router.NewGetRoute("/prow/metrics/get", r.getProwMetrics),
 		router.NewGetRoute("/prow/repositories/list", r.listProwRepos),
+		router.NewGetRoute("/prow/metrics/daily", r.getProwMetricsByDay),
 	}
 
 	return r

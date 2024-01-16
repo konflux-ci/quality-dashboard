@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import axios, { AxiosResponse } from 'axios';
 import _ from 'lodash';
-import { JobsStatistics } from '@app/utils/sharedComponents';
-import { sortGlobalSLI, teamIsNotEmpty } from '@app/utils/utils';
+import { JobsStatistics, JobMetric } from '@app/utils/sharedComponents';
+import { getRepoNameFormatted, sortGlobalSLI, teamIsNotEmpty } from '@app/utils/utils';
 import { formatDate } from '@app/Reports/utils';
 
 type ApiResponse = {
@@ -191,6 +191,7 @@ async function getAllRepositoriesWithOrgs(team: string, openshift: boolean, rang
     repoAndOrgs = result.data.map((row) => {
       return {
         repoName: row.repository_name,
+        repoNameFormatted: getRepoNameFormatted(row.repository_name),
         organization: row.git_organization,
         description: row.description,
         url: row.git_url,
@@ -276,7 +277,7 @@ async function getLatestProwJob(repoName: string, repoOrg: string, jobType: stri
   return result.data;
 }
 
-async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: string, rangeDateTime: Date[]) {
+async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: string, jobName: string, rangeDateTime: Date[]) {
   const start_date = formatDate(rangeDateTime[0]);
   const end_date = formatDate(rangeDateTime[1]);
   const result: ApiResponse = { code: 0, data: {} };
@@ -286,6 +287,8 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
     repoOrg +
     '&job_type=' +
     jobType +
+    '&job_name=' +
+    jobName +
     '&start_date=' +
     start_date +
     '&end_date=' +
@@ -307,16 +310,6 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
   }
 
   const statistics: JobsStatistics = result.data;
-  if (statistics.jobs == null) {
-    throw 'No jobs detected in OpenShift CI';
-  }
-
-  statistics.jobs.forEach((job, j_idx) => {
-    let j = job.metrics.sort(function (a, b) {
-      return +new Date(a.date) - +new Date(b.date);
-    });
-    statistics.jobs[j_idx].metrics = j;
-  });
 
   return statistics;
 }
@@ -362,6 +355,30 @@ async function createTeam(data = {}) {
 async function getJobTypes(repoName: string, repoOrg: string) {
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/repositories/getJobTypesFromRepo?repository_name=' +
+    repoName +
+    '&git_organization=' +
+    repoOrg
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  if (result.code != 200) {
+    throw 'Error fetching data from server. ';
+  }
+
+  return result.data.sort((a, b) => (a < b ? -1 : 1));
+}
+
+async function getJobNamesAndTypes(repoName: string, repoOrg: string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/prow/jobs/types?repository_name=' +
     repoName +
     '&git_organization=' +
     repoOrg
@@ -712,12 +729,77 @@ async function getGlobalImpactData(team: string, job: string, repo: string, rang
   return result;
 }
 
+async function listTeamRepos(team: string) {
+  let repos = [];
+
+  if (!teamIsNotEmpty(team)) return repos;
+
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/prow/repositories/list?team_name=' + team 
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  if (result.code != 200) {
+    throw 'Error fetching data from server.';
+  } else {
+    repos = result.data.sort((a, b) => (a.repository_name < b.repository_name ? -1 : 1));
+  }
+  return repos;
+}
+
+async function getProwJobMetricsDaily(repoName: string, repoOrg: string, jobType: string, jobName: string, rangeDateTime: Date[]) {
+  const start_date = formatDate(rangeDateTime[0]);
+  const end_date = formatDate(rangeDateTime[1]);
+  const result: ApiResponse = { code: 0, data: {} };
+  const uri = API_URL + '/api/quality/prow/metrics/daily?repository_name=' +
+    repoName +
+    '&git_organization=' +
+    repoOrg +
+    '&job_type=' +
+    jobType +
+    '&job_name=' +
+    jobName +
+    '&start_date=' +
+    start_date +
+    '&end_date=' +
+    end_date;
+
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  if (result.code != 200) {
+    throw 'Error fetching data from server. ';
+  }
+
+  const statistics: JobMetric[] = result.data;
+
+  return statistics;
+}
+
 export {
   getVersion,
   getRepositories,
   createRepository,
   getWorkflowByRepositoryName,
   getAllRepositoriesWithOrgs,
+  listTeamRepos,
   getLatestProwJob,
   getProwJobStatistics,
   getProwJobs,
@@ -725,6 +807,7 @@ export {
   createTeam,
   getJiras,
   getJobTypes,
+  getJobNamesAndTypes,
   deleteInApi,
   updateTeam,
   checkDbConnection,
@@ -739,5 +822,6 @@ export {
   getBugSLIs,
   getRepositoriesWithJobs,
   getFlakyData,
-  getGlobalImpactData
+  getGlobalImpactData,
+  getProwJobMetricsDaily
 };
