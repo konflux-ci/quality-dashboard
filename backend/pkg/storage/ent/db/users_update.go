@@ -27,12 +27,6 @@ func (uu *UsersUpdate) Where(ps ...predicate.Users) *UsersUpdate {
 	return uu
 }
 
-// SetUserName sets the "user_name" field.
-func (uu *UsersUpdate) SetUserName(s string) *UsersUpdate {
-	uu.mutation.SetUserName(s)
-	return uu
-}
-
 // SetUserEmail sets the "user_email" field.
 func (uu *UsersUpdate) SetUserEmail(s string) *UsersUpdate {
 	uu.mutation.SetUserEmail(s)
@@ -95,9 +89,6 @@ func (uu *UsersUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := uu.mutation.UserName(); ok {
-		_spec.SetField(users.FieldUserName, field.TypeString, value)
-	}
 	if value, ok := uu.mutation.UserEmail(); ok {
 		_spec.SetField(users.FieldUserEmail, field.TypeString, value)
 	}
@@ -122,12 +113,6 @@ type UsersUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *UsersMutation
-}
-
-// SetUserName sets the "user_name" field.
-func (uuo *UsersUpdateOne) SetUserName(s string) *UsersUpdateOne {
-	uuo.mutation.SetUserName(s)
-	return uuo
 }
 
 // SetUserEmail sets the "user_email" field.
@@ -215,9 +200,6 @@ func (uuo *UsersUpdateOne) sqlSave(ctx context.Context) (_node *Users, err error
 				ps[i](selector)
 			}
 		}
-	}
-	if value, ok := uuo.mutation.UserName(); ok {
-		_spec.SetField(users.FieldUserName, field.TypeString, value)
 	}
 	if value, ok := uuo.mutation.UserEmail(); ok {
 		_spec.SetField(users.FieldUserEmail, field.TypeString, value)

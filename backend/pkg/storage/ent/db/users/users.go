@@ -11,8 +11,6 @@ const (
 	Label = "users"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "user_id"
-	// FieldUserName holds the string denoting the user_name field in the database.
-	FieldUserName = "user_name"
 	// FieldUserEmail holds the string denoting the user_email field in the database.
 	FieldUserEmail = "user_email"
 	// FieldConfig holds the string denoting the config field in the database.
@@ -24,7 +22,6 @@ const (
 // Columns holds all SQL columns for users fields.
 var Columns = []string{
 	FieldID,
-	FieldUserName,
 	FieldUserEmail,
 	FieldConfig,
 }

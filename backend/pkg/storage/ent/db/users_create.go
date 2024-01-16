@@ -23,12 +23,6 @@ type UsersCreate struct {
 	conflict []sql.ConflictOption
 }
 
-// SetUserName sets the "user_name" field.
-func (uc *UsersCreate) SetUserName(s string) *UsersCreate {
-	uc.mutation.SetUserName(s)
-	return uc
-}
-
 // SetUserEmail sets the "user_email" field.
 func (uc *UsersCreate) SetUserEmail(s string) *UsersCreate {
 	uc.mutation.SetUserEmail(s)
@@ -98,9 +92,6 @@ func (uc *UsersCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (uc *UsersCreate) check() error {
-	if _, ok := uc.mutation.UserName(); !ok {
-		return &ValidationError{Name: "user_name", err: errors.New(`db: missing required field "Users.user_name"`)}
-	}
 	if _, ok := uc.mutation.UserEmail(); !ok {
 		return &ValidationError{Name: "user_email", err: errors.New(`db: missing required field "Users.user_email"`)}
 	}
@@ -149,10 +140,6 @@ func (uc *UsersCreate) createSpec() (*Users, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := uc.mutation.UserName(); ok {
-		_spec.SetField(users.FieldUserName, field.TypeString, value)
-		_node.UserName = value
-	}
 	if value, ok := uc.mutation.UserEmail(); ok {
 		_spec.SetField(users.FieldUserEmail, field.TypeString, value)
 		_node.UserEmail = value
@@ -168,7 +155,7 @@ func (uc *UsersCreate) createSpec() (*Users, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.Users.Create().
-//		SetUserName(v).
+//		SetUserEmail(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -177,7 +164,7 @@ func (uc *UsersCreate) createSpec() (*Users, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.UsersUpsert) {
-//			SetUserName(v+v).
+//			SetUserEmail(v+v).
 //		}).
 //		Exec(ctx)
 func (uc *UsersCreate) OnConflict(opts ...sql.ConflictOption) *UsersUpsertOne {
@@ -212,18 +199,6 @@ type (
 		*sql.UpdateSet
 	}
 )
-
-// SetUserName sets the "user_name" field.
-func (u *UsersUpsert) SetUserName(v string) *UsersUpsert {
-	u.Set(users.FieldUserName, v)
-	return u
-}
-
-// UpdateUserName sets the "user_name" field to the value that was provided on create.
-func (u *UsersUpsert) UpdateUserName() *UsersUpsert {
-	u.SetExcluded(users.FieldUserName)
-	return u
-}
 
 // SetUserEmail sets the "user_email" field.
 func (u *UsersUpsert) SetUserEmail(v string) *UsersUpsert {
@@ -295,20 +270,6 @@ func (u *UsersUpsertOne) Update(set func(*UsersUpsert)) *UsersUpsertOne {
 		set(&UsersUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetUserName sets the "user_name" field.
-func (u *UsersUpsertOne) SetUserName(v string) *UsersUpsertOne {
-	return u.Update(func(s *UsersUpsert) {
-		s.SetUserName(v)
-	})
-}
-
-// UpdateUserName sets the "user_name" field to the value that was provided on create.
-func (u *UsersUpsertOne) UpdateUserName() *UsersUpsertOne {
-	return u.Update(func(s *UsersUpsert) {
-		s.UpdateUserName()
-	})
 }
 
 // SetUserEmail sets the "user_email" field.
@@ -471,7 +432,7 @@ func (ucb *UsersCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.UsersUpsert) {
-//			SetUserName(v+v).
+//			SetUserEmail(v+v).
 //		}).
 //		Exec(ctx)
 func (ucb *UsersCreateBulk) OnConflict(opts ...sql.ConflictOption) *UsersUpsertBulk {
@@ -548,20 +509,6 @@ func (u *UsersUpsertBulk) Update(set func(*UsersUpsert)) *UsersUpsertBulk {
 		set(&UsersUpsert{UpdateSet: update})
 	}))
 	return u
-}
-
-// SetUserName sets the "user_name" field.
-func (u *UsersUpsertBulk) SetUserName(v string) *UsersUpsertBulk {
-	return u.Update(func(s *UsersUpsert) {
-		s.SetUserName(v)
-	})
-}
-
-// UpdateUserName sets the "user_name" field to the value that was provided on create.
-func (u *UsersUpsertBulk) UpdateUserName() *UsersUpsertBulk {
-	return u.Update(func(s *UsersUpsert) {
-		s.UpdateUserName()
-	})
 }
 
 // SetUserEmail sets the "user_email" field.

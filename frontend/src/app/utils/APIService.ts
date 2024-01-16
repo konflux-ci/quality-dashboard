@@ -792,7 +792,7 @@ async function getProwJobMetricsDaily(repoName: string, repoOrg: string, jobType
   return statistics;
 }
 
-async function createUser(userName: string, userEmail: string, userConfig: string) {
+async function createUser(userEmail: string, userConfig: string) {
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/users/create';
   const uri = API_URL + subPath;
@@ -801,7 +801,6 @@ async function createUser(userName: string, userEmail: string, userConfig: strin
       method: 'POST',
       url: uri,
       data: {
-        user_name: userName,
         user_email: userEmail,
         user_config: userConfig,
       },

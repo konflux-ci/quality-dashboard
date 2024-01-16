@@ -23,7 +23,6 @@ func (d *Database) CreateUser(u v1alpha1.User) error {
 		}
 	} else {
 		_, err := d.client.Users.Create().
-			SetUserName(u.UserName).
 			SetUserEmail(u.UserEmail).
 			SetConfig(u.Config).
 			Save(context.TODO())

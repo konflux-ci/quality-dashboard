@@ -68,7 +68,7 @@ let Login = () => {
         const user = await getUser(sessionInfo.email)
 
         if (user.data == null) {
-          await createUser(sessionInfo.name, sessionInfo.email, "")
+          await createUser(sessionInfo.email, "")
         } else {
           redux_dispatch({ type: "SET_USER_CONFIG", data: user.data.config });
         }

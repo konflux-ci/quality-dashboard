@@ -233,7 +233,6 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "user_id", Type: field.TypeUUID, Unique: true},
-		{Name: "user_name", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "user_email", Type: field.TypeString, Unique: true, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "config", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
 	}

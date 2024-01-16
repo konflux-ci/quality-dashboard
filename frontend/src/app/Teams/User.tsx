@@ -41,7 +41,7 @@ export const UserToolbarGroup = () => {
         // get user config
         const config = getUserConfig(defaultTeam)
         // update user config
-        await createUser(username, userEmail, config)
+        await createUser(userEmail, config)
         redux_dispatch({ type: "SET_USER_CONFIG", data: config });
 
         setIsModalOpen(!isModalOpen);

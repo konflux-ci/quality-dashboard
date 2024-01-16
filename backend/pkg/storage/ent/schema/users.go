@@ -18,8 +18,6 @@ func (Users) Fields() []ent.Field {
 			Default(uuid.New).
 			StorageKey("user_id").
 			Unique(),
-		field.String("user_name").
-			SchemaType(textSchema),
 		field.String("user_email").
 			SchemaType(textSchema).
 			Unique(),
