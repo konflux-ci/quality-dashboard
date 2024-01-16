@@ -8,7 +8,9 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/pkg/ml"
+
+	//"github.com/redhat-appstudio/quality-studio/pkg/ml"
+
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
@@ -36,6 +38,7 @@ func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, job
 			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 		}).
 		Where(prowsuites.JobName(jobName)).
+		Where(prowsuites.ExternalServicesImpact(false)).
 		GroupBy(prowsuites.FieldSuiteName, prowsuites.FieldStatus).
 		Aggregate(db.Count()).
 		Scan(context.Background(), &suitesFailure)
@@ -63,6 +66,7 @@ func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, job
 			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 		}).
 		Where(prowsuites.JobName(jobName)).
+		Where(prowsuites.ExternalServicesImpact(false)).
 		Aggregate(
 			db.Count(),
 		).
@@ -83,6 +87,7 @@ func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, job
 			testcase, err := d.client.Repository.QueryProwSuites(repository).Where(func(s *sql.Selector) { // "merged_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 				s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 			}).Where(prowsuites.Name(s.Name)).
+				Where(prowsuites.ExternalServicesImpact(false)).
 				Where(prowsuites.SuiteName(suiteFail.SuiteName)).All(context.Background())
 
 			if err != nil {
@@ -143,6 +148,7 @@ func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, job
 	flakyFrequency.JobName = jobName
 	flakyFrequency.GitOrganization = gitOrg
 	flakyFrequency.JobsExecuted = allJobs
+	flakyFrequency.JobsAffectedByFlayTests = getLengthOfJobIdsInPRowSuiteWithoutDuplication(allImpacted)
 	flakyFrequency.RepositoryName = repoName
 
 	return flakyFrequency, nil
@@ -194,25 +200,7 @@ func (d *Database) GetProwFlakyTrendsMetrics(gitOrg string, repoName string, job
 		}
 	}
 
-	return d.calculateRegression(metrics)
-}
-
-func (d *Database) calculateRegression(ms []v1alpha1.FlakyMetrics) []v1alpha1.FlakyMetrics {
-	var x = []float64{}
-	var y = []float64{}
-	var lr ml.LinearRegression
-
-	for _, m := range ms {
-		x = append(x, float64(m.JobsExecuted))
-		y = append(y, m.GlobalImpact)
-	}
-
-	lr.Fit(x, y)
-	for i, m := range ms {
-		ms[i].Regression = lr.Predict(float64(m.JobsExecuted))
-	}
-
-	return ms
+	return metrics
 }
 
 func (d *Database) GetProwJobsByRepoOrg(repo *db.Repository) ([]string, error) {

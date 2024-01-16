@@ -113,6 +113,7 @@ var (
 		{Name: "state", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "job_url", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "ci_failed", Type: field.TypeInt16, SchemaType: map[string]string{"postgres": "numeric"}},
+		{Name: "external_services_impact", Type: field.TypeBool, Nullable: true, Default: false},
 		{Name: "e2e_failed_test_messages", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "suites_xml_url", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "build_error_logs", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
@@ -126,7 +127,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "prow_jobs_repositories_prow_jobs",
-				Columns:    []*schema.Column{ProwJobsColumns[15]},
+				Columns:    []*schema.Column{ProwJobsColumns[16]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -142,6 +143,7 @@ var (
 		{Name: "name", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "status", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "error_message", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "external_services_impact", Type: field.TypeBool, Nullable: true, Default: false},
 		{Name: "time", Type: field.TypeFloat64, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "created_at", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
 		{Name: "repository_prow_suites", Type: field.TypeString, Nullable: true, Size: 25},
@@ -154,7 +156,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "prow_suites_repositories_prow_suites",
-				Columns:    []*schema.Column{ProwSuitesColumns[10]},
+				Columns:    []*schema.Column{ProwSuitesColumns[11]},
 				RefColumns: []*schema.Column{RepositoriesColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

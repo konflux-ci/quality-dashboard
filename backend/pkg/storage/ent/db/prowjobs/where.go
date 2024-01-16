@@ -110,6 +110,11 @@ func CiFailed(v int16) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldEQ(FieldCiFailed, v))
 }
 
+// ExternalServicesImpact applies equality check predicate on the "external_services_impact" field. It's identical to ExternalServicesImpactEQ.
+func ExternalServicesImpact(v bool) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldEQ(FieldExternalServicesImpact, v))
+}
+
 // E2eFailedTestMessages applies equality check predicate on the "e2e_failed_test_messages" field. It's identical to E2eFailedTestMessagesEQ.
 func E2eFailedTestMessages(v string) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldEQ(FieldE2eFailedTestMessages, v))
@@ -718,6 +723,26 @@ func CiFailedLT(v int16) predicate.ProwJobs {
 // CiFailedLTE applies the LTE predicate on the "ci_failed" field.
 func CiFailedLTE(v int16) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldLTE(FieldCiFailed, v))
+}
+
+// ExternalServicesImpactEQ applies the EQ predicate on the "external_services_impact" field.
+func ExternalServicesImpactEQ(v bool) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldEQ(FieldExternalServicesImpact, v))
+}
+
+// ExternalServicesImpactNEQ applies the NEQ predicate on the "external_services_impact" field.
+func ExternalServicesImpactNEQ(v bool) predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldNEQ(FieldExternalServicesImpact, v))
+}
+
+// ExternalServicesImpactIsNil applies the IsNil predicate on the "external_services_impact" field.
+func ExternalServicesImpactIsNil() predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldIsNull(FieldExternalServicesImpact))
+}
+
+// ExternalServicesImpactNotNil applies the NotNil predicate on the "external_services_impact" field.
+func ExternalServicesImpactNotNil() predicate.ProwJobs {
+	return predicate.ProwJobs(sql.FieldNotNull(FieldExternalServicesImpact))
 }
 
 // E2eFailedTestMessagesEQ applies the EQ predicate on the "e2e_failed_test_messages" field.

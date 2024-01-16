@@ -73,6 +73,20 @@ func (psc *ProwSuitesCreate) SetNillableErrorMessage(s *string) *ProwSuitesCreat
 	return psc
 }
 
+// SetExternalServicesImpact sets the "external_services_impact" field.
+func (psc *ProwSuitesCreate) SetExternalServicesImpact(b bool) *ProwSuitesCreate {
+	psc.mutation.SetExternalServicesImpact(b)
+	return psc
+}
+
+// SetNillableExternalServicesImpact sets the "external_services_impact" field if the given value is not nil.
+func (psc *ProwSuitesCreate) SetNillableExternalServicesImpact(b *bool) *ProwSuitesCreate {
+	if b != nil {
+		psc.SetExternalServicesImpact(*b)
+	}
+	return psc
+}
+
 // SetTime sets the "time" field.
 func (psc *ProwSuitesCreate) SetTime(f float64) *ProwSuitesCreate {
 	psc.mutation.SetTime(f)
@@ -119,6 +133,7 @@ func (psc *ProwSuitesCreate) Mutation() *ProwSuitesMutation {
 
 // Save creates the ProwSuites in the database.
 func (psc *ProwSuitesCreate) Save(ctx context.Context) (*ProwSuites, error) {
+	psc.defaults()
 	return withHooks[*ProwSuites, ProwSuitesMutation](ctx, psc.sqlSave, psc.mutation, psc.hooks)
 }
 
@@ -141,6 +156,14 @@ func (psc *ProwSuitesCreate) Exec(ctx context.Context) error {
 func (psc *ProwSuitesCreate) ExecX(ctx context.Context) {
 	if err := psc.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (psc *ProwSuitesCreate) defaults() {
+	if _, ok := psc.mutation.ExternalServicesImpact(); !ok {
+		v := prowsuites.DefaultExternalServicesImpact
+		psc.mutation.SetExternalServicesImpact(v)
 	}
 }
 
@@ -227,6 +250,10 @@ func (psc *ProwSuitesCreate) createSpec() (*ProwSuites, *sqlgraph.CreateSpec) {
 	if value, ok := psc.mutation.ErrorMessage(); ok {
 		_spec.SetField(prowsuites.FieldErrorMessage, field.TypeString, value)
 		_node.ErrorMessage = &value
+	}
+	if value, ok := psc.mutation.ExternalServicesImpact(); ok {
+		_spec.SetField(prowsuites.FieldExternalServicesImpact, field.TypeBool, value)
+		_node.ExternalServicesImpact = &value
 	}
 	if value, ok := psc.mutation.Time(); ok {
 		_spec.SetField(prowsuites.FieldTime, field.TypeFloat64, value)
@@ -395,6 +422,24 @@ func (u *ProwSuitesUpsert) UpdateErrorMessage() *ProwSuitesUpsert {
 // ClearErrorMessage clears the value of the "error_message" field.
 func (u *ProwSuitesUpsert) ClearErrorMessage() *ProwSuitesUpsert {
 	u.SetNull(prowsuites.FieldErrorMessage)
+	return u
+}
+
+// SetExternalServicesImpact sets the "external_services_impact" field.
+func (u *ProwSuitesUpsert) SetExternalServicesImpact(v bool) *ProwSuitesUpsert {
+	u.Set(prowsuites.FieldExternalServicesImpact, v)
+	return u
+}
+
+// UpdateExternalServicesImpact sets the "external_services_impact" field to the value that was provided on create.
+func (u *ProwSuitesUpsert) UpdateExternalServicesImpact() *ProwSuitesUpsert {
+	u.SetExcluded(prowsuites.FieldExternalServicesImpact)
+	return u
+}
+
+// ClearExternalServicesImpact clears the value of the "external_services_impact" field.
+func (u *ProwSuitesUpsert) ClearExternalServicesImpact() *ProwSuitesUpsert {
+	u.SetNull(prowsuites.FieldExternalServicesImpact)
 	return u
 }
 
@@ -579,6 +624,27 @@ func (u *ProwSuitesUpsertOne) ClearErrorMessage() *ProwSuitesUpsertOne {
 	})
 }
 
+// SetExternalServicesImpact sets the "external_services_impact" field.
+func (u *ProwSuitesUpsertOne) SetExternalServicesImpact(v bool) *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.SetExternalServicesImpact(v)
+	})
+}
+
+// UpdateExternalServicesImpact sets the "external_services_impact" field to the value that was provided on create.
+func (u *ProwSuitesUpsertOne) UpdateExternalServicesImpact() *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.UpdateExternalServicesImpact()
+	})
+}
+
+// ClearExternalServicesImpact clears the value of the "external_services_impact" field.
+func (u *ProwSuitesUpsertOne) ClearExternalServicesImpact() *ProwSuitesUpsertOne {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.ClearExternalServicesImpact()
+	})
+}
+
 // SetTime sets the "time" field.
 func (u *ProwSuitesUpsertOne) SetTime(v float64) *ProwSuitesUpsertOne {
 	return u.Update(func(s *ProwSuitesUpsert) {
@@ -669,6 +735,7 @@ func (pscb *ProwSuitesCreateBulk) Save(ctx context.Context) ([]*ProwSuites, erro
 	for i := range pscb.builders {
 		func(i int, root context.Context) {
 			builder := pscb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*ProwSuitesMutation)
 				if !ok {
@@ -922,6 +989,27 @@ func (u *ProwSuitesUpsertBulk) UpdateErrorMessage() *ProwSuitesUpsertBulk {
 func (u *ProwSuitesUpsertBulk) ClearErrorMessage() *ProwSuitesUpsertBulk {
 	return u.Update(func(s *ProwSuitesUpsert) {
 		s.ClearErrorMessage()
+	})
+}
+
+// SetExternalServicesImpact sets the "external_services_impact" field.
+func (u *ProwSuitesUpsertBulk) SetExternalServicesImpact(v bool) *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.SetExternalServicesImpact(v)
+	})
+}
+
+// UpdateExternalServicesImpact sets the "external_services_impact" field to the value that was provided on create.
+func (u *ProwSuitesUpsertBulk) UpdateExternalServicesImpact() *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.UpdateExternalServicesImpact()
+	})
+}
+
+// ClearExternalServicesImpact clears the value of the "external_services_impact" field.
+func (u *ProwSuitesUpsertBulk) ClearExternalServicesImpact() *ProwSuitesUpsertBulk {
+	return u.Update(func(s *ProwSuitesUpsert) {
+		s.ClearExternalServicesImpact()
 	})
 }
 

@@ -3635,6 +3635,7 @@ type ProwJobsMutation struct {
 	job_url                  *string
 	ci_failed                *int16
 	addci_failed             *int16
+	external_services_impact *bool
 	e2e_failed_test_messages *string
 	suites_xml_url           *string
 	build_error_logs         *string
@@ -4282,6 +4283,55 @@ func (m *ProwJobsMutation) ResetCiFailed() {
 	m.addci_failed = nil
 }
 
+// SetExternalServicesImpact sets the "external_services_impact" field.
+func (m *ProwJobsMutation) SetExternalServicesImpact(b bool) {
+	m.external_services_impact = &b
+}
+
+// ExternalServicesImpact returns the value of the "external_services_impact" field in the mutation.
+func (m *ProwJobsMutation) ExternalServicesImpact() (r bool, exists bool) {
+	v := m.external_services_impact
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExternalServicesImpact returns the old "external_services_impact" field's value of the ProwJobs entity.
+// If the ProwJobs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwJobsMutation) OldExternalServicesImpact(ctx context.Context) (v *bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExternalServicesImpact is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExternalServicesImpact requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExternalServicesImpact: %w", err)
+	}
+	return oldValue.ExternalServicesImpact, nil
+}
+
+// ClearExternalServicesImpact clears the value of the "external_services_impact" field.
+func (m *ProwJobsMutation) ClearExternalServicesImpact() {
+	m.external_services_impact = nil
+	m.clearedFields[prowjobs.FieldExternalServicesImpact] = struct{}{}
+}
+
+// ExternalServicesImpactCleared returns if the "external_services_impact" field was cleared in this mutation.
+func (m *ProwJobsMutation) ExternalServicesImpactCleared() bool {
+	_, ok := m.clearedFields[prowjobs.FieldExternalServicesImpact]
+	return ok
+}
+
+// ResetExternalServicesImpact resets all changes to the "external_services_impact" field.
+func (m *ProwJobsMutation) ResetExternalServicesImpact() {
+	m.external_services_impact = nil
+	delete(m.clearedFields, prowjobs.FieldExternalServicesImpact)
+}
+
 // SetE2eFailedTestMessages sets the "e2e_failed_test_messages" field.
 func (m *ProwJobsMutation) SetE2eFailedTestMessages(s string) {
 	m.e2e_failed_test_messages = &s
@@ -4502,7 +4552,7 @@ func (m *ProwJobsMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProwJobsMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.job_id != nil {
 		fields = append(fields, prowjobs.FieldJobID)
 	}
@@ -4535,6 +4585,9 @@ func (m *ProwJobsMutation) Fields() []string {
 	}
 	if m.ci_failed != nil {
 		fields = append(fields, prowjobs.FieldCiFailed)
+	}
+	if m.external_services_impact != nil {
+		fields = append(fields, prowjobs.FieldExternalServicesImpact)
 	}
 	if m.e2e_failed_test_messages != nil {
 		fields = append(fields, prowjobs.FieldE2eFailedTestMessages)
@@ -4575,6 +4628,8 @@ func (m *ProwJobsMutation) Field(name string) (ent.Value, bool) {
 		return m.JobURL()
 	case prowjobs.FieldCiFailed:
 		return m.CiFailed()
+	case prowjobs.FieldExternalServicesImpact:
+		return m.ExternalServicesImpact()
 	case prowjobs.FieldE2eFailedTestMessages:
 		return m.E2eFailedTestMessages()
 	case prowjobs.FieldSuitesXMLURL:
@@ -4612,6 +4667,8 @@ func (m *ProwJobsMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldJobURL(ctx)
 	case prowjobs.FieldCiFailed:
 		return m.OldCiFailed(ctx)
+	case prowjobs.FieldExternalServicesImpact:
+		return m.OldExternalServicesImpact(ctx)
 	case prowjobs.FieldE2eFailedTestMessages:
 		return m.OldE2eFailedTestMessages(ctx)
 	case prowjobs.FieldSuitesXMLURL:
@@ -4703,6 +4760,13 @@ func (m *ProwJobsMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCiFailed(v)
+		return nil
+	case prowjobs.FieldExternalServicesImpact:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExternalServicesImpact(v)
 		return nil
 	case prowjobs.FieldE2eFailedTestMessages:
 		v, ok := value.(string)
@@ -4827,6 +4891,9 @@ func (m *ProwJobsMutation) ClearedFields() []string {
 	if m.FieldCleared(prowjobs.FieldSkippedCount) {
 		fields = append(fields, prowjobs.FieldSkippedCount)
 	}
+	if m.FieldCleared(prowjobs.FieldExternalServicesImpact) {
+		fields = append(fields, prowjobs.FieldExternalServicesImpact)
+	}
 	if m.FieldCleared(prowjobs.FieldE2eFailedTestMessages) {
 		fields = append(fields, prowjobs.FieldE2eFailedTestMessages)
 	}
@@ -4858,6 +4925,9 @@ func (m *ProwJobsMutation) ClearField(name string) error {
 		return nil
 	case prowjobs.FieldSkippedCount:
 		m.ClearSkippedCount()
+		return nil
+	case prowjobs.FieldExternalServicesImpact:
+		m.ClearExternalServicesImpact()
 		return nil
 	case prowjobs.FieldE2eFailedTestMessages:
 		m.ClearE2eFailedTestMessages()
@@ -4908,6 +4978,9 @@ func (m *ProwJobsMutation) ResetField(name string) error {
 		return nil
 	case prowjobs.FieldCiFailed:
 		m.ResetCiFailed()
+		return nil
+	case prowjobs.FieldExternalServicesImpact:
+		m.ResetExternalServicesImpact()
 		return nil
 	case prowjobs.FieldE2eFailedTestMessages:
 		m.ResetE2eFailedTestMessages()
@@ -4999,25 +5072,26 @@ func (m *ProwJobsMutation) ResetEdge(name string) error {
 // ProwSuitesMutation represents an operation that mutates the ProwSuites nodes in the graph.
 type ProwSuitesMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *int
-	job_id             *string
-	job_url            *string
-	job_name           *string
-	suite_name         *string
-	name               *string
-	status             *string
-	error_message      *string
-	time               *float64
-	addtime            *float64
-	created_at         *time.Time
-	clearedFields      map[string]struct{}
-	prow_suites        *string
-	clearedprow_suites bool
-	done               bool
-	oldValue           func(context.Context) (*ProwSuites, error)
-	predicates         []predicate.ProwSuites
+	op                       Op
+	typ                      string
+	id                       *int
+	job_id                   *string
+	job_url                  *string
+	job_name                 *string
+	suite_name               *string
+	name                     *string
+	status                   *string
+	error_message            *string
+	external_services_impact *bool
+	time                     *float64
+	addtime                  *float64
+	created_at               *time.Time
+	clearedFields            map[string]struct{}
+	prow_suites              *string
+	clearedprow_suites       bool
+	done                     bool
+	oldValue                 func(context.Context) (*ProwSuites, error)
+	predicates               []predicate.ProwSuites
 }
 
 var _ ent.Mutation = (*ProwSuitesMutation)(nil)
@@ -5383,6 +5457,55 @@ func (m *ProwSuitesMutation) ResetErrorMessage() {
 	delete(m.clearedFields, prowsuites.FieldErrorMessage)
 }
 
+// SetExternalServicesImpact sets the "external_services_impact" field.
+func (m *ProwSuitesMutation) SetExternalServicesImpact(b bool) {
+	m.external_services_impact = &b
+}
+
+// ExternalServicesImpact returns the value of the "external_services_impact" field in the mutation.
+func (m *ProwSuitesMutation) ExternalServicesImpact() (r bool, exists bool) {
+	v := m.external_services_impact
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExternalServicesImpact returns the old "external_services_impact" field's value of the ProwSuites entity.
+// If the ProwSuites object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProwSuitesMutation) OldExternalServicesImpact(ctx context.Context) (v *bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExternalServicesImpact is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExternalServicesImpact requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExternalServicesImpact: %w", err)
+	}
+	return oldValue.ExternalServicesImpact, nil
+}
+
+// ClearExternalServicesImpact clears the value of the "external_services_impact" field.
+func (m *ProwSuitesMutation) ClearExternalServicesImpact() {
+	m.external_services_impact = nil
+	m.clearedFields[prowsuites.FieldExternalServicesImpact] = struct{}{}
+}
+
+// ExternalServicesImpactCleared returns if the "external_services_impact" field was cleared in this mutation.
+func (m *ProwSuitesMutation) ExternalServicesImpactCleared() bool {
+	_, ok := m.clearedFields[prowsuites.FieldExternalServicesImpact]
+	return ok
+}
+
+// ResetExternalServicesImpact resets all changes to the "external_services_impact" field.
+func (m *ProwSuitesMutation) ResetExternalServicesImpact() {
+	m.external_services_impact = nil
+	delete(m.clearedFields, prowsuites.FieldExternalServicesImpact)
+}
+
 // SetTime sets the "time" field.
 func (m *ProwSuitesMutation) SetTime(f float64) {
 	m.time = &f
@@ -5561,7 +5684,7 @@ func (m *ProwSuitesMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProwSuitesMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.job_id != nil {
 		fields = append(fields, prowsuites.FieldJobID)
 	}
@@ -5582,6 +5705,9 @@ func (m *ProwSuitesMutation) Fields() []string {
 	}
 	if m.error_message != nil {
 		fields = append(fields, prowsuites.FieldErrorMessage)
+	}
+	if m.external_services_impact != nil {
+		fields = append(fields, prowsuites.FieldExternalServicesImpact)
 	}
 	if m.time != nil {
 		fields = append(fields, prowsuites.FieldTime)
@@ -5611,6 +5737,8 @@ func (m *ProwSuitesMutation) Field(name string) (ent.Value, bool) {
 		return m.Status()
 	case prowsuites.FieldErrorMessage:
 		return m.ErrorMessage()
+	case prowsuites.FieldExternalServicesImpact:
+		return m.ExternalServicesImpact()
 	case prowsuites.FieldTime:
 		return m.Time()
 	case prowsuites.FieldCreatedAt:
@@ -5638,6 +5766,8 @@ func (m *ProwSuitesMutation) OldField(ctx context.Context, name string) (ent.Val
 		return m.OldStatus(ctx)
 	case prowsuites.FieldErrorMessage:
 		return m.OldErrorMessage(ctx)
+	case prowsuites.FieldExternalServicesImpact:
+		return m.OldExternalServicesImpact(ctx)
 	case prowsuites.FieldTime:
 		return m.OldTime(ctx)
 	case prowsuites.FieldCreatedAt:
@@ -5699,6 +5829,13 @@ func (m *ProwSuitesMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetErrorMessage(v)
+		return nil
+	case prowsuites.FieldExternalServicesImpact:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExternalServicesImpact(v)
 		return nil
 	case prowsuites.FieldTime:
 		v, ok := value.(float64)
@@ -5762,6 +5899,9 @@ func (m *ProwSuitesMutation) ClearedFields() []string {
 	if m.FieldCleared(prowsuites.FieldErrorMessage) {
 		fields = append(fields, prowsuites.FieldErrorMessage)
 	}
+	if m.FieldCleared(prowsuites.FieldExternalServicesImpact) {
+		fields = append(fields, prowsuites.FieldExternalServicesImpact)
+	}
 	if m.FieldCleared(prowsuites.FieldCreatedAt) {
 		fields = append(fields, prowsuites.FieldCreatedAt)
 	}
@@ -5781,6 +5921,9 @@ func (m *ProwSuitesMutation) ClearField(name string) error {
 	switch name {
 	case prowsuites.FieldErrorMessage:
 		m.ClearErrorMessage()
+		return nil
+	case prowsuites.FieldExternalServicesImpact:
+		m.ClearExternalServicesImpact()
 		return nil
 	case prowsuites.FieldCreatedAt:
 		m.ClearCreatedAt()
@@ -5813,6 +5956,9 @@ func (m *ProwSuitesMutation) ResetField(name string) error {
 		return nil
 	case prowsuites.FieldErrorMessage:
 		m.ResetErrorMessage()
+		return nil
+	case prowsuites.FieldExternalServicesImpact:
+		m.ResetExternalServicesImpact()
 		return nil
 	case prowsuites.FieldTime:
 		m.ResetTime()

@@ -7,6 +7,8 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/failure"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
@@ -57,6 +59,18 @@ func init() {
 	failureDescID := failureFields[0].Descriptor()
 	// failure.DefaultID holds the default value on creation for the id field.
 	failure.DefaultID = failureDescID.Default.(func() uuid.UUID)
+	prowjobsFields := schema.ProwJobs{}.Fields()
+	_ = prowjobsFields
+	// prowjobsDescExternalServicesImpact is the schema descriptor for external_services_impact field.
+	prowjobsDescExternalServicesImpact := prowjobsFields[11].Descriptor()
+	// prowjobs.DefaultExternalServicesImpact holds the default value on creation for the external_services_impact field.
+	prowjobs.DefaultExternalServicesImpact = prowjobsDescExternalServicesImpact.Default.(bool)
+	prowsuitesFields := schema.ProwSuites{}.Fields()
+	_ = prowsuitesFields
+	// prowsuitesDescExternalServicesImpact is the schema descriptor for external_services_impact field.
+	prowsuitesDescExternalServicesImpact := prowsuitesFields[7].Descriptor()
+	// prowsuites.DefaultExternalServicesImpact holds the default value on creation for the external_services_impact field.
+	prowsuites.DefaultExternalServicesImpact = prowsuitesDescExternalServicesImpact.Default.(bool)
 	pullrequestsFields := schema.PullRequests{}.Fields()
 	_ = pullrequestsFields
 	// pullrequestsDescPrID is the schema descriptor for pr_id field.

@@ -202,3 +202,38 @@ func (jb *jobRouter) listProwRepos(ctx context.Context, w http.ResponseWriter, r
 
 	return httputils.WriteJSON(w, http.StatusOK, prowRepos)
 }
+
+func (jb *jobRouter) getProwJobsByType(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	repositoryName := r.URL.Query()["repository_name"]
+	gitOrganization := r.URL.Query()["git_organization"]
+
+	if len(gitOrganization) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "git_organization value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(gitOrganization) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "repository_name value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	repoInfo, err := jb.Storage.GetRepository(repositoryName[0], gitOrganization[0])
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    fmt.Sprintf("Repository '%s' doesn't exists in quality studio database", repositoryName[0]),
+			StatusCode: 400,
+		})
+	}
+
+	jobsAndType, err := jb.Storage.GetJobsNameAndType(repoInfo)
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    fmt.Sprintf("Unknown error requesting repository '%s'", repositoryName[0]),
+			StatusCode: 500,
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, jobsAndType)
+}

@@ -35,7 +35,7 @@ type Storage interface {
 	GetSuitesByJobID(jobID string) ([]*db.ProwSuites, error)
 	GetProwJobsResults(repo *db.Repository, startDate, endDate string) ([]*db.ProwJobs, error)
 	GetProwJobsResultsByJobID(jobID string) ([]*db.ProwJobs, error)
-	GetMetrics(gitOrganization, repoName, jobType, startDate, endDate string) (prowV1Alpha1.JobsMetrics, error)
+	ObtainProwMetricsByJob(gitOrganization string, repositoryName string, jobName string, startDate string, endDate string) (*prowV1Alpha1.JobsMetrics, error)
 	GetAllTeamsFromDB() ([]*db.Teams, error)
 	GetTeamByName(teamName string) (*db.Teams, error)
 	ListWorkflowsByRepository(repositoryName string) (w []repoV1Alpha1.Workflow, err error)
@@ -43,6 +43,9 @@ type Storage interface {
 	ListRepositoriesQualityInfo(team *db.Teams, startDate, endDate string) ([]RepositoryQualityInfo, error)
 	GetAllJiraBugs() ([]*db.Bugs, error)
 	GetAllJiraBugsByProject(project string) ([]*db.Bugs, error)
+	GetJobsNameAndType(repo *db.Repository) ([]*db.ProwJobs, error)
+	GetMetricsSummaryByDay(repo *db.Repository, job, startDate, endDate string) []*prowV1Alpha1.JobsMetrics
+
 	// GetAllOpenRHTAPBUGS(dateFrom, dateTo string) ([]*db.Bugs, error)
 	GetAllOpenRHTAPBUGS() ([]*db.Bugs, error)
 	GetAllOpenRHTAPBUGSForSliAlerts() ([]*db.Bugs, error)

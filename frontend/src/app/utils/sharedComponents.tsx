@@ -1,11 +1,9 @@
 import React, { useState, useLayoutEffect, useRef } from 'react';
 import { ExclamationCircleIcon, OkIcon, HelpIcon, ExternalLinkAltIcon, GithubIcon } from '@patternfly/react-icons';
-import { Card, CardTitle, CardBody, Badge, Icon } from '@patternfly/react-core';
-import { Chart, ChartAxis, ChartLine, ChartGroup, ChartLegend, createContainer, ChartTooltip, ChartStack, ChartBar } from '@patternfly/react-charts';
+import { Card, CardTitle, CardBody, Badge, Icon, Title } from '@patternfly/react-core';
+import { Chart, ChartAxis, ChartLine, ChartGroup, ChartLegend, createContainer } from '@patternfly/react-charts';
 import { SimpleList, SimpleListItem } from '@patternfly/react-core';
 import { getLabels } from './utils';
-import chart_color_orange_300 from '@patternfly/react-tokens/dist/esm/chart_color_orange_300';
-import chart_color_red_100 from '@patternfly/react-tokens/dist/esm/chart_color_red_100';
 
 /* 
 Some common useful types definition
@@ -42,6 +40,51 @@ export interface MetricsEntity {
   not_scheduled_count: number;
   total_jobs: number;
   date: string;
+}
+
+export interface JobMetric {
+  git_organization: string
+  repository_name: string
+  name: string
+  start_date: string
+  end_date: string
+  jobs_runs: JobsRuns
+  jobs_impacts: JobsImpacts
+}
+
+export interface JobsRuns {
+  total: number
+  success: number
+  failures: number
+  success_percentage: number
+  failed_percentage: number
+}
+
+export interface JobsImpacts {
+  infrastructure_impact: InfrastructureImpact
+  flaky_tests_impact: FlakyTestsImpact
+  external_services_impact: ExternalServicesImpact
+  unknown_failures_impact: UnknownFailuresImpact
+}
+
+export interface InfrastructureImpact {
+  total: number
+  percentage: number
+}
+
+export interface FlakyTestsImpact {
+  total: number
+  percentage: number
+}
+
+export interface ExternalServicesImpact {
+  total: number
+  percentage: number
+}
+
+export interface UnknownFailuresImpact {
+  total: number
+  percentage: number
 }
 
 /* 
@@ -110,9 +153,8 @@ export type DashboardLineChartData = {
   [key: string]: DashboardLineChartSerie
 }
 
-export const DashboardLineChart = ({ data, colorScale }: { data: DashboardLineChartData, colorScale?: string[] }) => {
+export const DashboardLineChart = ({ data, colorScale, title }: { data: DashboardLineChartData, colorScale?: string[], title?:string }) => {
   const ref = useRef<HTMLDivElement>(null);
-  let beautifiedData = data
   const [width, setWidth] = useState(0);
   const [height, setHeight] = useState(0);
   const ZoomVoronoiContainer = createContainer("zoom", "voronoi");
@@ -124,8 +166,8 @@ export const DashboardLineChart = ({ data, colorScale }: { data: DashboardLineCh
     }
   }, []);
 
-  const legendData = Object.keys(data).map((key, index) => {
-    let l = { name: key.toLowerCase().replace(/_/gi, " ") }
+  const legendData = Object.keys(data).map((key) => {
+    const l = { name: key.toLowerCase().replace(/_/gi, " ") }
     if (data[key].style.data.stroke) {
       l["symbol"] = { fill: data[key].style.data.stroke }
     }
@@ -145,10 +187,13 @@ export const DashboardLineChart = ({ data, colorScale }: { data: DashboardLineCh
   );
 
   return (
-    <div style={{ height: '100%', width: '100%', minHeight: "600px" }} className={"pf-c-card"} ref={ref}>
-      <div style={{ height: height + 'px', width: width + 'px', background: "white" }}>
+    <div style={{ padding: "1em", background: "white" }}>
+      {
+        title && <Title headingLevel='h2'>{title}</Title>
+      }
+    <div style={{ height: '100%', width: '100%', minHeight: "600px", border: "1px solid white"}} ref={ref}>
+      <div style={{ border: "none", height: height + 'px', width: width + 'px', background: "1px solid white" }}>
         <Chart
-          ariaDesc="Average number of pets"
           containerComponent={
             <ZoomVoronoiContainer
               labels={({ datum }) => getLabels(datum, "success_rate")}
@@ -181,6 +226,7 @@ export const DashboardLineChart = ({ data, colorScale }: { data: DashboardLineCh
           </ChartGroup>
         </Chart>
       </div>
+    </div>
     </div>
   )
 };

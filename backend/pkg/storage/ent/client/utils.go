@@ -1,14 +1,13 @@
 package client
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"fmt"
 	"math"
 	"time"
 
 	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
+	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
 )
 
 func convertDBError(t string, err error) error {
@@ -129,8 +128,24 @@ func getWorkingDays(fromDate, toDate time.Time) float64 {
 	return workingDays
 }
 
-func generateRandomString(length int) string {
-	bytes := make([]byte, length/2)
-	rand.Read(bytes) // Ignoring the error for simplicity
-	return hex.EncodeToString(bytes)[:length]
+func removeDuplicateStr(strSlice []string) []string {
+	allKeys := make(map[string]bool)
+	list := []string{}
+	for _, item := range strSlice {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
+}
+
+func CalculatePercentage(x float64, y float64) float64 {
+	result := util.RoundTo(x/y*100, 2)
+
+	if math.IsNaN(result) {
+		return 0
+	}
+
+	return result
 }
