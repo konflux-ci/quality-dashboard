@@ -16,6 +16,8 @@ type Team struct {
 
 func getMention(team string) string {
 	switch team {
+	case "ic-appstudio-qe":
+		return "<!subteam^S03PD4MV58W|ic-appstudio-qe>"
 	case "quality":
 		return "<!subteam^S02G2PFJ4AV|appstudio-qe-team> and <!subteam^S03E4H1JLF5|hacbs-qe-team>"
 	case "spi":
@@ -117,7 +119,7 @@ func (s *Server) sendAlerts() {
 
 	// bugs, err := s.cfg.Storage.GetAllOpenRHTAPBUGS(startDate, toDate)
 
-	bugs, err := s.cfg.Storage.GetAllOpenRHTAPBUGS()
+	bugs, err := s.cfg.Storage.GetAllOpenRHTAPBUGSForSliAlerts()
 	if err != nil {
 		s.cfg.Logger.Sugar().Errorf("Failed to get all open RHTAP Bug SLOs", zap.Error(err))
 	}
@@ -128,11 +130,17 @@ func (s *Server) sendAlerts() {
 	for _, team := range teams {
 		redMsg := ""
 		yellowMsg := ""
+		componentAssignmentMsg := ""
 
 		for _, bug := range team.Bugs {
 			redMsg += getMessage(*bug.TriageSLI, "red")
 			redMsg += getMessage(*bug.ResponseSLI, "red")
 			redMsg += getMessage(*bug.ResolutionSLI, "red")
+
+			if team.ComponentName == "undefined" {
+				// should mention ic-appstudio-qe
+				componentAssignmentMsg += getMessage(*bug.ComponentAssignmentTriageSLI, "red")
+			}
 
 			yellowMsg += getMessage(*bug.TriageSLI, "yellow")
 			yellowMsg += getMessage(*bug.ResolutionSLI, "yellow")
@@ -140,6 +148,10 @@ func (s *Server) sendAlerts() {
 
 		if redMsg != "" {
 			s.sendAlert(team.ComponentName, redMsg, "#FF0000")
+		}
+
+		if componentAssignmentMsg != "" {
+			s.sendAlert("ic-appstudio-qe", componentAssignmentMsg, "#FF0000")
 		}
 
 		if yellowMsg != "" {

@@ -9,7 +9,6 @@ import (
 	failureV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/failure/v1alpha1"
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
 	jiraV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/jira/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 )
@@ -42,17 +41,20 @@ type Storage interface {
 	ListRepositories(team *db.Teams) ([]repoV1Alpha1.Repository, error)
 	ListRepositoriesQualityInfo(team *db.Teams, startDate, endDate string) ([]RepositoryQualityInfo, error)
 	GetAllJiraBugs() ([]*db.Bugs, error)
+	GetAllJiraBugsByProject(project string) ([]*db.Bugs, error)
 	// GetAllOpenRHTAPBUGS(dateFrom, dateTo string) ([]*db.Bugs, error)
 	GetAllOpenRHTAPBUGS() ([]*db.Bugs, error)
+	GetAllOpenRHTAPBUGSForSliAlerts() ([]*db.Bugs, error)
 	GetPullRequestsByRepository(repositoryName, organization, startDate, endDate string) (repoV1Alpha1.PullRequestsInfo, error)
 	GetFrequency(team *db.Teams, errorMessage, startDate, endDate string) (float64, error)
+	GetJiraBug(key string) (*db.Bugs, error)
 	GetJiraStatus(key string) (string, error)
 	GetFailuresByDate(team *db.Teams, startDate, endDate string) ([]*failureV1Alpha1.Failure, error)
 	GetAllFailures(team *db.Teams) ([]*db.Failure, error)
 	ListAllRepositories() ([]*db.Repository, error)
 	BugExists(projectKey string, t *db.Teams) (bool, error)
-	GetSuitesFailureFrequency(gitOrg string, repoName string, jobName string, startDate string, endDate string) (*v1alpha1.FlakyFrequency, error)
-	GetProwFlakyTrendsMetrics(gitOrg string, repoName string, jobName string, startDate string, endDate string) []v1alpha1.FlakyMetrics
+	GetSuitesFailureFrequency(gitOrg string, repoName string, jobName string, startDate string, endDate string) (*prowV1Alpha1.FlakyFrequency, error)
+	GetProwFlakyTrendsMetrics(gitOrg string, repoName string, jobName string, startDate string, endDate string) []prowV1Alpha1.FlakyMetrics
 	GetProwJobsByRepoOrg(repo *db.Repository) ([]string, error)
 
 	// POST
@@ -77,6 +79,7 @@ type Storage interface {
 	DeleteRepository(repositoryName, gitOrganizationName string) error
 	DeleteTeam(teamName string) (bool, error)
 	DeleteJiraBugsByProject(projectKey string, team *db.Teams) error
+	DeleteJiraBugByJiraKey(jiraKey string) error
 	DeleteFailure(teamID, failureID uuid.UUID) error
 }
 

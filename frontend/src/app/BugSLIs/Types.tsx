@@ -14,10 +14,12 @@ export interface Bug {
     triage_sli: Alert,
     response_sli: Alert,
     resolution_sli: Alert,
+    component_assignment_sli: Alert;
     global_sli: string,
     days_without_assignee: number,
     days_without_priority: number,
     days_without_resolution: number,
+    days_without_component: number,
 }
 
 export interface GlobalSLI {
@@ -35,5 +37,6 @@ export interface Info {
     response_time_sli: SLI;
     triage_time_sli: SLI;
     resolution_time_sli: SLI;
+    component_assignment_sli: SLI;
     bugs: Bug[];
 }

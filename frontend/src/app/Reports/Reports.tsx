@@ -70,7 +70,7 @@ let Reports = () => {
   const currentTeam = useSelector((state: any) => state.teams.Team);
   const history = useHistory();
   const params = new URLSearchParams(window.location.search);
-  const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(10));
+  const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(15));
   const [isInvalid, setIsInvalid] = useState(false);
   const [isExpanded, setIsExpanded] = React.useState(false);
   const drawerRef = React.useRef<HTMLDivElement>();
@@ -357,7 +357,7 @@ let Reports = () => {
   useEffect(() => {
     if(currentTeam && jobName && repoName && start.toISOString() && end.toISOString() && repoOrg){
       getProwJob();
-      getFlakyData(currentTeam, jobName, repoName, start.toISOString(), end.toISOString(), repoOrg).then(res => { setImpact(res.data.global_impact)});
+      getFlakyData(currentTeam, jobName, repoName, rangeDateTime, repoOrg).then(res => { setImpact(res.data.global_impact)});
       getChartData()
     } else {
       setImpact("")
@@ -457,6 +457,16 @@ let Reports = () => {
         })
     }
   }, [setRepositories, currentTeam]);
+
+  const getPercentage = (success_count, total_jobs) => {
+    const percentage = (100 * success_count / total_jobs)
+
+    if (isNaN(percentage)) {
+      return "-"
+    }
+
+    return percentage.toFixed(2) + "%"
+  }
 
   return (
 

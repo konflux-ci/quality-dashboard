@@ -30,6 +30,10 @@ export interface FailureInfo {
   jira_status: string;
   error_message: string;
   frequency: string;
+  title_from_jira: string;
+  created_date: string;
+  closed_date: string;
+  labels: string;
 }
 
 // eslint-disable-next-line prefer-const

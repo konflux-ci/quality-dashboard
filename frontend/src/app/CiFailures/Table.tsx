@@ -72,9 +72,13 @@ export const ComposableTable: React.FC<{ failures: any, modal: any }> = ({ failu
 
     const columnNames = {
         jira_key: "Jira Key",
+        title_from_jira: "Title from Jira",
         jira_status: "Jira Status",
         error_message: "Error Message",
         frequency: "Frequency",
+        created_date: "Created Date",
+        closed_date: "Closed Date",
+        labels: "Labels",
     };
 
     useEffect(
@@ -116,9 +120,14 @@ export const ComposableTable: React.FC<{ failures: any, modal: any }> = ({ failu
     // Filters helpers
     const columns = [
         { column: 'jira_key', label: 'Jira Key' },
+        { column: 'title_from_jira', label: 'Title from Jira'},
         { column: 'jira_status', label: 'Jira Status' },
         { column: 'error_message', label: 'Error Message' },
         { column: 'frequency', label: 'Frequency' },
+        { column: 'created_date', label: 'Created Date'},
+        { column: 'closed_date', label: 'Closed Date'},
+        { column: 'labels', label: 'Labels'},
+
     ]
 
     function filterRows(rows, filters) {
@@ -162,8 +171,8 @@ export const ComposableTable: React.FC<{ failures: any, modal: any }> = ({ failu
 
     // Sort helpers
     const getSortableRowValues = (failure: FailureInfo): (string | number)[] => {
-        const { jira_key, jira_status, error_message, frequency } = failure;
-        return [jira_key, jira_status, error_message, frequency];
+        const { jira_key, title_from_jira, jira_status, error_message, frequency, created_date, closed_date, labels } = failure;
+        return [jira_key, title_from_jira, jira_status, error_message, frequency, created_date, closed_date, labels];
     };
 
     const sortRows = (rows) => {
@@ -262,9 +271,13 @@ export const ComposableTable: React.FC<{ failures: any, modal: any }> = ({ failu
                                             <a href={"https://issues.redhat.com/browse/"+failure.jira_key} target="blank" rel="noopener noreferrer">{failure.jira_key}</a>
                                         </div>
                                     </Td>
+                                    <Td dataLabel={columnNames.title_from_jira}>{failure.title_from_jira}</Td>
                                     <Td dataLabel={columnNames.jira_status}>{failure.jira_status}</Td>
                                     <Td dataLabel={columnNames.error_message}>{failure.error_message}</Td>
                                     <Td dataLabel={columnNames.frequency}>{failure.frequency+"%"}</Td>
+                                    <Td dataLabel={columnNames.created_date}>{failure.created_date}</Td>
+                                    <Td dataLabel={columnNames.closed_date}>{failure.closed_date}</Td>
+                                    <Td dataLabel={columnNames.closed_date}>{failure.labels}</Td>
                                     <Td isActionCell>
                                         {rowActions ? (
                                             <ActionsColumn

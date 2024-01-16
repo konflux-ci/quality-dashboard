@@ -27,6 +27,7 @@ var (
 		{Name: "days_without_assignee", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "days_without_priority", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "days_without_resolution", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "days_without_component", Type: field.TypeFloat64, Nullable: true, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "labels", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "component", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "assignee", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
@@ -41,7 +42,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "bugs_teams_bugs",
-				Columns:    []*schema.Column{BugsColumns[21]},
+				Columns:    []*schema.Column{BugsColumns[22]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -78,6 +79,10 @@ var (
 		{Name: "jira_key", Type: field.TypeString, Unique: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "jira_status", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "error_message", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "title_from_jira", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "created_date", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "closed_date", Type: field.TypeTime, Nullable: true, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "labels", Type: field.TypeString, Nullable: true, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
 		{Name: "teams_failures", Type: field.TypeUUID, Nullable: true},
 	}
 	// FailuresTable holds the schema information for the "failures" table.
@@ -88,7 +93,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "failures_teams_failures",
-				Columns:    []*schema.Column{FailuresColumns[4]},
+				Columns:    []*schema.Column{FailuresColumns[8]},
 				RefColumns: []*schema.Column{TeamsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},

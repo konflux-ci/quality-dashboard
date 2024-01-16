@@ -11,9 +11,10 @@ func (s *Server) UpdateFailuresByTeam() {
 		failures, _ := s.cfg.Storage.GetAllFailures(team)
 
 		for _, failure := range failures {
-			jiraStatus, err := s.cfg.Storage.GetJiraStatus(failure.JiraKey)
+			jiraBug, err := s.cfg.Storage.GetJiraBug(failure.JiraKey)
 			if err != nil {
-				s.cfg.Logger.Sugar().Warnf("Failed to get jira status:", err)
+				s.cfg.Logger.Sugar().Warnf("Failed to get jira :", err)
+				return
 			}
 
 			// if jiraStatus == "Closed" {
@@ -25,10 +26,24 @@ func (s *Server) UpdateFailuresByTeam() {
 			// 	}
 			// }
 
+			labels := ""
+			if jiraBug.Labels != nil {
+				labels = *jiraBug.Labels
+			}
+
+			titleFromJira := ""
+			if jiraBug.Summary != "" {
+				titleFromJira = jiraBug.Summary
+			}
+
 			err = s.cfg.Storage.CreateFailure(failureV1Alpha1.Failure{
-				JiraKey:      failure.JiraKey,
-				JiraStatus:   jiraStatus,
-				ErrorMessage: failure.ErrorMessage,
+				JiraKey:       failure.JiraKey,
+				TitleFromJira: titleFromJira,
+				JiraStatus:    failure.JiraStatus,
+				ErrorMessage:  failure.ErrorMessage,
+				CreatedDate:   jiraBug.CreatedAt,
+				ClosedDate:    *jiraBug.ResolvedAt,
+				Labels:        labels,
 			}, team.ID)
 			if err != nil {
 				s.cfg.Logger.Sugar().Warnf("Failed to update failures:", err)

@@ -268,6 +268,33 @@ func (bu *BugsUpdate) ClearDaysWithoutResolution() *BugsUpdate {
 	return bu
 }
 
+// SetDaysWithoutComponent sets the "days_without_component" field.
+func (bu *BugsUpdate) SetDaysWithoutComponent(f float64) *BugsUpdate {
+	bu.mutation.ResetDaysWithoutComponent()
+	bu.mutation.SetDaysWithoutComponent(f)
+	return bu
+}
+
+// SetNillableDaysWithoutComponent sets the "days_without_component" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableDaysWithoutComponent(f *float64) *BugsUpdate {
+	if f != nil {
+		bu.SetDaysWithoutComponent(*f)
+	}
+	return bu
+}
+
+// AddDaysWithoutComponent adds f to the "days_without_component" field.
+func (bu *BugsUpdate) AddDaysWithoutComponent(f float64) *BugsUpdate {
+	bu.mutation.AddDaysWithoutComponent(f)
+	return bu
+}
+
+// ClearDaysWithoutComponent clears the value of the "days_without_component" field.
+func (bu *BugsUpdate) ClearDaysWithoutComponent() *BugsUpdate {
+	bu.mutation.ClearDaysWithoutComponent()
+	return bu
+}
+
 // SetLabels sets the "labels" field.
 func (bu *BugsUpdate) SetLabels(s string) *BugsUpdate {
 	bu.mutation.SetLabels(s)
@@ -519,6 +546,15 @@ func (bu *BugsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if bu.mutation.DaysWithoutResolutionCleared() {
 		_spec.ClearField(bugs.FieldDaysWithoutResolution, field.TypeFloat64)
+	}
+	if value, ok := bu.mutation.DaysWithoutComponent(); ok {
+		_spec.SetField(bugs.FieldDaysWithoutComponent, field.TypeFloat64, value)
+	}
+	if value, ok := bu.mutation.AddedDaysWithoutComponent(); ok {
+		_spec.AddField(bugs.FieldDaysWithoutComponent, field.TypeFloat64, value)
+	}
+	if bu.mutation.DaysWithoutComponentCleared() {
+		_spec.ClearField(bugs.FieldDaysWithoutComponent, field.TypeFloat64)
 	}
 	if value, ok := bu.mutation.Labels(); ok {
 		_spec.SetField(bugs.FieldLabels, field.TypeString, value)
@@ -837,6 +873,33 @@ func (buo *BugsUpdateOne) ClearDaysWithoutResolution() *BugsUpdateOne {
 	return buo
 }
 
+// SetDaysWithoutComponent sets the "days_without_component" field.
+func (buo *BugsUpdateOne) SetDaysWithoutComponent(f float64) *BugsUpdateOne {
+	buo.mutation.ResetDaysWithoutComponent()
+	buo.mutation.SetDaysWithoutComponent(f)
+	return buo
+}
+
+// SetNillableDaysWithoutComponent sets the "days_without_component" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableDaysWithoutComponent(f *float64) *BugsUpdateOne {
+	if f != nil {
+		buo.SetDaysWithoutComponent(*f)
+	}
+	return buo
+}
+
+// AddDaysWithoutComponent adds f to the "days_without_component" field.
+func (buo *BugsUpdateOne) AddDaysWithoutComponent(f float64) *BugsUpdateOne {
+	buo.mutation.AddDaysWithoutComponent(f)
+	return buo
+}
+
+// ClearDaysWithoutComponent clears the value of the "days_without_component" field.
+func (buo *BugsUpdateOne) ClearDaysWithoutComponent() *BugsUpdateOne {
+	buo.mutation.ClearDaysWithoutComponent()
+	return buo
+}
+
 // SetLabels sets the "labels" field.
 func (buo *BugsUpdateOne) SetLabels(s string) *BugsUpdateOne {
 	buo.mutation.SetLabels(s)
@@ -1112,6 +1175,15 @@ func (buo *BugsUpdateOne) sqlSave(ctx context.Context) (_node *Bugs, err error) 
 	}
 	if buo.mutation.DaysWithoutResolutionCleared() {
 		_spec.ClearField(bugs.FieldDaysWithoutResolution, field.TypeFloat64)
+	}
+	if value, ok := buo.mutation.DaysWithoutComponent(); ok {
+		_spec.SetField(bugs.FieldDaysWithoutComponent, field.TypeFloat64, value)
+	}
+	if value, ok := buo.mutation.AddedDaysWithoutComponent(); ok {
+		_spec.AddField(bugs.FieldDaysWithoutComponent, field.TypeFloat64, value)
+	}
+	if buo.mutation.DaysWithoutComponentCleared() {
+		_spec.ClearField(bugs.FieldDaysWithoutComponent, field.TypeFloat64)
 	}
 	if value, ok := buo.mutation.Labels(); ok {
 		_spec.SetField(bugs.FieldLabels, field.TypeString, value)

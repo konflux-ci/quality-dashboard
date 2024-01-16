@@ -617,10 +617,10 @@ async function getBugSLIs(team: string) {
   // const end_date = formatDate(rangeDateTime[1]);
 
   const subPath = '/api/quality/jira/slis/list?team_name=' + team
-    // '&start_date=' +
-    // start_date +
-    // '&end_date=' +
-    // end_date
+  // '&start_date=' +
+  // start_date +
+  // '&end_date=' +
+  // end_date
 
   const uri = API_URL + subPath;
   await axios
@@ -633,6 +633,8 @@ async function getBugSLIs(team: string) {
       result.code = err.response.status;
       result.data = err.response.data;
     });
+
+  console.log("result of getBugSLIs", result)
 
   sortGlobalSLI(result.data.resolution_time_sli.bugs)
   sortGlobalSLI(result.data.response_time_sli.bugs)
@@ -666,10 +668,12 @@ async function getRepositoriesWithJobs(team: string) {
   return result;
 }
 
-async function getFlakyData(team: string, job: string, repo: string, startDate: string, endDate: string, gitOrg: string) {
+async function getFlakyData(team: string, job: string, repo: string, rangeDateTime: Date[], gitOrg: string) {
   const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
   const subPath = '/api/quality/suites/occurrences';
   const uri = API_URL + subPath;
+  const startDate = rangeDateTime[0].toISOString();
+  const endDate = rangeDateTime[1].toISOString();
 
   await axios
     .get(uri, {
@@ -694,10 +698,12 @@ async function getFlakyData(team: string, job: string, repo: string, startDate: 
   return result;
 }
 
-async function getGlobalImpactData(team: string, job: string, repo: string, startDate: string, endDate: string, gitOrg: string) {
+async function getGlobalImpactData(team: string, job: string, repo: string, rangeDateTime: Date[], gitOrg: string) {
   const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
   const subPath = '/api/quality/suites/flaky/trends';
   const uri = API_URL + subPath;
+  const startDate = rangeDateTime[0].toISOString();
+  const endDate = rangeDateTime[1].toISOString();
 
   await axios
     .get(uri, {
@@ -720,7 +726,6 @@ async function getGlobalImpactData(team: string, job: string, repo: string, star
       result.data = err.response.data;
     });
 
-    console.log(result)
   return result;
 }
 

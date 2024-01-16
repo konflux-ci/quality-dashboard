@@ -5,6 +5,7 @@ package db
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
@@ -23,6 +24,14 @@ type Failure struct {
 	JiraStatus string `json:"jira_status,omitempty"`
 	// ErrorMessage holds the value of the "error_message" field.
 	ErrorMessage string `json:"error_message,omitempty"`
+	// TitleFromJira holds the value of the "title_from_jira" field.
+	TitleFromJira *string `json:"title_from_jira,omitempty"`
+	// CreatedDate holds the value of the "created_date" field.
+	CreatedDate *time.Time `json:"created_date,omitempty"`
+	// ClosedDate holds the value of the "closed_date" field.
+	ClosedDate *time.Time `json:"closed_date,omitempty"`
+	// Labels holds the value of the "labels" field.
+	Labels *string `json:"labels,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FailureQuery when eager-loading is set.
 	Edges          FailureEdges `json:"edges"`
@@ -56,8 +65,10 @@ func (*Failure) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case failure.FieldJiraKey, failure.FieldJiraStatus, failure.FieldErrorMessage:
+		case failure.FieldJiraKey, failure.FieldJiraStatus, failure.FieldErrorMessage, failure.FieldTitleFromJira, failure.FieldLabels:
 			values[i] = new(sql.NullString)
+		case failure.FieldCreatedDate, failure.FieldClosedDate:
+			values[i] = new(sql.NullTime)
 		case failure.FieldID:
 			values[i] = new(uuid.UUID)
 		case failure.ForeignKeys[0]: // teams_failures
@@ -100,6 +111,34 @@ func (f *Failure) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field error_message", values[i])
 			} else if value.Valid {
 				f.ErrorMessage = value.String
+			}
+		case failure.FieldTitleFromJira:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field title_from_jira", values[i])
+			} else if value.Valid {
+				f.TitleFromJira = new(string)
+				*f.TitleFromJira = value.String
+			}
+		case failure.FieldCreatedDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_date", values[i])
+			} else if value.Valid {
+				f.CreatedDate = new(time.Time)
+				*f.CreatedDate = value.Time
+			}
+		case failure.FieldClosedDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field closed_date", values[i])
+			} else if value.Valid {
+				f.ClosedDate = new(time.Time)
+				*f.ClosedDate = value.Time
+			}
+		case failure.FieldLabels:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field labels", values[i])
+			} else if value.Valid {
+				f.Labels = new(string)
+				*f.Labels = value.String
 			}
 		case failure.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
@@ -149,6 +188,26 @@ func (f *Failure) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("error_message=")
 	builder.WriteString(f.ErrorMessage)
+	builder.WriteString(", ")
+	if v := f.TitleFromJira; v != nil {
+		builder.WriteString("title_from_jira=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := f.CreatedDate; v != nil {
+		builder.WriteString("created_date=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := f.ClosedDate; v != nil {
+		builder.WriteString("closed_date=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
+	builder.WriteString(", ")
+	if v := f.Labels; v != nil {
+		builder.WriteString("labels=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

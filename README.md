@@ -190,18 +190,20 @@ Currently, we have defined three Service Level Objectives (SLOs):
 
 - **Resolution Time Bug SLO**: Aims to ensure that Blocker, Critical, and Major bugs are resolved in a reasonable period.
 - **Response Time Bug SLO**: Aims to ensure that Blocker and Critical bugs are assigned in the early phase of the bug's life.
-- **Triage Time Bug SLO**: Aims to ensure that untriaged bugs are prioritized in the early phase of the bug's life.
+- **Priority Triage Time Bug SLO**: Aims to ensure that untriaged bugs are prioritized in the early phase of the bug's life.
+- **Component Assignment Triage Time Bug SLO**: Aims to ensure that bugs are assigned to a component in the early phase of the bug's life.
 
 And three Service Level Indicators (SLIs):
 - **green**: means that the bug meets the defined SLO.
 - **yellow**: means that the bug is almost not meeting the defined SLO.
 - **red**: means that the bug is not meeting the defined SLO.
 
-| **SLO**             | **Target Value**                                                                                                                                    | **SLIs**                                                                                                                                                                                                                                                   |
-|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Bug Resolution Time | Resolve blocker bug in < 10 days<br><br><br><br><br><br>Resolve critical bug in < 20 days<br><br><br><br><br><br><br>Resolve major bug in < 40 days | Green:  age < 5 days<br>Yellow: age  > 5 days<br>Red:    age > 10 days<br><br><br><br>Green:  age < 10 days<br>Yellow: age  > 10 days<br>Red:    age > 20 days<br><br><br><br><br>Green:  age < 20 days<br>Yellow: age  > 20 days<br>Red:    age > 40 days |
-| Bug Response Time   | Blocker and Critical bugs will get assigned in < 2 days                                                                                               | Red:    unassigned > 2 days                                                                                                                                                                                                                                |
-| Triage Time         | Bug will get assigned priority in < 2 day                                                                                                           | Yellow: age > 1 days & untriaged<br>Red:    age > 2 days & untriaged           
+| **SLO**                          | **Target Value**                                                                                                                                    | **SLIs**                                                                                                                                                                                                                                                   |
+|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Bug Resolution Time              | Resolve blocker bug in < 10 days<br><br><br><br><br><br>Resolve critical bug in < 20 days<br><br><br><br><br><br><br>Resolve major bug in < 40 days | Green:  age < 5 days<br>Yellow: age  > 5 days<br>Red:    age > 10 days<br><br><br><br>Green:  age < 10 days<br>Yellow: age  > 10 days<br>Red:    age > 20 days<br><br><br><br><br>Green:  age < 20 days<br>Yellow: age  > 20 days<br>Red:    age > 40 days |
+| Bug Response Time                | Blocker or Critical bug will get assigned in < 2 days                                                                                               | Red:    unassigned > 2 days                                                                                                                                                                                                                                |
+| Priority Triage Time             | Bug will get assigned priority in < 2 day                                                                                                           | Yellow: age > 1 days & untriaged<br>Red:    age > 2 days & untriaged                                                                                                                                                                                       |
+| Component Assignment Triage Time | Bug will get assigned component in < 1 working day             
 
 #### Bug SLIs page
 With this new page, you can observe which RHTAPBUGS are not meeting the defined Bug SLOs, which can be helpful to better (re)prioritize them.
@@ -209,7 +211,8 @@ You can also find metrics regarding how many bugs are not meeting or almost not 
 
 #### Bug SLIs alerts
 The SLIs alerts are sent daily at 9 AM by the RHTAP QE bot in the [rhtap-bug-slis-alerts](https://app.slack.com/client/E030G10V24F/C062AF1RFK8) channel.
-To send the alerts daily, we are using a chron job. You can find all the code on [rhtap_bug_slis_alert.go](https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/api/server/rhtap_bug_slis_alert.go#L143).
+To send the alerts daily, we are using a chron job. You can find all the code on [rhtap_bug_slis_alert.go](https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/api/server/rhtap_bug_slis_alert.go).
+Note that bugs with status as "Waiting" and "Release Pending" are excluded.
 
 #### How Bug SLIs are being got?
 As the first step, we need to know how many days the issues have not been resolved, prioritized, or assigned. So, when adding or updating a Jira Issue Bug, we need to keep this information on the bugs db table through ['DaysWithoutAssignee', 'DaysWithoutPriority', and 'DaysWithoutResolution' fields](https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/pkg/storage/ent/client/jira_bugs.go#L73C6-L75).

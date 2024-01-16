@@ -34,13 +34,20 @@ type JiraBugMetricsInfo struct {
 	// current number of days that a bug is not resolved (for open bugs)
 	DaysWithoutResolution float64
 
+	// current number of days that a bug does not have component assigned (for open bugs)
+	DaysWithoutComponent float64
+
 	// if the bub is resolved
 	BugIsResolved bool
 }
 
 func getComponent(components []*jira.Component) string {
 	if len(components) != 0 {
-		return components[0].Name
+		component := components[0].Name
+		if component == "docs" && len(components) > 1 {
+			component = components[1].Name
+		}
+		return component
 	}
 
 	return "undefined"
@@ -73,6 +80,7 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetDaysWithoutAssignee(jiraBugMetricsInfo.DaysWithoutAssignee).
 				SetDaysWithoutPriority(jiraBugMetricsInfo.DaysWithoutPriority).
 				SetDaysWithoutResolution(jiraBugMetricsInfo.DaysWithoutResolution).
+				SetDaysWithoutComponent(jiraBugMetricsInfo.DaysWithoutComponent).
 				SetLabels(strings.Join(bug.Fields.Labels, ",")).
 				SetComponent(getComponent(bug.Fields.Components)).
 				SetAssignee(getAssignee(bug.Fields.Assignee)).
@@ -100,6 +108,7 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 				SetDaysWithoutAssignee(jiraBugMetricsInfo.DaysWithoutAssignee).
 				SetDaysWithoutPriority(jiraBugMetricsInfo.DaysWithoutPriority).
 				SetDaysWithoutResolution(jiraBugMetricsInfo.DaysWithoutResolution).
+				SetDaysWithoutComponent(jiraBugMetricsInfo.DaysWithoutComponent).
 				SetLabels(strings.Join(bug.Fields.Labels, ",")).
 				SetAssignee(getAssignee(bug.Fields.Assignee)).
 				SetAge(getDays(bug.Fields.Created, bug.Fields.Resolutiondate, bug.Fields.Status.Name)).
@@ -348,11 +357,34 @@ func (d *Database) GetAllJiraBugs() ([]*db.Bugs, error) {
 	return bugsAll, nil
 }
 
+func (d *Database) GetAllJiraBugsByProject(project string) ([]*db.Bugs, error) {
+	bugsAll, err := d.client.Bugs.Query().
+		Where(predicate.Bugs(bugs.ProjectKey(project))).
+		All(context.Background())
+	if err != nil {
+		return nil, convertDBError("failed to return bugs: %w", err)
+	}
+
+	return bugsAll, nil
+}
+
 func (d *Database) DeleteJiraBugsByProject(projectKey string, team *db.Teams) error {
 	_, err := d.client.Bugs.Delete().Where(predicate.Bugs(bugs.ProjectKey(projectKey))).Exec(context.TODO())
 
 	if err != nil {
 		return convertDBError("failed to delete jira bugs: %w", err)
+	}
+
+	return nil
+}
+
+func (d *Database) DeleteJiraBugByJiraKey(jiraKey string) error {
+	_, err := d.client.Bugs.Delete().
+		Where(predicate.Bugs(bugs.JiraKey(jiraKey))).
+		Exec(context.TODO())
+
+	if err != nil {
+		return convertDBError("failed to delete jira bug: %w", err)
 	}
 
 	return nil
@@ -374,6 +406,17 @@ func getProjectKey(bugKey string) string {
 	}
 
 	return ""
+}
+
+func (d *Database) GetJiraBug(key string) (*db.Bugs, error) {
+	bug, err := d.client.Bugs.Query().
+		Where(bugs.JiraKey(key)).
+		First(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return bug, nil
 }
 
 func (d *Database) GetJiraStatus(key string) (string, error) {
@@ -411,6 +454,7 @@ func (d *Database) getJiraBugMetrics(bug jira.Issue) JiraBugMetricsInfo {
 		DaysWithoutAssignee:   -1,
 		DaysWithoutPriority:   -1,
 		DaysWithoutResolution: -1,
+		DaysWithoutComponent:  -1,
 		BugIsResolved:         false,
 	}
 
@@ -471,6 +515,11 @@ func (d *Database) getJiraBugMetrics(bug jira.Issue) JiraBugMetricsInfo {
 		jiraBugMetric.DaysWithoutPriority = workingDaysSinceCreation
 	}
 
+	// component was not defined
+	if len(bug.Fields.Components) == 0 {
+		jiraBugMetric.DaysWithoutComponent = workingDaysSinceCreation
+	}
+
 	return jiraBugMetric
 }
 
@@ -479,6 +528,21 @@ func (d *Database) getJiraBugMetrics(bug jira.Issue) JiraBugMetricsInfo {
 func (d *Database) GetAllOpenRHTAPBUGS() ([]*db.Bugs, error) {
 	b, err := d.client.Bugs.Query().
 		Where(predicate.Bugs(bugs.Resolved(false))).
+		Where(predicate.Bugs(bugs.ProjectKey("RHTAPBUGS"))).
+		All(context.TODO())
+
+	if err != nil {
+		return nil, convertDBError("failed to return bugs: %w", err)
+	}
+
+	return b, nil
+}
+
+// GetAllOpenRHTAPBUGSForSliAlerts gets all the RHTAPBUGS that are open
+// except bugs with status as "Waiting" or "Release Pending"
+func (d *Database) GetAllOpenRHTAPBUGSForSliAlerts() ([]*db.Bugs, error) {
+	b, err := d.client.Bugs.Query().
+		Where(predicate.Bugs(bugs.StatusNotIn("Waiting", "Release Pending", "Closed"))).
 		Where(predicate.Bugs(bugs.ProjectKey("RHTAPBUGS"))).
 		All(context.TODO())
 

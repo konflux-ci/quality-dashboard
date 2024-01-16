@@ -19,9 +19,7 @@ import { Bug, Info } from './Types';
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { getBugSLIs, getTeams } from '@app/utils/APIService';
 import { validateParam } from '@app/utils/utils';
-import { formatDate, getRangeDates } from '@app/Reports/utils';
 import { useHistory } from 'react-router-dom';
-import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 import { Header } from '@app/utils/Header';
 import { InfoBanner } from './InfoBanner';
 import { CustomSLIChartDonutCard } from './CustomSLIChartDonutCard';
@@ -68,10 +66,15 @@ export const BugSLIs = () => {
                     bugSLIs.response_time_sli.bugs.sort((a, b) => (a.response_sli.signal < b.response_sli.signal ? -1 : 1));
                     setBugsTable(bugSLIs.response_time_sli.bugs)
                     break;
-                case "triage":
+                case "priority":
                     setLoadingState(false)
                     bugSLIs.triage_time_sli.bugs.sort((a, b) => (a.triage_sli.signal < b.triage_sli.signal ? -1 : 1));
                     setBugsTable(bugSLIs.triage_time_sli.bugs)
+                    break;
+                case "component":
+                    setLoadingState(false)
+                    bugSLIs.component_assignment_sli.bugs.sort((a, b) => (a.component_assignment_sli.signal < b.component_assignment_sli.signal ? -1 : 1));
+                    setBugsTable(bugSLIs.component_assignment_sli.bugs)
                     break;
             }
 
@@ -94,8 +97,8 @@ export const BugSLIs = () => {
             setBugSLIs({} as Info)
 
             const team = params.get('team');
-            const start = params.get('start');
-            const end = params.get('end');
+            // const start = params.get('start');
+            // const end = params.get('end');
 
             // getBugSLIs(state.teams.Team, rangeDateTime).then((data: any) => {
             getBugSLIs(state.teams.Team).then((data: any) => {
@@ -107,7 +110,7 @@ export const BugSLIs = () => {
                 if (team == state.teams.Team || team == null) {
                     setBugSLIs(data.data)
 
-                    if (start == null || end == null) {
+                    // if (start == null || end == null) {
                         // first click on page or team
                         // const start_date = formatDate(rangeDateTime[0]);
                         // const end_date = formatDate(rangeDateTime[1]);
@@ -122,15 +125,15 @@ export const BugSLIs = () => {
                             // '&end=' +
                             // end_date
                         );
-                    } else {
-                        // setRangeDateTime([new Date(start), new Date(end)]);
+                    // } else {
+                    //     // setRangeDateTime([new Date(start), new Date(end)]);
 
-                        history.push(
-                            '/home/bug-slis?team=' + currentTeam +
-                            '&start=' + start +
-                            '&end=' + end
-                        );
-                    }
+                    //     history.push(
+                    //         '/home/bug-slis?team=' + currentTeam +
+                    //         '&start=' + start +
+                    //         '&end=' + end
+                    //     );
+                    // }
                 }
             });
         }
@@ -183,17 +186,6 @@ export const BugSLIs = () => {
                             <InfoBanner />
                             <GridItem span={3} rowSpan={12}>
                                 <CustomSLIChartDonutCard
-                                    title="Bug SLI Status"
-                                    donutChartColorScale={["#ea2745", "#fbe424", "#61ad50"]}
-                                    sli={bugSLIs?.global_sli}
-                                    data={[]}
-                                    type={""}
-                                >
-                                </CustomSLIChartDonutCard>
-
-                            </GridItem>
-                            <GridItem span={3} rowSpan={12}>
-                                <CustomSLIChartDonutCard
                                     title="Resolution Time Bug SLI"
                                     donutChartColorScale={["#ea2745", "#fbe424"]}
                                     sli={{}}
@@ -214,7 +206,7 @@ export const BugSLIs = () => {
                             </GridItem>
                             <GridItem span={3} rowSpan={12}>
                                 <CustomSLIChartDonutCard
-                                    title="Triage Time Bug SLI"
+                                    title="Priority Triage Time Bug SLI"
                                     donutChartColorScale={["#ea2745", "#fbe424"]}
                                     sli={{}}
                                     data={bugSLIs?.triage_time_sli?.bugs}
@@ -222,17 +214,37 @@ export const BugSLIs = () => {
                                 >
                                 </CustomSLIChartDonutCard>
                             </GridItem>
-                            <GridItem>
-                                <Card style={{ textAlign: 'center' }}>
+                            <GridItem span={3} rowSpan={12}>
+                                <CustomSLIChartDonutCard
+                                    title="Component Assignment Triage Time SLI"
+                                    donutChartColorScale={["#ea2745"]}
+                                    sli={{}}
+                                    data={bugSLIs?.component_assignment_sli?.bugs}
+                                    type={"component_assignment_sli"}
+                                >
+                                </CustomSLIChartDonutCard>
+                            </GridItem>
+                            <GridItem span={3} rowSpan={12}>
+                                <CustomSLIChartDonutCard
+                                    title="Global Bug SLI Status"
+                                    donutChartColorScale={["#ea2745", "#fbe424", "#61ad50"]}
+                                    sli={bugSLIs?.global_sli}
+                                    data={[]}
+                                    type={""}
+                                >
+                                </CustomSLIChartDonutCard>
+
+                            </GridItem>
+                            <GridItem span={9} rowSpan={12}>
+                                <Card style={{ width: '100%', height: '100%', textAlign: 'center' }}>
                                     <CardTitle>
                                         Bug SLOs by Components
                                     </CardTitle>
                                     <CardBody>
-                                    <SLIsStackChart bugSLIs={bugSLIs}></SLIsStackChart>
+                                        <SLIsStackChart bugSLIs={bugSLIs}></SLIsStackChart>
                                     </CardBody>
                                 </Card>
                             </GridItem>
-
                             <GridItem>
                                 <Card>
                                     <CardTitle>
@@ -253,9 +265,15 @@ export const BugSLIs = () => {
                                                 onChange={handleItemClick}
                                             />
                                             <ToggleGroupItem
-                                                text="Bugs Not Meeting Triage Time Bug SLO"
-                                                buttonId="triage"
-                                                isSelected={isSelected === 'triage'}
+                                                text="Bugs Not Meeting Priority Triage Time Bug SLO"
+                                                buttonId="priority"
+                                                isSelected={isSelected === 'priority'}
+                                                onChange={handleItemClick}
+                                            />
+                                            <ToggleGroupItem
+                                                text="Bugs Not Meeting Component Assignment Triage Time Bug SLO"
+                                                buttonId="component"
+                                                isSelected={isSelected === 'component'}
                                                 onChange={handleItemClick}
                                             />
                                         </ToggleGroup>
