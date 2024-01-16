@@ -26,7 +26,7 @@ func BucketHandleClient() *GCSBucket {
 	}
 }
 
-func (b *GCSBucket) GetJobJunitContent(orgName string, repoName string, pullNumber string, jobId string, jobType string, jobName string) []byte {
+func (b *GCSBucket) GetJobJunitContent(orgName string, repoName string, pullNumber string, jobId string, jobType string, jobName string, fileName *regexp.Regexp) []byte {
 	query := &storage.Query{}
 
 	if jobType == "periodic" {
@@ -35,22 +35,27 @@ func (b *GCSBucket) GetJobJunitContent(orgName string, repoName string, pullNumb
 		query.Prefix = fmt.Sprintf("pr-logs/pull/%s_%s/%s/%s/%s/artifacts", orgName, repoName, pullNumber, jobName, jobId)
 	}
 
-	regex := regexp.MustCompile(`(j?unit|e2e)-?[0-9a-z]+\.xml`)
-
 	it := b.bkt.Objects(context.Background(), query)
 	for {
+		defer func() {
+			if panicInfo := recover(); panicInfo != nil {
+				return
+			}
+		}()
+
 		obj, err := it.Next()
 		if err == iterator.Done {
 			break
 		}
 
-		if regex.Match([]byte(obj.Name)) {
+		if fileName.Match([]byte(obj.Name)) {
 			if b.ContentExists(context.Background(), obj.Name) {
 				content, _ := b.GetContent(context.Background(), obj.Name)
 				return content
 			}
 		}
 	}
+
 	return nil
 }
 

@@ -43,6 +43,10 @@ func (ProwJobs) Fields() []ent.Field {
 			SchemaType(textSchema),
 		field.Int16("ci_failed").
 			SchemaType(intSchema),
+		field.Bool("external_services_impact").
+			Optional().
+			Default(false).
+			Nillable(),
 		field.Text("e2e_failed_test_messages").
 			SchemaType(textSchema).
 			Optional().

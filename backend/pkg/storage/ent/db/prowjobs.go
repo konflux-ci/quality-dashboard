@@ -39,6 +39,8 @@ type ProwJobs struct {
 	JobURL string `json:"job_url,omitempty"`
 	// CiFailed holds the value of the "ci_failed" field.
 	CiFailed int16 `json:"ci_failed,omitempty"`
+	// ExternalServicesImpact holds the value of the "external_services_impact" field.
+	ExternalServicesImpact *bool `json:"external_services_impact,omitempty"`
 	// E2eFailedTestMessages holds the value of the "e2e_failed_test_messages" field.
 	E2eFailedTestMessages *string `json:"e2e_failed_test_messages,omitempty"`
 	// SuitesXMLURL holds the value of the "suites_xml_url" field.
@@ -78,6 +80,8 @@ func (*ProwJobs) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case prowjobs.FieldExternalServicesImpact:
+			values[i] = new(sql.NullBool)
 		case prowjobs.FieldDuration:
 			values[i] = new(sql.NullFloat64)
 		case prowjobs.FieldID, prowjobs.FieldTestsCount, prowjobs.FieldFailedCount, prowjobs.FieldSkippedCount, prowjobs.FieldCiFailed:
@@ -178,6 +182,13 @@ func (pj *ProwJobs) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pj.CiFailed = int16(value.Int64)
 			}
+		case prowjobs.FieldExternalServicesImpact:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field external_services_impact", values[i])
+			} else if value.Valid {
+				pj.ExternalServicesImpact = new(bool)
+				*pj.ExternalServicesImpact = value.Bool
+			}
 		case prowjobs.FieldE2eFailedTestMessages:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field e2e_failed_test_messages", values[i])
@@ -277,6 +288,11 @@ func (pj *ProwJobs) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("ci_failed=")
 	builder.WriteString(fmt.Sprintf("%v", pj.CiFailed))
+	builder.WriteString(", ")
+	if v := pj.ExternalServicesImpact; v != nil {
+		builder.WriteString("external_services_impact=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	if v := pj.E2eFailedTestMessages; v != nil {
 		builder.WriteString("e2e_failed_test_messages=")

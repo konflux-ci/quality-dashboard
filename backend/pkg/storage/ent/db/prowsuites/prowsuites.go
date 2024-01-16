@@ -21,6 +21,8 @@ const (
 	FieldStatus = "status"
 	// FieldErrorMessage holds the string denoting the error_message field in the database.
 	FieldErrorMessage = "error_message"
+	// FieldExternalServicesImpact holds the string denoting the external_services_impact field in the database.
+	FieldExternalServicesImpact = "external_services_impact"
 	// FieldTime holds the string denoting the time field in the database.
 	FieldTime = "time"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -48,6 +50,7 @@ var Columns = []string{
 	FieldName,
 	FieldStatus,
 	FieldErrorMessage,
+	FieldExternalServicesImpact,
 	FieldTime,
 	FieldCreatedAt,
 }
@@ -72,3 +75,8 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// DefaultExternalServicesImpact holds the default value on creation for the "external_services_impact" field.
+	DefaultExternalServicesImpact bool
+)

@@ -41,6 +41,9 @@ type Job struct {
 	// Indicate if the test infrastructure failed or not
 	CIFailed int16 `json:"ci_failed"`
 
+	// Indicate if job was impacted by an external service
+	ExternalServiceImpact bool `json:"external_service_impact"`
+
 	// Set of failed test cases from /artifacts/redhat-appstudio-e2e/redhat-appstudio-e2e/artifacts/e2e-report.xml
 	E2EFailedTestMessages string `json:"e2e_failed_test_messages"`
 

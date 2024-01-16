@@ -90,6 +90,11 @@ func ErrorMessage(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(sql.FieldEQ(FieldErrorMessage, v))
 }
 
+// ExternalServicesImpact applies equality check predicate on the "external_services_impact" field. It's identical to ExternalServicesImpactEQ.
+func ExternalServicesImpact(v bool) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEQ(FieldExternalServicesImpact, v))
+}
+
 // Time applies equality check predicate on the "time" field. It's identical to TimeEQ.
 func Time(v float64) predicate.ProwSuites {
 	return predicate.ProwSuites(sql.FieldEQ(FieldTime, v))
@@ -563,6 +568,26 @@ func ErrorMessageEqualFold(v string) predicate.ProwSuites {
 // ErrorMessageContainsFold applies the ContainsFold predicate on the "error_message" field.
 func ErrorMessageContainsFold(v string) predicate.ProwSuites {
 	return predicate.ProwSuites(sql.FieldContainsFold(FieldErrorMessage, v))
+}
+
+// ExternalServicesImpactEQ applies the EQ predicate on the "external_services_impact" field.
+func ExternalServicesImpactEQ(v bool) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldEQ(FieldExternalServicesImpact, v))
+}
+
+// ExternalServicesImpactNEQ applies the NEQ predicate on the "external_services_impact" field.
+func ExternalServicesImpactNEQ(v bool) predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldNEQ(FieldExternalServicesImpact, v))
+}
+
+// ExternalServicesImpactIsNil applies the IsNil predicate on the "external_services_impact" field.
+func ExternalServicesImpactIsNil() predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldIsNull(FieldExternalServicesImpact))
+}
+
+// ExternalServicesImpactNotNil applies the NotNil predicate on the "external_services_impact" field.
+func ExternalServicesImpactNotNil() predicate.ProwSuites {
+	return predicate.ProwSuites(sql.FieldNotNull(FieldExternalServicesImpact))
 }
 
 // TimeEQ applies the EQ predicate on the "time" field.
