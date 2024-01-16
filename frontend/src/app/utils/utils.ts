@@ -58,7 +58,7 @@ export function isValidTeam() {
 
 // validateRepositoryParams validates if the 'repository' and 'organization' exists in 'repos'
 export function validateRepositoryParams(repos, repository, organization) {
-  if (repos.find((r) => r.organization == organization && r.repoName == repository)) {
+  if (repos.find((r) => r.Repository.Owner.Login == organization && r.Repository.Name == repository)) {
     return true;
   }
   return false;
@@ -83,4 +83,16 @@ export const getLabels = (datum, prefix) => {
 
 export function sortGlobalSLI(bugs) {
   bugs.sort((a, b) => (a.global_sli > b.global_sli ? 1 : -1));
+}
+
+export const getRepoNameFormatted = (repoName) => {
+  if (repoName == "infra-deployments") {
+    return "RHTAP E2E Tests"
+  }
+
+  let formattedRepoName = repoName
+  formattedRepoName = formattedRepoName.replaceAll("-", " ");
+  formattedRepoName = formattedRepoName.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  formattedRepoName = formattedRepoName.replace("E2e", "E2E");
+  return "Individual Component - " + formattedRepoName
 }
