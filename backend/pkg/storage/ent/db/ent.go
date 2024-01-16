@@ -19,6 +19,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/users"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
 )
 
@@ -55,6 +56,7 @@ func columnChecker(table string) func(string) error {
 		pullrequests.Table: pullrequests.ValidColumn,
 		repository.Table:   repository.ValidColumn,
 		teams.Table:        teams.ValidColumn,
+		users.Table:        users.ValidColumn,
 		workflows.Table:    workflows.ValidColumn,
 	}
 	check, ok := checks[table]

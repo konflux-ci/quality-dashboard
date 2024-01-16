@@ -20,6 +20,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/api/server/router/repositories"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/suites"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/teams"
+	"github.com/redhat-appstudio/quality-studio/api/server/router/users"
 	"github.com/redhat-appstudio/quality-studio/api/server/router/version"
 	_ "github.com/redhat-appstudio/quality-studio/docs/swagger"
 	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
@@ -196,7 +197,8 @@ func (s *Server) InitRouter() {
 		jira.NewRouter(s.cfg.Storage),
 		database.NewRouter(s.cfg.Db),
 		suites.NewRouter(s.cfg.Storage),
-		failure.NewRouter(s.cfg.Storage))
+		failure.NewRouter(s.cfg.Storage),
+		users.NewRouter(s.cfg.Storage))
 }
 
 type pageNotFoundError struct{}

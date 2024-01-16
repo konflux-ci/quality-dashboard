@@ -12,6 +12,7 @@
     - [Backend](#backend-1)
         - [Frontend](#frontend-1)
   - [Features](#features)
+    - [User Configuration](#user-configuration)
     - [Teams](#teams)
     - [Config](#config)
     - [Bug SLIs](#bug-slis)
@@ -155,6 +156,12 @@ or with npm:
 ```
 
 ## Features
+
+### User Configuration
+You can set your user's settings by clicking in (your user name) -> Settings.
+
+Available options:
+  - set default team
 
 ### Teams
 All data is organized by Teams: a team groups a set of repositories to show data more concisely and acts as a global filter.
