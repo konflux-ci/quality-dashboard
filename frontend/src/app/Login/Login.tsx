@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Button } from '@patternfly/react-core';
-import * as oauth2 from 'oauth4webapi'
 import {
   LoginMainFooterBandItem,
   LoginPage,
@@ -8,11 +7,12 @@ import {
 } from '@patternfly/react-core';
 import { Spinner } from '@patternfly/react-core';
 import { useHistory } from 'react-router-dom';
-import { ReactReduxContext, useSelector } from 'react-redux';
-import { initOauthFlow, completeOauthFlow, OauthData, refreshTokenFlow } from '@app/utils/oauth'
-
+import { ReactReduxContext } from 'react-redux';
+import { initOauthFlow, completeOauthFlow, OauthData } from '@app/utils/oauth'
+import { JwtPayload, jwtDecode } from "jwt-decode";
+import { createUser, getUser } from '@app/utils/APIService';
 let authorizationUrl: URL
-async function callLogin(){
+async function callLogin() {
   document.location.href = authorizationUrl.toString()
 }
 
@@ -50,10 +50,10 @@ let Login = () => {
       const authURL = await initOauthFlow()
       authorizationUrl = authURL
 
-      if(document.location.href.includes('code=')){
+      if (document.location.href.includes('code=')) {
         setIsCallback(true)
 
-        const data:OauthData = await completeOauthFlow()
+        const data: OauthData = await completeOauthFlow()
 
         redux_dispatch({ type: "SET_REFRESH_TOKEN", data: data.RT });
         redux_dispatch({ type: "SET_ACCESS_TOKEN", data: data.AT });
@@ -61,14 +61,26 @@ let Login = () => {
         redux_dispatch({ type: "SET_AT_EXPIRATION", data: data.AT_EXPIRATION });
         redux_dispatch({ type: "SET_USERNAME", data: data.USERNAME });
 
-        setTimeout(function() {
+
+
+        // create user
+        const sessionInfo = jwtDecode<JwtPayload & { name: string, email: string }>(data.IDT);
+        const user = await getUser(sessionInfo.email)
+
+        if (user.data == null) {
+          await createUser(sessionInfo.email, "")
+        } else {
+          redux_dispatch({ type: "SET_USER_CONFIG", data: user.data.config });
+        }
+ 
+        setTimeout(function () {
           setCallbackError("")
           const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898'
           document.location.href = "/home/overview"
         }, 3000);
       }
 
-      if(document.location.href.includes('session_expired=true')){
+      if (document.location.href.includes('session_expired=true')) {
         setCallbackError("Your session has expired. Please login again.")
       }
 
@@ -79,27 +91,27 @@ let Login = () => {
     <React.Fragment>
       <div>
         <LoginPage
-            style={{textAlign: "center"}}
-            footerListVariants={ListVariant.inline}
-            backgroundImgSrc={images}
-            loginTitle="Log in to your account"
-            loginSubtitle="Choose your provider to login"
-            signUpForAccountMessage={signUpForAccountMessage}
-          >
-            { !isCallback && <Button isBlock onClick={callLogin}>Continue to Login...</Button>}
-            { isCallback  &&
-              <div>
-                <div> <Spinner isSVG aria-label="Contents of the basic example" /> </div>
-                <div> You will be redirected in a few seconds.. </div>
-              </div>
-            }
-            { callbackError != ""  &&
-              <div>
-                <div style={{color: "red", margin: "5px"}}> {callbackError} </div>
-                <Button onClick={goBackToLogin}>Go Back</Button>
-              </div>
-            }
-          </LoginPage>
+          style={{ textAlign: "center" }}
+          footerListVariants={ListVariant.inline}
+          backgroundImgSrc={images}
+          loginTitle="Log in to your account"
+          loginSubtitle="Choose your provider to login"
+          signUpForAccountMessage={signUpForAccountMessage}
+        >
+          {!isCallback && <Button isBlock onClick={callLogin}>Continue to Login...</Button>}
+          {isCallback &&
+            <div>
+              <div> <Spinner isSVG aria-label="Contents of the basic example" /> </div>
+              <div> You will be redirected in a few seconds.. </div>
+            </div>
+          }
+          {callbackError != "" &&
+            <div>
+              <div style={{ color: "red", margin: "5px" }}> {callbackError} </div>
+              <Button onClick={goBackToLogin}>Go Back</Button>
+            </div>
+          }
+        </LoginPage>
       </div>
     </React.Fragment>
   )

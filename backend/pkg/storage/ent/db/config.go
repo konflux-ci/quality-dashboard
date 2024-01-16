@@ -35,6 +35,7 @@ type (
 		PullRequests []ent.Hook
 		Repository   []ent.Hook
 		Teams        []ent.Hook
+		Users        []ent.Hook
 		Workflows    []ent.Hook
 	}
 	inters struct {
@@ -46,6 +47,7 @@ type (
 		PullRequests []ent.Interceptor
 		Repository   []ent.Interceptor
 		Teams        []ent.Interceptor
+		Users        []ent.Interceptor
 		Workflows    []ent.Interceptor
 	}
 )

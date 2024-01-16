@@ -634,7 +634,6 @@ async function getBugSLIs(team: string) {
       result.data = err.response.data;
     });
 
-  console.log("result of getBugSLIs", result)
 
   sortGlobalSLI(result.data.resolution_time_sli.bugs)
   sortGlobalSLI(result.data.response_time_sli.bugs)
@@ -735,7 +734,7 @@ async function listTeamRepos(team: string) {
   if (!teamIsNotEmpty(team)) return repos;
 
   const result: ApiResponse = { code: 0, data: {} };
-  const subPath = '/api/quality/prow/repositories/list?team_name=' + team 
+  const subPath = '/api/quality/prow/repositories/list?team_name=' + team
   const uri = API_URL + subPath;
   await axios
     .get(uri)
@@ -793,6 +792,72 @@ async function getProwJobMetricsDaily(repoName: string, repoOrg: string, jobType
   return statistics;
 }
 
+async function createUser(userEmail: string, userConfig: string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/users/create';
+  const uri = API_URL + subPath;
+  await axios
+    .request({
+      method: 'POST',
+      url: uri,
+      data: {
+        user_email: userEmail,
+        user_config: userConfig,
+      },
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  return result;
+}
+
+// useful for debug in Console
+async function listUsers() {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/users/get/all';
+  const uri = API_URL + subPath;
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
+async function getUser(userEmail: string) {
+  const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
+  const subPath = '/api/quality/users/get/user';
+  const uri = API_URL + subPath;
+
+  await axios
+    .get(uri, {
+      headers: {},
+      params: {
+        user_email: userEmail,
+      },
+    })
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
 export {
   getVersion,
   getRepositories,
@@ -823,5 +888,8 @@ export {
   getRepositoriesWithJobs,
   getFlakyData,
   getGlobalImpactData,
-  getProwJobMetricsDaily
+  getProwJobMetricsDaily,
+  createUser,
+  listUsers,
+  getUser
 };

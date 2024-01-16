@@ -22,13 +22,13 @@ export interface StateContext {
         Team: string
         TeamsAvailable: ITeam[]
     },
-    auth : {
+    auth: {
         AT: string,
         RT: string,
-        IDT: string, 
+        IDT: string,
         AT_expiration: Date,
         Username: string,
-    }, 
+    },
 }
 
 const generalReducer = (state, action) => {
@@ -153,6 +153,12 @@ const authReducer = (state, action) => {
                 ...state,
                 Username: action.data
             };
+        case 'SET_USER_CONFIG':
+            saveStateContext('USER_CONFIG', action.data)
+            return {
+                ...state,
+                USER_CONFIG: action.data
+            };
         default: return state || null;
     }
 };
@@ -167,6 +173,3 @@ export const rootReducer = combineReducers({
 });
 
 export default rootReducer;
-
-
-
