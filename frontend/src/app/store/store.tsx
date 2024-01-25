@@ -63,7 +63,7 @@ const Store = ({ children }) => {
                     else { dispatch({ type: "SET_TEAM", data: loadedTeam }) }
 
                     // set default team if configured
-                    if (state.auth.USER_CONFIG != "") {
+                    if (state.auth.USER_CONFIG != "" && state.auth.USER_CONFIG != undefined) {
                         var userConfig = JSON.parse(state.auth.USER_CONFIG) as UserConfig;
                         const userConfigDefaultTeam = userConfig.teams_configuration.default_team
                         if (userConfigDefaultTeam != "" && userConfigDefaultTeam != "n/a") {
