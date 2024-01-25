@@ -64,8 +64,8 @@ export const UserToolbarGroup = () => {
 
     useEffect(() => {
         setDefaultTeam("n/a")
-        if (state.auth.USER_CONFIG != "") {
-            var userConfig = JSON.parse(state.auth.USER_CONFIG) as UserConfig;
+        if (state.auth.USER_CONFIG != "" && state.auth.USER_CONFIG != undefined) {
+            let userConfig = JSON.parse(state.auth.USER_CONFIG) as UserConfig;
             const userConfigDefaultTeam = userConfig.teams_configuration.default_team
             if (userConfigDefaultTeam != "") {
                 setDefaultTeam(userConfigDefaultTeam)
