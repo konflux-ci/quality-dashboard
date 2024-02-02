@@ -47,17 +47,12 @@ export const customizedFormatDateTime = (date: Date) => {
     return customizedFormatDate(date) + " " + getTime(date);
 }
 
-export const validateCustomizedDate = (dateString: string) => {
-    var dateFormat = getDateFormat()
-    return moment(moment(dateString).format(dateFormat),dateFormat,true).isValid() ? '' : 'Invalid time format';
-}
-
-// formatDate return a date formated with yyyyMMdd format
+// formatDate returns a date formated with yyyyMMdd format
 export const formatDate = (date: Date) => {
     return yyyyMMddFormat(date);
 }
 
-// formatDate return a date formated with yyyyMMdd format and time
+// formatDate returns a date formated with yyyyMMdd format and time
 export const formatDateTime = (date: Date) => {
     return yyyyMMddFormat(date) + " " + getTime(date);
 }

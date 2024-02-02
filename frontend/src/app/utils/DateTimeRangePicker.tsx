@@ -1,7 +1,7 @@
 import { Flex, FlexItem, InputGroup, DatePicker, isValidDate, TimePicker, Select, SelectOption, Button, Popover, InputGroupText } from '@patternfly/react-core';
 import { SearchIcon, CalendarAltIcon } from '@patternfly/react-icons';
 import React, { useEffect, useState } from 'react';
-import { customizedFormatDate, customizedFormatDateTime, getDateFormat, getRangeDateTime, getRangeDates, parseCustomizedDate, ranges, validateCustomizedDate } from '../Reports/utils';
+import { customizedFormatDate, customizedFormatDateTime, getDateFormat, getRangeDateTime, getRangeDates, parseCustomizedDate, ranges } from '../Reports/utils';
 
 export const DateTimeRangePicker = (props) => {
     const [from, setFrom] = React.useState(props.startDate);
