@@ -16,7 +16,7 @@ import { ImpactChart } from './Charts';
 import { ComposableTableNestedExpandable, InnerNestedComposableTableNestedExpandable } from './Tables';
 import { DropdownBasic, SpinnerBasic } from './utils';
 import { useHistory } from 'react-router-dom';
-import { formatDate, getRangeDates } from '@app/Reports/utils';
+import { formatDateTime, getRangeDates } from '@app/Reports/utils';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 
 
@@ -109,8 +109,8 @@ const FlakyTests: React.FunctionComponent = () => {
             const repository = cache[currentTeam].repository
             setSelectedRepo(repository)
 
-            const start_date = formatDate(rangeDateTime[0])
-            const end_date = formatDate(rangeDateTime[1])
+            const start_date = formatDateTime(rangeDateTime[0])
+            const end_date = formatDateTime(rangeDateTime[1])
 
             history.push('/home/flaky?team=' + currentTeam + '&repository=' + repository
               + '&job=' + job + '&start=' + start_date + '&end=' + end_date)
@@ -237,8 +237,8 @@ const FlakyTests: React.FunctionComponent = () => {
 
   function handleChange(event, from, to) {
     setRangeDateTime([from, to])
-    params.set("start", formatDate(from))
-    params.set("end", formatDate(to))
+    params.set("start", formatDateTime(from))
+    params.set("end", formatDateTime(to))
     history.push(window.location.pathname + '?' + params.toString());
   }
 

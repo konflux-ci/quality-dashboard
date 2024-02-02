@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { TableComposable, Tbody, Td, Th, Thead, Tr } from '@patternfly/react-table';
 import { Card, CardBody, CardTitle, Pagination } from "@patternfly/react-core";
-import { formatDate } from "./utils";
+import { formatDateTime } from "./utils";
 
 const columnsTests = {
     date: 'Date',
@@ -113,7 +113,7 @@ export const FailedE2ETests: React.FC<{ failedProwJobs: any, jobName: string }> 
                                 if (job.e2e_failed_test_messages != undefined) {
                                     return (
                                         <Tr key={job.job_id}>
-                                            <Td>{formatDate(new Date(job.created_at))}</Td>
+                                            <Td>{formatDateTime(new Date(job.created_at))}</Td>
                                             <Td>{job.job_type}</Td>
                                             <Td>{job.job_name}</Td>
                                             <Td>

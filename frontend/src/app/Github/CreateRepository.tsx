@@ -16,7 +16,7 @@ import React, { useContext, SetStateAction, useEffect, useState } from 'react';
 import { teamIsNotEmpty } from '@app/utils/utils';
 import { useHistory } from 'react-router-dom';
 import { ReactReduxContext } from 'react-redux';
-import { formatDate, getRangeDates } from '@app/Reports/utils';
+import { formatDateTime, getRangeDates } from '@app/Reports/utils';
 import { githubRegExp } from '@app/Teams/TeamsOnboarding';
 
 interface IModalContext {
@@ -129,8 +129,8 @@ export const FormModal = () => {
       modalContext.handleModalToggle();
 
       const rangeDateTime = getRangeDates(90);
-      const start_date = formatDate(rangeDateTime[0]);
-      const end_date = formatDate(rangeDateTime[1]);
+      const start_date = formatDateTime(rangeDateTime[0]);
+      const end_date = formatDateTime(rangeDateTime[1]);
 
       history.push(
         '/home/github?team=' +

@@ -1,7 +1,7 @@
-import { Flex, FlexItem, InputGroup, DatePicker, isValidDate, TimePicker, yyyyMMddFormat, Select, SelectOption, Button, Popover, InputGroupText } from '@patternfly/react-core';
+import { Flex, FlexItem, InputGroup, DatePicker, isValidDate, TimePicker, Select, SelectOption, Button, Popover, InputGroupText } from '@patternfly/react-core';
 import { SearchIcon, CalendarAltIcon } from '@patternfly/react-icons';
 import React, { useEffect, useState } from 'react';
-import { formatDate, getRangeDateTime, getRangeDates, ranges } from '../Reports/utils';
+import { customizedFormatDate, customizedFormatDateTime, getDateFormat, getRangeDateTime, getRangeDates, parseCustomizedDate, ranges, validateCustomizedDate } from '../Reports/utils';
 
 export const DateTimeRangePicker = (props) => {
     const [from, setFrom] = React.useState(props.startDate);
@@ -48,16 +48,17 @@ export const DateTimeRangePicker = (props) => {
     };
 
     const toValidator = date => {
-        return isValidDate(from) && yyyyMMddFormat(date) >= yyyyMMddFormat(from) ? '' : 'To date must after from date';
+        return date.getTime() >= from.getTime() ? '' : 'To date must be after from date';
     };
 
     const onFromDateChange = (_event, inputDate, newFromDate) => {
+        console.log(newFromDate)
         clearQuickRange()
-        if (isValidDate(from) && isValidDate(newFromDate) && inputDate === yyyyMMddFormat(newFromDate)) {
+        if (isValidDate(from) && isValidDate(newFromDate) && inputDate === customizedFormatDate(newFromDate)) {
             newFromDate.setHours(from.getHours(), to.getMinutes());
         }
-        if (isValidDate(newFromDate) && inputDate === yyyyMMddFormat(newFromDate)) {
-            setFrom(new Date(newFromDate));
+        if (isValidDate(newFromDate) && inputDate === customizedFormatDate(newFromDate)) {
+            setFrom(parseCustomizedDate(newFromDate));
         }
     };
 
@@ -72,10 +73,10 @@ export const DateTimeRangePicker = (props) => {
 
     const onToDateChange = (_event, inputDate, newToDate) => {
         clearQuickRange()
-        if (isValidDate(to) && isValidDate(newToDate) && inputDate === yyyyMMddFormat(newToDate)) {
+        if (isValidDate(to) && isValidDate(newToDate) && inputDate === customizedFormatDate(newToDate)) {
             newToDate.setHours(to.getHours(), to.getMinutes());
         }
-        if (isValidDate(newToDate) && inputDate === yyyyMMddFormat(newToDate)) {
+        if (isValidDate(newToDate) && inputDate === customizedFormatDate(newToDate)) {
             setTo(newToDate);
         }
     };
@@ -104,11 +105,11 @@ export const DateTimeRangePicker = (props) => {
             <Button variant="secondary" ref={popoverRef} style={{background: 'white'}}>
                 <InputGroupText id="searchFrom">
                     <CalendarAltIcon style={{ marginRight: "5px" }} />
-                    {formatDate(from) + " to " + formatDate(to)}
+                    {customizedFormatDateTime(from) + " to " + customizedFormatDateTime(to)}
                 </InputGroupText>
             </Button>
             <Popover
-                aria-label={formatDate(from) + " " + formatDate(to)}
+                aria-label={customizedFormatDateTime(from) + " " + customizedFormatDateTime(to)}
                 hasAutoWidth={true}
                 isVisible={isVisible}
                 shouldOpen={() => open()}
@@ -130,10 +131,12 @@ export const DateTimeRangePicker = (props) => {
                                     From
                                     <InputGroup>
                                         <DatePicker
-                                            value={isValidDate(from) ? yyyyMMddFormat(from) : from.toString()}
+                                            value={isValidDate(from) ? customizedFormatDate(from) : from.toString()}
                                             onChange={onFromDateChange}
                                             aria-label="Start date"
-                                            placeholder="YYYY-MM-DD"
+                                            placeholder={getDateFormat()}
+                                            dateParse={parseCustomizedDate}
+                                            dateFormat={customizedFormatDate}
                                         />
                                         <TimePicker
                                             time={from}
@@ -148,11 +151,13 @@ export const DateTimeRangePicker = (props) => {
                                     To
                                     <InputGroup>
                                         <DatePicker
-                                            value={isValidDate(to) ? yyyyMMddFormat(to) : to.toString()}
+                                            value={isValidDate(to) ? customizedFormatDate(to) : to.toString()}
                                             onChange={onToDateChange}
                                             validators={[toValidator]}
                                             aria-label="End date"
-                                            placeholder="YYYY-MM-DD"
+                                            placeholder={getDateFormat()}
+                                            dateParse={parseCustomizedDate}
+                                            dateFormat={customizedFormatDate}
                                         />
                                         <TimePicker
                                             time={to}

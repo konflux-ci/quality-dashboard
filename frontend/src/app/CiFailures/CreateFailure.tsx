@@ -14,7 +14,7 @@ import React, { useContext, SetStateAction, useEffect } from 'react';
 import { teamIsNotEmpty } from '@app/utils/utils';
 import { useHistory } from 'react-router-dom';
 import { ReactReduxContext } from 'react-redux';
-import { formatDate, getRangeDates } from '@app/Reports/utils';
+import { formatDateTime, getRangeDates } from '@app/Reports/utils';
 
 interface IModalContext {
   isModalOpen: IModalContextMember;
@@ -118,8 +118,8 @@ export const FormModal = () => {
       modalContext.handleModalToggle();
 
       const rangeDateTime = getRangeDates(15);
-      const start_date = formatDate(rangeDateTime[0]);
-      const end_date = formatDate(rangeDateTime[1]);
+      const start_date = formatDateTime(rangeDateTime[0]);
+      const end_date = formatDateTime(rangeDateTime[1]);
 
       history.push(
         '/home/rhtapbugs-impact?team=' +

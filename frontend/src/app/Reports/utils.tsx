@@ -1,4 +1,5 @@
-import { yyyyMMddFormat } from '@patternfly/react-core';
+import { yyyyMMddFormat } from "@patternfly/react-core";
+import moment from 'moment'
 
 // getRangeDates gets the range date time through the current date minus days input
 export const getRangeDates = (days: number) => {
@@ -26,9 +27,39 @@ export const getTime = (date: Date) => {
         ":" + date.getSeconds().toString().padStart(2, '0')
 }
 
-// formatDate formats a date with format YYYY-MM-DD HH:mm:ss
+// getDateFormat gets date format based on user's locale
+export const getDateFormat = () => {
+    return moment.localeData(navigator.language).longDateFormat('L');
+}
+
+// parseCustomizedDate returns date parsed based on users locale
+export const parseCustomizedDate = (dateString: string) => {
+    return moment(dateString, getDateFormat()).toDate();
+}
+
+// customizedFormatDate returns date formated based on users locale
+export const customizedFormatDate = (date: Date) => {
+    return new Intl.DateTimeFormat(navigator.language).format(date);
+}
+
+// customizedFormatDateTime returns date and time formated based on users locale
+export const customizedFormatDateTime = (date: Date) => {
+    return customizedFormatDate(date) + " " + getTime(date);
+}
+
+export const validateCustomizedDate = (dateString: string) => {
+    var dateFormat = getDateFormat()
+    return moment(moment(dateString).format(dateFormat),dateFormat,true).isValid() ? '' : 'Invalid time format';
+}
+
+// formatDate return a date formated with yyyyMMdd format
 export const formatDate = (date: Date) => {
-    return yyyyMMddFormat(date) + " " + getTime(date)
+    return yyyyMMddFormat(date);
+}
+
+// formatDate return a date formated with yyyyMMdd format and time
+export const formatDateTime = (date: Date) => {
+    return yyyyMMddFormat(date) + " " + getTime(date);
 }
 
 // rangeInfo contains all the necessary info to define quick start ranges
