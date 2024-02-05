@@ -362,7 +362,7 @@ let Reports = () => {
     } else {
       setImpact("")
     }
-  }, [jobName]);
+  }, [jobName, rangeDateTime]);
 
   useEffect(() => {
     clearJobName()
