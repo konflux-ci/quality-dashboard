@@ -101,8 +101,11 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 					re := regexp.MustCompile(`\[It\]\s*\[([^\]]+)\]`)
 					matches := re.FindStringSubmatch(testCase.Name)
 
-					if strings.Contains(xmlFileName, "qd_report") || jobSuite.JobName == "pull-ci-redhat-appstudio-infra-deployments-main-appstudio-hac-e2e-tests" {
+					if jobSuite.JobName == "pull-ci-redhat-appstudio-infra-deployments-main-appstudio-hac-e2e-tests" {
 						jobSuite.SuiteName = suite.Name
+					} else if strings.Contains(xmlFileName, "qd_report") {
+						jobSuite.SuiteName = suite.Name
+						jobSuite.ErrorMessage = testCase.FailureOutput.Output
 					} else if len(matches) > 1 {
 						jobSuite.SuiteName = matches[1]
 					}
