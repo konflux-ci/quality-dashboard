@@ -31,7 +31,7 @@ func getMention(team string) string {
 	case "gitops":
 		return "<!subteam^S01AC8DU22C|gitops-team>"
 	case "build":
-		return "<!subteam^S014L5WTRBP|build-api-team>"
+		return "<!subteam^S03DM1RL0TF|konfluxbld-green>"
 	case "release":
 		return "<!subteam^S03SVBS426R|stonesoup-release-team>"
 	case "o11y":
