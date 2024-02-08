@@ -81,6 +81,7 @@ type Storage interface {
 	GetAllProwJobs(startDate, endDate string) ([]*db.ProwJobs, error)
 	ListFailedProwJobsByRepository(repo *db.Repository) ([]*db.ProwJobs, error)
 	CreateUser(u userV1Alpha1.User) error
+	GetOpenBugsAffectingCI(t *db.Teams) ([]*db.Bugs, error)
 
 	// Delete
 	DeleteRepository(repositoryName, gitOrganizationName string) error

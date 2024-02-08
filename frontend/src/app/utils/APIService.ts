@@ -524,9 +524,9 @@ async function getProwJobs(repoName: string, repoOrg: string, rangeDateTime: Dat
   return result.data
 }
 
-async function listE2EBugsKnown() {
+async function listBugsAffectingCI(team: string) {
   const result: ApiResponse = { code: 0, data: {} };
-  const subPath = '/api/quality/jira/bugs/e2e';
+  const subPath = '/api/quality/jira/bugs/e2e?team_name=' + team;
   const uri = API_URL + subPath;
   await axios
     .get(uri)
@@ -880,7 +880,7 @@ export {
   getJirasOpen,
   listJiraProjects,
   getPullRequests,
-  listE2EBugsKnown,
+  listBugsAffectingCI,
   getFailures,
   createFailure,
   bugExists,
