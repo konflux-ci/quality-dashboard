@@ -30,5 +30,8 @@ type Repository func(*sql.Selector)
 // Teams is the predicate function for teams builders.
 type Teams func(*sql.Selector)
 
+// Users is the predicate function for users builders.
+type Users func(*sql.Selector)
+
 // Workflows is the predicate function for workflows builders.
 type Workflows func(*sql.Selector)

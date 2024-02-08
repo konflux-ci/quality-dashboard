@@ -12,6 +12,7 @@
     - [Backend](#backend-1)
         - [Frontend](#frontend-1)
   - [Features](#features)
+    - [User Configuration](#user-configuration)
     - [Teams](#teams)
     - [Config](#config)
     - [Bug SLIs](#bug-slis)
@@ -156,6 +157,12 @@ or with npm:
 
 ## Features
 
+### User Configuration
+You can set your user's settings by clicking in (your user name) -> Settings.
+
+Available options:
+  - set default team
+
 ### Teams
 All data is organized by Teams: a team groups a set of repositories to show data more concisely and acts as a global filter.
 All the teams that have been created will be listed in a table on the Teams page, where they can also be managed.
@@ -186,7 +193,7 @@ teams:
 ### Bug SLIs
 
 #### Description
-Currently, we have defined three Service Level Objectives (SLOs):
+Currently, we have defined four Service Level Objectives (SLOs):
 
 - **Resolution Time Bug SLO**: Aims to ensure that Blocker, Critical, and Major bugs are resolved in a reasonable period.
 - **Response Time Bug SLO**: Aims to ensure that Blocker and Critical bugs are assigned in the early phase of the bug's life.
@@ -203,7 +210,7 @@ And three Service Level Indicators (SLIs):
 | Bug Resolution Time              | Resolve blocker bug in < 10 days<br><br><br><br><br><br>Resolve critical bug in < 20 days<br><br><br><br><br><br><br>Resolve major bug in < 40 days | Green:  age < 5 days<br>Yellow: age  > 5 days<br>Red:    age > 10 days<br><br><br><br>Green:  age < 10 days<br>Yellow: age  > 10 days<br>Red:    age > 20 days<br><br><br><br><br>Green:  age < 20 days<br>Yellow: age  > 20 days<br>Red:    age > 40 days |
 | Bug Response Time                | Blocker or Critical bug will get assigned in < 2 days                                                                                               | Red:    unassigned > 2 days                                                                                                                                                                                                                                |
 | Priority Triage Time             | Bug will get assigned priority in < 2 day                                                                                                           | Yellow: age > 1 days & untriaged<br>Red:    age > 2 days & untriaged                                                                                                                                                                                       |
-| Component Assignment Triage Time | Bug will get assigned component in < 1 working day             
+| Component Assignment Triage Time | Bug will get assigned component in < 1 working day                                                                                                  | Red:     age > 1 working days & component empty             
 
 #### Bug SLIs page
 With this new page, you can observe which RHTAPBUGS are not meeting the defined Bug SLOs, which can be helpful to better (re)prioritize them.
@@ -215,7 +222,7 @@ To send the alerts daily, we are using a chron job. You can find all the code on
 Note that bugs with status as "Waiting" and "Release Pending" are excluded.
 
 #### How Bug SLIs are being got?
-As the first step, we need to know how many days the issues have not been resolved, prioritized, or assigned. So, when adding or updating a Jira Issue Bug, we need to keep this information on the bugs db table through ['DaysWithoutAssignee', 'DaysWithoutPriority', and 'DaysWithoutResolution' fields](https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/pkg/storage/ent/client/jira_bugs.go#L73C6-L75).
+As the first step, we need to know how many days the issues have not been resolved, prioritized, or assigned. So, when adding or updating a Jira Issue Bug, we need to keep this information on the bugs db table through ['DaysWithoutAssignee', 'DaysWithoutPriority', and 'DaysWithoutResolution' fields](https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/pkg/storage/ent/client/jira_bugs.go).
 
 Then, we need to use the information above to get the issues that are not meeting or almost not meeting the defined SLIs. For that, we defined a [function to get each SLI](https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/api/server/router/jira/bug_slos.go).
 
@@ -227,12 +234,12 @@ RHTAPBUGS Impact on CI plugin lists the RHTAPBUGS that are impacting CI, by show
 To add a new entry, you need to point out the Jira Key of the bug and the associated error message.
 
 #### How the frequency/impact is being measured?
-Since we are saving the prow jobs on our db, we can also [save the error messages](https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/api/server/prow_rotate.go#L133-L135) related to each prow job.
+Since we are saving the prow jobs on our db, we can also [save the error messages](https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/api/server/prow_rotate.go) related to each prow job.
 We are saving two types of error messages:
  - E2E Failed Test Messages: Messages related to failed E2E tests.
  - Build Error Logs: If there is no E2E Failed Test Messages, we save the last 50 lines of the build-log.txt in order to help us find infra errors, for example. We are only saving the last 50 days because we believe it is enough to catch the build errors.
 
-To calculate the impact of each failure (in the Failures table), in the date time range selected, we will search for all the prow jobs and verify in how many prow jobs the bug's error message is present in the E2E Failed Test Messages or Build Error Logs. You can find the code (here)[https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/pkg/storage/ent/client/failure.go#L52-L96].
+To calculate the impact of each failure (in the Failures table), in the date time range selected, we will search for all the prow jobs and verify in how many prow jobs the bug's error message is present in the E2E Failed Test Messages or Build Error Logs. You can find the code (here)[https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/pkg/storage/ent/client/failure.go].
 
 ## Connectors
 
