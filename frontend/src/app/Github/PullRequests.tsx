@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
-import { Card, CardBody, CardTitle, Popover, Title } from '@patternfly/react-core';
+import { Card, CardBody, CardTitle, Popover, Title} from '@patternfly/react-core';
 import {
   Chart,
   ChartAxis,
@@ -10,7 +10,7 @@ import {
 } from '@patternfly/react-charts';
 import { DashboardLineChartData } from '@app/utils/sharedComponents';
 import { HelpIcon } from '@patternfly/react-icons';
-import { getLabels } from '@app/utils/utils';
+import { getLabels, getTrendSymbol } from '@app/utils/utils';
 
 export interface PrsStatistics {
   metrics: Metrics[];
@@ -23,12 +23,18 @@ export interface Summary {
   merge_avg: string;
   retest_avg: number;
   retest_before_merge_avg: number;
+
+  merge_trend: number;
+  retest_trend: number;
+  retest_before_merge_trend: number;
 }
 
 export interface Metrics {
   date: string;
   created_prs_count: number;
   merged_prs_count: number;
+  created_prs_trend: number;
+  merged_prs_trend: number;
 }
 
 export const help = (desc) => {
@@ -79,8 +85,8 @@ export const PullRequestCard = (props) => {
         </div>
       </CardTitle>
       {props.repo == undefined && (
-        <CardBody>
-          <div style={{ fontSize: 25 }}>{props.total}</div>
+        <CardBody> 
+          <div style={{ fontSize: 25 }}>{props.trend} {props.subtitle == 'Selected Time Range' ? getTrendSymbol(props.trend) : ' ' } </div>
         </CardBody>
       )}
       {props.repo != undefined && (

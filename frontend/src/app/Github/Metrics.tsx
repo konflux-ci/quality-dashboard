@@ -68,7 +68,7 @@ export const GetMetrics = () => {
                     </GridItem>
 
                     <GridItem span={2} rowSpan={1}>
-                        <PullRequestCard title="Time To Merge PR Avg Days" subtitle="Selected Time Range" total={prs?.summary?.merge_avg}></PullRequestCard>
+                        <PullRequestCard title="Time To Merge PR Avg Days" subtitle="Selected Time Range" total={prs?.summary?.merge_avg} trend={prs?.summary?.merge_time_trend}></PullRequestCard>
                     </GridItem>
 
                     <GridItem span={2} rowSpan={1}>
@@ -76,6 +76,7 @@ export const GetMetrics = () => {
                             title="Retest Avg in Open PRs"
                             subtitle="Selected Time Range"
                             total={prs?.summary?.retest_avg}
+                            trend={prs?.summary?.retest_trend}
                         ></PullRequestCard>
                     </GridItem>
 
@@ -94,6 +95,7 @@ export const GetMetrics = () => {
                             // edge case of service-provider-integration-operator
                             // https://github.com/redhat-appstudio/service-provider-integration-operator/pull/548#issuecomment-1494149514
                             total={prs?.summary?.retest_before_merge_avg == 0.01 ? 'N/A' : prs?.summary?.retest_before_merge_avg}
+                            trend={prs?.summary?.retest_before_merge_trend}
                         ></PullRequestCard>
                     </GridItem>
 

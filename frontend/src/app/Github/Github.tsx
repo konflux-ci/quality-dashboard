@@ -51,6 +51,9 @@ export interface RepositoryInfo {
   merged_prs: string;
   merged_prs_in_time_range: string;
   time_to_merge_pr_avg_days: string;
+	merge_time_trend: string;
+	retest_trend: string;
+  retest_before_merge_trend: string;
 }
 
 // eslint-disable-next-line prefer-const
@@ -97,6 +100,10 @@ let GitHub = () => {
           merged_prs: repository.prs?.summary?.merged_prs,
           merged_prs_in_time_range: repository.prs?.summary?.merged_prs_in_time_range,
           time_to_merge_pr_avg_days: repository.prs?.summary?.merge_avg + ' day(s)',
+
+          merge_time_trend: repository.prs?.summary?.merge_time_trend,
+          retest_trend: repository.prs?.summary?.retest_trend,
+          retest_before_merge_trend: repository.prs?.summary?.retest_before_merge_trend,
         });
       })
       setRepos(rps)
@@ -153,6 +160,10 @@ let GitHub = () => {
               merged_prs: repository.prs?.summary?.merged_prs,
               merged_prs_in_time_range: repository.prs?.summary?.merged_prs_in_time_range,
               time_to_merge_pr_avg_days: repository.prs?.summary?.merge_avg + ' day(s)',
+
+              merge_time_trend: repository.prs?.summary?.merge_time_trend,
+              retest_trend: repository.prs?.summary?.retest_trend,
+              retest_before_merge_trend: repository.prs?.summary?.retest_before_merge_trend,
             });
           })
           setRepos(rps)

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/tgulacsi/go/regression"
+
 	"entgo.io/ent/dialect/sql"
 	prV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
 	"github.com/konflux-ci/quality-dashboard/pkg/connectors/github"
@@ -113,10 +115,19 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 		return info, convertDBError("failed to get open pull requests in time range: %w", err)
 	}
 
+	var openXData, retestYData []float64
+	minOpen := float64(math.Inf(1))
 	for _, openPr := range openPullRequestsInTimeRange {
 		if openPr.RetestCount != nil {
 			totalRetests += *openPr.RetestCount
+
+			openXData = append(openXData, float64(openPr.MergedAt.Unix()))
+			retestYData = append(retestYData, float64(*openPr.RetestCount))
 		}
+	}
+
+	for i, time := range openXData {
+		openXData[i] = (time - minOpen) / (24 * 60 * 60)
 	}
 
 	if len(openPullRequestsInTimeRange) != 0 {
@@ -142,6 +153,9 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 		return info, convertDBError("failed to get merged pull requests in time range: %w", err)
 	}
 
+	var mergeXData, mergeTimeYData, retestBeforeMergeYData []float64
+	minMerge := float64(math.Inf(1))
+
 	for _, merged := range mergedPullRequestsInTimeRange {
 		mergeTime := merged.MergedAt.Sub(merged.CreatedAt).Hours() / 24
 		var retestBeforeMergeCount float64 = 0
@@ -153,8 +167,25 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 			totalMergeTime += mergeTime
 			totalMergedPrs++
 			totalRetestBeforeMerge += retestBeforeMergeCount
+
+			if float64(merged.MergedAt.Unix()) < minMerge {
+				minMerge = float64(merged.MergedAt.Unix())
+			}
+
+			mergeXData = append(mergeXData, float64(merged.MergedAt.Unix()))
+
+			mergeTimeYData = append(mergeTimeYData, mergeTime)
+			retestBeforeMergeYData = append(retestBeforeMergeYData, float64(retestBeforeMergeCount))
 		}
 	}
+
+	for i, time := range mergeXData {
+		mergeXData[i] = (time - minMerge) / (24 * 60 * 60)
+	}
+
+	retestCoef, _ := regression.LinearRegression(openXData, retestYData)
+	mergeTimeCoef, _ := regression.LinearRegression(mergeXData, mergeTimeYData)
+	retestBeforeMergeCoef, _ := regression.LinearRegression(mergeXData, retestBeforeMergeYData)
 
 	if totalMergedPrs != 0 {
 		totalMergeTime = totalMergeTime / float64(len(mergedPullRequestsInTimeRange))
@@ -169,6 +200,9 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 		MergeAvg:                   math.Round(totalMergeTime*100) / 100,
 		RetestAvg:                  math.Round(retestAvg*100) / 100,
 		RetestBeforeMergeAvg:       math.Round(retestBeforeMergeAvg*100) / 100,
+		MergeTimeTrend:             mergeTimeCoef,
+		RetestTrend:                retestCoef,
+		RetestBeforeMergeTrend:     retestBeforeMergeCoef,
 	}
 	info.Metrics = d.getMetrics(repo, startDate, endDate)
 

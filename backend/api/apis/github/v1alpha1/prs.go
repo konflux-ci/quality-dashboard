@@ -87,6 +87,15 @@ type Summary struct {
 
 	// Average count of how many /test and /retest comments were issued after the last code push.
 	RetestBeforeMergeAvg float64 `json:"retest_before_merge_avg"`
+
+	// Trend of average time to merge a pull request.
+	MergeTimeTrend float64 `json:"merge_time_trend"`
+
+	// Trend of number of of number of retests issued per open pull request.
+	RetestTrend float64 `json:"retest_trend"`
+
+	// Trend of number of of number of retests issued after the last code push.
+	RetestBeforeMergeTrend float64 `json:"retest_before_merge_trend"`
 }
 
 // PullRequestsInfo represents the metrics by day and the summary of the pull requests.
