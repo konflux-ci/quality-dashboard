@@ -264,6 +264,8 @@ export const Jira = () => {
     }
 
     useEffect(() => {
+        setOpenIssuesTable([])
+        setClosedIssuesTable([])
         if (bugsTable.length > 0) {
             let issuesSelected = bugsTable
 
