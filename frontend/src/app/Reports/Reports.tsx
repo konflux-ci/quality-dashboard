@@ -75,7 +75,7 @@ let Reports = () => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const drawerRef = React.useRef<HTMLDivElement>();
 
-  // Reset all dropdowns and state variables
+  // Clear all dropdowns and state variables
   const clearAll = () => {
     setProwVisible(false); // hide the dashboard leaving only the toolbar
     setNoData(false)
@@ -84,6 +84,13 @@ let Reports = () => {
     clearRangeDateTime()
     setIsInvalid(false)
     clearJobName()
+  }
+
+  // Rest all dropdowns content
+  const resetAllDropdowns = () => {
+    setJobNames([])
+    setJobTypes([])
+    setRepositories([])
   }
 
   // Reset params
@@ -371,6 +378,7 @@ let Reports = () => {
 
   // When component is mounted, get the list of repo and orgs from API and populate the dropdowns
   useEffect(() => {
+    resetAllDropdowns()
     setLoadingState(true)
     const team = params.get("team")
 
@@ -421,18 +429,24 @@ let Reports = () => {
                     setJobNames(data.map(el => el.job_name).filter((value, index, self) => self.indexOf(value) === index))
                     setjobName(job_name)
                     setjobType(job_type)
-                  }
-                );
-              } else {
+                  })
+                  .catch(e => {
+                    clearParams()
+                    setNoData(true)
+                  })
+              } 
+              else {
                 setLoadingState(false)
                 setIsInvalid(true)
               }
 
             } 
             else {
-              setRepoName(data[0].Repository.Name)
-              setRepoNameFormatted(getRepoNameFormatted(data[0].Repository.Name))
-              setRepoOrg(data[0].Repository.Owner.Login)
+              if(data){
+                setRepoName(data[0].Repository.Name)
+                setRepoNameFormatted(getRepoNameFormatted(data[0].Repository.Name))
+                setRepoOrg(data[0].Repository.Owner.Login)
+              }
               setjobType("presubmit") // all repos in OpenShift CI have presubmit type job
 
               getJobNamesAndTypes(data[0].Repository.Name, data[0].Repository.Owner.Login)
@@ -442,14 +456,20 @@ let Reports = () => {
                   setJobNames(data.map(el => el.job_name).filter((value, index, self) => self.indexOf(value) === index))
                   setjobName(data[0].job_name)
                   setjobType(data[0].job_type)
-                }
-              );
+                })
+                .catch(e => {
+                  setNoData(true)
+                  clearParams()
+                  setjobType("")
+                })
 
               const start_date = formatDate(rangeDateTime[0])
               const end_date = formatDate(rangeDateTime[1])
-
-              history.push('/reports/test?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName
-                + '&job_type=presubmit' + '&start=' + start_date + '&end=' + end_date)
+              
+              if(data){
+                history.push('/reports/test?team=' + currentTeam + '&organization=' + data[0].organization + '&repository=' + data[0].repoName
+                  + '&job_type=presubmit' + '&start=' + start_date + '&end=' + end_date)
+              }
               setLoadingState(false)
             }
 

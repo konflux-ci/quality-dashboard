@@ -397,6 +397,10 @@ async function getJobNamesAndTypes(repoName: string, repoOrg: string) {
     throw 'Error fetching data from server. ';
   }
 
+  if(!result.data) {
+    throw 'No jobs detected in OpenShift CI';
+  }
+
   return result.data.sort((a, b) => (a < b ? -1 : 1));
 }
 
