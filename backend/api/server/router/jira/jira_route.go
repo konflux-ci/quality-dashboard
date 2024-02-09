@@ -27,7 +27,7 @@ func NewRouter(s storage.Storage) router.Router {
 	r.Logger = logger
 
 	r.Route = []router.Route{
-		router.NewGetRoute("/jira/bugs/e2e", r.listE2EBugsKnown),
+		router.NewGetRoute("/jira/bugs/e2e", r.listBugsAffectingCI),
 		router.NewGetRoute("/jira/bugs/all", r.listAllBugs), ///jira/project/list
 		router.NewGetRoute("/jira/bugs/metrics/priorities", r.getCountBugsForAllCategories),
 		router.NewGetRoute("/jira/project/list", r.getJiraProjects),
