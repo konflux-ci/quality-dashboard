@@ -75,7 +75,7 @@ let Reports = () => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const drawerRef = React.useRef<HTMLDivElement>();
 
-  // Reset all dropdowns and state variables
+  // Clear all dropdowns and state variables
   const clearAll = () => {
     setProwVisible(false); // hide the dashboard leaving only the toolbar
     setNoData(false)
@@ -84,6 +84,13 @@ let Reports = () => {
     clearRangeDateTime()
     setIsInvalid(false)
     clearJobName()
+  }
+
+  // Rest all dropdowns content
+  const resetAllDropdowns = () => {
+    setJobNames([])
+    setJobTypes([])
+    setRepositories([])
   }
 
   // Reset params
@@ -371,6 +378,7 @@ let Reports = () => {
 
   // When component is mounted, get the list of repo and orgs from API and populate the dropdowns
   useEffect(() => {
+    resetAllDropdowns()
     setLoadingState(true)
     const team = params.get("team")
 
@@ -423,6 +431,7 @@ let Reports = () => {
                     setjobType(job_type)
                   })
                   .catch(e => {
+                    clearParams()
                     setNoData(true)
                   })
               } 
@@ -450,6 +459,7 @@ let Reports = () => {
                 })
                 .catch(e => {
                   setNoData(true)
+                  clearParams()
                   setjobType("")
                 })
 
