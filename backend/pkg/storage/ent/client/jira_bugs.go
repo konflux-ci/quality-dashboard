@@ -499,12 +499,12 @@ func (d *Database) getJiraBugMetrics(bug jira.Issue) JiraBugMetricsInfo {
 	return jiraBugMetric
 }
 
-// GetAllOpenRHTAPBUGS gets all the RHTAPBUGS that are open
-// func (d *Database) GetAllOpenRHTAPBUGS(dateFrom, dateTo string) ([]*db.Bugs, error) {
-func (d *Database) GetAllOpenRHTAPBUGS() ([]*db.Bugs, error) {
+// GetAllOpenBugs gets all the bugs that are open for the given project
+// func (d *Database) GetAllOpenBugs(dateFrom, dateTo string) ([]*db.Bugs, error) {
+func (d *Database) GetAllOpenBugs(project string) ([]*db.Bugs, error) {
 	b, err := d.client.Bugs.Query().
 		Where(predicate.Bugs(bugs.Resolved(false))).
-		Where(predicate.Bugs(bugs.ProjectKey("RHTAPBUGS"))).
+		Where(predicate.Bugs(bugs.ProjectKey(project))).
 		All(context.TODO())
 
 	if err != nil {
@@ -514,12 +514,12 @@ func (d *Database) GetAllOpenRHTAPBUGS() ([]*db.Bugs, error) {
 	return b, nil
 }
 
-// GetAllOpenRHTAPBUGSForSliAlerts gets all the RHTAPBUGS that are open
+// GetAllOpenBugsForSliAlerts gets all the bugs that are open for the given project
 // except bugs with status as "Waiting" or "Release Pending"
-func (d *Database) GetAllOpenRHTAPBUGSForSliAlerts() ([]*db.Bugs, error) {
+func (d *Database) GetAllOpenBugsForSliAlerts(project string) ([]*db.Bugs, error) {
 	b, err := d.client.Bugs.Query().
 		Where(predicate.Bugs(bugs.StatusNotIn("Waiting", "Release Pending", "Closed"))).
-		Where(predicate.Bugs(bugs.ProjectKey("RHTAPBUGS"))).
+		Where(predicate.Bugs(bugs.ProjectKey(project))).
 		All(context.TODO())
 
 	if err != nil {
