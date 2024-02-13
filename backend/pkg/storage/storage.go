@@ -46,9 +46,9 @@ type Storage interface {
 	GetJobsNameAndType(repo *db.Repository) ([]*db.ProwJobs, error)
 	GetMetricsSummaryByDay(repo *db.Repository, job, startDate, endDate string) []*prowV1Alpha1.JobsMetrics
 
-	// GetAllOpenRHTAPBUGS(dateFrom, dateTo string) ([]*db.Bugs, error)
-	GetAllOpenRHTAPBUGS() ([]*db.Bugs, error)
-	GetAllOpenRHTAPBUGSForSliAlerts() ([]*db.Bugs, error)
+	// GetAllOpenBugs(dateFrom, dateTo string) ([]*db.Bugs, error)
+	GetAllOpenBugs(project string) ([]*db.Bugs, error)
+	GetAllOpenBugsForSliAlerts(project string) ([]*db.Bugs, error)
 	GetPullRequestsByRepository(repositoryName, organization, startDate, endDate string) (repoV1Alpha1.PullRequestsInfo, error)
 	GetFrequency(team *db.Teams, errorMessage, startDate, endDate string) (float64, error)
 	GetJiraBug(key string) (*db.Bugs, error)

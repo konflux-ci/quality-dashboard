@@ -331,8 +331,8 @@ func (s *jiraRouter) getBugSLIs(ctx context.Context, w http.ResponseWriter, r *h
 	// 	})
 	// }
 
-	// bugs, err := s.Storage.GetAllOpenRHTAPBUGS(startDate[0], endDate[0])
-	bugs, err := s.Storage.GetAllOpenRHTAPBUGS()
+	// bugs, err := s.Storage.GetAllOpenBugs(startDate[0], endDate[0])
+	bugs, err := s.Storage.GetAllOpenBugs("KFLUXBUGS")
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
