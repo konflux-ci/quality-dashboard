@@ -89,10 +89,8 @@ func shouldBeDeleted(jiraKey string, bugs []jira.Issue) bool {
 func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
 	bugs := s.cfg.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys))
 	if err := s.cfg.Storage.CreateJiraBug(bugs, team); err != nil {
-		fmt.Println("err", err)
 		return err
 	}
-	fmt.Println("terminou")
 
 	projects := strings.Split(team.JiraKeys, ",")
 	bugsInDb := make([]*db.Bugs, 0)

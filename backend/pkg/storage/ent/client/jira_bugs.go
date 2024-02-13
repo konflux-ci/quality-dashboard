@@ -55,7 +55,6 @@ func getComponent(components []*jira.Component) string {
 
 // CreateJiraBug saves provided jira bugs information in database.
 func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
-	fmt.Println(team)
 	bulkSize := 2000
 
 	if len(bugsArr) > bulkSize {
