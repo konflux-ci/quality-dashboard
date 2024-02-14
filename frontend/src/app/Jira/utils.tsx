@@ -39,7 +39,7 @@ export const getIssuesByField = (issues: Issue[], label: string, field: string) 
         };
     }).filter(
         (elem, index, arr) => index === arr.findIndex((t) => t.x === elem.x)
-    );
+    ).filter(element => element.y != 0);
 
     return issuesByField
 }
