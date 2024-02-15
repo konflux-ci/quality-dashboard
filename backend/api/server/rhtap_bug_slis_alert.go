@@ -31,7 +31,7 @@ func getMention(team string) string {
 	case "gitops":
 		return "<!subteam^S01AC8DU22C|gitops-team>"
 	case "build":
-		return "<!subteam^S014L5WTRBP|build-api-team>"
+		return "<!subteam^S03DM1RL0TF|konfluxbld-green>"
 	case "release":
 		return "<!subteam^S03SVBS426R|stonesoup-release-team>"
 	case "o11y":
@@ -64,10 +64,7 @@ func getMessage(alert jira.Alert, alertType string) string {
 	return ""
 }
 
-func (s *Server) sendAlert(team, msg, color string) {
-	// channel: rhtap-bug-slis-alerts
-	channelID := "C062AF1RFK8"
-
+func (s *Server) sendAlert(team, msg, color, channelID string) {
 	// get team mention
 	mention := getMention(team)
 
@@ -114,18 +111,17 @@ func slisByTeam(bugs []jira.Bug) []Team {
 }
 
 func (s *Server) sendAlerts() {
-	// startDate := time.Now().AddDate(-2, 0, 0).Format(constants.DateFormat)
-	// toDate := time.Now().Format(constants.DateFormat)
-
-	// bugs, err := s.cfg.Storage.GetAllOpenRHTAPBUGS(startDate, toDate)
-
-	bugs, err := s.cfg.Storage.GetAllOpenRHTAPBUGSForSliAlerts()
+	// only for KFLUXBUGS for now
+	bugs, err := s.cfg.Storage.GetAllOpenBugsForSliAlerts("KFLUXBUGS")
 	if err != nil {
 		s.cfg.Logger.Sugar().Errorf("Failed to get all open RHTAP Bug SLOs", zap.Error(err))
 	}
 
 	slis := jira.GetBugSLIs(bugs)
 	teams := slisByTeam(slis.Bugs)
+
+	// channel: konflux-bug-slis-alerts
+	channelID := "C062AF1RFK8"
 
 	for _, team := range teams {
 		redMsg := ""
@@ -147,15 +143,15 @@ func (s *Server) sendAlerts() {
 		}
 
 		if redMsg != "" {
-			s.sendAlert(team.ComponentName, redMsg, "#FF0000")
+			s.sendAlert(team.ComponentName, redMsg, "#FF0000", channelID)
 		}
 
 		if componentAssignmentMsg != "" {
-			s.sendAlert("ic-appstudio-qe", componentAssignmentMsg, "#FF0000")
+			s.sendAlert("ic-appstudio-qe", componentAssignmentMsg, "#FF0000", channelID)
 		}
 
 		if yellowMsg != "" {
-			s.sendAlert(team.ComponentName, yellowMsg, "#FFFF00")
+			s.sendAlert(team.ComponentName, yellowMsg, "#FFFF00", channelID)
 		}
 
 	}

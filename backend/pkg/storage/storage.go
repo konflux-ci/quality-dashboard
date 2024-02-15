@@ -46,9 +46,9 @@ type Storage interface {
 	GetJobsNameAndType(repo *db.Repository) ([]*db.ProwJobs, error)
 	GetMetricsSummaryByDay(repo *db.Repository, job, startDate, endDate string) []*prowV1Alpha1.JobsMetrics
 
-	// GetAllOpenRHTAPBUGS(dateFrom, dateTo string) ([]*db.Bugs, error)
-	GetAllOpenRHTAPBUGS() ([]*db.Bugs, error)
-	GetAllOpenRHTAPBUGSForSliAlerts() ([]*db.Bugs, error)
+	// GetAllOpenBugs(dateFrom, dateTo string) ([]*db.Bugs, error)
+	GetAllOpenBugs(project string) ([]*db.Bugs, error)
+	GetAllOpenBugsForSliAlerts(project string) ([]*db.Bugs, error)
 	GetPullRequestsByRepository(repositoryName, organization, startDate, endDate string) (repoV1Alpha1.PullRequestsInfo, error)
 	GetFrequency(team *db.Teams, errorMessage, startDate, endDate string) (float64, error)
 	GetJiraBug(key string) (*db.Bugs, error)
@@ -81,6 +81,7 @@ type Storage interface {
 	GetAllProwJobs(startDate, endDate string) ([]*db.ProwJobs, error)
 	ListFailedProwJobsByRepository(repo *db.Repository) ([]*db.ProwJobs, error)
 	CreateUser(u userV1Alpha1.User) error
+	GetOpenBugsAffectingCI(t *db.Teams) ([]*db.Bugs, error)
 
 	// Delete
 	DeleteRepository(repositoryName, gitOrganizationName string) error

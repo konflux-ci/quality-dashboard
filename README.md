@@ -55,6 +55,12 @@ You can use such generated code to build your endpoints and manipulate the datab
 
 The schema for Quality Dashboard data types is located [here](https://github.com/redhat-appstudio/quality-dashboard/tree/main/backend/pkg/storage/ent/schema). You can refer to entgo [documentation](https://entgo.io/docs/schema-def) for syntax details.
 
+The schema can be visualized using the following command:
+```
+cd ./backend/pkg/storage/ent 
+go run -mod=mod ariga.io/entviz ./schema  
+```
+
 After adding new data types to the schema (or editing the existing ones), you have to execute the following command in `backend/pkg/storage/ent` to re-build the model:
 
 ```

@@ -73,7 +73,7 @@ func (s *Server) rotate() error {
 
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
-		rotationFrequency: time.Second * 10,
+		rotationFrequency: time.Minute * 40,
 	}
 }
 
