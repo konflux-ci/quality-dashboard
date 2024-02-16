@@ -52,14 +52,17 @@ func (s *Server) rotate() error {
 
 	s.UpdateProwStatusByTeam()
 
+	s.cfg.Logger.Info("starting to rotate jira bugs")
 	for _, team := range teamArr {
 		if team.JiraKeys == "" {
 			continue
 		}
+		s.cfg.Logger.Info(fmt.Sprintf("starting to rotate jira bugs for team %s", team.TeamName))
 		if err := s.rotateJiraBugs(team.JiraKeys, team); err != nil {
 			return err
 		}
 	}
+	s.cfg.Logger.Info("finishing to rotate jira bugs")
 
 	s.UpdateFailuresByTeam()
 	err = s.UpdateDataBaseRepoByTeam()
@@ -73,7 +76,7 @@ func (s *Server) rotate() error {
 
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
-		rotationFrequency: time.Minute * 40,
+		rotationFrequency: time.Minute * 90,
 	}
 }
 
