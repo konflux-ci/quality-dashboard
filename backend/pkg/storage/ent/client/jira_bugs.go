@@ -58,6 +58,7 @@ func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
 	bulkSize := 2000
 
 	if len(bugsArr) > bulkSize {
+		fmt.Printf("project %s has a lot of issues. we need to split", team.JiraKeys)
 		// number of issues is too high
 		// probably will hit a similar error like: 'Update failed: insert nodes to table "bugs": pq: got 554645 parameters but PostgreSQL only supports 65535 parameters'
 		// we will need to split in smaller bulks
