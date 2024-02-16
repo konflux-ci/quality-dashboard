@@ -29,10 +29,10 @@ spec:
         - resources:
             limits:
               cpu: 500m
-              memory: 1Gi
+              memory: 6Gi
             requests:
-              cpu: 200m
-              memory: 512Mi
+              cpu: 500m
+              memory: 4Gi
           name: quality-backend-dashboard
           command: ["/root/server-runtime"]
           env:
