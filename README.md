@@ -168,6 +168,7 @@ You can set your user's settings by clicking in (your user name) -> Settings.
 
 Available options:
   - set default team
+  - set labels for Jira plugin
 
 ### Teams
 All data is organized by Teams: a team groups a set of repositories to show data more concisely and acts as a global filter.
