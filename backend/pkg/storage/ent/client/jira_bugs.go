@@ -55,6 +55,33 @@ func getComponent(components []*jira.Component) string {
 
 // CreateJiraBug saves provided jira bugs information in database.
 func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
+	bulkSize := 2000
+
+	if len(bugsArr) > bulkSize {
+		fmt.Printf("project %s has a lot of issues. we need to split", team.JiraKeys)
+		// number of issues is too high
+		// probably will hit a similar error like: 'Update failed: insert nodes to table "bugs": pq: got 554645 parameters but PostgreSQL only supports 65535 parameters'
+		// we will need to split in smaller bulks
+		for start := 0; start < len(bugsArr); start += bulkSize {
+			end := start + bulkSize
+			if end > len(bugsArr) {
+				end = len(bugsArr)
+			}
+
+			err := d.CreateBug(bugsArr[start:end], team)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	err := d.CreateBug(bugsArr, team)
+	return err
+}
+
+// CreateBug saves provided jira bugs information in database.
+func (d *Database) CreateBug(bugsArr []jira.Issue, team *db.Teams) error {
 	create := false
 	createBulk := make([]*db.BugsCreate, 0)
 	for _, bug := range bugsArr {
