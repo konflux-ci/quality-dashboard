@@ -11,12 +11,13 @@ import {
     ToggleGroup,
     ToggleGroupItem,
     Spinner,
-    FormGroup,
-    Form,
-    TextInput,
+    ButtonVariant,
     Button,
     Modal,
+    FormGroup,
     Popover,
+    TextInput,
+    Form,
 } from '@patternfly/react-core';
 import {
     TableComposable,
@@ -28,7 +29,7 @@ import {
     ThProps
 } from '@patternfly/react-table';
 import { Chart, ChartAxis, ChartGroup, ChartLine, createContainer, ChartThemeColor } from '@patternfly/react-charts';
-import { getJirasResolutionTime, getJirasOpen, listBugsAffectingCI } from '@app/utils/APIService';
+import { getJirasResolutionTime, getJirasOpen, listBugsAffectingCI, createUser } from '@app/utils/APIService';
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { formatDate, getRangeDates } from '@app/Reports/utils';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
@@ -39,7 +40,8 @@ import { CustomStackChart } from './CustomStackChart';
 import { ListIssues } from './ListIssuesTable';
 import { getIssuesByFields, getIssuesByLabels, getLegend } from './utils';
 import { getLabels } from '@app/utils/utils';
-import { HelpIcon } from '@patternfly/react-icons';
+import { UserConfig } from '@app/Teams/User';
+import { CogIcon, HelpIcon, PlusIcon } from '@patternfly/react-icons';
 
 interface Bugs {
     jira_key: string;
@@ -71,9 +73,20 @@ export const Jira = () => {
     const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(30));
     const priorities = ["Global", "Major", "Critical", "Blocker", "Normal", "Undefined", "Minor"]
     const [loadingState, setLoadingState] = useState(false);
-    const [labels, setLabels] = useState<string[]>(defaultLabels);
+    const [labels, setLabels] = useState<string[]>([]);
     const [openIssuesTable, setOpenIssuesTable] = useState<any>({});
     const [closedIssuesTable, setClosedIssuesTable] = useState<any>({});
+
+
+    useEffect(() => {
+        if (state.auth.USER_CONFIG != "" && state.auth.USER_CONFIG != undefined) {
+            let userConfig = JSON.parse(state.auth.USER_CONFIG) as UserConfig;
+            const userConfigJiraLabels = userConfig.jira_config.labels
+            if (userConfigJiraLabels != "") {
+                setLabelsValue(userConfigJiraLabels)
+            }
+        }
+    }, []);
 
     const getJiraData = (ID) => {
         setLoadingState(true)
@@ -107,7 +120,9 @@ export const Jira = () => {
     }
 
     useEffect(() => {
-        if (currentTeam != "" && currentTeam != undefined) {
+        const team = params.get('team');
+
+        if (team == currentTeam || team == null) {
             listBugsAffectingCI(currentTeam).then(res => {
                 setBugsKnown(res.data)
             })
@@ -122,16 +137,28 @@ export const Jira = () => {
             const labelParam = params.get("label_selected")
 
             if (start == null || end == null || labelsParam == null || labelParam == null) {
-                setIsLabelSelected(labels[0])
+                let lbs = defaultLabels
+
+                if (state.auth.USER_CONFIG != "" && state.auth.USER_CONFIG != undefined) {
+                    var userConfig = JSON.parse(state.auth.USER_CONFIG) as UserConfig;
+                    if (userConfig.jira_config.labels != "") {
+                        setLabels(userConfig.jira_config.labels.split(","))
+                        lbs = userConfig.jira_config.labels.split(",")
+                    }
+                }
+
+                setLabels(lbs)
+                setIsLabelSelected(lbs[0])
 
                 history.push(
                     '/home/jira?team=' + currentTeam +
                     '&selected=' + ID +
                     '&start=' + formatDate(rangeDateTime[0]) +
                     '&end=' + formatDate(rangeDateTime[1]) +
-                    '&labels=' + labels +
-                    '&label_selected=' + labels[0]
+                    '&labels=' + lbs.toString() +
+                    '&label_selected=' + lbs[0]
                 )
+
             } else {
                 setRangeDateTime([new Date(start), new Date(end)])
                 const lbls = labelsParam.split(",")
@@ -143,7 +170,7 @@ export const Jira = () => {
                     '&selected=' + ID +
                     '&start=' + start +
                     '&end=' + end +
-                    '&labels=' + labels +
+                    '&labels=' + labelsParam +
                     '&label_selected=' + labelParam
                 )
             }
@@ -163,12 +190,6 @@ export const Jira = () => {
 
     const [isSelected, setIsSelected] = React.useState('open');
     const [isLabelSelected, setIsLabelSelected] = React.useState('');
-
-    const handleItemClick = (isSelected: boolean, event: React.MouseEvent<any> | React.KeyboardEvent | MouseEvent) => {
-        const id = event.currentTarget.id;
-        setBugsTable([])
-        setIsSelected(id);
-    };
 
     useEffect(() => {
         const selected = params.get("selected")
@@ -303,9 +324,9 @@ export const Jira = () => {
     };
 
     const [isModalOpen, setIsModalOpen] = React.useState(false);
-    const [labelsValue, setLabelsValue] = React.useState("");
+    const [labelsValue, setLabelsValue] = React.useState(defaultLabels.join(","));
     type validate = 'success' | 'warning' | 'error' | 'default';
-    const [labelsValidated, setLabelsValidated] = React.useState<validate>('error');
+    const [labelsValidated, setLabelsValidated] = React.useState<validate>();
     const regexp = new RegExp('^[a-zA-Z_-]+(,[0-9a-zA-Z_-]+)*$')
 
 
@@ -314,6 +335,7 @@ export const Jira = () => {
     };
 
     const handleLabelsInput = async (value) => {
+        console.log("value")
         setLabelsValidated('error');
         setLabelsValue(value);
         if (regexp.test(value)) {
@@ -329,9 +351,26 @@ export const Jira = () => {
         setLabels(ls)
         setIsLabelSelected(ls[0])
 
+        if (state.auth.USER_CONFIG != "" && state.auth.USER_CONFIG != undefined) {
+            // get user config
+            let userConfig = JSON.parse(state.auth.USER_CONFIG) as UserConfig;
+            userConfig.jira_config.labels = labelsValue
+
+            // get user email
+            const userClaims = JSON.parse(window.atob(state.auth.IDT.split('.')[1]))
+
+            // update user config
+            const config = JSON.stringify(userConfig)
+            createUser(userClaims.email, config)
+            const redux_dispatch = store.dispatch;
+            redux_dispatch({ type: "SET_USER_CONFIG", data: config });
+        }
+
+        // update params and reload page
         params.set("labels", labelsValue)
         params.set("label_selected", ls[0])
         history.push(window.location.pathname + '?' + params.toString());
+        window.location.reload();
     };
 
     return (
@@ -345,12 +384,21 @@ export const Jira = () => {
                 {!loadingState && <React.Fragment>
                     <Grid hasGutter>
                         <GridItem>
-                            <DateTimeRangePicker
-                                startDate={rangeDateTime[0]}
-                                endDate={rangeDateTime[1]}
-                                handleChange={(event, from, to) => handleChange(event, from, to)}
-                            >
-                            </DateTimeRangePicker>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <DateTimeRangePicker
+                                    startDate={rangeDateTime[0]}
+                                    endDate={rangeDateTime[1]}
+                                    handleChange={(event, from, to) => handleChange(event, from, to)}
+                                >
+                                </DateTimeRangePicker>
+                                <Button
+                                    style={{ float: 'right' }}
+                                    variant={ButtonVariant.secondary}
+                                    onClick={handleModalToggle}
+                                >
+                                    <CogIcon /> &nbsp; Labels Configuration
+                                </Button>
+                            </div>
                         </GridItem>
                         <GridItem>
                             <Grid hasGutter span={3}>
@@ -493,9 +541,6 @@ export const Jira = () => {
                                 </GridItem>
                             </Grid>
                         </GridItem>}
-                        <Button variant="primary" onClick={handleModalToggle}>
-                            Configure labels
-                        </Button>
                         <Modal
                             width={800}
                             title="Configure your own tables"
@@ -557,13 +602,13 @@ export const Jira = () => {
                             </GridItem>
                         }
                         {(openIssuesTable.length > 0) && getIssuesByFields(openIssuesTable, labels, "component")?.filter((x) => {
-                           let exists = false
-                           x.filter((x) => {
+                            let exists = false
+                            x.filter((x) => {
                                 if (x.y != 0) {
                                     exists = true
                                 }
                             })
-                           return exists
+                            return exists
                         }).length > 0 &&
                             <GridItem span={4} rows={12}>
                                 <Card style={{ textAlign: 'center', alignContent: 'center' }}>
@@ -574,7 +619,7 @@ export const Jira = () => {
                                 </CardBody>
                             </GridItem>
                         }
-                        
+
                         {(openIssuesTable.length > 0) && getIssuesByFields(openIssuesTable, labels, "status").filter((x) => {
                             let exists = false
                             x.filter((x) => {
@@ -583,7 +628,7 @@ export const Jira = () => {
                                 }
                             })
                             return exists
-                        }).length > 0  &&
+                        }).length > 0 &&
                             <GridItem span={4} rows={12}>
                                 <Card style={{ textAlign: 'center', alignContent: 'center' }}>
                                     <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>Open Issues by Labels and Status</CardTitle>
@@ -624,28 +669,28 @@ export const Jira = () => {
                             </GridItem>
                         }
                         <Card>
-                                <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>
-                                    List of open issues
-                                </CardTitle>
-                                <CardBody style={{ backgroundColor: 'white' }}>
-                                    <div style={{ marginTop: 10 }}>
-                                        <ToggleGroup aria-label="Default with single selectable">
-                                            {labels?.map((label, idx) => {
-                                                return (
-                                                    <ToggleGroupItem
-                                                        key={idx}
-                                                        text={label}
-                                                        buttonId={label}
-                                                        isSelected={isLabelSelected === label}
-                                                        onChange={handleLabelClick}
-                                                    />
-                                                )
-                                            })}
-                                        </ToggleGroup>
-                                    </div>
-                                    <ListIssues issues={openIssuesTable}></ListIssues>
-                                </CardBody>
-                            </Card>
+                            <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>
+                                List of open issues
+                            </CardTitle>
+                            <CardBody style={{ backgroundColor: 'white' }}>
+                                <div style={{ marginTop: 10 }}>
+                                    <ToggleGroup aria-label="Default with single selectable">
+                                        {labels?.map((label, idx) => {
+                                            return (
+                                                <ToggleGroupItem
+                                                    key={idx}
+                                                    text={label}
+                                                    buttonId={label}
+                                                    isSelected={isLabelSelected === label}
+                                                    onChange={handleLabelClick}
+                                                />
+                                            )
+                                        })}
+                                    </ToggleGroup>
+                                </div>
+                                <ListIssues issues={openIssuesTable}></ListIssues>
+                            </CardBody>
+                        </Card>
                         {(closedIssuesTable.length > 0) &&
                             <Card>
                                 <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>

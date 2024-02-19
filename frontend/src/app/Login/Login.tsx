@@ -11,6 +11,8 @@ import { ReactReduxContext } from 'react-redux';
 import { initOauthFlow, completeOauthFlow, OauthData } from '@app/utils/oauth'
 import { JwtPayload, jwtDecode } from "jwt-decode";
 import { createUser, getUser } from '@app/utils/APIService';
+import { GetUserConfig } from '@app/Teams/User';
+import { defaultLabels } from '@app/Jira/Jira';
 let authorizationUrl: URL
 async function callLogin() {
   document.location.href = authorizationUrl.toString()
@@ -67,12 +69,17 @@ let Login = () => {
         const sessionInfo = jwtDecode<JwtPayload & { name: string, email: string }>(data.IDT);
         const user = await getUser(sessionInfo.email)
 
-        if (user.data == null) {
-          await createUser(sessionInfo.email, "")
+        if (user.data == null) {  // user does not exist yet
+          // get user config
+          const config = GetUserConfig("n/a", defaultLabels.join(","))
+
+          // update user config
+          await createUser(sessionInfo.email, config)
+          redux_dispatch({ type: "SET_USER_CONFIG", data: config });
         } else {
           redux_dispatch({ type: "SET_USER_CONFIG", data: user.data.config });
         }
- 
+
         setTimeout(function () {
           setCallbackError("")
           const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:9898'

@@ -27,7 +27,7 @@ func (s *jiraRouter) listBugsAffectingCI(ctx context.Context, w http.ResponseWri
 
 	team, err := s.Storage.GetTeamByName(teamName[0])
 	if err != nil {
-		s.Logger.Error("Failed to fetch bugs")
+		s.Logger.Error("Failed to fetch team")
 
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
