@@ -1,4 +1,4 @@
-import { createRepository } from '@app/utils/APIService';
+import { checkGithubRepository, createRepository } from '@app/utils/APIService';
 import {
   Button,
   Checkbox,
@@ -12,11 +12,12 @@ import {
   Alert,
 } from '@patternfly/react-core';
 import { HelpIcon } from '@patternfly/react-icons';
-import React, { useContext, SetStateAction, useEffect } from 'react';
+import React, { useContext, SetStateAction, useEffect, useState } from 'react';
 import { teamIsNotEmpty } from '@app/utils/utils';
 import { useHistory } from 'react-router-dom';
 import { ReactReduxContext } from 'react-redux';
 import { formatDate, getRangeDates } from '@app/Reports/utils';
+import { githubRegExp } from '@app/Teams/TeamsOnboarding';
 
 interface IModalContext {
   isModalOpen: IModalContextMember;
@@ -33,7 +34,7 @@ interface IModalContextMember {
 export const ModalContext = React.createContext<IModalContext>({
   isModalOpen: { set: undefined, value: false },
   isEditRepo: { set: undefined, value: false },
-  handleModalToggle: () => {},
+  handleModalToggle: () => { },
   data: { set: undefined, value: false },
 });
 
@@ -71,11 +72,12 @@ export const FormModal = () => {
   const [monitorGithubActions, setMonitorGithubActions] = React.useState(false);
   const [checked, setChecked] = React.useState('');
   const params = new URLSearchParams(window.location.search);
-
   const { store } = useContext(ReactReduxContext);
   const state = store.getState();
-
   const dispatch = store.dispatch;
+  type validate = 'success' | 'warning' | 'error' | 'default';
+  const [githubUrlValidated, setGithubUrlValidated] = React.useState<validate>('error');
+  const [githubUrl, setGithubUrl] = useState<string>("");
 
   const handleGitRepositoryInput = (value) => {
     setGitRepositoryValue(value);
@@ -132,15 +134,15 @@ export const FormModal = () => {
 
       history.push(
         '/home/github?team=' +
-          params.get('team') +
-          '&organization=' +
-          gitOrganizationValue +
-          '&repository=' +
-          gitRepositoryValue +
-          '&start=' +
-          start_date +
-          '&end=' +
-          end_date
+        params.get('team') +
+        '&organization=' +
+        gitOrganizationValue +
+        '&repository=' +
+        gitRepositoryValue +
+        '&start=' +
+        start_date +
+        '&end=' +
+        end_date
       );
       window.location.reload();
     } catch (error) {
@@ -159,14 +161,36 @@ export const FormModal = () => {
     }
   });
 
+  const handleGithub = async (value: string) => {
+    setGithubUrl(value);
+    setGithubUrlValidated('error');
+
+    // check that matches githubRegex
+    if (githubRegExp.test(value)) {
+      // check that gh repo exists
+      const repo = value.replace("https://github.com/", "").split("/")
+
+      await checkGithubRepository(repo[0], repo[1]).then((data: any) => {
+        if (data != undefined && data.code == 200) {
+          setGithubUrlValidated('success');
+          // save repo and org
+          setGitOrganizationValue(repo[0]);
+          setGitRepositoryValue(repo[1]);
+        }
+      })
+    } else {
+      setGithubUrlValidated('error');
+    }
+  };
+
   return (
     <React.Fragment>
       <Modal
         variant={ModalVariant.medium}
-        title={!modalContext.isEditRepo.value ? 'Add new git repository' : 'Update git repository'}
+        title={!modalContext.isEditRepo.value ? 'Add new GitHub Repository' : 'Update GitHub Repository'}
         description={
           !modalContext.isEditRepo.value
-            ? 'Enter a new git repository to obtain information in the quality quality studio.'
+            ? 'Enter a new GitHub Repository to obtain information in the quality studio.'
             : ''
         }
         isOpen={modalContext.isModalOpen.value}
@@ -177,7 +201,7 @@ export const FormModal = () => {
             variant="primary"
             form="modal-with-form-form"
             onClick={onSubmit}
-            isDisabled={!teamIsNotEmpty(state.teams.Team)}
+            isDisabled={githubUrlValidated == "error"}
             {...primaryLoadingProps}
           >
             {!modalContext.isEditRepo.value ? 'Add' : 'Update'}
@@ -188,64 +212,15 @@ export const FormModal = () => {
         ]}
       >
         <Form isHorizontal id="modal-with-form-form">
-          <FormGroup
-            label="Git Organization"
-            labelIcon={
-              <Popover headerContent={<div></div>} bodyContent={<div>Git organization name</div>}>
-                <button
-                  type="button"
-                  aria-label="More info for name field"
-                  onClick={(e) => e.preventDefault()}
-                  aria-describedby="modal-with-form-form-name"
-                  className="pf-c-form__group-label-help"
-                >
-                  <HelpIcon noVerticalAlign />
-                </button>
-              </Popover>
-            }
-            isRequired
-            fieldId="modal-with-form-form-name"
-          >
+          <FormGroup isRequired label="GitHub Repository URL" fieldId="repo-name">
             <TextInput
-              isReadOnly={modalContext.isEditRepo.value}
               isRequired
-              type="email"
-              id="modal-with-form-form-name"
-              name="modal-with-form-form-name"
-              value={gitOrganizationValue}
-              onChange={handleGitOrganizationInput}
-            />
-          </FormGroup>
-          <FormGroup
-            label="Repository name"
-            labelIcon={
-              <Popover
-                headerContent={<div>The repository name</div>}
-                bodyContent={<div>An valid github repository bane</div>}
-              >
-                <button
-                  type="button"
-                  aria-label="More info for e-mail field"
-                  onClick={(e) => e.preventDefault()}
-                  aria-describedby="modal-with-form-form-email"
-                  className="pf-c-form__group-label-help"
-                >
-                  <HelpIcon noVerticalAlign />
-                </button>
-              </Popover>
-            }
-            isRequired
-            fieldId="modal-with-form-form-email"
-          >
-            <TextInput
-              isReadOnly={modalContext.isEditRepo.value}
-              isRequired
-              type="email"
-              id="modal-with-form-form-email"
-              name="modal-with-form-form-email"
-              value={gitRepositoryValue}
-              onChange={handleGitRepositoryInput}
-            />
+              validated={githubUrlValidated}
+              value={githubUrl}
+              type="text"
+              onChange={handleGithub}
+              aria-label="text input example"
+              placeholder="Add a GitHub repository" />
           </FormGroup>
           <FormGroup label="Team" isRequired isStack hasNoPaddingTop fieldId={''}>
             {teamIsNotEmpty(state.teams.Team) ? (

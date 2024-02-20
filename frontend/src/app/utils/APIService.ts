@@ -862,6 +862,28 @@ async function getUser(userEmail: string) {
   return result;
 }
 
+async function checkGithubRepository(repoOrg: string, repoName: string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/repositories/verify?repository_name=' +
+    repoName +
+    '&git_organization=' +
+    repoOrg
+  const uri = API_URL + subPath;
+
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      result.code = res.status;
+      result.data = res.data;
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  return result;
+}
+
 export {
   getVersion,
   getRepositories,
@@ -895,5 +917,6 @@ export {
   getProwJobMetricsDaily,
   createUser,
   listUsers,
-  getUser
+  getUser,
+  checkGithubRepository
 };
