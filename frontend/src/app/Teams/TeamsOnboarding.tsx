@@ -19,7 +19,7 @@ export interface AlertInfo {
   key: string;
 }
 
-export const githubRegExp = new RegExp('https:\/\/github\.com\/[a-z-0-9-]+\/[a-z-0-9-]+')
+export const githubRegExp = new RegExp('https:\/\/github\.com\/[a-z-0-9-_.]+\/[a-z-0-9-]+')
 
 export const TeamsWizard = () => {
   const { store } = useContext(ReactReduxContext);
