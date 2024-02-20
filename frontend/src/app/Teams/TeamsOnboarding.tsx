@@ -12,7 +12,6 @@ import { getTeams } from '@app/utils/APIService';
 import { PlusIcon } from '@patternfly/react-icons/dist/esm/icons';
 import { ReactReduxContext } from 'react-redux';
 import { TeamsTable } from './TeamsTable';
-import { set, xorWith } from 'lodash';
 
 export interface AlertInfo {
   title: string;
@@ -21,7 +20,6 @@ export interface AlertInfo {
 }
 
 export const githubRegExp = new RegExp('https:\/\/github\.com\/[a-z-0-9-]+\/[a-z-0-9-]+')
-
 
 export const TeamsWizard = () => {
   const { store } = useContext(ReactReduxContext);
@@ -164,7 +162,7 @@ export const TeamsWizard = () => {
     setGithubUrl(value);
     setGithubUrlValidated('error');
 
-    // check that matches githubRegex
+    // check that matchesgithubRegExp
     if (githubRegExp.test(value)) {
       // check that gh repo exists
       const repo = value.replace("https://github.com/", "").split("/")

@@ -165,7 +165,7 @@ export const FormModal = () => {
     setGithubUrl(value);
     setGithubUrlValidated('error');
 
-    // check that matches githubRegex
+    // check that matchesgithubRegExp
     if (githubRegExp.test(value)) {
       // check that gh repo exists
       const repo = value.replace("https://github.com/", "").split("/")
