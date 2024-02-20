@@ -169,15 +169,17 @@ func (rp *teamsRouter) updateTeamHandler(ctx context.Context, w http.ResponseWri
 			}
 		}
 
-		// create/update jira keys
-		bugs := rp.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys))
-		if err := rp.Storage.CreateJiraBug(bugs, t); err != nil {
-			return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-				Message:    err.Error(),
-				StatusCode: http.StatusInternalServerError,
-			})
+		// create jira keys
+		projectsToAdd := getProjectsToAdd(old, update)
+		if projectsToAdd != "" {
+			bugs := rp.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", projectsToAdd))
+			if err := rp.Storage.CreateJiraBug(bugs, t); err != nil {
+				return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+					Message:    err.Error(),
+					StatusCode: http.StatusInternalServerError,
+				})
+			}
 		}
-
 	}
 
 	err = rp.Storage.UpdateTeam(
@@ -195,6 +197,7 @@ func (rp *teamsRouter) updateTeamHandler(ctx context.Context, w http.ResponseWri
 			StatusCode: 400,
 		})
 	}
+
 	return httputils.WriteJSON(w, http.StatusOK, types.SuccessResponse{
 		Message:    "Team update",
 		StatusCode: 200,
@@ -209,4 +212,15 @@ func contains(key string, keys []string) bool {
 	}
 
 	return false
+}
+
+func getProjectsToAdd(old, update []string) string {
+	projectsToAdd := make([]string, 0)
+	for _, p := range update {
+		if !contains(p, old) {
+			projectsToAdd = append(projectsToAdd, p)
+		}
+	}
+
+	return strings.Join(projectsToAdd, ",")
 }
