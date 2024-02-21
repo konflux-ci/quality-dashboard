@@ -58,6 +58,7 @@ export const TeamsTable: React.FunctionComponent = () => {
     ];
 
     const onUpdateSubmit = async () => {
+        setIsPrimaryLoading(!isPrimaryLoading);
         if (toUpdateTeam != undefined) {
             try {
                 const data = {
@@ -66,7 +67,8 @@ export const TeamsTable: React.FunctionComponent = () => {
                     target: toUpdateTeam.team_name,
                     jira_keys: jiraProjects.join(",")
                 }
-                let r = await updateTeam(data)
+                await updateTeam(data)
+                setIsPrimaryLoading(!isPrimaryLoading);
                 clear()
                 window.location.reload();
             }
@@ -105,6 +107,19 @@ export const TeamsTable: React.FunctionComponent = () => {
         setJiraProjects(options)
     }
 
+    interface LoadingPropsType {
+        spinnerAriaValueText: string;
+        spinnerAriaLabelledBy?: string;
+        spinnerAriaLabel?: string;
+        isLoading: boolean;
+    }
+
+    const [isPrimaryLoading, setIsPrimaryLoading] = React.useState<boolean>(false);
+    const primaryLoadingProps = {} as LoadingPropsType;
+    primaryLoadingProps.spinnerAriaValueText = 'Loading';
+    primaryLoadingProps.spinnerAriaLabelledBy = 'primary-loading-button';
+    primaryLoadingProps.isLoading = isPrimaryLoading;
+
     return (
         <React.Fragment>
             <TableComposable aria-label="Actions table">
@@ -141,7 +156,7 @@ export const TeamsTable: React.FunctionComponent = () => {
                 isOpen={isUpdateModalOpen}
                 onClose={clear}
                 actions={[
-                    <Button key="update" variant="primary" form="modal-with-form-form" onClick={onUpdateSubmit}>
+                    <Button key="update" variant="primary" form="modal-with-form-form" onClick={onUpdateSubmit} {...primaryLoadingProps}>
                         Update
                     </Button>,
                     <Button key="cancel" variant="link" onClick={clear}>
