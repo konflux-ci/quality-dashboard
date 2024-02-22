@@ -2,6 +2,7 @@ import { Flex, FlexItem, InputGroup, DatePicker, isValidDate, TimePicker, Select
 import { SearchIcon, CalendarAltIcon } from '@patternfly/react-icons';
 import React, { useEffect, useState } from 'react';
 import { customizedFormatDate, customizedFormatDateTime, getDateFormat, getRangeDateTime, getRangeDates, parseCustomizedDate, ranges } from '../Reports/utils';
+import moment from 'moment';
 
 export const DateTimeRangePicker = (props) => {
     const [from, setFrom] = React.useState(props.startDate);
@@ -50,10 +51,14 @@ export const DateTimeRangePicker = (props) => {
     const toValidator = date => {
         return date.getTime() >= from.getTime() ? '' : 'To date must be after from date';
     };
+    
+    const customdateValidator = date => {
+        return moment(date, getDateFormat(), true).isValid() ? '' : 'Invalid date';
+    }
 
     const onFromDateChange = (_event, inputDate, newFromDate) => {
-        console.log(newFromDate)
         clearQuickRange()
+        
         if (isValidDate(from) && isValidDate(newFromDate) && inputDate === customizedFormatDate(newFromDate)) {
             newFromDate.setHours(from.getHours(), to.getMinutes());
         }
@@ -153,7 +158,7 @@ export const DateTimeRangePicker = (props) => {
                                         <DatePicker
                                             value={isValidDate(to) ? customizedFormatDate(to) : to.toString()}
                                             onChange={onToDateChange}
-                                            validators={[toValidator]}
+                                            validators={[customdateValidator, toValidator]}
                                             aria-label="End date"
                                             placeholder={getDateFormat()}
                                             dateParse={parseCustomizedDate}

@@ -34,12 +34,12 @@ export const getDateFormat = () => {
 
 // parseCustomizedDate returns date parsed based on users locale
 export const parseCustomizedDate = (dateString: string) => {
-    return moment(dateString, getDateFormat()).toDate();
+    return moment(dateString, getDateFormat(), true).toDate();
 }
 
 // customizedFormatDate returns date formated based on users locale
 export const customizedFormatDate = (date: Date) => {
-    return new Intl.DateTimeFormat(navigator.language).format(date);
+    return moment(date).format(getDateFormat());
 }
 
 // customizedFormatDateTime returns date and time formated based on users locale
