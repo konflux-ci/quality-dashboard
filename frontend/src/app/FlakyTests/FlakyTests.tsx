@@ -16,7 +16,7 @@ import { ImpactChart } from './Charts';
 import { ComposableTableNestedExpandable, InnerNestedComposableTableNestedExpandable } from './Tables';
 import { DropdownBasic, SpinnerBasic } from './utils';
 import { useHistory } from 'react-router-dom';
-import { formatDateTime, getRangeDates } from '@app/Reports/utils';
+import { customizedFormatDate, formatDateTime, getRangeDates } from '@app/Reports/utils';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 
 
@@ -213,7 +213,7 @@ const FlakyTests: React.FunctionComponent = () => {
             setData(res.data.suites)
           }
           if (impact && impact.global_impact) {
-            const gd = [{ Date: rangeDateTime[0].toISOString().split('T')[0], global_impact: res.data.global_impact }, { Date: rangeDateTime[1].toISOString().split('T')[0], global_impact: res.data.global_impact }]
+            const gd = [{ Date: customizedFormatDate(rangeDateTime[0]), global_impact: res.data.global_impact }, { Date: customizedFormatDate(rangeDateTime[1]), global_impact: res.data.global_impact }]
             setGlobalImpact(gd)
           }
           setLoadingSpinner(false)
@@ -225,7 +225,7 @@ const FlakyTests: React.FunctionComponent = () => {
         if (res.code == 200) {
           const impact: any = res.data
           if (impact && impact.length > 0) {
-            setBarData(impact.map(impact => { impact.Date = impact.date.split(' ')[0].split('T')[0]; return impact; }))
+            setBarData(impact.map(impact => { impact.Date = customizedFormatDate(impact.date); return impact; }))
           }
           setLoadingSpinner(false)
         } else {

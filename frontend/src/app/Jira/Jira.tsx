@@ -30,7 +30,7 @@ import {
 import { Chart, ChartAxis, ChartGroup, ChartLine, createContainer, ChartThemeColor } from '@patternfly/react-charts';
 import { getJirasResolutionTime, getJirasOpen, listBugsAffectingCI } from '@app/utils/APIService';
 import { ReactReduxContext, useSelector } from 'react-redux';
-import { formatDateTime, getRangeDates } from '@app/Reports/utils';
+import { customizedFormatDate, formatDateTime, getRangeDates } from '@app/Reports/utils';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 import { useHistory } from 'react-router-dom';
 import { help } from '@app/Github/PullRequests';
@@ -970,9 +970,9 @@ const ComposableTableStripedTr: React.FC<{ bugs: any, longVersion: boolean }> = 
                             <Td dataLabel={columnNames.labels}>{bug.labels}</Td>
                             <Td dataLabel={columnNames.summary}>{bug.summary}</Td>
                             <Td dataLabel={columnNames.status}>{bug.status ? bug.status : "-"}</Td>
-                            <Td dataLabel={columnNames.created_at}>{formatDateTime(new Date(bug.created_at))}</Td>
-                            <Td dataLabel={columnNames.updated_at}>{formatDateTime(new Date(bug.updated_at))}</Td>
-                            {longVersion && <Td dataLabel={columnNames.resolved_at}>{formatDateTime(new Date(bug.resolved_at))}</Td>}
+                            <Td dataLabel={columnNames.created_at}>{customizedFormatDate(new Date(bug.created_at))}</Td>
+                            <Td dataLabel={columnNames.updated_at}>{customizedFormatDate(new Date(bug.updated_at))}</Td>
+                            {longVersion && <Td dataLabel={columnNames.resolved_at}>{customizedFormatDate(new Date(bug.resolved_at))}</Td>}
                             {longVersion && <Td dataLabel={columnNames.resolution_time}>{!Number.isNaN(parseFloat(bug.resolution_time)) ? parseFloat(bug.resolution_time) + " day(s)" : "-"}</Td>}
                         </Tr>
                     ))}
