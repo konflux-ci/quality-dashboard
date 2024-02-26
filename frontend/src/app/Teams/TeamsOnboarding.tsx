@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { createTeam, createRepository, listJiraProjects } from "@app/utils/APIService";
+import { createTeam, createRepository, listJiraProjects, checkGithubRepository } from "@app/utils/APIService";
 import {
   Wizard, PageSection, PageSectionVariants,
   TextInput, FormGroup, Form, TextArea,
@@ -18,6 +18,8 @@ export interface AlertInfo {
   variant: AlertVariant;
   key: string;
 }
+
+export const githubRegExp = new RegExp('https:\/\/github\.com\/[a-z-0-9-_.]+\/[a-z-0-9-]+')
 
 export const TeamsWizard = () => {
   const { store } = useContext(ReactReduxContext);
@@ -38,6 +40,9 @@ export const TeamsWizard = () => {
   const params = new URLSearchParams(window.location.search);
   const open = params.get('isOpen');
   const [jiraProjects, setJiraProjects] = useState<Array<string>>([])
+  const [githubUrl, setGithubUrl] = useState<string>("");
+  type validate = 'success' | 'warning' | 'error' | 'default';
+  const [githubUrlValidated, setGithubUrlValidated] = React.useState<validate>();
 
   const onSubmit = async () => {
     // Create a team
@@ -153,15 +158,34 @@ export const TeamsWizard = () => {
     </div>
   )
 
+  const handleGithub = async (value: string) => {
+    setGithubUrl(value);
+    setGithubUrlValidated('error');
+
+    // check that matchesgithubRegExp
+    if (githubRegExp.test(value)) {
+      // check that gh repo exists
+      const repo = value.replace("https://github.com/", "").split("/")
+
+      await checkGithubRepository(repo[0], repo[1]).then((data: any) => {
+        if (data != undefined && data.code == 200) {
+          setGithubUrlValidated('success');
+          // save repo and org
+          setNewOrgName(repo[0]);
+          setNewRepoName(repo[1]);
+        }
+      })
+    } else {
+      setGithubUrlValidated('error');
+    }
+  };
+
   const AddRepo = (
     <div className={'pf-u-m-lg'} >
-      <Title headingLevel="h6" size="xl">Optionally: add a repository to your team</Title>
+      <Title style={{ marginBottom: '20px' }} headingLevel="h6" size="xl">Optionally: add a GitHub repository to your team</Title>
       <Form>
-        <FormGroup label="Repository Name" fieldId="repo-name" helperText="Add a repository">
-          <TextInput value={newRepoName} type="text" onChange={value => setNewRepoName(value)} aria-label="text input example" placeholder="Add a repository" />
-        </FormGroup>
-        <FormGroup label="Organization Name" fieldId="org-name" helperText="Specify the organization">
-          <TextInput value={newOrgName} type="text" onChange={value => setNewOrgName(value)} aria-label="text input example" placeholder="Specify the organization" />
+        <FormGroup label="GitHub Repository URL" fieldId="repo-name">
+          <TextInput validated={githubUrlValidated} value={githubUrl} type="text" onChange={handleGithub} aria-label="text input example" placeholder="Add a GitHub repository" />
         </FormGroup>
       </Form>
     </div>
@@ -181,12 +205,8 @@ export const TeamsWizard = () => {
             <DescriptionListDescription>{newTeamDesc}</DescriptionListDescription>
           </DescriptionListGroup>
           <DescriptionListGroup>
-            <DescriptionListTerm>Repository</DescriptionListTerm>
-            <DescriptionListDescription>{newRepoName}</DescriptionListDescription>
-          </DescriptionListGroup>
-          <DescriptionListGroup>
-            <DescriptionListTerm>Organization</DescriptionListTerm>
-            <DescriptionListDescription>{newOrgName}</DescriptionListDescription>
+            <DescriptionListTerm>GitHub Repository</DescriptionListTerm>
+            <DescriptionListDescription>{githubUrl}</DescriptionListDescription>
           </DescriptionListGroup>
           <DescriptionListGroup>
             <DescriptionListTerm>Jira Projects</DescriptionListTerm>
@@ -224,7 +244,7 @@ export const TeamsWizard = () => {
 
   const steps = [
     { id: 'team', name: 'Team Name', component: TeamData, enableNext: ValidateTeam() },
-    { id: 'repo', name: 'Add a repository', component: AddRepo, canJumpTo: ValidateTeam(), enableNext: ValidateRepoAndOrg() },
+    { id: 'repo', name: 'Add a GitHub repository', component: AddRepo, canJumpTo: ValidateTeam(), enableNext: ValidateRepoAndOrg() },
     { id: 'jira', name: 'Jira Projects', component: JiraProjects({ onChange: jiraOnChange, teamJiraKeys: "" }), canJumpTo: ValidateTeam(), enableNext: ValidateTeam() },
     {
       id: 'review',
@@ -286,7 +306,7 @@ export const TeamsWizard = () => {
 const exists = (teamJiraKeys: string | undefined, projectKey: string) => {
   if (teamJiraKeys != undefined &&
     teamJiraKeys.split(",").find(key => projectKey == key)) {
-      return true
+    return true
   }
 
   return false

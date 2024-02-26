@@ -276,3 +276,35 @@ func (rp *repositoryRouter) getJobTypesFromRepo(ctx context.Context, w http.Resp
 
 	return httputils.WriteJSON(w, http.StatusOK, jobTypes)
 }
+
+func (rp *repositoryRouter) checkGithubRepository(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	repoName := r.URL.Query()["repository_name"]
+	repoOrg := r.URL.Query()["git_organization"]
+
+	if len(repoName) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "repository_name value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(repoOrg) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "git_organization value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	_, err := rp.Github.GetGithubRepositoryInformation(repoOrg[0], repoName[0])
+	if err != nil {
+		rp.Logger.Error("Failed to fetch repository info from github", zap.String("repository", repoName[0]), zap.String("git_organization", repoOrg[0]), zap.Error(err))
+
+		return httputils.WriteJSON(w, http.StatusBadRequest, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, types.SuccessResponse{
+		Message:    "Successfully verified that repository exists",
+		StatusCode: http.StatusCreated,
+	})
+}
