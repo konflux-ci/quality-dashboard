@@ -527,7 +527,7 @@ let Reports = () => {
                     placeholderText="Select a repository"
                   >
                     {repositories.map((value, index) => (
-                      <SelectOption key={index} value={index} description={value.Repository.Name + "/" + value.Repository.Owner.Login} isDisabled={value.isPlaceholder}>{getRepoNameFormatted(value.Repository.Name)}</SelectOption>
+                      <SelectOption key={index} value={index} description={value.Repository.Owner.Login + "/" +value.Repository.Name} isDisabled={value.isPlaceholder}>{getRepoNameFormatted(value.Repository.Name)}</SelectOption>
                     ))}
                   </Select>
                 </ToolbarItem>
