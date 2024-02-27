@@ -94,14 +94,15 @@ export const TeamsTable: React.FunctionComponent = () => {
                 if (state.auth.USER_CONFIG != "" && state.auth.USER_CONFIG != undefined) {
                     let userConfig = JSON.parse(state.auth.USER_CONFIG) as UserConfig;
                     const userConfigDefaultTeam = userConfig.teams_configuration.default_team
-                    
+
                     // check that the team to delete is the default one
                     if (toDeleteTeam.team_name == userConfigDefaultTeam) {
                         userConfig.teams_configuration.default_team = "n/a"
                         // update user config
                         const config = JSON.stringify(userConfig)
                         const userClaims = JSON.parse(window.atob(state.auth.IDT.split('.')[1]))
-                        await createUser(userClaims.userEmail, config)
+
+                        await createUser(userClaims.email, config)
                         redux_dispatch({ type: "SET_USER_CONFIG", data: config });
                     }
                 }
@@ -121,7 +122,7 @@ export const TeamsTable: React.FunctionComponent = () => {
         setNewTeamDesc("")
     }
 
-    const onJiraProjectsSelected = (options:Array<string>) => {
+    const onJiraProjectsSelected = (options: Array<string>) => {
         setJiraProjects(options)
     }
 
