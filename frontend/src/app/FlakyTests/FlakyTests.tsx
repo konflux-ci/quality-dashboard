@@ -11,7 +11,7 @@ import { useSelector } from 'react-redux';
 import { ExclamationCircleIcon, InfoCircleIcon } from "@patternfly/react-icons";
 import { Popover } from '@patternfly/react-core';
 import { Modal, Button, Flex, FlexItem } from '@patternfly/react-core';
-import { Flakey, FlakeyObject, TestCase } from './Types';
+import { Flakey, FlakyObject, TestCase } from './Types';
 import { ImpactChart } from './Charts';
 import { ComposableTableNestedExpandable, InnerNestedComposableTableNestedExpandable } from './Tables';
 import { DropdownBasic, SpinnerBasic } from './utils';
@@ -208,7 +208,7 @@ const FlakyTests: React.FunctionComponent = () => {
     if (startDate && endDate && selectedRepo && selectedRepo) {
       getFlakyData(currentTeam, selectedJob, selectedRepo, rangeDateTime, "redhat-appstudio").then(res => {
         if (res.code == 200) {
-          const impact: FlakeyObject = res.data
+          const impact: FlakyObject = res.data
           if (impact && impact.suites) {
             setData(res.data.suites)
           }

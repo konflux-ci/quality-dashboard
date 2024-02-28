@@ -77,7 +77,9 @@ func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, job
 
 		suites, err := d.client.Repository.QueryProwSuites(repository).Where(func(s *sql.Selector) { // "merged_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
-		}).Where(prowsuites.SuiteName(suiteFail.SuiteName)).All(context.Background())
+		}).Where(prowsuites.JobName(jobName)).
+			Where(prowsuites.SuiteName(suiteFail.SuiteName)).
+			All(context.Background())
 		if err != nil {
 			continue
 		}
@@ -87,6 +89,7 @@ func (d *Database) GetSuitesFailureFrequency(gitOrg string, repoName string, job
 			testcase, err := d.client.Repository.QueryProwSuites(repository).Where(func(s *sql.Selector) { // "merged_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 				s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 			}).Where(prowsuites.Name(s.Name)).
+				Where(prowsuites.JobName(jobName)).
 				Where(prowsuites.ExternalServicesImpact(false)).
 				Where(prowsuites.SuiteName(suiteFail.SuiteName)).All(context.Background())
 
