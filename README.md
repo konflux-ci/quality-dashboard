@@ -77,7 +77,7 @@ In turn, the database client package implements the storage interface used by th
 The backend server exposes a set of APIs to interact with data. The implementation of the API server is located at `backend/api` and uses a basic HTTP router configuration.
 
 ## Frontend
-The frontend component is a React web application that uses [patternfly project](https://www.patternfly.org/v4/get-started/develop/) to build the UI.
+The frontend component is a React web application that uses [patternfly project](https://www.patternfly.org/get-started/develop/) to build the UI.
 It interacts with the backend via HTTP api endpoints.
 
 # Install quality dashboard locally
