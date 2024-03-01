@@ -277,7 +277,7 @@ func (rp *repositoryRouter) getJobTypesFromRepo(ctx context.Context, w http.Resp
 	return httputils.WriteJSON(w, http.StatusOK, jobTypes)
 }
 
-func (rp *repositoryRouter) checkGithubRepository(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+func (rp *repositoryRouter) checkGithubRepositoryUrl(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	repoName := r.URL.Query()["repository_name"]
 	repoOrg := r.URL.Query()["git_organization"]
 
@@ -307,4 +307,51 @@ func (rp *repositoryRouter) checkGithubRepository(ctx context.Context, w http.Re
 		Message:    "Successfully verified that repository exists",
 		StatusCode: http.StatusCreated,
 	})
+}
+
+func (rp *repositoryRouter) checkGithubRepositoryExists(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	repoName := r.URL.Query()["repository_name"]
+	repoOrg := r.URL.Query()["git_organization"]
+
+	if len(repoName) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "repository_name value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(repoOrg) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "git_organization value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	teams, err := rp.Storage.GetAllTeamsFromDB()
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "Failed to get repository",
+			StatusCode: 400,
+		})
+	}
+
+	for _, team := range teams {
+		repos, err := rp.Storage.ListRepositories(team)
+		if err != nil {
+			return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+				Message:    "Failed to get repository",
+				StatusCode: 400,
+			})
+		}
+
+		for _, repo := range repos {
+			if repo.Name == repoName[0] && repo.Owner.Login == repoOrg[0] {
+				return httputils.WriteJSON(w, http.StatusOK, team.TeamName)
+			}
+		}
+	}
+
+	return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+		Message:    "Failed to get repository",
+		StatusCode: 400,
+	})
+
 }

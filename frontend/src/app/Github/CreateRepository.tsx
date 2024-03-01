@@ -1,4 +1,4 @@
-import { checkGithubRepository, createRepository } from '@app/utils/APIService';
+import { checkGithubRepositoryExists, checkGithubRepositoryUrl, createRepository } from '@app/utils/APIService';
 import {
   Button,
   Checkbox,
@@ -64,7 +64,7 @@ export const useDefaultModalContextState = () => {
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export const FormModal = () => {
+export const FormModal: React.FunctionComponent = () => {
   const modalContext = useModalContext();
   const history = useHistory();
   const [gitRepositoryValue, setGitRepositoryValue] = React.useState('');
@@ -78,6 +78,7 @@ export const FormModal = () => {
   type validate = 'success' | 'warning' | 'error' | 'default';
   const [githubUrlValidated, setGithubUrlValidated] = React.useState<validate>('error');
   const [githubUrl, setGithubUrl] = useState<string>("");
+  const [helperText, setHelperText] = useState<string>("Enter a GitHub Repository URL");
 
   const handleGitRepositoryInput = (value) => {
     setGitRepositoryValue(value);
@@ -162,140 +163,165 @@ export const FormModal = () => {
   });
 
   const handleGithub = async (value: string) => {
+    setHelperText('')
     setGithubUrl(value);
     setGithubUrlValidated('error');
 
-    // check that matchesgithubRegExp
+    // check that matches githubRegExp
     if (githubRegExp.test(value)) {
-      // check that gh repo exists
       const repo = value.replace("https://github.com/", "").split("/")
 
-      await checkGithubRepository(repo[0], repo[1]).then((data: any) => {
-        if (data != undefined && data.code == 200) {
-          setGithubUrlValidated('success');
-          // save repo and org
-          setGitOrganizationValue(repo[0]);
-          setGitRepositoryValue(repo[1]);
-        }
-      })
+
+      // check that gh repo was not already added
+      const resp = await checkGithubRepositoryExists(repo[0], repo[1])
+      if (resp != undefined && resp.code == 200) {
+        const team = resp.data as string
+        setHelperText('Already exists in ' + team + ' team')
+      } else {
+        await checkGithubRepositoryUrl(repo[0], repo[1]).then((data: any) => {
+          if (data != undefined && data.code == 200) {
+            setGithubUrlValidated('success');
+            // save repo and org
+            setGitOrganizationValue(repo[0]);
+            setGitRepositoryValue(repo[1]);
+            setHelperText('')
+          } else {
+            setHelperText('Something went wrong. Probably URL is incorrect.')
+          }
+        })
+      }
     } else {
-      setGithubUrlValidated('error');
+      setHelperText('Must match the regex `https: \/\/github\.com\/[a-zA-Z0-9-_.]+\/[a-zA-Z0-9-_.]+`')
+    }
+  };
+
+
+  const [age, setAge] = React.useState('Five');
+  const [validated, setValidated] = React.useState<validate>('error');
+
+  const handleAgeChange = (age: string) => {
+    setAge(age);
+    if (age === '') {
+      setValidated('default');
+    } else if (/^\d+$/.test(age)) {
+      setValidated('success');
+    } else {
+      setValidated('error');
     }
   };
 
   return (
-    <React.Fragment>
-      <Modal
-        variant={ModalVariant.medium}
-        title={!modalContext.isEditRepo.value ? 'Add new GitHub Repository' : 'Update GitHub Repository'}
-        description={
-          !modalContext.isEditRepo.value
-            ? 'Enter a new GitHub Repository to obtain information in the quality studio.'
-            : ''
-        }
-        isOpen={modalContext.isModalOpen.value}
-        onClose={modalContext.handleModalToggle}
-        actions={[
-          <Button
-            key="create"
-            variant="primary"
-            form="modal-with-form-form"
-            onClick={onSubmit}
-            isDisabled={githubUrlValidated == "error"}
-            {...primaryLoadingProps}
-          >
-            {!modalContext.isEditRepo.value ? 'Add' : 'Update'}
-          </Button>,
-          <Button key="cancel" variant="link" onClick={modalContext.handleModalToggle}>
-            Cancel
-          </Button>,
-        ]}
-      >
-        <Form isHorizontal id="modal-with-form-form">
-          <FormGroup isRequired label="GitHub Repository URL" fieldId="repo-name">
-            <TextInput
-              isRequired
-              validated={githubUrlValidated}
-              value={githubUrl}
-              type="text"
-              onChange={handleGithub}
-              aria-label="text input example"
-              placeholder="Add a GitHub repository" />
-          </FormGroup>
-          <FormGroup label="Team" isRequired isStack hasNoPaddingTop fieldId={''}>
-            {teamIsNotEmpty(state.teams.Team) ? (
-              <TextInput
-                isReadOnly={true}
-                isRequired
-                type="text"
-                id="modal-with-form-form-team"
-                name="modal-with-form-form-team"
-                value={state.teams.Team}
-              />
-            ) : (
-              <div>
-                <Button
-                  onClick={() => {
-                    history.push('/home/teams');
-                  }}
-                  type="button"
-                  width={300}
-                >
-                  Create your first Team
-                </Button>
-                <Alert
-                  style={{ marginTop: '1em' }}
-                  variant="danger"
-                  isInline
-                  isPlain
-                  title="You need to create a team before adding a repository"
-                />
-              </div>
-            )}
-          </FormGroup>
-          <FormGroup label="Monitor CI Jobs" isRequired isStack hasNoPaddingTop fieldId={''}>
-            <Checkbox
-              label="GitHub Actions"
-              id="alt-form-checkbox-1"
-              name="alt-form-checkbox-1"
-              value={String(monitorGithubActions)}
-              onChange={handleGithubActionsMonitor}
-              isChecked={Boolean(checked)}
-            />
-          </FormGroup>
-          <FormGroup label="Code Coverage" isRequired isStack hasNoPaddingTop fieldId={''}>
-            <Checkbox label="codecov.io" id="alt-form-checkbox-2" name="alt-form-checkbox-2" />
-          </FormGroup>
-          <FormGroup
-            label="Quay.io Artifacts"
-            labelIcon={
-              <Popover
-                headerContent={<div>Quay.io artifacts related to the repository</div>}
-                bodyContent={
-                  <div>
-                    If the repository contain more than one artifact add with coma separated:
-                    quay.io/flacatus:repo1,quay.io/flacatus:repo2
-                  </div>
-                }
-              >
-                <button
-                  type="button"
-                  aria-label="More info for address field"
-                  onClick={(e) => e.preventDefault()}
-                  aria-describedby="modal-with-form-form-address"
-                  className="pf-c-form__group-label-help"
-                >
-                  <HelpIcon noVerticalAlign />
-                </button>
-              </Popover>
-            }
+    <Modal
+      variant={ModalVariant.medium}
+      title={!modalContext.isEditRepo.value ? 'Add new GitHub Repository' : 'Update GitHub Repository'}
+      description={
+        !modalContext.isEditRepo.value
+          ? 'Enter a new GitHub Repository to obtain information in the quality studio.'
+          : ''
+      }
+      isOpen={modalContext.isModalOpen.value}
+      onClose={modalContext.handleModalToggle}
+      actions={[
+        <Button
+          key="create"
+          variant="primary"
+          form="modal-with-form-form"
+          onClick={onSubmit}
+          isDisabled={githubUrlValidated == "error"}
+          {...primaryLoadingProps}
+        >
+          {!modalContext.isEditRepo.value ? 'Add' : 'Update'}
+        </Button>,
+        <Button key="cancel" variant="link" onClick={modalContext.handleModalToggle}>
+          Cancel
+        </Button>,
+      ]}
+    >
+      <Form isHorizontal id="modal-with-form-form">
+        <FormGroup isRequired label="GitHub Repository URL" fieldId="repo-name" helperText={helperText}>
+          <TextInput
             isRequired
-            fieldId="modal-with-form-form-address"
-          >
-            <TextArea name="horizontal-form-exp" id="horizontal-form-exp" />
-          </FormGroup>
-        </Form>
-      </Modal>
-    </React.Fragment>
+            validated={githubUrlValidated}
+            value={githubUrl}
+            type="text"
+            onChange={handleGithub}
+            aria-label="text input example"
+            placeholder="Add a GitHub repository"
+          />
+        </FormGroup>
+        <FormGroup label="Team" isRequired isStack hasNoPaddingTop fieldId={''}>
+          {teamIsNotEmpty(state.teams.Team) ? (
+            <TextInput
+              isReadOnly={true}
+              isRequired
+              type="text"
+              id="modal-with-form-form-team"
+              name="modal-with-form-form-team"
+              value={state.teams.Team}
+            />
+          ) : (
+            <div>
+              <Button
+                onClick={() => {
+                  history.push('/home/teams');
+                }}
+                type="button"
+                width={300}
+              >
+                Create your first Team
+              </Button>
+              <Alert
+                style={{ marginTop: '1em' }}
+                variant="danger"
+                isInline
+                isPlain
+                title="You need to create a team before adding a repository"
+              />
+            </div>
+          )}
+        </FormGroup>
+        <FormGroup label="Monitor CI Jobs" isRequired isStack hasNoPaddingTop fieldId={''}>
+          <Checkbox
+            label="GitHub Actions"
+            id="alt-form-checkbox-1"
+            name="alt-form-checkbox-1"
+            value={String(monitorGithubActions)}
+            onChange={handleGithubActionsMonitor}
+            isChecked={Boolean(checked)}
+          />
+        </FormGroup>
+        <FormGroup label="Code Coverage" isRequired isStack hasNoPaddingTop fieldId={''}>
+          <Checkbox label="codecov.io" id="alt-form-checkbox-2" name="alt-form-checkbox-2" />
+        </FormGroup>
+        <FormGroup
+          label="Quay.io Artifacts"
+          labelIcon={
+            <Popover
+              headerContent={<div>Quay.io artifacts related to the repository</div>}
+              bodyContent={
+                <div>
+                  If the repository contain more than one artifact add with coma separated:
+                  quay.io/flacatus:repo1,quay.io/flacatus:repo2
+                </div>
+              }
+            >
+              <button
+                type="button"
+                aria-label="More info for address field"
+                onClick={(e) => e.preventDefault()}
+                aria-describedby="modal-with-form-form-address"
+                className="pf-c-form__group-label-help"
+              >
+                <HelpIcon noVerticalAlign />
+              </button>
+            </Popover>
+          }
+          isRequired
+          fieldId="modal-with-form-form-address"
+        >
+          <TextArea name="horizontal-form-exp" id="horizontal-form-exp" />
+        </FormGroup>
+      </Form>
+    </Modal>
   );
 };
