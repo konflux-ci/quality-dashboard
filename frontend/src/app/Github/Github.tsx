@@ -232,7 +232,7 @@ let GitHub = () => {
               <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />
             </div>
             }
-            {!loadingState &&
+            {!isInvalid && !loadingState &&
               (
                 <GridItem>
                   <Card>

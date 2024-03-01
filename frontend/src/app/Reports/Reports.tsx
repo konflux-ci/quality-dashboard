@@ -169,7 +169,6 @@ let Reports = () => {
 
   // Called onChange of the repository dropdown element. This set repository name and organization state variables, or clears them when placeholder is selected
   const setRepoNameOnChange = (event, selection, isPlaceholder) => {
-    console.log(selection, repositories[selection])
     if (isPlaceholder) {
       clearRepo()
     }
