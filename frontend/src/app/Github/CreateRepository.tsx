@@ -17,7 +17,7 @@ import { teamIsNotEmpty } from '@app/utils/utils';
 import { useHistory } from 'react-router-dom';
 import { ReactReduxContext } from 'react-redux';
 import { formatDate, getRangeDates } from '@app/Reports/utils';
-import { githubRegExp } from '@app/Teams/TeamsOnboarding';
+import { ghRegex, githubRegExp } from '@app/Teams/TeamsOnboarding';
 
 interface IModalContext {
   isModalOpen: IModalContextMember;
@@ -191,7 +191,7 @@ export const FormModal: React.FunctionComponent = () => {
         })
       }
     } else {
-      setHelperText('Must match the regex `https: \/\/github\.com\/[a-zA-Z0-9-_.]+\/[a-zA-Z0-9-_.]+`')
+      setHelperText('Must match the regex `' + ghRegex +'`')
     }
   };
 

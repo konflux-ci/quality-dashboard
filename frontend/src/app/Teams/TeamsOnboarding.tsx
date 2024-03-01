@@ -19,7 +19,8 @@ export interface AlertInfo {
   key: string;
 }
 
-export const githubRegExp = new RegExp('https:\/\/github\.com\/[a-zA-Z0-9-_.]+\/[a-zA-Z0-9-_.]+')
+export const ghRegex = 'https:\/\/github\.com\/[a-zA-Z0-9-_.]+\/[a-zA-Z0-9-_.]+'
+export const githubRegExp = new RegExp(ghRegex)
 
 export const TeamsWizard = () => {
   const { store } = useContext(ReactReduxContext);
@@ -192,7 +193,7 @@ export const TeamsWizard = () => {
           })
         }
       } else {
-        setHelperText('Must match the regex `https: \/\/github\.com\/[a-zA-Z0-9-_.]+\/[a-zA-Z0-9-_.]+`')
+        setHelperText('Must match the regex `' + ghRegex + '`')
       }
     }
   };
