@@ -80,7 +80,7 @@ const routes: AppRouteConfig[] = [
     ],
   },
   {
-    label: 'Plugins',
+    label: 'Metrics',
     routes: [
       {
         component: GitHub,
@@ -114,9 +114,9 @@ const routes: AppRouteConfig[] = [
         exact: true,
         isAsync: true,
         isProtected: true,
-        label: 'RHTAPBUGS Impact on CI',
+        label: 'Bug CI Impact',
         path: '/home/rhtapbugs-impact',
-        title: 'RHTAPBUGS Impact on CI | Quality Studio',
+        title: 'Bug CI Impact | Quality Studio',
       },
       {
         label: 'OpenShift CI',
