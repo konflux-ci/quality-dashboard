@@ -27,8 +27,10 @@ async function getVersion() {
     await axios
       .get(uri)
       .then((res: AxiosResponse) => {
-        result.code = res.status;
-        result.data = res.data;
+        if (res != undefined) {
+          result.code = res.status;
+          result.data = res.data;
+        }
       })
       .catch((err) => {
         result.code = err.response.status;
@@ -48,8 +50,10 @@ async function getJiras() {
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -73,8 +77,10 @@ async function getJirasResolutionTime(priority: string, team: string, rangeDateT
       end: end_date,
     })
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -90,8 +96,10 @@ async function listJiraProjects() {
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -115,8 +123,10 @@ async function getJirasOpen(priority: string, team: string, rangeDateTime: Date[
       end: end_date,
     })
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -141,12 +151,15 @@ async function getRepositories(perPage = 50, team: string) {
       },
     })
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.all = res.data;
-      if (res.data.length >= REPOS_IN_PAGE) {
-        result.data = _.chunk(res.data, REPOS_IN_PAGE);
-      } else {
-        result.data = _.chunk(res.data, res.data.length);
+      if (res != undefined) {
+
+        result.code = res.status;
+        result.all = res.data;
+        if (res.data.length >= REPOS_IN_PAGE) {
+          result.data = _.chunk(res.data, REPOS_IN_PAGE);
+        } else {
+          result.data = _.chunk(res.data, res.data.length);
+        }
       }
     })
     .catch((err) => {
@@ -176,8 +189,10 @@ async function getAllRepositoriesWithOrgs(team: string, openshift: boolean, rang
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -216,8 +231,10 @@ async function getWorkflowByRepositoryName(repositoryName: string) {
       },
     })
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -238,8 +255,10 @@ async function createRepository(data = {}) {
       data: { ...data },
     })
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -262,8 +281,10 @@ async function getLatestProwJob(repoName: string, repoOrg: string, jobType: stri
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -297,8 +318,10 @@ async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: 
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -321,8 +344,10 @@ async function getTeams() {
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -342,8 +367,10 @@ async function createTeam(data = {}) {
       data: { ...data },
     })
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -362,8 +389,10 @@ async function getJobTypes(repoName: string, repoOrg: string) {
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -386,8 +415,10 @@ async function getJobNamesAndTypes(repoName: string, repoOrg: string) {
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -415,8 +446,10 @@ async function deleteInApi(data = {}, subPath: string) {
       data: data,
     })
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -438,8 +471,10 @@ async function updateTeam(data = {}) {
       timeout: 120000,
     })
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -458,8 +493,10 @@ async function checkDbConnection() {
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -487,8 +524,10 @@ async function getPullRequests(repoName: string, repoOrg: string, rangeDateTime:
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -514,8 +553,10 @@ async function getProwJobs(repoName: string, repoOrg: string, rangeDateTime: Dat
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -535,8 +576,10 @@ async function listBugsAffectingCI(team: string) {
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -559,8 +602,10 @@ async function getFailures(team: string, rangeDateTime: Date[]) {
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.statusCode;
@@ -585,8 +630,10 @@ async function createFailure(team: string, jiraKey: string, errorMessage: string
       },
     })
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -603,8 +650,10 @@ async function bugExists(jiraKey: string, teamName: string) {
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.status;
@@ -630,8 +679,10 @@ async function getBugSLIs(team: string) {
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -661,8 +712,10 @@ async function getRepositoriesWithJobs(team: string) {
       },
     })
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -691,8 +744,10 @@ async function getFlakyData(team: string, job: string, repo: string, rangeDateTi
       },
     })
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -721,8 +776,10 @@ async function getGlobalImpactData(team: string, job: string, repo: string, rang
       },
     })
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -743,8 +800,10 @@ async function listTeamRepos(team: string) {
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -779,8 +838,10 @@ async function getProwJobMetricsDaily(repoName: string, repoOrg: string, jobType
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -810,8 +871,10 @@ async function createUser(userEmail: string, userConfig: string) {
       },
     })
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -829,8 +892,10 @@ async function listUsers() {
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -852,8 +917,10 @@ async function getUser(userEmail: string) {
       },
     })
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -862,7 +929,7 @@ async function getUser(userEmail: string) {
   return result;
 }
 
-async function checkGithubRepository(repoOrg: string, repoName: string) {
+async function checkGithubRepositoryUrl(repoOrg: string, repoName: string) {
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/repositories/verify?repository_name=' +
     repoName +
@@ -873,8 +940,34 @@ async function checkGithubRepository(repoOrg: string, repoName: string) {
   await axios
     .get(uri)
     .then((res: AxiosResponse) => {
-      result.code = res.status;
-      result.data = res.data;
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  return result;
+}
+
+async function checkGithubRepositoryExists(repoOrg: string, repoName: string) {
+  const result: ApiResponse = { code: 0, data: {} };
+  const subPath = '/api/quality/repositories/exists?repository_name=' +
+    repoName +
+    '&git_organization=' +
+    repoOrg
+  const uri = API_URL + subPath;
+
+  await axios
+    .get(uri)
+    .then((res: AxiosResponse) => {
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
     })
     .catch((err) => {
       result.code = err.response.status;
@@ -918,5 +1011,6 @@ export {
   createUser,
   listUsers,
   getUser,
-  checkGithubRepository
+  checkGithubRepositoryUrl,
+  checkGithubRepositoryExists
 };

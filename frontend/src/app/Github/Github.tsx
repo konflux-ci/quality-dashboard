@@ -199,6 +199,7 @@ let GitHub = () => {
 
   return (
     <ModalContext.Provider value={defaultModalContext}>
+      <FormModal></FormModal>
       <React.Fragment>
         {/* page title bar */}
         <Header info="Analyze the GitHub metrics overview of all your team's repositories."></Header>
@@ -226,9 +227,6 @@ let GitHub = () => {
         <PageSection>
           {/* the following toolbar will contain the form (dropdowns and button) to request data to the server */}
           <Grid hasGutter>
-            <FormModal></FormModal>
-
-
             {/* this section will show statistics and details about GitHub metric */}
             {loadingState && <div style={{ width: '100%', textAlign: "center" }}>
               <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />

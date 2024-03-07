@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { createTeam, createRepository, listJiraProjects, checkGithubRepository } from "@app/utils/APIService";
+import { createTeam, createRepository, listJiraProjects, checkGithubRepositoryUrl, checkGithubRepositoryExists } from "@app/utils/APIService";
 import {
   Wizard, PageSection, PageSectionVariants,
   TextInput, FormGroup, Form, TextArea,
@@ -19,7 +19,8 @@ export interface AlertInfo {
   key: string;
 }
 
-export const githubRegExp = new RegExp('https:\/\/github\.com\/[a-zA-Z0-9-_.]+\/[a-zA-Z0-9-_.]+')
+export const ghRegex = 'https:\/\/github\.com\/[a-zA-Z0-9-_.]+\/[a-zA-Z0-9-_.]+'
+export const githubRegExp = new RegExp(ghRegex)
 
 export const TeamsWizard = () => {
   const { store } = useContext(ReactReduxContext);
@@ -43,6 +44,7 @@ export const TeamsWizard = () => {
   const [githubUrl, setGithubUrl] = useState<string>("");
   type validate = 'success' | 'warning' | 'error' | 'default';
   const [githubUrlValidated, setGithubUrlValidated] = React.useState<validate>();
+  const [helperText, setHelperText] = useState<string>("Enter a GitHub Repository URL");
 
   const onSubmit = async () => {
     // Create a team
@@ -159,24 +161,40 @@ export const TeamsWizard = () => {
   )
 
   const handleGithub = async (value: string) => {
+    setHelperText('')
     setGithubUrl(value);
     setGithubUrlValidated('error');
 
-    // check that matchesgithubRegExp
-    if (githubRegExp.test(value)) {
-      // check that gh repo exists
-      const repo = value.replace("https://github.com/", "").split("/")
 
-      await checkGithubRepository(repo[0], repo[1]).then((data: any) => {
-        if (data != undefined && data.code == 200) {
-          setGithubUrlValidated('success');
-          // save repo and org
-          setNewOrgName(repo[0]);
-          setNewRepoName(repo[1]);
-        }
-      })
+    if (value == "") {
+      setGithubUrlValidated('success');
     } else {
-      setGithubUrlValidated('error');
+      // check that matches githubRegExp
+      if (githubRegExp.test(value)) {
+        const repo = value.replace("https://github.com/", "").split("/")
+
+
+        // check that gh repo was not already added
+        const resp = await checkGithubRepositoryExists(repo[0], repo[1])
+        if (resp != undefined && resp.code == 200) {
+          const team = resp.data as string
+          setHelperText('Already exists in ' + team + ' team')
+        } else {
+          await checkGithubRepositoryUrl(repo[0], repo[1]).then((data: any) => {
+            if (data != undefined && data.code == 200) {
+              setGithubUrlValidated('success');
+              // save repo and org
+              setNewOrgName(repo[0]);
+              setNewRepoName(repo[1]);
+              setHelperText('')
+            } else {
+              setHelperText('Something went wrong. Probably URL is incorrect.')
+            }
+          })
+        }
+      } else {
+        setHelperText('Must match the regex `' + ghRegex + '`')
+      }
     }
   };
 
@@ -184,7 +202,7 @@ export const TeamsWizard = () => {
     <div className={'pf-u-m-lg'} >
       <Title style={{ marginBottom: '20px' }} headingLevel="h6" size="xl">Optionally: add a GitHub repository to your team</Title>
       <Form>
-        <FormGroup label="GitHub Repository URL" fieldId="repo-name">
+        <FormGroup label="GitHub Repository URL" fieldId="repo-name" helperText={helperText}>
           <TextInput validated={githubUrlValidated} value={githubUrl} type="text" onChange={handleGithub} aria-label="text input example" placeholder="Add a GitHub repository" />
         </FormGroup>
       </Form>
@@ -244,7 +262,7 @@ export const TeamsWizard = () => {
 
   const steps = [
     { id: 'team', name: 'Team Name', component: TeamData, enableNext: ValidateTeam() },
-    { id: 'repo', name: 'Add a GitHub repository', component: AddRepo, canJumpTo: ValidateTeam(), enableNext: ValidateRepoAndOrg() },
+    { id: 'repo', name: 'Add a GitHub repository', component: AddRepo, canJumpTo: ValidateTeam(), enableNext: githubUrlValidated != 'error' },
     { id: 'jira', name: 'Jira Projects', component: JiraProjects({ onChange: jiraOnChange, teamJiraKeys: "" }), canJumpTo: ValidateTeam(), enableNext: ValidateTeam() },
     {
       id: 'review',

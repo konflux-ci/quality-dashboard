@@ -306,7 +306,7 @@ func (s *jiraRouter) bugExists(ctx context.Context, w http.ResponseWriter, r *ht
 	if err != nil {
 		s.Logger.Error("Failed to check if jira key exists")
 
-		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, &types.ErrorResponse{
 			Message:    err.Error(),
 			StatusCode: http.StatusBadRequest,
 		})
