@@ -16,7 +16,7 @@ import { ImpactChart } from './Charts';
 import { ComposableTableNestedExpandable, InnerNestedComposableTableNestedExpandable } from './Tables';
 import { DropdownBasic, SpinnerBasic } from './utils';
 import { useHistory } from 'react-router-dom';
-import { formatDate, getRangeDates } from '@app/Reports/utils';
+import { customizedFormatDate, formatDateTime, getRangeDates } from '@app/Reports/utils';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 
 
@@ -109,8 +109,8 @@ const FlakyTests: React.FunctionComponent = () => {
             const repository = cache[currentTeam].repository
             setSelectedRepo(repository)
 
-            const start_date = formatDate(rangeDateTime[0])
-            const end_date = formatDate(rangeDateTime[1])
+            const start_date = formatDateTime(rangeDateTime[0])
+            const end_date = formatDateTime(rangeDateTime[1])
 
             history.push('/home/flaky?team=' + currentTeam + '&repository=' + repository
               + '&job=' + job + '&start=' + start_date + '&end=' + end_date)
@@ -213,7 +213,7 @@ const FlakyTests: React.FunctionComponent = () => {
             setData(res.data.suites)
           }
           if (impact && impact.global_impact) {
-            const gd = [{ Date: rangeDateTime[0].toISOString().split('T')[0], global_impact: res.data.global_impact }, { Date: rangeDateTime[1].toISOString().split('T')[0], global_impact: res.data.global_impact }]
+            const gd = [{ Date: customizedFormatDate(rangeDateTime[0]), global_impact: res.data.global_impact }, { Date: customizedFormatDate(rangeDateTime[1]), global_impact: res.data.global_impact }]
             setGlobalImpact(gd)
           }
           setLoadingSpinner(false)
@@ -225,7 +225,7 @@ const FlakyTests: React.FunctionComponent = () => {
         if (res.code == 200) {
           const impact: any = res.data
           if (impact && impact.length > 0) {
-            setBarData(impact.map(impact => { impact.Date = impact.date.split(' ')[0].split('T')[0]; return impact; }))
+            setBarData(impact.map(impact => { impact.Date = customizedFormatDate(impact.date); return impact; }))
           }
           setLoadingSpinner(false)
         } else {
@@ -237,8 +237,8 @@ const FlakyTests: React.FunctionComponent = () => {
 
   function handleChange(event, from, to) {
     setRangeDateTime([from, to])
-    params.set("start", formatDate(from))
-    params.set("end", formatDate(to))
+    params.set("start", formatDateTime(from))
+    params.set("end", formatDateTime(to))
     history.push(window.location.pathname + '?' + params.toString());
   }
 

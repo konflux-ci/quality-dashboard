@@ -3,7 +3,7 @@ import axios, { AxiosResponse } from 'axios';
 import _ from 'lodash';
 import { JobsStatistics, JobMetric } from '@app/utils/sharedComponents';
 import { getRepoNameFormatted, sortGlobalSLI, teamIsNotEmpty } from '@app/utils/utils';
-import { formatDate } from '@app/Reports/utils';
+import { formatDateTime } from '@app/Reports/utils';
 
 type ApiResponse = {
   code: number;
@@ -66,8 +66,8 @@ async function getJirasResolutionTime(priority: string, team: string, rangeDateT
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/jira/bugs/metrics/resolution';
   const uri = API_URL + subPath;
-  const start_date = formatDate(rangeDateTime[0]);
-  const end_date = formatDate(rangeDateTime[1]);
+  const start_date = formatDateTime(rangeDateTime[0]);
+  const end_date = formatDateTime(rangeDateTime[1]);
 
   await axios
     .post(uri, {
@@ -109,8 +109,8 @@ async function listJiraProjects() {
 }
 
 async function getJirasOpen(priority: string, team: string, rangeDateTime: Date[]) {
-  const start_date = formatDate(rangeDateTime[0]);
-  const end_date = formatDate(rangeDateTime[1]);
+  const start_date = formatDateTime(rangeDateTime[0]);
+  const end_date = formatDateTime(rangeDateTime[1]);
 
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/jira/bugs/metrics/open';
@@ -171,8 +171,8 @@ async function getRepositories(perPage = 50, team: string) {
 
 async function getAllRepositoriesWithOrgs(team: string, openshift: boolean, rangeDateTime: Date[]) {
   let repoAndOrgs = [];
-  const start_date = formatDate(rangeDateTime[0]);
-  const end_date = formatDate(rangeDateTime[1]);
+  const start_date = formatDateTime(rangeDateTime[0]);
+  const end_date = formatDateTime(rangeDateTime[1]);
 
   if (!teamIsNotEmpty(team)) return repoAndOrgs;
 
@@ -299,8 +299,8 @@ async function getLatestProwJob(repoName: string, repoOrg: string, jobType: stri
 }
 
 async function getProwJobStatistics(repoName: string, repoOrg: string, jobType: string, jobName: string, rangeDateTime: Date[]) {
-  const start_date = formatDate(rangeDateTime[0]);
-  const end_date = formatDate(rangeDateTime[1]);
+  const start_date = formatDateTime(rangeDateTime[0]);
+  const end_date = formatDateTime(rangeDateTime[1]);
   const result: ApiResponse = { code: 0, data: {} };
   const uri = API_URL + '/api/quality/prow/metrics/get?repository_name=' +
     repoName +
@@ -428,7 +428,7 @@ async function getJobNamesAndTypes(repoName: string, repoOrg: string) {
     throw 'Error fetching data from server. ';
   }
 
-  if (!result.data) {
+  if(!result.data) {
     throw 'No jobs detected in OpenShift CI';
   }
 
@@ -507,8 +507,8 @@ async function checkDbConnection() {
 }
 
 async function getPullRequests(repoName: string, repoOrg: string, rangeDateTime: Date[]) {
-  const start_date = formatDate(rangeDateTime[0]);
-  const end_date = formatDate(rangeDateTime[1]);
+  const start_date = formatDateTime(rangeDateTime[0]);
+  const end_date = formatDateTime(rangeDateTime[1]);
 
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/prs/get?repository_name=' +
@@ -542,8 +542,8 @@ async function getPullRequests(repoName: string, repoOrg: string, rangeDateTime:
 }
 
 async function getProwJobs(repoName: string, repoOrg: string, rangeDateTime: Date[]) {
-  const start_date = formatDate(rangeDateTime[0]);
-  const end_date = formatDate(rangeDateTime[1]);
+  const start_date = formatDateTime(rangeDateTime[0]);
+  const end_date = formatDateTime(rangeDateTime[1]);
   const result: ApiResponse = { code: 0, data: {} };
   const subPath = '/api/quality/prow/results/get?repository_name=' + repoName +
     '&git_organization=' + repoOrg +
@@ -589,8 +589,8 @@ async function listBugsAffectingCI(team: string) {
 }
 
 async function getFailures(team: string, rangeDateTime: Date[]) {
-  const start_date = formatDate(rangeDateTime[0]);
-  const end_date = formatDate(rangeDateTime[1]);
+  const start_date = formatDateTime(rangeDateTime[0]);
+  const end_date = formatDateTime(rangeDateTime[1]);
   const result: ApiResponse = { code: 0, data: {} };
   const uri = API_URL +
     '/api/quality/failures/get?team_name=' + team +
@@ -666,8 +666,8 @@ async function bugExists(jiraKey: string, teamName: string) {
 // async function getBugSLIs(team: string, rangeDateTime: Date[]) {
 async function getBugSLIs(team: string) {
   const result: ApiResponse = { code: 0, data: {} };
-  // const start_date = formatDate(rangeDateTime[0]);
-  // const end_date = formatDate(rangeDateTime[1]);
+  // const start_date = formatDateTime(rangeDateTime[0]);
+  // const end_date = formatDateTime(rangeDateTime[1]);
 
   const subPath = '/api/quality/jira/slis/list?team_name=' + team
   // '&start_date=' +
@@ -819,8 +819,8 @@ async function listTeamRepos(team: string) {
 }
 
 async function getProwJobMetricsDaily(repoName: string, repoOrg: string, jobType: string, jobName: string, rangeDateTime: Date[]) {
-  const start_date = formatDate(rangeDateTime[0]);
-  const end_date = formatDate(rangeDateTime[1]);
+  const start_date = formatDateTime(rangeDateTime[0]);
+  const end_date = formatDateTime(rangeDateTime[1]);
   const result: ApiResponse = { code: 0, data: {} };
   const uri = API_URL + '/api/quality/prow/metrics/daily?repository_name=' +
     repoName +

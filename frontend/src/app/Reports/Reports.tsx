@@ -35,7 +35,7 @@ import { Flex, FlexItem } from '@patternfly/react-core';
 import { Divider, TextVariants, Text } from '@patternfly/react-core';
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
-import { formatDate, getRangeDates } from './utils';
+import { formatDateTime, getRangeDates } from './utils';
 import { DateTimeRangePicker } from '../utils/DateTimeRangePicker';
 import { validateRepositoryParams, validateParam } from '@app/utils/utils';
 import { Header } from '@app/utils/Header';
@@ -190,8 +190,8 @@ let Reports = () => {
           setjobName(data[0].job_name)
           params.set("job_type", data[0].job_type)
           params.set("job_name", data[0].job_name)
-          params.set("start", formatDate(rangeDateTime[0]))
-          params.set("end", formatDate(rangeDateTime[1]))
+          params.set("start", formatDateTime(rangeDateTime[0]))
+          params.set("end", formatDateTime(rangeDateTime[1]))
           history.push(window.location.pathname + '?' + params.toString());
         }
       );
@@ -303,8 +303,8 @@ let Reports = () => {
 
   function handleChange(event, from, to) {
     setRangeDateTime([from, to])
-    params.set("start", formatDate(from))
-    params.set("end", formatDate(to))
+    params.set("start", formatDateTime(from))
+    params.set("end", formatDateTime(to))
     history.push(window.location.pathname + '?' + params.toString());
   }
 
@@ -463,8 +463,8 @@ let Reports = () => {
                   setjobType("")
                 })
 
-              const start_date = formatDate(rangeDateTime[0])
-              const end_date = formatDate(rangeDateTime[1])
+              const start_date = formatDateTime(rangeDateTime[0])
+              const end_date = formatDateTime(rangeDateTime[1])
               
               if(data){
                 history.push('/reports/test?team=' + currentTeam + '&organization=' + data[0].organization + '&repository=' + data[0].repoName

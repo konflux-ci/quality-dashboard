@@ -28,7 +28,7 @@ import { Workflows } from './GithubActions';
 import { FormModal, ModalContext, useDefaultModalContextState, useModalContext } from './CreateRepository';
 import { validateParam } from '@app/utils/utils';
 import { PrsStatistics } from './PullRequests';
-import { formatDate, getRangeDates } from '@app/Reports/utils';
+import { formatDateTime, getRangeDates } from '@app/Reports/utils';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 import { ComposableTable } from './Table';
 import { Coverage } from './CodeCov';
@@ -159,8 +159,8 @@ let GitHub = () => {
 
           if (start == null || end == null) {
             // first click on page or team
-            const start_date = formatDate(rangeDateTime[0]);
-            const end_date = formatDate(rangeDateTime[1]);
+            const start_date = formatDateTime(rangeDateTime[0]);
+            const end_date = formatDateTime(rangeDateTime[1]);
 
             setLoadingState(false)
 
@@ -189,8 +189,8 @@ let GitHub = () => {
 
   function handleChange(event, from, to) {
     setRangeDateTime([from, to]);
-    params.set('start', formatDate(from));
-    params.set('end', formatDate(to));
+    params.set('start', formatDateTime(from));
+    params.set('end', formatDateTime(to));
     history.push(window.location.pathname + '?' + params.toString());
   }
 

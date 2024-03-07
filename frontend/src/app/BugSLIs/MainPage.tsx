@@ -40,8 +40,8 @@ export const BugSLIs = () => {
 
     // function handleChange(event, from, to) {
     //     setRangeDateTime([from, to]);
-    //     params.set('start', formatDate(from));
-    //     params.set('end', formatDate(to));
+    //     params.set('start', formatDateTime(from));
+    //     params.set('end', formatDateTime(to));
     //     history.push(window.location.pathname + '?' + params.toString());
     // }
 
@@ -112,8 +112,8 @@ export const BugSLIs = () => {
 
                     // if (start == null || end == null) {
                         // first click on page or team
-                        // const start_date = formatDate(rangeDateTime[0]);
-                        // const end_date = formatDate(rangeDateTime[1]);
+                        // const start_date = formatDateTime(rangeDateTime[0]);
+                        // const end_date = formatDateTime(rangeDateTime[1]);
 
                         setLoadingState(false)
 

@@ -27,7 +27,7 @@ import { FormModal, ModalContext, useDefaultModalContextState, useModalContext }
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { getFailures, getTeams, listUsers } from '@app/utils/APIService';
 import { validateParam } from '@app/utils/utils';
-import { formatDate, getRangeDates } from '@app/Reports/utils';
+import { formatDateTime, getRangeDates } from '@app/Reports/utils';
 import { useHistory } from 'react-router-dom';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 import { Header } from '@app/utils/Header';
@@ -60,8 +60,8 @@ let CiFailures = () => {
 
   function handleChange(event, from, to) {
     setRangeDateTime([from, to]);
-    params.set('start', formatDate(from));
-    params.set('end', formatDate(to));
+    params.set('start', formatDateTime(from));
+    params.set('end', formatDateTime(to));
     history.push(window.location.pathname + '?' + params.toString());
   }
 
@@ -101,8 +101,8 @@ let CiFailures = () => {
         if (res.data.length > 0 && (team == state.teams.Team || team == null)) {
           if (start == null || end == null) {
             // first click on page or team
-            const start_date = formatDate(rangeDateTime[0]);
-            const end_date = formatDate(rangeDateTime[1]);
+            const start_date = formatDateTime(rangeDateTime[0]);
+            const end_date = formatDateTime(rangeDateTime[1]);
 
             setFailures(res.data)
             setLoadingState(false)
