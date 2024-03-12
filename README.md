@@ -16,6 +16,13 @@
     - [Teams](#teams)
     - [Config](#config)
     - [Bug SLIs](#bug-slis)
+      - [Description](#description)
+      - [Bug SLIs page](#bug-slis-page)
+      - [Bug SLIs alerts](#bug-slis-alerts)
+      - [How Bug SLIs are being got?](#how-bug-slis-are-being-got)
+    - [Bug CI Impact](#bug-ci-impact)
+      - [Description](#description-1)
+      - [How the frequency/impact is being measured?](#how-the-frequencyimpact-is-being-measured)
   - [Connectors](#connectors)
     - [Openshift CI and Prow Jobs](#openshift-ci-and-prow-jobs)
     - [Github](#github)
@@ -153,12 +160,6 @@ Open a new terminal, navigate to the frontend folder, install dependencies and r
     cd frontend
     yarn
     yarn start:dev
-```
-or with npm:
-```bash
-    cd frontend
-    npm install
-    npm run start:dev
 ```
 
 ## Features
