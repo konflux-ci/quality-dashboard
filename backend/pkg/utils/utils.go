@@ -95,10 +95,10 @@ func RoundTo(n float64, decimals uint32) float64 {
 }
 
 func GenerateRandomString(length int) string {
-	bytes := make([]byte, (length+1)/2)
+	bytes := make([]byte, length)
 	_, err := rand.Read(bytes)
 	if err != nil {
 		panic("Error generating random string")
 	}
-	return base64.URLEncoding.EncodeToString(bytes)[:length]
+	return base64.URLEncoding.EncodeToString(bytes)
 }
