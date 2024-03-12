@@ -15,7 +15,7 @@ export const Header = (props) => {
         >
             <TextContent style={{ color: "white", display: "inline" }}>
                 <div style={{ float: "left", }}>
-                    <Text component="h2">Get Started with Red Hat Quality Studio's Plugins</Text>
+                    <Text component="h2">Get Started with Red Hat Quality Studio's Metrics</Text>
                     <Text component="p">{info}</Text>
                 </div>
             </TextContent>

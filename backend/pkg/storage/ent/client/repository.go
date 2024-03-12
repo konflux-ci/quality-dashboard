@@ -102,7 +102,7 @@ func (d *Database) DeleteRepository(repositoryName string, gitOrganizationName s
 	return nil
 }
 
-// ListPasswords extracts an array of repositories from the database.
+// ListAllRepositories extracts an array of repositories from the database.
 func (d *Database) ListAllRepositories() ([]*db.Repository, error) {
 	repositories, err := d.client.Repository.Query().All(context.Background())
 	if err != nil {

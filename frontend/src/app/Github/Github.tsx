@@ -28,7 +28,7 @@ import { Workflows } from './GithubActions';
 import { FormModal, ModalContext, useDefaultModalContextState, useModalContext } from './CreateRepository';
 import { validateParam } from '@app/utils/utils';
 import { PrsStatistics } from './PullRequests';
-import { formatDate, getRangeDates } from '@app/Reports/utils';
+import { formatDateTime, getRangeDates } from '@app/Reports/utils';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 import { ComposableTable } from './Table';
 import { Coverage } from './CodeCov';
@@ -159,8 +159,8 @@ let GitHub = () => {
 
           if (start == null || end == null) {
             // first click on page or team
-            const start_date = formatDate(rangeDateTime[0]);
-            const end_date = formatDate(rangeDateTime[1]);
+            const start_date = formatDateTime(rangeDateTime[0]);
+            const end_date = formatDateTime(rangeDateTime[1]);
 
             setLoadingState(false)
 
@@ -189,8 +189,8 @@ let GitHub = () => {
 
   function handleChange(event, from, to) {
     setRangeDateTime([from, to]);
-    params.set('start', formatDate(from));
-    params.set('end', formatDate(to));
+    params.set('start', formatDateTime(from));
+    params.set('end', formatDateTime(to));
     history.push(window.location.pathname + '?' + params.toString());
   }
 
@@ -199,6 +199,7 @@ let GitHub = () => {
 
   return (
     <ModalContext.Provider value={defaultModalContext}>
+      <FormModal></FormModal>
       <React.Fragment>
         {/* page title bar */}
         <Header info="Analyze the GitHub metrics overview of all your team's repositories."></Header>
@@ -226,9 +227,6 @@ let GitHub = () => {
         <PageSection>
           {/* the following toolbar will contain the form (dropdowns and button) to request data to the server */}
           <Grid hasGutter>
-            <FormModal></FormModal>
-
-
             {/* this section will show statistics and details about GitHub metric */}
             {loadingState && <div style={{ width: '100%', textAlign: "center" }}>
               <Spinner isSVG diameter="80px" aria-label="Contents of the custom size example" style={{ margin: "100px auto" }} />

@@ -77,7 +77,7 @@ In turn, the database client package implements the storage interface used by th
 The backend server exposes a set of APIs to interact with data. The implementation of the API server is located at `backend/api` and uses a basic HTTP router configuration.
 
 ## Frontend
-The frontend component is a React web application that uses [patternfly project](https://www.patternfly.org/v4/get-started/develop/) to build the UI.
+The frontend component is a React web application that uses [patternfly project](https://www.patternfly.org/get-started/develop/) to build the UI.
 It interacts with the backend via HTTP api endpoints.
 
 # Install quality dashboard locally
@@ -233,10 +233,10 @@ As the first step, we need to know how many days the issues have not been resolv
 Then, we need to use the information above to get the issues that are not meeting or almost not meeting the defined SLIs. For that, we defined a [function to get each SLI](https://github.com/redhat-appstudio/quality-dashboard/blob/main/backend/api/server/router/jira/bug_slos.go).
 
 
-### RHTAPBUGS Impact on CI
+### Bug CI Impact
 
 #### Description
-RHTAPBUGS Impact on CI plugin lists the RHTAPBUGS that are impacting CI, by showing the Jira Key, Jira Status, Error Message, and Frequency. You can add, update, or delete them.
+Bug CI Impact metrics lists the bugs that are impacting CI, by showing the Jira Key, Jira Status, Error Message, and Frequency. You can add, update, or delete them.
 To add a new entry, you need to point out the Jira Key of the bug and the associated error message.
 
 #### How the frequency/impact is being measured?

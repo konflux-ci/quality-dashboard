@@ -40,6 +40,8 @@ func NewRouter(s storage.Storage) router.Router {
 		router.NewPostRoute("/repositories/create", r.createRepositoryHandler),
 		router.NewDeleteRoute("/repositories/delete", r.deleteRepositoryHandler),
 		router.NewGetRoute("/prs/get", r.getPullRequestsFromRepo),
+		router.NewGetRoute("/repositories/verify", r.checkGithubRepositoryUrl),
+		router.NewGetRoute("/repositories/exists", r.checkGithubRepositoryExists),
 	}
 
 	return r

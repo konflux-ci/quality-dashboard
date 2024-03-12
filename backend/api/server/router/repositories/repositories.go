@@ -276,3 +276,82 @@ func (rp *repositoryRouter) getJobTypesFromRepo(ctx context.Context, w http.Resp
 
 	return httputils.WriteJSON(w, http.StatusOK, jobTypes)
 }
+
+func (rp *repositoryRouter) checkGithubRepositoryUrl(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	repoName := r.URL.Query()["repository_name"]
+	repoOrg := r.URL.Query()["git_organization"]
+
+	if len(repoName) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "repository_name value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(repoOrg) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "git_organization value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	_, err := rp.Github.GetGithubRepositoryInformation(repoOrg[0], repoName[0])
+	if err != nil {
+		rp.Logger.Error("Failed to fetch repository info from github", zap.String("repository", repoName[0]), zap.String("git_organization", repoOrg[0]), zap.Error(err))
+
+		return httputils.WriteJSON(w, http.StatusBadRequest, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, types.SuccessResponse{
+		Message:    "Successfully verified that repository exists",
+		StatusCode: http.StatusCreated,
+	})
+}
+
+func (rp *repositoryRouter) checkGithubRepositoryExists(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	repoName := r.URL.Query()["repository_name"]
+	repoOrg := r.URL.Query()["git_organization"]
+
+	if len(repoName) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "repository_name value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(repoOrg) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "git_organization value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	teams, err := rp.Storage.GetAllTeamsFromDB()
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "Failed to get repository",
+			StatusCode: 400,
+		})
+	}
+
+	for _, team := range teams {
+		repos, err := rp.Storage.ListRepositories(team)
+		if err != nil {
+			return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+				Message:    "Failed to get repository",
+				StatusCode: 400,
+			})
+		}
+
+		for _, repo := range repos {
+			if repo.Name == repoName[0] && repo.Owner.Login == repoOrg[0] {
+				return httputils.WriteJSON(w, http.StatusOK, team.TeamName)
+			}
+		}
+	}
+
+	return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+		Message:    "Failed to get repository",
+		StatusCode: 400,
+	})
+
+}
