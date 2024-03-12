@@ -28,9 +28,9 @@ import {
     ThProps
 } from '@patternfly/react-table';
 import { Chart, ChartAxis, ChartGroup, ChartLine, createContainer, ChartThemeColor } from '@patternfly/react-charts';
-import { getJirasResolutionTime, getJirasOpen, listE2EBugsKnown } from '@app/utils/APIService';
+import { getJirasResolutionTime, getJirasOpen, listBugsAffectingCI } from '@app/utils/APIService';
 import { ReactReduxContext, useSelector } from 'react-redux';
-import { formatDate, getRangeDates } from '@app/Reports/utils';
+import { customizedFormatDate, formatDateTime, getRangeDates } from '@app/Reports/utils';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
 import { useHistory } from 'react-router-dom';
 import { help } from '@app/Github/PullRequests';
@@ -107,29 +107,9 @@ export const Jira = () => {
     }
 
     useEffect(() => {
-        if (currentTeam != "") {
-            listE2EBugsKnown().then(res => {
-                const bugs = new Array<Bugs>
-                res.data.forEach((bug, _) => {
-                    bugs.push({
-                        jira_key: bug.key,
-                        created_at: bug.fields.created,
-                        deleted_at: "",
-                        updated_at: bug.fields.updated,
-                        resolved_at: "",
-                        resolution_time: "",
-                        last_change_time: "",
-                        status: bug.fields.status.description,
-                        summary: bug.fields.summary,
-                        affects_versions: "",
-                        fix_versions: "",
-                        components: "",
-                        labels: bug.fields.labels.join(","),
-                        url: "https://issues.redhat.com/browse/" + bug.key,
-                        teams_bugs: "",
-                    });
-                })
-                setBugsKnown(bugs)
+        if (currentTeam != "" && currentTeam != undefined) {
+            listBugsAffectingCI(currentTeam).then(res => {
+                setBugsKnown(res.data)
             })
 
             const selected = params.get("selected")
@@ -147,8 +127,8 @@ export const Jira = () => {
                 history.push(
                     '/home/jira?team=' + currentTeam +
                     '&selected=' + ID +
-                    '&start=' + formatDate(rangeDateTime[0]) +
-                    '&end=' + formatDate(rangeDateTime[1]) +
+                    '&start=' + formatDateTime(rangeDateTime[0]) +
+                    '&end=' + formatDateTime(rangeDateTime[1]) +
                     '&labels=' + labels +
                     '&label_selected=' + labels[0]
                 )
@@ -278,12 +258,14 @@ export const Jira = () => {
 
     function handleChange(event, from, to) {
         setRangeDateTime([from, to])
-        params.set("start", formatDate(from))
-        params.set("end", formatDate(to))
+        params.set("start", formatDateTime(from))
+        params.set("end", formatDateTime(to))
         history.push(window.location.pathname + '?' + params.toString());
     }
 
     useEffect(() => {
+        setOpenIssuesTable([])
+        setClosedIssuesTable([])
         if (bugsTable.length > 0) {
             let issuesSelected = bugsTable
 
@@ -460,7 +442,7 @@ export const Jira = () => {
                                     <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes(BugsAffectingCI)} id={BugsAffectingCI}>
                                         <CardTitle>
                                             Bugs affecting CI
-                                            {help("Bugs affecting CI in the projects DEVHAS, SRVKP, GITOPSRVCE, HACBS, RHTAP, and RHTAPBUGS.")}
+                                            {help("Bugs affecting CI (issues that contains 'ci-fail' as label)")}
                                         </CardTitle>
                                         <CardBody>
                                             <Title headingLevel='h1' size="2xl">
@@ -988,9 +970,9 @@ const ComposableTableStripedTr: React.FC<{ bugs: any, longVersion: boolean }> = 
                             <Td dataLabel={columnNames.labels}>{bug.labels}</Td>
                             <Td dataLabel={columnNames.summary}>{bug.summary}</Td>
                             <Td dataLabel={columnNames.status}>{bug.status ? bug.status : "-"}</Td>
-                            <Td dataLabel={columnNames.created_at}>{formatDate(new Date(bug.created_at))}</Td>
-                            <Td dataLabel={columnNames.updated_at}>{formatDate(new Date(bug.updated_at))}</Td>
-                            {longVersion && <Td dataLabel={columnNames.resolved_at}>{formatDate(new Date(bug.resolved_at))}</Td>}
+                            <Td dataLabel={columnNames.created_at}>{customizedFormatDate(new Date(bug.created_at))}</Td>
+                            <Td dataLabel={columnNames.updated_at}>{customizedFormatDate(new Date(bug.updated_at))}</Td>
+                            {longVersion && <Td dataLabel={columnNames.resolved_at}>{customizedFormatDate(new Date(bug.resolved_at))}</Td>}
                             {longVersion && <Td dataLabel={columnNames.resolution_time}>{!Number.isNaN(parseFloat(bug.resolution_time)) ? parseFloat(bug.resolution_time) + " day(s)" : "-"}</Td>}
                         </Tr>
                     ))}

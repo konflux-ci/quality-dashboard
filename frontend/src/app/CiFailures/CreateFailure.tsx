@@ -1,4 +1,4 @@
-import { createFailure } from '@app/utils/APIService';
+import { bugExists, createFailure } from '@app/utils/APIService';
 import {
   Button,
   Form,
@@ -14,7 +14,7 @@ import React, { useContext, SetStateAction, useEffect } from 'react';
 import { teamIsNotEmpty } from '@app/utils/utils';
 import { useHistory } from 'react-router-dom';
 import { ReactReduxContext } from 'react-redux';
-import { formatDate, getRangeDates } from '@app/Reports/utils';
+import { formatDateTime, getRangeDates } from '@app/Reports/utils';
 
 interface IModalContext {
   isModalOpen: IModalContextMember;
@@ -70,7 +70,7 @@ export const FormModal = () => {
   const [jiraKeyValidated, setJiraKeyValidated] = React.useState<validate>('error');
   const [msgValidated, setMsgValidated] = React.useState<validate>('error');
   const params = new URLSearchParams(window.location.search);
-
+  const [helperText, setHelperText] = React.useState('Enter your age to continue');
   const { store } = useContext(ReactReduxContext);
   const state = store.getState();
 
@@ -80,9 +80,11 @@ export const FormModal = () => {
     setJiraKeyValidated('error');
     setJiraKeyValue(value);
     if (value != "" && value != undefined) {
-      setJiraKeyValidated('success');
-    } else {
-      setJiraKeyValidated('error');
+      bugExists(value, state.teams.Team).then(res => {
+        if (res != undefined && res.code == 200) {
+          setJiraKeyValidated('success');
+        }
+      })
     }
   };
 
@@ -118,8 +120,8 @@ export const FormModal = () => {
       modalContext.handleModalToggle();
 
       const rangeDateTime = getRangeDates(15);
-      const start_date = formatDate(rangeDateTime[0]);
-      const end_date = formatDate(rangeDateTime[1]);
+      const start_date = formatDateTime(rangeDateTime[0]);
+      const end_date = formatDateTime(rangeDateTime[1]);
 
       history.push(
         '/home/rhtapbugs-impact?team=' +
@@ -146,10 +148,10 @@ export const FormModal = () => {
     <React.Fragment>
       <Modal
         variant={ModalVariant.medium}
-        title={!modalContext.isEdit.value ? 'Add a RHTAPBUG' : 'Update'}
+        title={!modalContext.isEdit.value ? 'Add a bug' : 'Update'}
         description={
           !modalContext.isEdit.value
-            ? 'Track the impact of a RHTAPBUG'
+            ? 'Track the impact of a bug'
             : ''
         }
         isOpen={modalContext.isModalOpen.value}
@@ -174,7 +176,7 @@ export const FormModal = () => {
           <FormGroup
             label="Jira Key"
             labelIcon={
-              <Popover headerContent={<div></div>} bodyContent={<div>Add a Jira Key that refers to a ci-fail issue.</div>}>
+              <Popover headerContent={<div></div>} bodyContent={<div>Add a Jira Key that refers to a bug affecting CI. Note that the Jira Key should belong to your team's Jira Projects.</div>}>
                 <button
                   type="button"
                   aria-label="More info for e-mail field"

@@ -122,7 +122,7 @@ const AppLayout: React.FunctionComponent<IAppLayout> = ({ children }) => {
 
 
   const toRender = (label) => {
-    if (label == "Plugins") {
+    if (label == "Metrics") {
       getVersion().then(res => {
         if (!(res.code == 200)) {
           setServerUnavailable(true)

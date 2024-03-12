@@ -17,7 +17,7 @@ export interface Flakey {
     average_impact: number;
 }
 
-export interface FlakeyObject {
+export interface FlakyObject {
     global_impact: number;
     git_organization: string;
     repository_name: string;

@@ -54,7 +54,7 @@ func (c *API) Get(ctx context.Context, contentType string, url string) (*http.Re
 	return c.Do(req)
 }
 
-func (c *API) GetCodeCovInfo(organization string, repo string) (currentCov float64, covTrend string, err error) {
+func (c *API) GetCodeCovInfo(organization, repo string) (currentCov float64, covTrend string, err error) {
 	res := ResultsSpec{}
 	url := c.githubAPIURL + organization + "/repos/" + repo + "/commits?branch=main"
 

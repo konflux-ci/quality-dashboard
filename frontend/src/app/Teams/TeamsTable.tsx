@@ -10,10 +10,11 @@ import {
     IAction,
 } from '@patternfly/react-table';
 import { ITeam } from './TeamsSelect';
-import { deleteInApi, updateTeam } from "@app/utils/APIService";
-import { useSelector } from 'react-redux';
+import { createUser, deleteInApi, updateTeam } from "@app/utils/APIService";
+import { ReactReduxContext, useSelector } from 'react-redux';
 import { Button, Form, FormGroup, Modal, ModalVariant, TextArea, TextInput } from "@patternfly/react-core";
 import { JiraProjects } from './TeamsOnboarding';
+import { UserConfig } from "./User";
 
 export const TeamsTable: React.FunctionComponent = () => {
     // In real usage, this data would come from some external source like an API via props.
@@ -30,7 +31,9 @@ export const TeamsTable: React.FunctionComponent = () => {
     const [newTeamName, setNewTeamName] = useState<string>("");
     const [newTeamDesc, setNewTeamDesc] = useState<string>("");
     const [jiraProjects, setJiraProjects] = useState<Array<string>>([])
-
+    const { store } = React.useContext(ReactReduxContext);
+    const state = store.getState();
+    const redux_dispatch = store.dispatch;
     let currentTeamsAvailable = useSelector((state: any) => state.teams.TeamsAvailable);
 
     const editTeam = (team: ITeam) => {
@@ -58,6 +61,7 @@ export const TeamsTable: React.FunctionComponent = () => {
     ];
 
     const onUpdateSubmit = async () => {
+        setIsPrimaryLoading(!isPrimaryLoading);
         if (toUpdateTeam != undefined) {
             try {
                 const data = {
@@ -66,7 +70,8 @@ export const TeamsTable: React.FunctionComponent = () => {
                     target: toUpdateTeam.team_name,
                     jira_keys: jiraProjects.join(",")
                 }
-                let r = await updateTeam(data)
+                await updateTeam(data)
+                setIsPrimaryLoading(!isPrimaryLoading);
                 clear()
                 window.location.reload();
             }
@@ -85,6 +90,22 @@ export const TeamsTable: React.FunctionComponent = () => {
             try {
                 await deleteInApi(data, '/api/quality/teams/delete');
                 clear()
+
+                if (state.auth.USER_CONFIG != "" && state.auth.USER_CONFIG != undefined) {
+                    let userConfig = JSON.parse(state.auth.USER_CONFIG) as UserConfig;
+                    const userConfigDefaultTeam = userConfig.teams_configuration.default_team
+
+                    // check that the team to delete is the default one
+                    if (toDeleteTeam.team_name == userConfigDefaultTeam) {
+                        userConfig.teams_configuration.default_team = "n/a"
+                        // update user config
+                        const config = JSON.stringify(userConfig)
+                        const userClaims = JSON.parse(window.atob(state.auth.IDT.split('.')[1]))
+
+                        await createUser(userClaims.email, config)
+                        redux_dispatch({ type: "SET_USER_CONFIG", data: config });
+                    }
+                }
                 window.location.reload();
             } catch (error) {
                 console.log(error);
@@ -101,9 +122,22 @@ export const TeamsTable: React.FunctionComponent = () => {
         setNewTeamDesc("")
     }
 
-    const onJiraProjectsSelected = (options:Array<string>) => {
+    const onJiraProjectsSelected = (options: Array<string>) => {
         setJiraProjects(options)
     }
+
+    interface LoadingPropsType {
+        spinnerAriaValueText: string;
+        spinnerAriaLabelledBy?: string;
+        spinnerAriaLabel?: string;
+        isLoading: boolean;
+    }
+
+    const [isPrimaryLoading, setIsPrimaryLoading] = React.useState<boolean>(false);
+    const primaryLoadingProps = {} as LoadingPropsType;
+    primaryLoadingProps.spinnerAriaValueText = 'Loading';
+    primaryLoadingProps.spinnerAriaLabelledBy = 'primary-loading-button';
+    primaryLoadingProps.isLoading = isPrimaryLoading;
 
     return (
         <React.Fragment>
@@ -141,7 +175,7 @@ export const TeamsTable: React.FunctionComponent = () => {
                 isOpen={isUpdateModalOpen}
                 onClose={clear}
                 actions={[
-                    <Button key="update" variant="primary" form="modal-with-form-form" onClick={onUpdateSubmit}>
+                    <Button key="update" variant="primary" form="modal-with-form-form" onClick={onUpdateSubmit} {...primaryLoadingProps}>
                         Update
                     </Button>,
                     <Button key="cancel" variant="link" onClick={clear}>

@@ -66,7 +66,7 @@ export function validateRepositoryParams(repos, repository, organization) {
 
 // validateParam validates if 'param' exists in 'params'
 export function validateParam(params, param) {
-  if (params.find((p) => p == param)) {
+  if (params.find((p) => p.team_name == param)) {
     return true;
   }
   return false;

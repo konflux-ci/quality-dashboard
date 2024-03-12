@@ -11,15 +11,41 @@ import (
 
 // Jira godoc
 // @Summary Jira API Info
-// @Description returns a list of jira issues which contain the label appstudio-e2e-tests-known-issues
+// @Description returns a list of open jira issues which contain the label ci-fail
 // @Tags Jira API Info
 // @Produce json
 // @Router /jira/bugs/e2e [get]
 // @Success 200 {object} []jira.Issue
-func (s *jiraRouter) listE2EBugsKnown(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
-	issues := s.Jira.GetIssueByJQLQuery(`project in (DEVHAS, SRVKP, GITOPSRVCE, HACBS, RHTAP, RHTAPBUGS) AND status not in (Closed) AND labels = ci-fail`)
+func (s *jiraRouter) listBugsAffectingCI(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	teamName := r.URL.Query()["team_name"]
+	if len(teamName) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "team_name value not present in query",
+			StatusCode: 400,
+		})
+	}
 
-	return httputils.WriteJSON(w, http.StatusOK, issues)
+	team, err := s.Storage.GetTeamByName(teamName[0])
+	if err != nil {
+		s.Logger.Error("Failed to fetch bugs")
+
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	bugs, err := s.Storage.GetOpenBugsAffectingCI(team)
+	if err != nil {
+		s.Logger.Error("Failed to fetch bugs")
+
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, bugs)
 }
 
 // Jira godoc
@@ -280,7 +306,7 @@ func (s *jiraRouter) bugExists(ctx context.Context, w http.ResponseWriter, r *ht
 	if err != nil {
 		s.Logger.Error("Failed to check if jira key exists")
 
-		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+		return httputils.WriteJSON(w, http.StatusBadRequest, &types.ErrorResponse{
 			Message:    err.Error(),
 			StatusCode: http.StatusBadRequest,
 		})
@@ -305,8 +331,8 @@ func (s *jiraRouter) getBugSLIs(ctx context.Context, w http.ResponseWriter, r *h
 	// 	})
 	// }
 
-	// bugs, err := s.Storage.GetAllOpenRHTAPBUGS(startDate[0], endDate[0])
-	bugs, err := s.Storage.GetAllOpenRHTAPBUGS()
+	// bugs, err := s.Storage.GetAllOpenBugs(startDate[0], endDate[0])
+	bugs, err := s.Storage.GetAllOpenBugs("KFLUXBUGS")
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),

@@ -35,7 +35,7 @@ import { Flex, FlexItem } from '@patternfly/react-core';
 import { Divider, TextVariants, Text } from '@patternfly/react-core';
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { useHistory } from 'react-router-dom';
-import { formatDate, getRangeDates } from './utils';
+import { formatDateTime, getRangeDates } from './utils';
 import { DateTimeRangePicker } from '../utils/DateTimeRangePicker';
 import { validateRepositoryParams, validateParam } from '@app/utils/utils';
 import { Header } from '@app/utils/Header';
@@ -75,7 +75,7 @@ let Reports = () => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const drawerRef = React.useRef<HTMLDivElement>();
 
-  // Reset all dropdowns and state variables
+  // Clear all dropdowns and state variables
   const clearAll = () => {
     setProwVisible(false); // hide the dashboard leaving only the toolbar
     setNoData(false)
@@ -84,6 +84,13 @@ let Reports = () => {
     clearRangeDateTime()
     setIsInvalid(false)
     clearJobName()
+  }
+
+  // Rest all dropdowns content
+  const resetAllDropdowns = () => {
+    setJobNames([])
+    setJobTypes([])
+    setRepositories([])
   }
 
   // Reset params
@@ -183,8 +190,8 @@ let Reports = () => {
           setjobName(data[0].job_name)
           params.set("job_type", data[0].job_type)
           params.set("job_name", data[0].job_name)
-          params.set("start", formatDate(rangeDateTime[0]))
-          params.set("end", formatDate(rangeDateTime[1]))
+          params.set("start", formatDateTime(rangeDateTime[0]))
+          params.set("end", formatDateTime(rangeDateTime[1]))
           history.push(window.location.pathname + '?' + params.toString());
         }
       );
@@ -296,8 +303,8 @@ let Reports = () => {
 
   function handleChange(event, from, to) {
     setRangeDateTime([from, to])
-    params.set("start", formatDate(from))
-    params.set("end", formatDate(to))
+    params.set("start", formatDateTime(from))
+    params.set("end", formatDateTime(to))
     history.push(window.location.pathname + '?' + params.toString());
   }
 
@@ -362,7 +369,7 @@ let Reports = () => {
     } else {
       setImpact("")
     }
-  }, [jobName]);
+  }, [jobName, rangeDateTime]);
 
   useEffect(() => {
     clearJobName()
@@ -371,6 +378,7 @@ let Reports = () => {
 
   // When component is mounted, get the list of repo and orgs from API and populate the dropdowns
   useEffect(() => {
+    resetAllDropdowns()
     setLoadingState(true)
     const team = params.get("team")
 
@@ -421,18 +429,24 @@ let Reports = () => {
                     setJobNames(data.map(el => el.job_name).filter((value, index, self) => self.indexOf(value) === index))
                     setjobName(job_name)
                     setjobType(job_type)
-                  }
-                );
-              } else {
+                  })
+                  .catch(e => {
+                    clearParams()
+                    setNoData(true)
+                  })
+              } 
+              else {
                 setLoadingState(false)
                 setIsInvalid(true)
               }
 
             } 
             else {
-              setRepoName(data[0].Repository.Name)
-              setRepoNameFormatted(getRepoNameFormatted(data[0].Repository.Name))
-              setRepoOrg(data[0].Repository.Owner.Login)
+              if(data){
+                setRepoName(data[0].Repository.Name)
+                setRepoNameFormatted(getRepoNameFormatted(data[0].Repository.Name))
+                setRepoOrg(data[0].Repository.Owner.Login)
+              }
               setjobType("presubmit") // all repos in OpenShift CI have presubmit type job
 
               getJobNamesAndTypes(data[0].Repository.Name, data[0].Repository.Owner.Login)
@@ -442,14 +456,20 @@ let Reports = () => {
                   setJobNames(data.map(el => el.job_name).filter((value, index, self) => self.indexOf(value) === index))
                   setjobName(data[0].job_name)
                   setjobType(data[0].job_type)
-                }
-              );
+                })
+                .catch(e => {
+                  setNoData(true)
+                  clearParams()
+                  setjobType("")
+                })
 
-              const start_date = formatDate(rangeDateTime[0])
-              const end_date = formatDate(rangeDateTime[1])
-
-              history.push('/reports/test?team=' + currentTeam + '&organization=' + data[1].organization + '&repository=' + data[1].repoName
-                + '&job_type=presubmit' + '&start=' + start_date + '&end=' + end_date)
+              const start_date = formatDateTime(rangeDateTime[0])
+              const end_date = formatDateTime(rangeDateTime[1])
+              
+              if(data){
+                history.push('/reports/test?team=' + currentTeam + '&organization=' + data[0].organization + '&repository=' + data[0].repoName
+                  + '&job_type=presubmit' + '&start=' + start_date + '&end=' + end_date)
+              }
               setLoadingState(false)
             }
 
@@ -507,7 +527,7 @@ let Reports = () => {
                     placeholderText="Select a repository"
                   >
                     {repositories.map((value, index) => (
-                      <SelectOption key={index} value={index} description={value.Repository.Name + "/" + value.Repository.Owner.Login} isDisabled={value.isPlaceholder}>{getRepoNameFormatted(value.Repository.Name)}</SelectOption>
+                      <SelectOption key={index} value={index} description={value.Repository.Owner.Login + "/" +value.Repository.Name} isDisabled={value.isPlaceholder}>{getRepoNameFormatted(value.Repository.Name)}</SelectOption>
                     ))}
                   </Select>
                 </ToolbarItem>

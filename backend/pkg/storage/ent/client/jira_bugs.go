@@ -55,6 +55,32 @@ func getComponent(components []*jira.Component) string {
 
 // CreateJiraBug saves provided jira bugs information in database.
 func (d *Database) CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error {
+	bulkSize := 2000
+
+	if len(bugsArr) > bulkSize {
+		// number of issues is too high
+		// probably will hit a similar error like: 'Update failed: insert nodes to table "bugs": pq: got 554645 parameters but PostgreSQL only supports 65535 parameters'
+		// we will need to split in smaller bulks
+		for start := 0; start < len(bugsArr); start += bulkSize {
+			end := start + bulkSize
+			if end > len(bugsArr) {
+				end = len(bugsArr)
+			}
+
+			err := d.CreateBug(bugsArr[start:end], team)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	err := d.CreateBug(bugsArr, team)
+	return err
+}
+
+// CreateBug saves provided jira bugs information in database.
+func (d *Database) CreateBug(bugsArr []jira.Issue, team *db.Teams) error {
 	create := false
 	createBulk := make([]*db.BugsCreate, 0)
 	for _, bug := range bugsArr {
@@ -150,7 +176,7 @@ func (d *Database) TotalBugsResolutionTime(priority, startDate, endDate string, 
 			return jiraV1Alpha1.ResolvedBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
 		}
 
-		bugsAll, err := d.GetResolvedBugsByPriorityAndStatus(priority, team, true, startDate, endDate)
+		bugsAll, err := d.GetBugsByPriorityAndStatus(priority, team, true, "resolved_at", startDate, endDate)
 		if err != nil {
 			return jiraV1Alpha1.ResolvedBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
 		}
@@ -174,7 +200,7 @@ func (d *Database) TotalBugsResolutionTime(priority, startDate, endDate string, 
 			return jiraV1Alpha1.ResolvedBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
 		}
 
-		bugsAll, err := d.GetResolvedBugsByPriorityAndStatus(priority, team, true, start, end)
+		bugsAll, err := d.GetBugsByPriorityAndStatus(priority, team, true, "resolved_at", start, end)
 		if err != nil {
 			return jiraV1Alpha1.ResolvedBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
 		}
@@ -251,12 +277,12 @@ func (d *Database) ResolutionBugByDate(team *db.Teams, priority, dateFrom string
 	return math.Round(totalResolution*100) / 100, nil
 }
 
-func (d *Database) GetResolvedBugsByPriorityAndStatus(priority string, t *db.Teams, IsResolved bool, dateFrom string, dateTo string) (bugsArray []*db.Bugs, err error) {
+func (d *Database) GetBugsByPriorityAndStatus(priority string, t *db.Teams, IsResolved bool, exp string, dateFrom string, dateTo string) (bugsArray []*db.Bugs, err error) {
 	if priority == "Global" {
 		bugsArray, err = d.client.Teams.QueryBugs(t).
 			Where(predicate.Bugs(bugs.Resolved(IsResolved))).
 			Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
-				s.Where(sql.ExprP(fmt.Sprintf("resolved_at BETWEEN '%s' AND '%s'", dateFrom, dateTo)))
+				s.Where(sql.ExprP(fmt.Sprintf("%s BETWEEN '%s' AND '%s'", exp, dateFrom, dateTo)))
 			}).All(context.TODO())
 		if err != nil {
 			return nil, err
@@ -266,31 +292,7 @@ func (d *Database) GetResolvedBugsByPriorityAndStatus(priority string, t *db.Tea
 			Where(predicate.Bugs(bugs.Resolved(IsResolved))).
 			Where(predicate.Bugs(bugs.Priority(priority))).
 			Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
-				s.Where(sql.ExprP(fmt.Sprintf("resolved_at BETWEEN '%s' AND '%s'", dateFrom, dateTo)))
-			}).All(context.TODO())
-		if err != nil {
-			return nil, err
-		}
-	}
-	return bugsArray, nil
-}
-
-func (d *Database) GetOpenBugsByPriorityAndStatus(priority string, t *db.Teams, IsResolved bool, dateFrom string, dateTo string) (bugsArray []*db.Bugs, err error) {
-	if priority == "Global" {
-		bugsArray, err = d.client.Teams.QueryBugs(t).
-			Where(predicate.Bugs(bugs.Resolved(IsResolved))).
-			Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
-				s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", dateFrom, dateTo)))
-			}).All(context.TODO())
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		bugsArray, err = d.client.Teams.QueryBugs(t).
-			Where(predicate.Bugs(bugs.Resolved(IsResolved))).
-			Where(predicate.Bugs(bugs.Priority(priority))).
-			Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
-				s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", dateFrom, dateTo)))
+				s.Where(sql.ExprP(fmt.Sprintf("%s BETWEEN '%s' AND '%s'", exp, dateFrom, dateTo)))
 			}).All(context.TODO())
 		if err != nil {
 			return nil, err
@@ -307,7 +309,7 @@ func (d *Database) GetOpenBugsMetricsByStatusAndPriority(priority, startDate, en
 	if len(dayArr) == 2 && isSameDay(startDate, endDate) {
 		t, _ := time.Parse("2006-01-02 15:04:05", startDate)
 		y, m, dd := t.Date()
-		bugsAll, err := d.GetOpenBugsByPriorityAndStatus(priority, team, false, startDate, endDate)
+		bugsAll, err := d.GetBugsByPriorityAndStatus(priority, team, false, "created_at", startDate, endDate)
 		if err != nil {
 			return jiraV1Alpha1.OpenBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
 		}
@@ -323,7 +325,7 @@ func (d *Database) GetOpenBugsMetricsByStatusAndPriority(priority, startDate, en
 	for i, day := range dayArr {
 		start, end := getRange(i, day, dayArr)
 
-		bugsAll, err := d.GetOpenBugsByPriorityAndStatus(priority, team, false, start, end)
+		bugsAll, err := d.GetBugsByPriorityAndStatus(priority, team, false, "created_at", start, end)
 		if err != nil {
 			return jiraV1Alpha1.OpenBugsMetrics{}, convertDBError("failed to return bugs: %w", err)
 		}
@@ -523,12 +525,12 @@ func (d *Database) getJiraBugMetrics(bug jira.Issue) JiraBugMetricsInfo {
 	return jiraBugMetric
 }
 
-// GetAllOpenRHTAPBUGS gets all the RHTAPBUGS that are open
-// func (d *Database) GetAllOpenRHTAPBUGS(dateFrom, dateTo string) ([]*db.Bugs, error) {
-func (d *Database) GetAllOpenRHTAPBUGS() ([]*db.Bugs, error) {
+// GetAllOpenBugs gets all the bugs that are open for the given project
+// func (d *Database) GetAllOpenBugs(dateFrom, dateTo string) ([]*db.Bugs, error) {
+func (d *Database) GetAllOpenBugs(project string) ([]*db.Bugs, error) {
 	b, err := d.client.Bugs.Query().
 		Where(predicate.Bugs(bugs.Resolved(false))).
-		Where(predicate.Bugs(bugs.ProjectKey("RHTAPBUGS"))).
+		Where(predicate.Bugs(bugs.ProjectKey(project))).
 		All(context.TODO())
 
 	if err != nil {
@@ -538,12 +540,12 @@ func (d *Database) GetAllOpenRHTAPBUGS() ([]*db.Bugs, error) {
 	return b, nil
 }
 
-// GetAllOpenRHTAPBUGSForSliAlerts gets all the RHTAPBUGS that are open
+// GetAllOpenBugsForSliAlerts gets all the bugs that are open for the given project
 // except bugs with status as "Waiting" or "Release Pending"
-func (d *Database) GetAllOpenRHTAPBUGSForSliAlerts() ([]*db.Bugs, error) {
+func (d *Database) GetAllOpenBugsForSliAlerts(project string) ([]*db.Bugs, error) {
 	b, err := d.client.Bugs.Query().
 		Where(predicate.Bugs(bugs.StatusNotIn("Waiting", "Release Pending", "Closed"))).
-		Where(predicate.Bugs(bugs.ProjectKey("RHTAPBUGS"))).
+		Where(predicate.Bugs(bugs.ProjectKey(project))).
 		All(context.TODO())
 
 	if err != nil {
@@ -578,4 +580,18 @@ func getDays(createdDate, resolutionDate jira.Time, status string) string {
 	diff = math.Round(diff*100) / 100
 
 	return fmt.Sprintf("%.2f", diff)
+}
+
+// GetOpenBugsAffectingCI gets all the open issues with 'ci-fail' as label
+func (d *Database) GetOpenBugsAffectingCI(t *db.Teams) ([]*db.Bugs, error) {
+	bugs, err := d.client.Teams.QueryBugs(t).
+		Where(predicate.Bugs(bugs.Resolved(false))).
+		Where(predicate.Bugs(bugs.LabelsContains("ci-fail"))).
+		All(context.TODO())
+
+	if err != nil {
+		return nil, convertDBError("failed to return bugs: %w", err)
+	}
+
+	return bugs, nil
 }
