@@ -262,7 +262,7 @@ func (s *Server) ErrorsUpdateInProwJobs() {
 					suites = s.cfg.GCS.GetJobJunitContent("redhat-appstudio", "infra-deployments", prNumber,
 						pj.JobID, pj.JobType, pj.JobName, JunitRegexpSearch)
 				} else {
-					s.cfg.Logger.Sugar().Warnf("Failed to get pr number from ", pj.JobURL)
+					s.cfg.Logger.Sugar().Debug("Failed to get pr number from ", pj.JobURL)
 				}
 			}
 
