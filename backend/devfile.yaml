@@ -13,9 +13,9 @@ components:
     attributes:
       deployment/replicas: 1
       deployment/cpuLimit: '500m'
-      deployment/cpuRequest: 200m
-      deployment/memoryLimit: 1Gi
-      deployment/memoryRequest: 512Mi
+      deployment/cpuRequest: 500m
+      deployment/memoryLimit: 2Gi
+      deployment/memoryRequest: 1Gi
       deployment/container-port: 8000
     kubernetes:
       uri: deploy/base/deployment.yaml
