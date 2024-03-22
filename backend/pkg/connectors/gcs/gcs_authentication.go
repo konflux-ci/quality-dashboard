@@ -26,7 +26,7 @@ func BucketHandleClient() *GCSBucket {
 	}
 }
 
-func (b *GCSBucket) GetJobJunitContent(orgName string, repoName string, pullNumber string, jobId string, jobType string, jobName string, fileName *regexp.Regexp) ([]byte, string) {
+func (b *GCSBucket) GetJobJunitContent(orgName string, repoName string, pullNumber string, jobId string, jobType string, jobName string, fileName *regexp.Regexp) []byte {
 	query := &storage.Query{}
 
 	if jobType == "periodic" {
@@ -51,12 +51,12 @@ func (b *GCSBucket) GetJobJunitContent(orgName string, repoName string, pullNumb
 		if fileName.Match([]byte(obj.Name)) {
 			if b.ContentExists(context.Background(), obj.Name) {
 				content, _ := b.GetContent(context.Background(), obj.Name)
-				return content, obj.Name
+				return content
 			}
 		}
 	}
 
-	return nil, ""
+	return nil
 }
 
 func (b *GCSBucket) ContentExists(ctx context.Context, path string) bool {
