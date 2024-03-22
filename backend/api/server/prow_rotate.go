@@ -21,7 +21,7 @@ const (
 	ProwEndpoint       = "https://prow.ci.openshift.org/prowjobs.js"
 )
 
-var JunitRegexpSearch = regexp.MustCompile(`(j?unit|e2e|qd_report_)-?[0-9a-z]+\.xml`)
+var JunitRegexpSearch = regexp.MustCompile(`(j?unit|e2e|qd-report-)-?[0-9a-z]+\.xml`)
 var ExternalServicesSearch = regexp.MustCompile(`services-status.json`)
 
 func (s *Server) UpdateProwStatusByTeam() {
@@ -45,6 +45,7 @@ func (s *Server) UpdateProwStatusByTeam() {
 
 func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Repository) {
 	for _, job := range prowJobs {
+
 		suitesXml := prow.TestSuites{}
 		prowJobsInDatabase, _ := s.cfg.Storage.GetProwJobsResultsByJobID(job.Status.BuildID)
 
@@ -63,6 +64,7 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 		} else if job.Spec.Type == "presubmit" {
 			suites, xmlFileName = s.cfg.GCS.GetJobJunitContent(repo.GitOrganization, repo.RepositoryName, ExtractPullRequestNumberFromLabels(job.Labels),
 				job.Status.BuildID, job.Spec.Type, job.Spec.Job, JunitRegexpSearch)
+
 		}
 
 		if len(suites) > 0 {
@@ -103,7 +105,7 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 
 					if jobSuite.JobName == "pull-ci-redhat-appstudio-infra-deployments-main-appstudio-hac-e2e-tests" {
 						jobSuite.SuiteName = suite.Name
-					} else if strings.Contains(xmlFileName, "qd_report") {
+					} else if strings.Contains(xmlFileName, "qd-report") {
 						jobSuite.SuiteName = suite.Name
 						jobSuite.ErrorMessage = testCase.FailureOutput.Output
 					} else if len(matches) > 1 {
