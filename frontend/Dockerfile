@@ -16,6 +16,13 @@ RUN chmod +x entrypoint.sh
 RUN yarn build
 RUN chgrp -R 0 /app && \
     chmod -R g=u /app
+RUN rm -rf ./node_modules
+
+FROM node:18-alpine
+WORKDIR /app
+
+COPY --from=builder /app .
+RUN yarn global add sirv-cli
 
 EXPOSE 8080
 
