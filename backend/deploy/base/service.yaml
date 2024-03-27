@@ -1,7 +1,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: quality-backend-service
+  name: backend
   labels:
     app.kubernetes.io/component: quality-backend
     app.kubernetes.io/instance: quality-dashboard

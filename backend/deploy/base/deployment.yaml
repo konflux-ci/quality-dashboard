@@ -1,7 +1,7 @@
 kind: Deployment
 apiVersion: apps/v1
 metadata:
-  name: quality-backend-dashboard
+  name: backend
   labels:
     app: quality-dashboard
     app.kubernetes.io/component: quality-backend
@@ -33,7 +33,7 @@ spec:
             requests:
               cpu: 500m
               memory: 4Gi
-          name: quality-backend-dashboard
+          name: backend
           command: ["/root/server-runtime"]
           env:
             - name: MODE_SSL
@@ -97,7 +97,6 @@ spec:
               containerPort: 8000
               protocol: TCP
           imagePullPolicy: Always
-          image: >-
-            quay.io/redhat-appstudio/quality-dashboard-backend:latest
+          image: quay.io/redhat-appstudio/quality-dashboard-backend:latest
       securityContext:
         runAsNonRoot: true

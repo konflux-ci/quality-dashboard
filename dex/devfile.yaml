@@ -18,7 +18,7 @@ components:
       deployment/memoryRequest: 128Mi
       deployment/container-port: 5556
     kubernetes:
-      uri: deploy/base/deploy.yaml
+      uri: deploy/base/deployment.yaml
 commands:
   - id: dex-build
     apply:
