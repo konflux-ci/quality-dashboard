@@ -35,6 +35,9 @@ spec:
             requests:
               cpu: 200m
               memory: 512Mi
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
           name: frontend
           env:
             - name: REACT_APP_API_SERVER_URL

@@ -91,6 +91,7 @@ spec:
             capabilities:
               drop:
                 - ALL
+            runAsNonRoot: true
             readOnlyRootFilesystem: true
           ports:
             - name: http
@@ -100,3 +101,4 @@ spec:
           image: quay.io/redhat-appstudio/quality-dashboard-backend:latest
       securityContext:
         runAsNonRoot: true
+        readOnlyRootFilesystem: true

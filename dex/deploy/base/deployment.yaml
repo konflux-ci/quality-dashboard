@@ -19,6 +19,9 @@ spec:
     spec:
       containers:
       - image: ghcr.io/dexidp/dex:v2.39.0
+        securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
         name: dex
         command: ["/usr/local/bin/dex", "serve", "/etc/dex/cfg/config.yaml"]
         resources:
