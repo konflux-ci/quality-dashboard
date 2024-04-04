@@ -18,42 +18,29 @@ spec:
         component: dex
     spec:
       containers:
-      - image: ghcr.io/dexidp/dex:v2.36.0
+      - image: ghcr.io/dexidp/dex:v2.39.0
+        securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
         name: dex
         command: ["/usr/local/bin/dex", "serve", "/etc/dex/cfg/config.yaml"]
         resources:
           requests:
-            cpu: "10"
+            cpu: "100m"
             memory: "128Mi"
           limits:
             cpu: "500m"
             memory: "256Mi"
         ports:
         - name: http
-          containerPort: 5555
+          containerPort: 5556
         volumeMounts:
         - name: config
           mountPath: /etc/dex/cfg
       volumes:
       - name: config
         secret:
-          secretName: dex-config
+          secretName: quality-dashboard-secrets
           items:
-          - key: config.yaml
+          - key: dex-config.yaml
             path: config.yaml
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: dex
-  labels:
-    app: quality-authenticator
-    component: dex
-spec:
-  ports:
-  - name: dex
-    port: 5556
-    protocol: TCP
-  selector:
-    app: quality-authenticator
-    component: dex
