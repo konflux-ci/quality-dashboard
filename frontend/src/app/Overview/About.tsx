@@ -74,7 +74,7 @@ export const About = () => {
                             <CardHeader><b>Openshift CI Connector</b></CardHeader>
                             <CardBody>
                                 Connect with openshift CI and track information about presubmit, periodic or postsubmit jobs. Quality Studio offer a complete set of metrics about the impact of the tests execution
-                                in your repositories. Note that are only present the repositories with OpenShift CI prow jobs, as well as the job types available for each repository.
+                                in your repositories. Note that only the repositories with OpenShift CI prow jobs are present, as well as the job types available for each repository.
                             </CardBody>
                         </Card>
                         <Card isPlain isCompact>
