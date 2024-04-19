@@ -5,19 +5,24 @@ WORKDIR /app
 
 COPY package.json .
 COPY yarn.lock .
-COPY entrypoint.sh .
 
 RUN yarn install --network-timeout 1000000
 
 COPY . .
 
+RUN yarn build
+
+COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
-RUN yarn build
-RUN chgrp -R 0 /app && \
-    chmod -R g=u /app
+RUN rm -rf ./node_modules
+
+FROM node:18-alpine
+WORKDIR /app
+
+COPY --from=builder /app .
+RUN yarn global add sirv-cli
 
 EXPOSE 8080
 
 ENTRYPOINT [ "/app/entrypoint.sh" ]
-CMD [ "sh" ]

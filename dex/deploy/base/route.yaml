@@ -1,15 +1,15 @@
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
-  name: frontend
+  name: dex
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   to:
     kind: Service
-    name: frontend
+    name: dex
   port:
-    targetPort: 8080
+    targetPort: 5556
   tls:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect

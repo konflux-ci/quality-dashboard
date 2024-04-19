@@ -6,6 +6,9 @@ DEX_ISSUER_REPLACE=$(grep DEX_ISSUER .env | cut -d '=' -f 2)
 FRONTEND_REDIRECT_URI_REPLACE=$(grep FRONTEND_REDIRECT_URI .env | cut -d '=' -f 2)
 DEX_APPLICATION_ID_REPLACE=$(grep DEX_APPLICATION_ID .env | cut -d '=' -f 2)
 
+cp -r dist package.json .env /tmp/
+cd /tmp
+
 sed -i -- "s#$REACT_APP_API_SERVER_URL_REPLACE#$REACT_APP_API_SERVER_URL#g" "dist/main.bundle.js"
 sed -i -- "s#$REACT_APP_API_SERVER_URL_REPLACE#$REACT_APP_API_SERVER_URL#g" "dist/main.bundle.js.map"
 
