@@ -13,7 +13,7 @@ type Teams struct {
 	ent.Schema
 }
 
-// Fields of the Password.
+// Fields of the Teams.
 func (Teams) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).
@@ -28,7 +28,7 @@ func (Teams) Fields() []ent.Field {
 	}
 }
 
-// Edges of the Password.
+// Edges of the Teams.
 func (Teams) Edges() []ent.Edge {
 	return []ent.Edge{
 		// Create an inverse-edge called "owner" of type `User`
@@ -40,6 +40,10 @@ func (Teams) Edges() []ent.Edge {
 				OnDelete: entsql.Cascade,
 			}),
 		edge.To("failures", Failure.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
+		edge.To("configuration", Configuration.Type).
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),

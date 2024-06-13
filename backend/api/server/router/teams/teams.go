@@ -3,10 +3,10 @@ package teams
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 
+	configurationV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/configuration/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/api/types"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
@@ -16,6 +16,7 @@ type TeamsRequest struct {
 	TeamName    string `json:"team_name"`
 	JiraKeys    string `json:"jira_keys,omitempty"`
 	Description string `json:"description"`
+	JiraConfig  string `json:"jira_config"`
 }
 
 type UpdateTeamsRequest struct {
@@ -23,6 +24,7 @@ type UpdateTeamsRequest struct {
 	JiraKeys    string `json:"jira_keys"`
 	TeamName    string `json:"team_name"`
 	Description string `json:"description"`
+	JiraConfig  string `json:"jira_config"`
 }
 
 // Teams godoc
@@ -61,6 +63,15 @@ func (s *teamsRouter) createQualityStudioTeam(ctx context.Context, w http.Respon
 		})
 	}
 
+	jiraCfg := configurationV1Alpha1.JiraConfig{}
+	err := json.Unmarshal([]byte(team.JiraConfig), &jiraCfg)
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		})
+	}
+
 	teams, err := s.Storage.CreateQualityStudioTeam(team.TeamName, team.Description, team.JiraKeys)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
@@ -68,8 +79,23 @@ func (s *teamsRouter) createQualityStudioTeam(ctx context.Context, w http.Respon
 			StatusCode: http.StatusInternalServerError,
 		})
 	}
+
+	config := configurationV1Alpha1.Configuration{
+		TeamName:      team.TeamName,
+		JiraConfig:    team.JiraConfig,
+		BugSLOsConfig: "",
+	}
+
+	err = s.Storage.CreateConfiguration(config)
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		})
+	}
+
 	if teams.JiraKeys != "" {
-		bugs := s.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", teams.JiraKeys))
+		bugs := s.Jira.GetBugsByJQLQuery(jiraCfg.BugsCollectQuery)
 		if err := s.Storage.CreateJiraBug(bugs, teams); err != nil {
 			return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 				Message:    err.Error(),
@@ -153,33 +179,37 @@ func (rp *teamsRouter) updateTeamHandler(ctx context.Context, w http.ResponseWri
 		})
 	}
 
-	if team.JiraKeys != "" {
-		old := strings.Split(t.JiraKeys, ",")
-		update := strings.Split(team.JiraKeys, ",")
+	// parse jira config
+	jiraCfg := configurationV1Alpha1.JiraConfig{}
+	err = json.Unmarshal([]byte(team.JiraConfig), &jiraCfg)
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		})
+	}
+	if jiraCfg.BugsCollectQuery == "" {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "Failed to get the jira config. Field 'bugs_collect_query' missing",
+			StatusCode: 400,
+		})
+	}
 
-		// delete team jira keys that are not present in the update ones
-		for _, oldKey := range old {
-			if !contains(oldKey, update) {
-				if err := rp.Storage.DeleteJiraBugsByProject(oldKey, t); err != nil {
-					return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-						Message:    err.Error(),
-						StatusCode: http.StatusInternalServerError,
-					})
-				}
-			}
-		}
+	// delete all
+	if err := rp.Storage.DeleteAllJiraBugByTeam(t.TeamName); err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		})
+	}
 
-		// create jira keys
-		projectsToAdd := getProjectsToAdd(old, update)
-		if projectsToAdd != "" {
-			bugs := rp.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", projectsToAdd))
-			if err := rp.Storage.CreateJiraBug(bugs, t); err != nil {
-				return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-					Message:    err.Error(),
-					StatusCode: http.StatusInternalServerError,
-				})
-			}
-		}
+	// create jira issues
+	bugs := rp.Jira.GetBugsByJQLQuery(jiraCfg.BugsCollectQuery)
+	if err := rp.Storage.CreateJiraBug(bugs, t); err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		})
 	}
 
 	err = rp.Storage.UpdateTeam(
@@ -190,11 +220,24 @@ func (rp *teamsRouter) updateTeamHandler(ctx context.Context, w http.ResponseWri
 		},
 		team.TargetTeam,
 	)
-
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "Message: " + err.Error(),
 			StatusCode: 400,
+		})
+	}
+
+	config := configurationV1Alpha1.Configuration{
+		TeamName:      team.TeamName,
+		JiraConfig:    team.JiraConfig,
+		BugSLOsConfig: "",
+	}
+
+	err = rp.Storage.CreateConfiguration(config)
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
 		})
 	}
 
@@ -223,4 +266,66 @@ func getProjectsToAdd(old, update []string) string {
 	}
 
 	return strings.Join(projectsToAdd, ",")
+}
+
+func (s *teamsRouter) getConfiguration(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	teamName := r.URL.Query()["team_name"]
+	if len(teamName) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "team_name value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	teams, err := s.Storage.GetConfiguration(teamName[0])
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, teams)
+}
+
+func (s *teamsRouter) getJiraKeys(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	teamName := r.URL.Query()["team_name"]
+	if len(teamName) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "team_name value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	team, err := s.Storage.GetTeamByName(teamName[0])
+	if err != nil {
+		s.Logger.Error("Failed to fetch team")
+
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, team.JiraKeys)
+}
+
+func (s *teamsRouter) getTeam(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	teamName := r.URL.Query()["team_name"]
+	if len(teamName) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "team_name value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	team, err := s.Storage.GetTeamByName(teamName[0])
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, team)
 }

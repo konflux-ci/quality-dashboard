@@ -23,12 +23,16 @@ const (
 	EdgeBugs = "bugs"
 	// EdgeFailures holds the string denoting the failures edge name in mutations.
 	EdgeFailures = "failures"
+	// EdgeConfiguration holds the string denoting the configuration edge name in mutations.
+	EdgeConfiguration = "configuration"
 	// RepositoryFieldID holds the string denoting the ID field of the Repository.
 	RepositoryFieldID = "id"
 	// BugsFieldID holds the string denoting the ID field of the Bugs.
 	BugsFieldID = "id"
 	// FailureFieldID holds the string denoting the ID field of the Failure.
 	FailureFieldID = "id"
+	// ConfigurationFieldID holds the string denoting the ID field of the Configuration.
+	ConfigurationFieldID = "id"
 	// Table holds the table name of the teams in the database.
 	Table = "teams"
 	// RepositoriesTable is the table that holds the repositories relation/edge.
@@ -52,6 +56,13 @@ const (
 	FailuresInverseTable = "failures"
 	// FailuresColumn is the table column denoting the failures relation/edge.
 	FailuresColumn = "teams_failures"
+	// ConfigurationTable is the table that holds the configuration relation/edge.
+	ConfigurationTable = "configurations"
+	// ConfigurationInverseTable is the table name for the Configuration entity.
+	// It exists in this package in order to avoid circular dependency with the "configuration" package.
+	ConfigurationInverseTable = "configurations"
+	// ConfigurationColumn is the table column denoting the configuration relation/edge.
+	ConfigurationColumn = "teams_configuration"
 )
 
 // Columns holds all SQL columns for teams fields.

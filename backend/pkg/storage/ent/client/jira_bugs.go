@@ -13,6 +13,7 @@ import (
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
 )
 
 type JiraBugMetricsInfo struct {
@@ -594,4 +595,13 @@ func (d *Database) GetOpenBugsAffectingCI(t *db.Teams) ([]*db.Bugs, error) {
 	}
 
 	return bugs, nil
+}
+
+func (d *Database) DeleteAllJiraBugByTeam(teamName string) error {
+	_, err := d.client.Bugs.Delete().Where(predicate.Bugs(bugs.HasBugsWith(predicate.Teams(teams.TeamName(teamName))))).Exec(context.TODO())
+	if err != nil {
+		return convertDBError("failed to delete jira bug: %w", err)
+	}
+
+	return nil
 }

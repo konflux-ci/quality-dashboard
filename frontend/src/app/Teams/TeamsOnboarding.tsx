@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { createTeam, createRepository, listJiraProjects, checkGithubRepositoryUrl, checkGithubRepositoryExists } from "@app/utils/APIService";
+import { createTeam, createRepository, listJiraProjects, checkGithubRepositoryUrl, checkGithubRepositoryExists, getConfiguration, isJqlQueryValid } from "@app/utils/APIService";
 import {
   Wizard, PageSection, PageSectionVariants,
   TextInput, FormGroup, Form, TextArea,
@@ -12,6 +12,7 @@ import { getTeams } from '@app/utils/APIService';
 import { PlusIcon } from '@patternfly/react-icons/dist/esm/icons';
 import { ReactReduxContext } from 'react-redux';
 import { TeamsTable } from './TeamsTable';
+import { JiraConfig } from './Configuration';
 
 export interface AlertInfo {
   title: string;
@@ -45,15 +46,23 @@ export const TeamsWizard = () => {
   type validate = 'success' | 'warning' | 'error' | 'default';
   const [githubUrlValidated, setGithubUrlValidated] = React.useState<validate>();
   const [helperText, setHelperText] = useState<string>("Enter a GitHub Repository URL");
+  const [query, setQuery] = useState<string>("");
+  const [isJqlQueryValid, setIsJqlQueryValid] = useState<string>("");
 
   const onSubmit = async () => {
     // Create a team
     setIsFinishedWizard(true)
     setCreationLoading(true)
+
+    const jiraConfig: JiraConfig = {
+      bugs_collect_query: query,
+    }
+    
     const data = {
       "team_name": newTeamName,
       "description": newTeamDesc,
-      "jira_keys": jiraProjects.join(",")
+      "jira_keys": jiraProjects.join(","),
+      "jira_config": JSON.stringify(jiraConfig)
     }
 
     createTeam(data).then(response => {
@@ -230,6 +239,10 @@ export const TeamsWizard = () => {
             <DescriptionListTerm>Jira Projects</DescriptionListTerm>
             <DescriptionListDescription>{jiraProjects.join(" - ")}</DescriptionListDescription>
           </DescriptionListGroup>
+          <DescriptionListGroup> 
+            <DescriptionListTerm>JQL Query</DescriptionListTerm>
+            <DescriptionListDescription>{query}</DescriptionListDescription>
+          </DescriptionListGroup>
         </DescriptionList>
       </div>
       <div style={{ marginTop: "2em" }}>
@@ -256,14 +269,16 @@ export const TeamsWizard = () => {
 
   }
 
-  const jiraOnChange = (options: Array<string>) => {
+  const jiraOnChange = (options: Array<string>, query: string, isJqlQueryValid: validate) => {
     setJiraProjects(options)
+    setQuery(query)
+    setIsJqlQueryValid(isJqlQueryValid)
   }
 
   const steps = [
     { id: 'team', name: 'Team Name', component: TeamData, enableNext: ValidateTeam() },
     { id: 'repo', name: 'Add a GitHub repository', component: AddRepo, canJumpTo: ValidateTeam(), enableNext: githubUrlValidated != 'error' },
-    { id: 'jira', name: 'Jira Projects', component: JiraProjects({ onChange: jiraOnChange, teamJiraKeys: "" }), canJumpTo: ValidateTeam(), enableNext: ValidateTeam() },
+    { id: 'jira', name: 'Jira Configuration', component: JiraProjects({ onChange: jiraOnChange, teamJiraKeys: "", teamName: "" }), canJumpTo: ValidateTeam(), enableNext: isJqlQueryValid == 'success' },
     {
       id: 'review',
       name: 'Review',
@@ -330,13 +345,23 @@ const exists = (teamJiraKeys: string | undefined, projectKey: string) => {
   return false
 }
 
-export const JiraProjects: React.FC<{ onChange: (options: Array<string>) => void, default?: Array<string>, teamJiraKeys: string | undefined }> = (props) => {
+type validate = 'success' | 'warning' | 'error' | 'default';
+
+
+export const JiraProjects: React.FC<{ onChange: (options: Array<string>, query: string, isJqlQueryValid: validate) => void, default?: Array<string>, teamJiraKeys: string | undefined, teamName: string | undefined }> = (props) => { 
   const [availableOptions, setAvailableOptions] = React.useState<React.ReactNode[]>([]);
   const [chosenOptions, setChosenOptions] = React.useState<React.ReactNode[]>([])
-
+  const [query, setQuery] = useState<string>("");
+  const [queryValidated, setQueryValidated] = React.useState<validate>('success');
+  const [helperText, setHelperText] = useState<string>("Customize JQL Query");
+  const { store } = useContext(ReactReduxContext);
+  const state = store.getState();
   const onListChange = (newAvailableOptions: React.ReactNode[], newChosenOptions: React.ReactNode[]) => {
     setAvailableOptions(newAvailableOptions);
     setChosenOptions(newChosenOptions);
+    
+    var projects = newChosenOptions.map(o => { if (o) return o["key"] }).join(",")
+    setQuery("project in (" + projects + ") AND type = Bug")
   };
 
   const available = new Array<React.ReactNode>;
@@ -365,6 +390,14 @@ export const JiraProjects: React.FC<{ onChange: (options: Array<string>) => void
         setChosenOptions(chosen)
       }
     });
+
+    // get config
+    if (props.teamName != "") {
+      getConfiguration(props.teamName as string).then((config: any) => {
+        const jiraCfg: JiraConfig = JSON.parse(config.data.jira_config)
+        setQuery(jiraCfg.bugs_collect_query)
+      })
+    }
   }, []);
 
 
@@ -373,24 +406,73 @@ export const JiraProjects: React.FC<{ onChange: (options: Array<string>) => void
   }
 
   useEffect(() => {
-    props.onChange(chosenOptions.map(o => { if (o) return o["key"] }))
+    const projects = chosenOptions.map(o => { if (o) return o["key"] })
+    props.onChange(projects, query, queryValidated)
   }, [chosenOptions]);
+
+
+  const containsProjects = (projects, query) => {
+    for (var project of projects) {
+       if (!query.includes(project)){
+        return false
+       }
+    }
+    return true
+  }
+
+  const handleQuery = async (value: string) => {
+    setHelperText('');
+    setQuery(value);
+    setQueryValidated('error');
+
+
+    if (value == "") {
+      setQueryValidated('success');
+    } else {
+      // check if has the projects selected before
+      var projects = chosenOptions.map(o => { if (o) return o["key"] })
+      if (containsProjects(projects, value)) {
+        // check if it is valid
+        isJqlQueryValid(value).then((res) => {
+          if (res.code == 200) {
+            setQueryValidated('success');
+            setHelperText('')
+            props.onChange(projects, value, 'success')
+          } else {
+            setHelperText('JQL query invalid')
+            props.onChange(projects, value, 'error')
+          }
+        });
+      } else {
+        setHelperText('JQL query should target all the projects you selected.')
+        props.onChange(projects, value, 'error')
+      }
+    }
+  }
 
   return (
     <React.Fragment>
-      <Title headingLevel='h4'>Select Jira Projects</Title>
-      <p style={{ marginBottom: '10px' }}>The Jira Projects you select will be associated to the created Team. The projects will be used to gather and display metrics about bugs in the Jira page.</p>
-      <DualListSelector
-        isSearchable
-        availableOptions={availableOptions}
-        chosenOptions={chosenOptions}
-        addAll={onListChange}
-        removeAll={onListChange}
-        addSelected={onListChange}
-        removeSelected={onListChange}
-        filterOption={filterOption}
-        id="dual-list-selector-complex"
-      />
+        <Title headingLevel='h4'>Select Jira Projects</Title>
+        <p style={{ marginBottom: '10px' }}>The Jira Projects you select will be associated to the created Team. The projects will be used to gather and display metrics about bugs in the Jira page.</p>
+        <DualListSelector
+          isSearchable
+          availableOptions={availableOptions}
+          chosenOptions={chosenOptions}
+          addAll={onListChange}
+          removeAll={onListChange}
+          addSelected={onListChange}
+          removeSelected={onListChange}
+          filterOption={filterOption}
+          id="dual-list-selector-complex"
+        />
+      <div style={{ marginTop: '10px' }}>
+        <Title headingLevel='h4'>Optionally: customize JQL Query</Title>
+        <Form>
+          <FormGroup fieldId="repo-name" helperText={helperText}>
+            <TextInput validated={queryValidated} value={query} type="text" onChange={(handleQuery)} aria-label="text input example" placeholder="Customize JQL Query" />
+          </FormGroup>
+        </Form>
+      </div>
     </React.Fragment>
   );
 };

@@ -73,6 +73,28 @@ var (
 			},
 		},
 	}
+	// ConfigurationsColumns holds the columns for the "configurations" table.
+	ConfigurationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "team_name", Type: field.TypeString, Unique: true, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "jira_config", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "bug_slos_config", Type: field.TypeString, Size: 2147483647, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "teams_configuration", Type: field.TypeUUID, Nullable: true},
+	}
+	// ConfigurationsTable holds the schema information for the "configurations" table.
+	ConfigurationsTable = &schema.Table{
+		Name:       "configurations",
+		Columns:    ConfigurationsColumns,
+		PrimaryKey: []*schema.Column{ConfigurationsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "configurations_teams_configuration",
+				Columns:    []*schema.Column{ConfigurationsColumns[4]},
+				RefColumns: []*schema.Column{TeamsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// FailuresColumns holds the columns for the "failures" table.
 	FailuresColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -271,6 +293,7 @@ var (
 	Tables = []*schema.Table{
 		BugsTable,
 		CodeCovsTable,
+		ConfigurationsTable,
 		FailuresTable,
 		ProwJobsTable,
 		ProwSuitesTable,
@@ -285,6 +308,7 @@ var (
 func init() {
 	BugsTable.ForeignKeys[0].RefTable = TeamsTable
 	CodeCovsTable.ForeignKeys[0].RefTable = RepositoriesTable
+	ConfigurationsTable.ForeignKeys[0].RefTable = TeamsTable
 	FailuresTable.ForeignKeys[0].RefTable = TeamsTable
 	ProwJobsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	ProwSuitesTable.ForeignKeys[0].RefTable = RepositoriesTable

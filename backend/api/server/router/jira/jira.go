@@ -27,7 +27,7 @@ func (s *jiraRouter) listBugsAffectingCI(ctx context.Context, w http.ResponseWri
 
 	team, err := s.Storage.GetTeamByName(teamName[0])
 	if err != nil {
-		s.Logger.Error("Failed to fetch bugs")
+		s.Logger.Error("Failed to fetch team")
 
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
@@ -343,4 +343,24 @@ func (s *jiraRouter) getBugSLIs(ctx context.Context, w http.ResponseWriter, r *h
 	slis := GetBugSLIs(bugs)
 
 	return httputils.WriteJSON(w, http.StatusOK, slis)
+}
+
+func (s *jiraRouter) isJqlQueryValid(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	jqlQuery := r.URL.Query()["jql_query"]
+	if len(jqlQuery) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "jql_query value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	err := s.Jira.IsJQLQueryValid(jqlQuery[0])
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, true)
 }

@@ -977,6 +977,107 @@ async function checkGithubRepositoryExists(repoOrg: string, repoName: string) {
   return result;
 }
 
+async function getConfiguration(teamName: string) {
+  const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
+  const subPath = '/api/quality/teams/get/configuration';
+  const uri = API_URL + subPath;
+
+  await axios
+    .get(uri, {
+      headers: {},
+      params: {
+        team_name: teamName,
+      },
+    })
+    .then((res: AxiosResponse) => {
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
+async function isJqlQueryValid(jqlQuery: string) {
+  const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
+  const subPath = '/api/quality/jira/jql-query/valid';
+  const uri = API_URL + subPath;
+
+  await axios
+    .get(uri, {
+      headers: {},
+      params: {
+        jql_query: jqlQuery,
+      },
+    })
+    .then((res: AxiosResponse) => {
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
+async function getJiraKeysByTeam(teamName: string) {
+  const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
+  const subPath = '/api/quality/teams/get/jira_keys';
+  const uri = API_URL + subPath;
+
+  await axios
+    .get(uri, {
+      headers: {},
+      params: {
+        team_name: teamName,
+      },
+    })
+    .then((res: AxiosResponse) => {
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+  return result;
+}
+
+async function getTeam(teamName: string) {
+  const result: RepositoriesApiResponse = { code: 0, data: [], all: [] };
+  const subPath = '/api/quality/teams/get/team';
+  const uri = API_URL + subPath;
+
+  await axios
+    .get(uri, {
+      headers: {},
+      params: {
+        team_name: teamName,
+      },
+    })
+    .then((res: AxiosResponse) => {
+      if (res != undefined) {
+        result.code = res.status;
+        result.data = res.data;
+      }
+    })
+    .catch((err) => {
+      result.code = err.response.status;
+      result.data = err.response.data;
+    });
+
+  return result;
+}
+
 export {
   getVersion,
   getRepositories,
@@ -1012,5 +1113,9 @@ export {
   listUsers,
   getUser,
   checkGithubRepositoryUrl,
-  checkGithubRepositoryExists
+  checkGithubRepositoryExists,
+  getConfiguration,
+  isJqlQueryValid,
+  getJiraKeysByTeam,
+  getTeam
 };

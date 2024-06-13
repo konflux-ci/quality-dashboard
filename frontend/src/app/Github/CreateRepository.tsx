@@ -31,6 +31,13 @@ interface IModalContextMember {
   set: SetStateAction<any>;
 }
 
+export interface LoadingPropsType {
+  spinnerAriaValueText: string;
+  spinnerAriaLabelledBy?: string;
+  spinnerAriaLabel?: string;
+  isLoading: boolean;
+}
+
 export const ModalContext = React.createContext<IModalContext>({
   isModalOpen: { set: undefined, value: false },
   isEditRepo: { set: undefined, value: false },
@@ -97,13 +104,6 @@ export const FormModal: React.FunctionComponent = () => {
     modalContext.handleModalToggle();
     window.location.reload();
   };
-
-  interface LoadingPropsType {
-    spinnerAriaValueText: string;
-    spinnerAriaLabelledBy?: string;
-    spinnerAriaLabel?: string;
-    isLoading: boolean;
-  }
 
   const [isPrimaryLoading, setIsPrimaryLoading] = React.useState<boolean>(false);
   const primaryLoadingProps = {} as LoadingPropsType;

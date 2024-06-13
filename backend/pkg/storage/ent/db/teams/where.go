@@ -345,6 +345,33 @@ func HasFailuresWith(preds ...predicate.Failure) predicate.Teams {
 	})
 }
 
+// HasConfiguration applies the HasEdge predicate on the "configuration" edge.
+func HasConfiguration() predicate.Teams {
+	return predicate.Teams(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ConfigurationTable, ConfigurationColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasConfigurationWith applies the HasEdge predicate on the "configuration" edge with a given conditions (other predicates).
+func HasConfigurationWith(preds ...predicate.Configuration) predicate.Teams {
+	return predicate.Teams(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ConfigurationInverseTable, ConfigurationFieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ConfigurationTable, ConfigurationColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Teams) predicate.Teams {
 	return predicate.Teams(func(s *sql.Selector) {

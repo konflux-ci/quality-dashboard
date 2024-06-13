@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -9,7 +10,9 @@ import (
 
 	"github.com/andygrunwald/go-jira"
 	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
+	configurationV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/configuration/v1alpha1"
 	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"go.uber.org/zap"
 )
@@ -57,6 +60,30 @@ func (s *Server) rotate() error {
 		if team.JiraKeys == "" {
 			continue
 		}
+
+		// temporary until previous teams has config defined
+		_, err := s.cfg.Storage.GetConfiguration(team.TeamName)
+		if err != nil && err == storage.ErrNotFound {
+			jiraCfg := configurationV1Alpha1.JiraConfig{
+				BugsCollectQuery: fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys),
+			}
+			b, err := json.Marshal(jiraCfg)
+			if err != nil {
+				return err
+			}
+
+			config := configurationV1Alpha1.Configuration{
+				TeamName:      team.TeamName,
+				JiraConfig:    string(b),
+				BugSLOsConfig: "",
+			}
+
+			err = s.cfg.Storage.CreateConfiguration(config)
+			if err != nil {
+				return err
+			}
+		}
+
 		s.cfg.Logger.Info(fmt.Sprintf("starting to rotate jira bugs for team %s", team.TeamName))
 		if err := s.rotateJiraBugs(team.JiraKeys, team); err != nil {
 			return err
@@ -90,14 +117,24 @@ func shouldBeDeleted(jiraKey string, bugs []jira.Issue) bool {
 }
 
 func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
-	bugs := s.cfg.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys))
+	cfg, err := s.cfg.Storage.GetConfiguration(team.TeamName)
+	if err != nil {
+		return err
+	}
+
+	jiraCfg := configurationV1Alpha1.JiraConfig{}
+	err = json.Unmarshal([]byte(cfg.JiraConfig), &jiraCfg)
+	if err != nil {
+		return err
+	}
+
+	bugs := s.cfg.Jira.GetBugsByJQLQuery(jiraCfg.BugsCollectQuery)
 	if err := s.cfg.Storage.CreateJiraBug(bugs, team); err != nil {
 		return err
 	}
 
 	projects := strings.Split(team.JiraKeys, ",")
 	bugsInDb := make([]*db.Bugs, 0)
-
 	for _, project := range projects {
 		bgs, err := s.cfg.Storage.GetAllJiraBugsByProject(project)
 		if err != nil {

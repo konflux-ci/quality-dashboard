@@ -1554,10 +1554,10 @@
     "@babel/helper-validator-identifier" "^7.22.20"
     to-fast-properties "^2.0.0"
 
-"@badgateway/oauth2-client@^2.2.0":
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/@badgateway/oauth2-client/-/oauth2-client-2.2.1.tgz#36984c5cde57a756ee4695c3da0a5c600419deee"
-  integrity sha512-V5bFl4bzdQDPDfy/55z19EJ6QsmZMVvrPB0389YZeX/dJd9VmcHZBN079TdRoQCH7VPMYYJWmG0NDQYpOTLJ2g==
+"@badgateway/oauth2-client@^2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@badgateway/oauth2-client/-/oauth2-client-2.3.0.tgz#ff93ba999036f1c37809c5d9f4e388fbcf738e50"
+  integrity sha512-nLbACuhaKIo9AjaE/HK1zvRU0yzsSOX94yarEyKLq1FNzf9b74YReZrKVfF7EkQfNli+TpL11750s01/oyEf2w==
 
 "@base2/pretty-print-object@1.0.1":
   version "1.0.1"
@@ -2275,7 +2275,7 @@
     react-dropzone "9.0.0"
     tslib "^2.0.0"
 
-"@patternfly/react-core@^4.276.6", "@patternfly/react-core@^4.276.8":
+"@patternfly/react-core@^4.276.6":
   version "4.276.8"
   resolved "https://registry.npmjs.org/@patternfly/react-core/-/react-core-4.276.8.tgz"
   integrity sha512-dn322rEzBeiVztZEuCZMUUittNb8l1hk30h9ZN31FLZLLVtXGlThFNV9ieqOJYA9zrYxYZrHMkTnOxSWVacMZg==
@@ -2311,7 +2311,7 @@
   resolved "https://registry.yarnpkg.com/@patternfly/react-icons/-/react-icons-4.93.7.tgz#130acbcda4835cf0f26802aaddbb75664709ad4b"
   integrity sha512-3kr35dgba7Qz5CSzmfH0rIjSvBC5xkmiknf3SvVUVxaiVA7KRowID8viYHeZlf3v/Oa3sEewaH830Q0t+nWsZQ==
 
-"@patternfly/react-styles@^4.12.5", "@patternfly/react-styles@^4.92.6":
+"@patternfly/react-styles@^4.92.6":
   version "4.92.6"
   resolved "https://registry.npmjs.org/@patternfly/react-styles/-/react-styles-4.92.6.tgz"
   integrity sha512-b8uQdEReMyeoMzjpMri845QxqtupY/tIFFYfVeKoB2neno8gkcW1RvDdDe62LF88q45OktCwAe/8A99ker10Iw==
@@ -13418,10 +13418,10 @@ react-lifecycles-compat@^3.0.4:
   resolved "https://registry.npmjs.org/react-lifecycles-compat/-/react-lifecycles-compat-3.0.4.tgz"
   integrity sha512-fBASbA6LnOU9dOU2eW7aQ8xmYBSXUIWr+UmF9b1efZBazGNO+rcXT/icdKnYm2pTwcRylVUYwW7H1PHfLekVzA==
 
-react-monaco-editor@^0.52.0:
-  version "0.52.0"
-  resolved "https://registry.yarnpkg.com/react-monaco-editor/-/react-monaco-editor-0.52.0.tgz#69a7c450a22830064d2fc1b446674b1b7da0f540"
-  integrity sha512-jhQSekf2JABbcpN45gKZlWfTS0QcBOZAbAWKGyfqy/KEcMXTwJpCOYGcn2Ur11SUUxWJUzhKjE2fx9BGBc5S8g==
+react-monaco-editor@^0.55.0:
+  version "0.55.0"
+  resolved "https://registry.yarnpkg.com/react-monaco-editor/-/react-monaco-editor-0.55.0.tgz#8933e8acc28e177b8b2aaf23593716b8cebf27a8"
+  integrity sha512-GdEP0Q3Rn1dczfKEEyY08Nes5plWwIYU4sWRBQO0+jsQWQsKMHKCC6+hPRwR7G/4aA3V/iU9jSmWPzVJYMVFSQ==
   dependencies:
     prop-types "^15.8.1"
 
@@ -16878,10 +16878,10 @@ yaml@^1.10.0, yaml@^1.10.2, yaml@^1.7.2:
   resolved "https://registry.npmjs.org/yaml/-/yaml-1.10.2.tgz"
   integrity sha512-r3vXyErRCYJ7wg28yvBY5VSoAF8ZvlcW9/BwUzEtUsjvX/DKs24dIkuwjtuprwJJHsbyUbLApepYTR1BN4uHrg==
 
-yaml@^2.2.1:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/yaml/-/yaml-2.3.1.tgz#02fe0975d23cd441242aa7204e09fc28ac2ac33b"
-  integrity sha512-2eHWfjaoXgTBC2jNM1LRef62VQa0umtvRiDSk6HSzW7RvS5YtkabJrwYLLEKWBc8a5U2PTSCs+dJjUTJdlHsWQ==
+yaml@^2.4.0:
+  version "2.4.2"
+  resolved "https://registry.yarnpkg.com/yaml/-/yaml-2.4.2.tgz#7a2b30f2243a5fc299e1f14ca58d475ed4bc5362"
+  integrity sha512-B3VqDZ+JAg1nZpaEmWtTXUlBneoGx6CPM9b0TENK6aoSu5t73dItudwdgmi6tHlIZZId4dZ9skcAQ2UbcyAeVA==
 
 yargs-parser@20.x, yargs-parser@^20.2.2, yargs-parser@^20.2.9:
   version "20.2.9"

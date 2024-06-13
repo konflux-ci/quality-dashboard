@@ -16,6 +16,8 @@ type Tx struct {
 	Bugs *BugsClient
 	// CodeCov is the client for interacting with the CodeCov builders.
 	CodeCov *CodeCovClient
+	// Configuration is the client for interacting with the Configuration builders.
+	Configuration *ConfigurationClient
 	// Failure is the client for interacting with the Failure builders.
 	Failure *FailureClient
 	// ProwJobs is the client for interacting with the ProwJobs builders.
@@ -165,6 +167,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Bugs = NewBugsClient(tx.config)
 	tx.CodeCov = NewCodeCovClient(tx.config)
+	tx.Configuration = NewConfigurationClient(tx.config)
 	tx.Failure = NewFailureClient(tx.config)
 	tx.ProwJobs = NewProwJobsClient(tx.config)
 	tx.ProwSuites = NewProwSuitesClient(tx.config)

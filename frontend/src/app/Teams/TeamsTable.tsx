@@ -15,6 +15,9 @@ import { ReactReduxContext, useSelector } from 'react-redux';
 import { Button, Form, FormGroup, Modal, ModalVariant, TextArea, TextInput } from "@patternfly/react-core";
 import { JiraProjects } from './TeamsOnboarding';
 import { UserConfig } from "./User";
+import { generateJiraConfig } from "./Configuration";
+import { validate } from "@app/Jira/Jira";
+import { LoadingPropsType } from "@app/Github/CreateRepository";
 
 export const TeamsTable: React.FunctionComponent = () => {
     // In real usage, this data would come from some external source like an API via props.
@@ -31,6 +34,8 @@ export const TeamsTable: React.FunctionComponent = () => {
     const [newTeamName, setNewTeamName] = useState<string>("");
     const [newTeamDesc, setNewTeamDesc] = useState<string>("");
     const [jiraProjects, setJiraProjects] = useState<Array<string>>([])
+    const [query, setQuery] = useState<string>("")
+    const [isJqlQueryValid, setIsJqlQueryValid] = useState<validate>('success')
     const { store } = React.useContext(ReactReduxContext);
     const state = store.getState();
     const redux_dispatch = store.dispatch;
@@ -68,7 +73,8 @@ export const TeamsTable: React.FunctionComponent = () => {
                     team_name: newTeamName,
                     description: newTeamDesc,
                     target: toUpdateTeam.team_name,
-                    jira_keys: jiraProjects.join(",")
+                    jira_keys: jiraProjects.join(","),
+                    jira_config: generateJiraConfig(query),
                 }
                 await updateTeam(data)
                 setIsPrimaryLoading(!isPrimaryLoading);
@@ -122,15 +128,10 @@ export const TeamsTable: React.FunctionComponent = () => {
         setNewTeamDesc("")
     }
 
-    const onJiraProjectsSelected = (options: Array<string>) => {
+    const onJiraProjectsSelected = (options: Array<string>, query: string, isJqlQueryValid: validate) => {
         setJiraProjects(options)
-    }
-
-    interface LoadingPropsType {
-        spinnerAriaValueText: string;
-        spinnerAriaLabelledBy?: string;
-        spinnerAriaLabel?: string;
-        isLoading: boolean;
+        setQuery(query)
+        setIsJqlQueryValid(isJqlQueryValid)
     }
 
     const [isPrimaryLoading, setIsPrimaryLoading] = React.useState<boolean>(false);
@@ -175,7 +176,7 @@ export const TeamsTable: React.FunctionComponent = () => {
                 isOpen={isUpdateModalOpen}
                 onClose={clear}
                 actions={[
-                    <Button key="update" variant="primary" form="modal-with-form-form" onClick={onUpdateSubmit} {...primaryLoadingProps}>
+                    <Button key="update" variant="primary" form="modal-with-form-form" isDisabled={isJqlQueryValid == "error"} onClick={onUpdateSubmit} {...primaryLoadingProps}>
                         Update
                     </Button>,
                     <Button key="cancel" variant="link" onClick={clear}>
@@ -190,8 +191,8 @@ export const TeamsTable: React.FunctionComponent = () => {
                     <FormGroup label="Description" isRequired fieldId='team-description' helperText="Update your team description">
                         <TextArea value={newTeamDesc} type="text" onChange={(value) => { setNewTeamDesc(value) }} aria-label="text area example" placeholder="Update your team description" />
                     </FormGroup>
-                    <FormGroup label="Jira Projects" fieldId='jira-projects' helperText="Update Jira Projects">
-                        <JiraProjects onChange={onJiraProjectsSelected} teamJiraKeys={toUpdateTeam?.jira_keys}></JiraProjects>
+                    <FormGroup label="Jira Projects" fieldId='jira-projects'>
+                        <JiraProjects onChange={onJiraProjectsSelected} teamJiraKeys={toUpdateTeam?.jira_keys} teamName={toUpdateTeam?.team_name}></JiraProjects>
                     </FormGroup>
                 </Form>
             </Modal>

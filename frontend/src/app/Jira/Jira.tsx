@@ -28,7 +28,7 @@ import {
     ThProps
 } from '@patternfly/react-table';
 import { Chart, ChartAxis, ChartGroup, ChartLine, createContainer, ChartThemeColor } from '@patternfly/react-charts';
-import { getJirasResolutionTime, getJirasOpen, listBugsAffectingCI } from '@app/utils/APIService';
+import { getJirasResolutionTime, getJirasOpen, listBugsAffectingCI, getJiraKeysByTeam, updateTeam, getTeam } from '@app/utils/APIService';
 import { ReactReduxContext, useSelector } from 'react-redux';
 import { customizedFormatDate, formatDateTime, getRangeDates } from '@app/Reports/utils';
 import { DateTimeRangePicker } from '@app/utils/DateTimeRangePicker';
@@ -39,7 +39,10 @@ import { CustomStackChart } from './CustomStackChart';
 import { ListIssues } from './ListIssuesTable';
 import { getIssuesByFields, getIssuesByLabels, getLegend } from './utils';
 import { getLabels } from '@app/utils/utils';
-import { HelpIcon } from '@patternfly/react-icons';
+import { CogIcon, HelpIcon } from '@patternfly/react-icons';
+import { JiraProjects } from '@app/Teams/TeamsOnboarding';
+import { generateJiraConfig } from '@app/Teams/Configuration';
+import { LoadingPropsType } from '@app/Github/CreateRepository';
 
 interface Bugs {
     jira_key: string;
@@ -60,6 +63,8 @@ interface Bugs {
 }
 
 export const defaultLabels = ["all", "ci-fail", "test_bug", "product_bug", "untriaged", "infra_bug", "to_investigate"]
+export type validate = 'success' | 'warning' | 'error' | 'default';
+
 
 export const Jira = () => {
     const { store } = useContext(ReactReduxContext);
@@ -74,6 +79,13 @@ export const Jira = () => {
     const [labels, setLabels] = useState<string[]>(defaultLabels);
     const [openIssuesTable, setOpenIssuesTable] = useState<any>({});
     const [closedIssuesTable, setClosedIssuesTable] = useState<any>({});
+    const [jiraKeys, setJiraKeys] = useState<string>("");
+    const [teamDescription, setTeamDescription] = useState<string>("");
+    const [isPrimaryLoading, setIsPrimaryLoading] = React.useState<boolean>(false);
+    const primaryLoadingProps = {} as LoadingPropsType;
+    primaryLoadingProps.spinnerAriaValueText = 'Loading';
+    primaryLoadingProps.spinnerAriaLabelledBy = 'primary-loading-button';
+    primaryLoadingProps.isLoading = isPrimaryLoading;
 
     const getJiraData = (ID) => {
         setLoadingState(true)
@@ -160,9 +172,11 @@ export const Jira = () => {
     const [longVersionVisible, setLongVersionVisible] = useState(false);
     const history = useHistory();
     const params = new URLSearchParams(window.location.search);
-
     const [isSelected, setIsSelected] = React.useState('open');
     const [isLabelSelected, setIsLabelSelected] = React.useState('');
+    const [jiraProjects, setJiraProjects] = useState<Array<string>>([])
+    const [query, setQuery] = useState<string>("")
+    const [isJqlQueryValid, setIsJqlQueryValid] = useState<validate>('success')
 
     const handleItemClick = (isSelected: boolean, event: React.MouseEvent<any> | React.KeyboardEvent | MouseEvent) => {
         const id = event.currentTarget.id;
@@ -175,6 +189,21 @@ export const Jira = () => {
         const target = selected != null ? selected : "Global"
         getJiraData(target)
     }, [rangeDateTime]);
+
+    useEffect(() => {
+        if (state.teams.Team != "") {
+            getJiraKeysByTeam(state.teams.Team).then((res) => {
+                setJiraKeys(res?.data)
+                getTeam(state.teams.Team).then((res) => {
+                    if (res.data?.description != undefined) {
+                        setTeamDescription(res.data?.description)
+                    } else {
+                        setTeamDescription("")
+                    }
+                })
+            })
+        }
+    }, [state.teams.Team]);
 
     const onClick = (event: React.MouseEvent) => {
         const ID = event.currentTarget.id
@@ -304,10 +333,9 @@ export const Jira = () => {
 
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     const [labelsValue, setLabelsValue] = React.useState("");
-    type validate = 'success' | 'warning' | 'error' | 'default';
     const [labelsValidated, setLabelsValidated] = React.useState<validate>('error');
     const regexp = new RegExp('^[a-zA-Z_-]+(,[0-9a-zA-Z_-]+)*$')
-
+    const [isConfigModalOpen, setIsConfigModalOpen] = React.useState(false);
 
     const handleModalToggle = () => {
         setIsModalOpen(!isModalOpen);
@@ -334,6 +362,37 @@ export const Jira = () => {
         history.push(window.location.pathname + '?' + params.toString());
     };
 
+    const openConfiguration = () => {
+        setIsConfigModalOpen(!isConfigModalOpen);
+    };
+
+    const onJiraProjectsSelected = (options: Array<string>, query: string, isJqlQueryValid: validate) => {
+        setJiraProjects(options)
+        setQuery(query)
+        setIsJqlQueryValid(isJqlQueryValid)
+    }
+
+    const onUpdateSubmit = async () => {
+        setIsPrimaryLoading(!isPrimaryLoading);
+        
+        try {
+                const data = {
+                    team_name: state.teams.Team,
+                    description: teamDescription,
+                    target: state.teams.Team,
+                    jira_keys: jiraProjects.join(","),
+                    jira_config: generateJiraConfig(query),
+                }
+                await updateTeam(data)
+                setIsPrimaryLoading(!isPrimaryLoading);
+                window.location.reload();
+            }
+            catch (error) {
+                console.log(error)
+            }
+        
+    }
+
     return (
         <React.Fragment>
             <Header info="Observe which Jira Issues are affecting the CI pass rate."></Header>
@@ -345,12 +404,21 @@ export const Jira = () => {
                 {!loadingState && <React.Fragment>
                     <Grid hasGutter>
                         <GridItem>
-                            <DateTimeRangePicker
-                                startDate={rangeDateTime[0]}
-                                endDate={rangeDateTime[1]}
-                                handleChange={(event, from, to) => handleChange(event, from, to)}
-                            >
-                            </DateTimeRangePicker>
+                            <div style={{ display: "flex" }}>
+                                <div>
+                                    <DateTimeRangePicker
+                                        startDate={rangeDateTime[0]}
+                                        endDate={rangeDateTime[1]}
+                                        handleChange={(event, from, to) => handleChange(event, from, to)}
+                                    >
+                                    </DateTimeRangePicker>
+                                </div>
+                                <div style={{ marginLeft: 10 }}>
+                                    <Button onClick={openConfiguration} variant="secondary" icon={<CogIcon />} iconPosition="left" style={{ background: 'white' }}>
+                                        Configuration
+                                    </Button>
+                                </div>
+                            </div>
                         </GridItem>
                         <GridItem>
                             <Grid hasGutter span={3}>
@@ -542,6 +610,22 @@ export const Jira = () => {
                                 </FormGroup>
                             </Form>
                         </Modal>
+                        <Modal
+                            width={800}
+                            title="Configure Jira"
+                            isOpen={isConfigModalOpen}
+                            onClose={openConfiguration}
+                            actions={[
+                                <Button key="confirm" variant="primary" onClick={onUpdateSubmit} isDisabled={isJqlQueryValid == "error"} {...primaryLoadingProps}>
+                                    Confirm
+                                </Button>,
+                                <Button key="cancel" variant="link" onClick={openConfiguration}>
+                                    Cancel
+                                </Button>
+                            ]}
+                        >
+                            <JiraProjects onChange={onJiraProjectsSelected} teamJiraKeys={jiraKeys} teamName={state.teams.Team}></JiraProjects>
+                        </Modal>
                         {(openIssuesTable.length > 0) && getIssuesByLabels(openIssuesTable, labels)?.filter((x) => {
                             if (x.y != 0) {
                                 return x
@@ -557,13 +641,13 @@ export const Jira = () => {
                             </GridItem>
                         }
                         {(openIssuesTable.length > 0) && getIssuesByFields(openIssuesTable, labels, "component")?.filter((x) => {
-                           let exists = false
-                           x.filter((x) => {
+                            let exists = false
+                            x.filter((x) => {
                                 if (x.y != 0) {
                                     exists = true
                                 }
                             })
-                           return exists
+                            return exists
                         }).length > 0 &&
                             <GridItem span={4} rows={12}>
                                 <Card style={{ textAlign: 'center', alignContent: 'center' }}>
@@ -574,7 +658,7 @@ export const Jira = () => {
                                 </CardBody>
                             </GridItem>
                         }
-                        
+
                         {(openIssuesTable.length > 0) && getIssuesByFields(openIssuesTable, labels, "status").filter((x) => {
                             let exists = false
                             x.filter((x) => {
@@ -583,7 +667,7 @@ export const Jira = () => {
                                 }
                             })
                             return exists
-                        }).length > 0  &&
+                        }).length > 0 &&
                             <GridItem span={4} rows={12}>
                                 <Card style={{ textAlign: 'center', alignContent: 'center' }}>
                                     <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>Open Issues by Labels and Status</CardTitle>
@@ -624,28 +708,28 @@ export const Jira = () => {
                             </GridItem>
                         }
                         <Card>
-                                <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>
-                                    List of open issues
-                                </CardTitle>
-                                <CardBody style={{ backgroundColor: 'white' }}>
-                                    <div style={{ marginTop: 10 }}>
-                                        <ToggleGroup aria-label="Default with single selectable">
-                                            {labels?.map((label, idx) => {
-                                                return (
-                                                    <ToggleGroupItem
-                                                        key={idx}
-                                                        text={label}
-                                                        buttonId={label}
-                                                        isSelected={isLabelSelected === label}
-                                                        onChange={handleLabelClick}
-                                                    />
-                                                )
-                                            })}
-                                        </ToggleGroup>
-                                    </div>
-                                    <ListIssues issues={openIssuesTable}></ListIssues>
-                                </CardBody>
-                            </Card>
+                            <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>
+                                List of open issues
+                            </CardTitle>
+                            <CardBody style={{ backgroundColor: 'white' }}>
+                                <div style={{ marginTop: 10 }}>
+                                    <ToggleGroup aria-label="Default with single selectable">
+                                        {labels?.map((label, idx) => {
+                                            return (
+                                                <ToggleGroupItem
+                                                    key={idx}
+                                                    text={label}
+                                                    buttonId={label}
+                                                    isSelected={isLabelSelected === label}
+                                                    onChange={handleLabelClick}
+                                                />
+                                            )
+                                        })}
+                                    </ToggleGroup>
+                                </div>
+                                <ListIssues issues={openIssuesTable}></ListIssues>
+                            </CardBody>
+                        </Card>
                         {(closedIssuesTable.length > 0) &&
                             <Card>
                                 <CardTitle style={{ backgroundColor: "grey", color: 'white' }}>

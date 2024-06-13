@@ -33,6 +33,18 @@ func (f CodeCovFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.CodeCovMutation", m)
 }
 
+// The ConfigurationFunc type is an adapter to allow the use of ordinary
+// function as Configuration mutator.
+type ConfigurationFunc func(context.Context, *db.ConfigurationMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ConfigurationFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ConfigurationMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ConfigurationMutation", m)
+}
+
 // The FailureFunc type is an adapter to allow the use of ordinary
 // function as Failure mutator.
 type FailureFunc func(context.Context, *db.FailureMutation) (db.Value, error)

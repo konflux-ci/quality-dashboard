@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/configuration"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/failure"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
@@ -49,6 +50,12 @@ func init() {
 	codecovDescID := codecovFields[0].Descriptor()
 	// codecov.DefaultID holds the default value on creation for the id field.
 	codecov.DefaultID = codecovDescID.Default.(func() uuid.UUID)
+	configurationFields := schema.Configuration{}.Fields()
+	_ = configurationFields
+	// configurationDescID is the schema descriptor for id field.
+	configurationDescID := configurationFields[0].Descriptor()
+	// configuration.DefaultID holds the default value on creation for the id field.
+	configuration.DefaultID = configurationDescID.Default.(func() uuid.UUID)
 	failureFields := schema.Failure{}.Fields()
 	_ = failureFields
 	// failureDescJiraKey is the schema descriptor for jira_key field.
