@@ -17,6 +17,10 @@ import {
     Button,
     Modal,
     Popover,
+    AlertVariant,
+    AlertGroup,
+    Alert,
+    ModalVariant,
 } from '@patternfly/react-core';
 import {
     TableComposable,
@@ -40,9 +44,8 @@ import { ListIssues } from './ListIssuesTable';
 import { getIssuesByFields, getIssuesByLabels, getLegend } from './utils';
 import { getLabels } from '@app/utils/utils';
 import { CogIcon, HelpIcon } from '@patternfly/react-icons';
-import { JiraProjects } from '@app/Teams/TeamsOnboarding';
+import { AlertInfo, JiraProjects } from '@app/Teams/TeamsOnboarding';
 import { generateJiraConfig } from '@app/Teams/Configuration';
-import { LoadingPropsType } from '@app/Github/CreateRepository';
 
 interface Bugs {
     jira_key: string;
@@ -81,11 +84,7 @@ export const Jira = () => {
     const [closedIssuesTable, setClosedIssuesTable] = useState<any>({});
     const [jiraKeys, setJiraKeys] = useState<string>("");
     const [teamDescription, setTeamDescription] = useState<string>("");
-    const [isPrimaryLoading, setIsPrimaryLoading] = React.useState<boolean>(false);
-    const primaryLoadingProps = {} as LoadingPropsType;
-    primaryLoadingProps.spinnerAriaValueText = 'Loading';
-    primaryLoadingProps.spinnerAriaLabelledBy = 'primary-loading-button';
-    primaryLoadingProps.isLoading = isPrimaryLoading;
+    const [alerts, setAlerts] = React.useState<AlertInfo[]>([]);
 
     const getJiraData = (ID) => {
         setLoadingState(true)
@@ -336,9 +335,16 @@ export const Jira = () => {
     const [labelsValidated, setLabelsValidated] = React.useState<validate>('error');
     const regexp = new RegExp('^[a-zA-Z_-]+(,[0-9a-zA-Z_-]+)*$')
     const [isConfigModalOpen, setIsConfigModalOpen] = React.useState(false);
+    const [isAlertModalOpen, setIsAlertModalOpen] = React.useState(false);
+
 
     const handleModalToggle = () => {
         setIsModalOpen(!isModalOpen);
+    };
+
+    const handleAlertModalToggle = () => {
+        setIsAlertModalOpen(!setIsAlertModalOpen);
+        window.location.reload();
     };
 
     const handleLabelsInput = async (value) => {
@@ -366,6 +372,12 @@ export const Jira = () => {
         setIsConfigModalOpen(!isConfigModalOpen);
     };
 
+    const onClose = () => {
+        setIsConfigModalOpen(!isConfigModalOpen);
+        window.location.reload();
+    };
+
+
     const onJiraProjectsSelected = (options: Array<string>, query: string, isJqlQueryValid: validate) => {
         setJiraProjects(options)
         setQuery(query)
@@ -373,24 +385,27 @@ export const Jira = () => {
     }
 
     const onUpdateSubmit = async () => {
-        setIsPrimaryLoading(!isPrimaryLoading);
-        
         try {
-                const data = {
-                    team_name: state.teams.Team,
-                    description: teamDescription,
-                    target: state.teams.Team,
-                    jira_keys: jiraProjects.join(","),
-                    jira_config: generateJiraConfig(query),
-                }
-                await updateTeam(data)
-                setIsPrimaryLoading(!isPrimaryLoading);
-                window.location.reload();
+            const data = {
+                team_name: state.teams.Team,
+                description: teamDescription,
+                target: state.teams.Team,
+                jira_keys: jiraProjects.join(","),
+                jira_config: generateJiraConfig(query),
             }
-            catch (error) {
-                console.log(error)
-            }
-        
+            updateTeam(data);
+            setIsConfigModalOpen(!isConfigModalOpen);
+            setAlerts(prevAlertInfo => [...prevAlertInfo, {
+                title: 'Your changes will be updated in the background. You will need to wait a few minutes until the update is finished.',
+                variant: AlertVariant.info,
+                key: "all-created"
+            }]);
+            setIsAlertModalOpen(!isAlertModalOpen);
+        }
+        catch (error) {
+            console.log(error)
+        }
+
     }
 
     return (
@@ -614,9 +629,9 @@ export const Jira = () => {
                             width={800}
                             title="Configure Jira"
                             isOpen={isConfigModalOpen}
-                            onClose={openConfiguration}
+                            onClose={onClose}
                             actions={[
-                                <Button key="confirm" variant="primary" onClick={onUpdateSubmit} isDisabled={isJqlQueryValid == "error"} {...primaryLoadingProps}>
+                                <Button key="confirm" variant="primary" onClick={onUpdateSubmit} isDisabled={isJqlQueryValid == "error" || query == ""}>
                                     Confirm
                                 </Button>,
                                 <Button key="cancel" variant="link" onClick={openConfiguration}>
@@ -625,6 +640,23 @@ export const Jira = () => {
                             ]}
                         >
                             <JiraProjects onChange={onJiraProjectsSelected} teamJiraKeys={jiraKeys} teamName={state.teams.Team}></JiraProjects>
+                        </Modal>
+                        <Modal
+                            variant={ModalVariant.large}
+                            isOpen={isAlertModalOpen}
+                            aria-label="No header/footer modal"
+                            aria-describedby="modal-no-header-description"
+                            onClose={handleAlertModalToggle}
+                        >
+                            <div style={{ marginTop: "1em" }}>
+                                <AlertGroup>
+                                    {
+                                        alerts.map(({ title, variant, key }) => (
+                                            <Alert variant={variant} isInline isPlain title={title} key={key} />
+                                        ))
+                                    }
+                                </AlertGroup>
+                            </div>
                         </Modal>
                         {(openIssuesTable.length > 0) && getIssuesByLabels(openIssuesTable, labels)?.filter((x) => {
                             if (x.y != 0) {
