@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
 )
 
 // The BugsFunc type is an adapter to allow the use of ordinary

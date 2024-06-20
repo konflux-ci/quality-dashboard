@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	failureV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/failure/v1alpha1"
-	"github.com/konflux-ci/quality-studio/api/types"
-	"github.com/konflux-ci/quality-studio/pkg/utils/httputils"
+	failureV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/failure/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/api/types"
+	"github.com/konflux-ci/quality-dashboard/pkg/utils/httputils"
 	"go.uber.org/zap"
 )
 

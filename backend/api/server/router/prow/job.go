@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	prowv1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/prow/v1alpha1"
-	"github.com/konflux-ci/quality-studio/api/types"
-	"github.com/konflux-ci/quality-studio/pkg/utils/httputils"
+	prowv1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/prow/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/api/types"
+	"github.com/konflux-ci/quality-dashboard/pkg/utils/httputils"
 	"go.uber.org/zap"
 )
 

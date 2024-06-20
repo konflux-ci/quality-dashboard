@@ -1,10 +1,10 @@
 package teams
 
 import (
-	"github.com/konflux-ci/quality-studio/api/server/router"
-	jiraAPI "github.com/konflux-ci/quality-studio/pkg/connectors/jira"
-	"github.com/konflux-ci/quality-studio/pkg/logger"
-	"github.com/konflux-ci/quality-studio/pkg/storage"
+	"github.com/konflux-ci/quality-dashboard/api/server/router"
+	jiraAPI "github.com/konflux-ci/quality-dashboard/pkg/connectors/jira"
+	"github.com/konflux-ci/quality-dashboard/pkg/logger"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage"
 	"go.uber.org/zap"
 )
 

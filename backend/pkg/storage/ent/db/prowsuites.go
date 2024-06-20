@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/prowsuites"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowsuites"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
 )
 
 // ProwSuites is the model entity for the ProwSuites schema.

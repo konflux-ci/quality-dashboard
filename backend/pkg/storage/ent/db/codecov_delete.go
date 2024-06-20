@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/codecov"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/predicate"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/codecov"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
 )
 
 // CodeCovDelete is the builder for deleting a CodeCov entity.

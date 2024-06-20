@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 
-	"github.com/konflux-ci/quality-studio/api/server/router/jira"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/jira"
 	"github.com/robfig/cron"
 	"github.com/slack-go/slack"
 	"go.uber.org/zap"

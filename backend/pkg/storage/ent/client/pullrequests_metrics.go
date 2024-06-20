@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	prV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/github/v1alpha1"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
+	prV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
 )
 
 func (d *Database) getMetricByDay(repo *db.Repository, startDate, endDate string) prV1Alpha1.Metrics {

@@ -3,7 +3,7 @@ package database
 import (
 	"database/sql"
 
-	"github.com/konflux-ci/quality-studio/api/server/router"
+	"github.com/konflux-ci/quality-dashboard/api/server/router"
 )
 
 type databaseRouter struct {

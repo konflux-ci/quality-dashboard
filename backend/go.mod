@@ -1,4 +1,4 @@
-module github.com/konflux-ci/quality-studio
+module github.com/konflux-ci/quality-dashboard
 
 go 1.19
 

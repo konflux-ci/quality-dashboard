@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/konflux-ci/quality-studio/api/types"
-	util "github.com/konflux-ci/quality-studio/pkg/utils"
-	"github.com/konflux-ci/quality-studio/pkg/utils/httputils/errdefs"
+	"github.com/konflux-ci/quality-dashboard/api/types"
+	util "github.com/konflux-ci/quality-dashboard/pkg/utils"
+	"github.com/konflux-ci/quality-dashboard/pkg/utils/httputils/errdefs"
 	"google.golang.org/grpc/status"
 )
 

@@ -12,7 +12,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/users"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/users"
 )
 
 // UsersCreate is the builder for creating a Users entity.

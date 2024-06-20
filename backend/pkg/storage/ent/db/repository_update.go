@@ -11,14 +11,14 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/codecov"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/predicate"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/prowjobs"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/prowsuites"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/pullrequests"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/repository"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/teams"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/workflows"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/codecov"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowsuites"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/pullrequests"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/teams"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/workflows"
 )
 
 // RepositoryUpdate is the builder for updating Repository entities.

@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/predicate"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/users"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/users"
 )
 
 // UsersDelete is the builder for deleting a Users entity.

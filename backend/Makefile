@@ -1,6 +1,6 @@
 GO := GOFLAGS="-mod=vendor" go
 SERVER_RUNTIME := $(addprefix bin/, server-runtime)
-PKG := github.com/konflux-ci/quality-studio
+PKG := github.com/konflux-ci/quality-dashboard
 GIT_COMMIT := $(or $(SOURCE_GIT_COMMIT),$(shell git rev-parse --short HEAD))
 BUILD_DATE := $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 TAGS := -tags "json1"

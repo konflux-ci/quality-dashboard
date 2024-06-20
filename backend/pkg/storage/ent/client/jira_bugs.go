@@ -9,10 +9,10 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/andygrunwald/go-jira"
-	jiraV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/jira/v1alpha1"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/bugs"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/predicate"
+	jiraV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/jira/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/bugs"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
 )
 
 type JiraBugMetricsInfo struct {

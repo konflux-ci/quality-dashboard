@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/pullrequests"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/pullrequests"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
 )
 
 // PullRequestsCreate is the builder for creating a PullRequests entity.

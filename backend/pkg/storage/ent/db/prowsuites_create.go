@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/prowsuites"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowsuites"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
 )
 
 // ProwSuitesCreate is the builder for creating a ProwSuites entity.

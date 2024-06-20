@@ -11,25 +11,25 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/konflux-ci/quality-studio/api/server/middleware"
-	"github.com/konflux-ci/quality-studio/api/server/router"
-	"github.com/konflux-ci/quality-studio/api/server/router/database"
-	"github.com/konflux-ci/quality-studio/api/server/router/failure"
-	"github.com/konflux-ci/quality-studio/api/server/router/jira"
-	"github.com/konflux-ci/quality-studio/api/server/router/prow"
-	"github.com/konflux-ci/quality-studio/api/server/router/repositories"
-	"github.com/konflux-ci/quality-studio/api/server/router/suites"
-	"github.com/konflux-ci/quality-studio/api/server/router/teams"
-	"github.com/konflux-ci/quality-studio/api/server/router/users"
-	"github.com/konflux-ci/quality-studio/api/server/router/version"
-	_ "github.com/konflux-ci/quality-studio/docs/swagger"
-	"github.com/konflux-ci/quality-studio/pkg/connectors/codecov"
-	"github.com/konflux-ci/quality-studio/pkg/connectors/gcs"
-	"github.com/konflux-ci/quality-studio/pkg/connectors/github"
-	jiraAPI "github.com/konflux-ci/quality-studio/pkg/connectors/jira"
-	"github.com/konflux-ci/quality-studio/pkg/storage"
-	"github.com/konflux-ci/quality-studio/pkg/utils/httputils"
-	"github.com/konflux-ci/quality-studio/pkg/utils/httputils/errdefs"
+	"github.com/konflux-ci/quality-dashboard/api/server/middleware"
+	"github.com/konflux-ci/quality-dashboard/api/server/router"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/database"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/failure"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/jira"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/prow"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/repositories"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/suites"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/teams"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/users"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/version"
+	_ "github.com/konflux-ci/quality-dashboard/docs/swagger"
+	"github.com/konflux-ci/quality-dashboard/pkg/connectors/codecov"
+	"github.com/konflux-ci/quality-dashboard/pkg/connectors/gcs"
+	"github.com/konflux-ci/quality-dashboard/pkg/connectors/github"
+	jiraAPI "github.com/konflux-ci/quality-dashboard/pkg/connectors/jira"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage"
+	"github.com/konflux-ci/quality-dashboard/pkg/utils/httputils"
+	"github.com/konflux-ci/quality-dashboard/pkg/utils/httputils/errdefs"
 	"github.com/rs/cors"
 	"github.com/slack-go/slack"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -45,9 +45,9 @@ import (
 // @description Go microservice API for Quality Studio Server.
 
 // @contact.name Source Code
-// @contact.url https://github.com/konflux-ci/quality-studio
+// @contact.url https://github.com/konflux-ci/quality-dashboard
 // @license.name MIT License
-// @license.url https://github.com/konflux-ci/quality-studio/blob/main/LICENSE
+// @license.url https://github.com/konflux-ci/quality-dashboard/blob/main/LICENSE
 
 // @host 127.0.0.1:9898
 // @BasePath /api/quality/

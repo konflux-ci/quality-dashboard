@@ -3,7 +3,7 @@ package github
 import (
 	"testing"
 
-	util "github.com/konflux-ci/quality-studio/pkg/utils"
+	util "github.com/konflux-ci/quality-dashboard/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 

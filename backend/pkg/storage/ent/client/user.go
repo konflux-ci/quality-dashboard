@@ -3,10 +3,10 @@ package client
 import (
 	"context"
 
-	"github.com/konflux-ci/quality-studio/api/apis/user/v1alpha1"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/predicate"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/users"
+	"github.com/konflux-ci/quality-dashboard/api/apis/user/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/users"
 )
 
 func (d *Database) CreateUser(u v1alpha1.User) error {

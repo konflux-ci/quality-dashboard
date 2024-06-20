@@ -3,7 +3,7 @@ package v1alpha1
 import (
 	"time"
 
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
 )
 
 // Bugs is used to represent bugs in some serialized content.  It also tracks some additional metadata.

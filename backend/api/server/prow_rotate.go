@@ -9,10 +9,10 @@ import (
 	"regexp"
 	"strings"
 
-	prowV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/prow/v1alpha1"
-	"github.com/konflux-ci/quality-studio/api/server/router/prow"
+	prowV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/prow/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/prow"
 
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
 	"go.uber.org/zap"
 )
 

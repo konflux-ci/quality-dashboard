@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/repository"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/teams"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/teams"
 )
 
 func (d *Database) CreateQualityStudioTeam(teamName string, description string, jira_keys string) (*db.Teams, error) {

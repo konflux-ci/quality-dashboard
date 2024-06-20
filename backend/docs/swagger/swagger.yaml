@@ -1073,11 +1073,11 @@ host: 127.0.0.1:9898
 info:
   contact:
     name: Source Code
-    url: https://github.com/konflux-ci/quality-studio
+    url: https://github.com/konflux-ci/quality-dashboard
   description: Go microservice API for Quality Studio Server.
   license:
     name: MIT License
-    url: https://github.com/konflux-ci/quality-studio/blob/main/LICENSE
+    url: https://github.com/konflux-ci/quality-dashboard/blob/main/LICENSE
   title: Quality Studio API
   version: v1alpha
 paths:

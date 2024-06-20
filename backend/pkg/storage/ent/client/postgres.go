@@ -14,9 +14,9 @@ import (
 	_ "github.com/lib/pq"
 
 	entSQL "entgo.io/ent/dialect/sql"
-	"github.com/konflux-ci/quality-studio/pkg/storage"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
-	util "github.com/konflux-ci/quality-studio/pkg/utils"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	util "github.com/konflux-ci/quality-dashboard/pkg/utils"
 )
 
 // nolint

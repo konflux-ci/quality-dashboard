@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/konflux-ci/quality-studio/api/types"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
-	"github.com/konflux-ci/quality-studio/pkg/utils/httputils"
+	"github.com/konflux-ci/quality-dashboard/api/types"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/utils/httputils"
 )
 
 type TeamsRequest struct {

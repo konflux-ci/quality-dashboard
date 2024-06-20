@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"time"
 
-	coverageV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/codecov/v1alpha1"
-	repoV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/github/v1alpha1"
-	"github.com/konflux-ci/quality-studio/api/types"
-	"github.com/konflux-ci/quality-studio/pkg/storage"
-	"github.com/konflux-ci/quality-studio/pkg/utils/httputils"
+	coverageV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/codecov/v1alpha1"
+	repoV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/api/types"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage"
+	"github.com/konflux-ci/quality-dashboard/pkg/utils/httputils"
 	"go.uber.org/zap"
 )
 

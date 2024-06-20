@@ -3,7 +3,7 @@ package v1alpha1
 import (
 	"time"
 
-	"github.com/konflux-ci/quality-studio/api/apis/github/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
 )
 
 // Prow Jobs desired specs.

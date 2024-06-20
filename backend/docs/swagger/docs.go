@@ -12,11 +12,11 @@ const docTemplate = `{
         "title": "{{.Title}}",
         "contact": {
             "name": "Source Code",
-            "url": "https://github.com/konflux-ci/quality-studio"
+            "url": "https://github.com/konflux-ci/quality-dashboard"
         },
         "license": {
             "name": "MIT License",
-            "url": "https://github.com/konflux-ci/quality-studio/blob/main/LICENSE"
+            "url": "https://github.com/konflux-ci/quality-dashboard/blob/main/LICENSE"
         },
         "version": "{{.Version}}"
     },

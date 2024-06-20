@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	s "github.com/konflux-ci/quality-studio/api/apis/github/v1alpha1"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
-	util "github.com/konflux-ci/quality-studio/pkg/utils"
+	s "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	util "github.com/konflux-ci/quality-dashboard/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 

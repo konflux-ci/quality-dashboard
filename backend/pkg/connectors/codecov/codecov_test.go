@@ -3,9 +3,9 @@ package codecov
 import (
 	"testing"
 
-	repoV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/github/v1alpha1"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/client"
-	util "github.com/konflux-ci/quality-studio/pkg/utils"
+	repoV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/client"
+	util "github.com/konflux-ci/quality-dashboard/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 

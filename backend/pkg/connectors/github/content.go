@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v44/github"
-	"github.com/konflux-ci/quality-studio/pkg/logger"
+	"github.com/konflux-ci/quality-dashboard/pkg/logger"
 	"go.uber.org/zap"
 )
 

@@ -1,11 +1,11 @@
 package prow
 
 import (
-	"github.com/konflux-ci/quality-studio/api/server/router"
-	"github.com/konflux-ci/quality-studio/pkg/connectors/github"
-	"github.com/konflux-ci/quality-studio/pkg/logger"
-	"github.com/konflux-ci/quality-studio/pkg/storage"
-	util "github.com/konflux-ci/quality-studio/pkg/utils"
+	"github.com/konflux-ci/quality-dashboard/api/server/router"
+	"github.com/konflux-ci/quality-dashboard/pkg/connectors/github"
+	"github.com/konflux-ci/quality-dashboard/pkg/logger"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage"
+	util "github.com/konflux-ci/quality-dashboard/pkg/utils"
 	"go.uber.org/zap"
 )
 

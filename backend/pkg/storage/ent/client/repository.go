@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	repoV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/github/v1alpha1"
-	"github.com/konflux-ci/quality-studio/pkg/storage"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/repository"
+	repoV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
 )
 
 // CreateRepository saves provided repository information in database.

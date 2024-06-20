@@ -7,7 +7,7 @@ import (
 	"time"
 
 	grafanaGH "github.com/grafana/github-datasource/pkg/github"
-	githubV1Alhpa1 "github.com/konflux-ci/quality-studio/api/apis/github/v1alpha1"
+	githubV1Alhpa1 "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
 	"github.com/pkg/errors"
 	"github.com/shurcooL/githubv4"
 )

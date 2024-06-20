@@ -8,12 +8,12 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	failureV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/failure/v1alpha1"
-	"github.com/konflux-ci/quality-studio/api/server/router/prow"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/failure"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/predicate"
-	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/prowjobs"
+	failureV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/failure/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/prow"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/failure"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
 )
 
 // CreateFailure ...
