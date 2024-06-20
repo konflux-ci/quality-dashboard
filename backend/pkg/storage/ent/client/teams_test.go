@@ -3,8 +3,8 @@ package client
 import (
 	"testing"
 
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
-	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
+	util "github.com/konflux-ci/quality-studio/pkg/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

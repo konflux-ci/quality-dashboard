@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/bugs"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/teams"
 )
 
 // Bugs is the model entity for the Bugs schema.

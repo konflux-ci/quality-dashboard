@@ -135,7 +135,7 @@ export const About = () => {
                                 </Title>
                             </CardTitle>
                             <CardBody>
-                                Find our <a href="https://github.com/redhat-appstudio/quality-dashboard" target="_blank" rel="noreferrer"><b>code at GitHub</b></a>
+                                Find our <a href="https://github.com/konflux-ci/quality-dashboard" target="_blank" rel="noreferrer"><b>code at GitHub</b></a>
                             </CardBody>
                         </Card>
                     </StackItem>

@@ -1,7 +1,7 @@
 package version
 
 import (
-	"github.com/redhat-appstudio/quality-studio/api/server/router"
+	"github.com/konflux-ci/quality-studio/api/server/router"
 )
 
 // systemRouter provides information about the server version.

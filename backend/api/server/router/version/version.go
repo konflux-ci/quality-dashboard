@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"runtime"
 
-	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
+	"github.com/konflux-ci/quality-studio/pkg/utils/httputils"
 )
 
 var (

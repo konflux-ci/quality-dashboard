@@ -5,7 +5,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
 )
 
 // GetPriorityTriageSLI should return red when priority is not defined for more than 2 days on untriaged bugs

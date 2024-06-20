@@ -1,9 +1,9 @@
 package failure
 
 import (
-	"github.com/redhat-appstudio/quality-studio/api/server/router"
-	"github.com/redhat-appstudio/quality-studio/pkg/logger"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage"
+	"github.com/konflux-ci/quality-studio/api/server/router"
+	"github.com/konflux-ci/quality-studio/pkg/logger"
+	"github.com/konflux-ci/quality-studio/pkg/storage"
 	"go.uber.org/zap"
 )
 

@@ -5,12 +5,12 @@ package enttest
 import (
 	"context"
 
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
 	// required by schema hooks.
-	_ "github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/runtime"
+	_ "github.com/konflux-ci/quality-studio/pkg/storage/ent/db/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/migrate"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/migrate"
 )
 
 type (

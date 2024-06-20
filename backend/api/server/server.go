@@ -11,25 +11,25 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/redhat-appstudio/quality-studio/api/server/middleware"
-	"github.com/redhat-appstudio/quality-studio/api/server/router"
-	"github.com/redhat-appstudio/quality-studio/api/server/router/database"
-	"github.com/redhat-appstudio/quality-studio/api/server/router/failure"
-	"github.com/redhat-appstudio/quality-studio/api/server/router/jira"
-	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
-	"github.com/redhat-appstudio/quality-studio/api/server/router/repositories"
-	"github.com/redhat-appstudio/quality-studio/api/server/router/suites"
-	"github.com/redhat-appstudio/quality-studio/api/server/router/teams"
-	"github.com/redhat-appstudio/quality-studio/api/server/router/users"
-	"github.com/redhat-appstudio/quality-studio/api/server/router/version"
-	_ "github.com/redhat-appstudio/quality-studio/docs/swagger"
-	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
-	"github.com/redhat-appstudio/quality-studio/pkg/connectors/gcs"
-	"github.com/redhat-appstudio/quality-studio/pkg/connectors/github"
-	jiraAPI "github.com/redhat-appstudio/quality-studio/pkg/connectors/jira"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage"
-	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
-	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils/errdefs"
+	"github.com/konflux-ci/quality-studio/api/server/middleware"
+	"github.com/konflux-ci/quality-studio/api/server/router"
+	"github.com/konflux-ci/quality-studio/api/server/router/database"
+	"github.com/konflux-ci/quality-studio/api/server/router/failure"
+	"github.com/konflux-ci/quality-studio/api/server/router/jira"
+	"github.com/konflux-ci/quality-studio/api/server/router/prow"
+	"github.com/konflux-ci/quality-studio/api/server/router/repositories"
+	"github.com/konflux-ci/quality-studio/api/server/router/suites"
+	"github.com/konflux-ci/quality-studio/api/server/router/teams"
+	"github.com/konflux-ci/quality-studio/api/server/router/users"
+	"github.com/konflux-ci/quality-studio/api/server/router/version"
+	_ "github.com/konflux-ci/quality-studio/docs/swagger"
+	"github.com/konflux-ci/quality-studio/pkg/connectors/codecov"
+	"github.com/konflux-ci/quality-studio/pkg/connectors/gcs"
+	"github.com/konflux-ci/quality-studio/pkg/connectors/github"
+	jiraAPI "github.com/konflux-ci/quality-studio/pkg/connectors/jira"
+	"github.com/konflux-ci/quality-studio/pkg/storage"
+	"github.com/konflux-ci/quality-studio/pkg/utils/httputils"
+	"github.com/konflux-ci/quality-studio/pkg/utils/httputils/errdefs"
 	"github.com/rs/cors"
 	"github.com/slack-go/slack"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -45,9 +45,9 @@ import (
 // @description Go microservice API for Quality Studio Server.
 
 // @contact.name Source Code
-// @contact.url https://github.com/redhat-appstudio/quality-studio
+// @contact.url https://github.com/konflux-ci/quality-studio
 // @license.name MIT License
-// @license.url https://github.com/redhat-appstudio/quality-studio/blob/main/LICENSE
+// @license.url https://github.com/konflux-ci/quality-studio/blob/main/LICENSE
 
 // @host 127.0.0.1:9898
 // @BasePath /api/quality/

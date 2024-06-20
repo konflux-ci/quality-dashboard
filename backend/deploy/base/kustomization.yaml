@@ -7,6 +7,6 @@ resources:
 - route.yaml
 
 images:
-  - name: quay.io/redhat-appstudio/quality-dashboard-backend
-    newName: quay.io/redhat-appstudio/quality-dashboard-backend
+  - name: quay.io/konflux-ci/quality-dashboard-backend
+    newName: quay.io/konflux-ci/quality-dashboard-backend
     newTag: test

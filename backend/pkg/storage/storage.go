@@ -5,13 +5,13 @@ import (
 
 	"github.com/andygrunwald/go-jira"
 	"github.com/google/uuid"
-	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
-	failureV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/failure/v1alpha1"
-	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
-	jiraV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/jira/v1alpha1"
-	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
-	userV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/user/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
+	coverageV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/codecov/v1alpha1"
+	failureV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/failure/v1alpha1"
+	repoV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/github/v1alpha1"
+	jiraV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/jira/v1alpha1"
+	prowV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/prow/v1alpha1"
+	userV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/user/v1alpha1"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
 )
 
 var (

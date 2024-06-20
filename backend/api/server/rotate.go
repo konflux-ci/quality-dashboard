@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/andygrunwald/go-jira"
-	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
-	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
+	coverageV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/codecov/v1alpha1"
+	repoV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/github/v1alpha1"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
 	"go.uber.org/zap"
 )
 

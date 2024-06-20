@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"hash"
 
-	"github.com/redhat-appstudio/quality-studio/pkg/storage"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/migrate"
+	"github.com/konflux-ci/quality-studio/pkg/storage"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/migrate"
 )
 
 var _ storage.Storage = (*Database)(nil)

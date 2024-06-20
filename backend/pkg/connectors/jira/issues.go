@@ -2,7 +2,7 @@ package jira
 
 import (
 	jira "github.com/andygrunwald/go-jira"
-	"github.com/redhat-appstudio/quality-studio/pkg/logger"
+	"github.com/konflux-ci/quality-studio/pkg/logger"
 	"go.uber.org/zap"
 )
 

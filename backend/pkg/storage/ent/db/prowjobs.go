@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/prowjobs"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/repository"
 )
 
 // ProwJobs is the model entity for the ProwJobs schema.

@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
-	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
+	prowV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/prow/v1alpha1"
+	"github.com/konflux-ci/quality-studio/api/server/router/prow"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/prowjobs"
 )
 
 func (d *Database) CreateProwJobResults(job prowV1Alpha1.Job, repo_id string) error {

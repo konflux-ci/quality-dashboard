@@ -5,7 +5,7 @@ package users
 import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/predicate"
 )
 
 // ID filters vertices based on their ID field.

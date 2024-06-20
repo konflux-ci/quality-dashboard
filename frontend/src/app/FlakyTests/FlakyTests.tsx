@@ -206,7 +206,7 @@ const FlakyTests: React.FunctionComponent = () => {
   const fetchData = () => {
     setLoadingSpinner(true)
     if (startDate && endDate && selectedRepo && selectedRepo) {
-      getFlakyData(currentTeam, selectedJob, selectedRepo, rangeDateTime, "redhat-appstudio").then(res => {
+      getFlakyData(currentTeam, selectedJob, selectedRepo, rangeDateTime, "konflux-ci").then(res => {
         if (res.code == 200) {
           const impact: FlakyObject = res.data
           if (impact && impact.suites) {
@@ -221,7 +221,7 @@ const FlakyTests: React.FunctionComponent = () => {
           console.log("error", res)
         }
       })
-      getGlobalImpactData(currentTeam, selectedJob, selectedRepo, rangeDateTime, "redhat-appstudio").then(res => {
+      getGlobalImpactData(currentTeam, selectedJob, selectedRepo, rangeDateTime, "konflux-ci").then(res => {
         if (res.code == 200) {
           const impact: any = res.data
           if (impact && impact.length > 0) {

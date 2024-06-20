@@ -13,8 +13,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/bugs"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/teams"
 )
 
 // BugsCreate is the builder for creating a Bugs entity.

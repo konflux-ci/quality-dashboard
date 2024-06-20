@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/redhat-appstudio/quality-studio/api/types"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
-	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
+	"github.com/konflux-ci/quality-studio/api/types"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-studio/pkg/utils/httputils"
 )
 
 type TeamsRequest struct {

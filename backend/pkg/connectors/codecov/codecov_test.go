@@ -3,9 +3,9 @@ package codecov
 import (
 	"testing"
 
-	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/client"
-	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
+	repoV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/github/v1alpha1"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/client"
+	util "github.com/konflux-ci/quality-studio/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +13,7 @@ var repository = repoV1Alpha1.Repository{
 	ID:   "12345678",
 	Name: "managed-gitops",
 	Owner: repoV1Alpha1.Owner{
-		Login: "redhat-appstudio",
+		Login: "konflux-ci",
 	},
 	Description: "GitOps Service: Backend/cluster-agent/utility components aiming to provided GitOps services via Kubernetes-controller-managed Argo CD",
 	URL:         "https://github.com/redhat-appstudio/managed-gitops",

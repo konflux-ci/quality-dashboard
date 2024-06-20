@@ -12,14 +12,14 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/predicate"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/prowjobs"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/prowsuites"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/pullrequests"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/teams"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/workflows"
 )
 
 // RepositoryQuery is the builder for querying Repository entities.

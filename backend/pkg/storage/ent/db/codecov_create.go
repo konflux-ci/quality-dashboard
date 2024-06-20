@@ -12,8 +12,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/codecov"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/repository"
 )
 
 // CodeCovCreate is the builder for creating a CodeCov entity.

@@ -2,7 +2,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/runtime.go
+// The schema-stitching logic is generated in github.com/konflux-ci/quality-studio/pkg/storage/ent/db/runtime.go
 
 const (
 	Version = "v0.11.7"                                         // Version of ent codegen.

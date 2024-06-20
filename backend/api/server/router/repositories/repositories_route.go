@@ -1,12 +1,12 @@
 package repositories
 
 import (
-	"github.com/redhat-appstudio/quality-studio/api/server/router"
-	"github.com/redhat-appstudio/quality-studio/pkg/connectors/codecov"
-	"github.com/redhat-appstudio/quality-studio/pkg/connectors/github"
-	"github.com/redhat-appstudio/quality-studio/pkg/logger"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage"
-	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
+	"github.com/konflux-ci/quality-studio/api/server/router"
+	"github.com/konflux-ci/quality-studio/pkg/connectors/codecov"
+	"github.com/konflux-ci/quality-studio/pkg/connectors/github"
+	"github.com/konflux-ci/quality-studio/pkg/logger"
+	"github.com/konflux-ci/quality-studio/pkg/storage"
+	util "github.com/konflux-ci/quality-studio/pkg/utils"
 	"go.uber.org/zap"
 )
 

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	githubV1Alhpa1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/pkg/constants"
+	githubV1Alhpa1 "github.com/konflux-ci/quality-studio/api/apis/github/v1alpha1"
+	"github.com/konflux-ci/quality-studio/pkg/constants"
 	"github.com/shurcooL/githubv4"
 )
 

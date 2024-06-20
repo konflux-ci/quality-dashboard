@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/predicate"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/teams"
 )
 
 // TeamsDelete is the builder for deleting a Teams entity.

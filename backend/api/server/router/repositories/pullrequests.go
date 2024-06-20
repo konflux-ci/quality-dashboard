@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/redhat-appstudio/quality-studio/api/types"
-	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
+	"github.com/konflux-ci/quality-studio/api/types"
+	"github.com/konflux-ci/quality-studio/pkg/utils/httputils"
 )
 
 func (rp *repositoryRouter) getPullRequestsFromRepo(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {

@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/redhat-appstudio/quality-studio/api/types"
-	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
+	"github.com/konflux-ci/quality-studio/api/types"
+	"github.com/konflux-ci/quality-studio/pkg/utils/httputils"
 )
 
 // Jira godoc

@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	s "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
-	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
+	s "github.com/konflux-ci/quality-studio/api/apis/github/v1alpha1"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
+	util "github.com/konflux-ci/quality-studio/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,7 +14,7 @@ var toCreate = s.Repository{
 	ID:   "12345678",
 	Name: "managed-gitops",
 	Owner: s.Owner{
-		Login: "redhat-appstudio",
+		Login: "konflux-ci",
 	},
 	Description: "GitOps Service: Backend/cluster-agent/utility components aiming to provided GitOps services via Kubernetes-controller-managed Argo CD",
 	URL:         "https://github.com/redhat-appstudio/managed-gitops",

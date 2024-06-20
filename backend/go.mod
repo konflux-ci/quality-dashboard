@@ -1,4 +1,4 @@
-module github.com/redhat-appstudio/quality-studio
+module github.com/konflux-ci/quality-studio
 
 go 1.19
 

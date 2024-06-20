@@ -98,7 +98,7 @@ spec:
               containerPort: 8000
               protocol: TCP
           imagePullPolicy: Always
-          image: quay.io/redhat-appstudio/quality-dashboard-backend:latest
+          image: quay.io/konflux-ci/quality-dashboard-backend:latest
       securityContext:
         runAsNonRoot: true
         readOnlyRootFilesystem: true

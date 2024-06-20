@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/workflows"
 )
 
 // WorkflowsCreate is the builder for creating a Workflows entity.

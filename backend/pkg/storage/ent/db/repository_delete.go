@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/predicate"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/repository"
 )
 
 // RepositoryDelete is the builder for deleting a Repository entity.

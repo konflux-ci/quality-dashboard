@@ -6,12 +6,12 @@ import (
 	"math"
 
 	"entgo.io/ent/dialect/sql"
-	prV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/pkg/connectors/github"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	prV1Alpha1 "github.com/konflux-ci/quality-studio/api/apis/github/v1alpha1"
+	"github.com/konflux-ci/quality-studio/pkg/connectors/github"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/predicate"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/pullrequests"
+	"github.com/konflux-ci/quality-studio/pkg/storage/ent/db/repository"
 )
 
 // CreatePullRequest saves provided pull request information in database.
