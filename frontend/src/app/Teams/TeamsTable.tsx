@@ -33,7 +33,8 @@ export const TeamsTable: React.FunctionComponent = () => {
     const [newTeamName, setNewTeamName] = useState<string>("");
     const [newTeamDesc, setNewTeamDesc] = useState<string>("");
     const [jiraProjects, setJiraProjects] = useState<Array<string>>([])
-    const [query, setQuery] = useState<string>("")
+    const [bugsCollectQuery, setBugsCollectQuery] = useState<string>("");
+    const [ciImpactQuery, setCiImpactQuery] = useState<string>("");
     const [isJqlQueryValid, setIsJqlQueryValid] = useState<validate>('success')
     const [alerts, setAlerts] = React.useState<AlertInfo[]>([]);
     const [isAlertModalOpen, setIsAlertModalOpen] = React.useState(false);
@@ -74,7 +75,7 @@ export const TeamsTable: React.FunctionComponent = () => {
                     description: newTeamDesc,
                     target: toUpdateTeam.team_name,
                     jira_keys: jiraProjects.join(","),
-                    jira_config: generateJiraConfig(query),
+                    jira_config: generateJiraConfig(bugsCollectQuery, ciImpactQuery),
                 }
                 updateTeam(data)
                 clear();
@@ -138,9 +139,10 @@ export const TeamsTable: React.FunctionComponent = () => {
     };
 
 
-    const onJiraProjectsSelected = (options: Array<string>, query: string, isJqlQueryValid: validate) => {
+    const onJiraProjectsSelected = (options: Array<string>, bugsCollectQuery: string, ciImpactQuery: string, isJqlQueryValid: validate) => {
         setJiraProjects(options)
-        setQuery(query)
+        setBugsCollectQuery(bugsCollectQuery)
+        setCiImpactQuery(ciImpactQuery)
         setIsJqlQueryValid(isJqlQueryValid)
     }
 
@@ -181,7 +183,7 @@ export const TeamsTable: React.FunctionComponent = () => {
                     isOpen={isUpdateModalOpen}
                     onClose={clear}
                     actions={[
-                        <Button key="update" variant="primary" form="modal-with-form-form" isDisabled={isJqlQueryValid == "error" || query == ""} onClick={onUpdateSubmit}>
+                        <Button key="update" variant="primary" form="modal-with-form-form" isDisabled={isJqlQueryValid == "error" || bugsCollectQuery == ""} onClick={onUpdateSubmit}>
                             Update
                         </Button>,
                         <Button key="cancel" variant="link" onClick={clear}>

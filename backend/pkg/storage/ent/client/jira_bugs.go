@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/andygrunwald/go-jira"
+	configurationV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/configuration/v1alpha1"
 	jiraV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/jira/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
@@ -584,10 +586,24 @@ func getDays(createdDate, resolutionDate jira.Time, status string) string {
 }
 
 // GetOpenBugsAffectingCI gets all the open issues with 'ci-fail' as label
-func (d *Database) GetOpenBugsAffectingCI(t *db.Teams) ([]*db.Bugs, error) {
+func (d *Database) GetOpenBugsAffectingCI(t *db.Teams, startDate, endDate string) ([]*db.Bugs, error) {
+	cfg, err := d.GetConfiguration(t.TeamName)
+	if err != nil {
+		return nil, err
+	}
+
+	jiraCfg := configurationV1Alpha1.JiraConfig{}
+	err = json.Unmarshal([]byte(cfg.JiraConfig), &jiraCfg)
+	if err != nil {
+		return nil, err
+	}
+
 	bugs, err := d.client.Teams.QueryBugs(t).
 		Where(predicate.Bugs(bugs.Resolved(false))).
-		Where(predicate.Bugs(bugs.LabelsContains("ci-fail"))).
+		Where(predicate.Bugs(bugs.JiraKeyIn(jiraCfg.CiImpactBugs...))).
+		Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
+			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
+		}).
 		All(context.TODO())
 
 	if err != nil {

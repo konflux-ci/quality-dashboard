@@ -119,7 +119,7 @@ export const Jira = () => {
 
     useEffect(() => {
         if (currentTeam != "" && currentTeam != undefined) {
-            listBugsAffectingCI(currentTeam).then(res => {
+            listBugsAffectingCI(currentTeam, formatDateTime(rangeDateTime[0]), formatDateTime(rangeDateTime[1])).then(res => {
                 setBugsKnown(res.data)
             })
 
@@ -174,7 +174,8 @@ export const Jira = () => {
     const [isSelected, setIsSelected] = React.useState('open');
     const [isLabelSelected, setIsLabelSelected] = React.useState('');
     const [jiraProjects, setJiraProjects] = useState<Array<string>>([])
-    const [query, setQuery] = useState<string>("")
+    const [bugsCollectQuery, setBugsCollectQuery] = useState<string>("");
+    const [ciImpactQuery, setCiImpactQuery] = useState<string>("");
     const [isJqlQueryValid, setIsJqlQueryValid] = useState<validate>('success')
 
     const handleItemClick = (isSelected: boolean, event: React.MouseEvent<any> | React.KeyboardEvent | MouseEvent) => {
@@ -378,9 +379,10 @@ export const Jira = () => {
     };
 
 
-    const onJiraProjectsSelected = (options: Array<string>, query: string, isJqlQueryValid: validate) => {
+    const onJiraProjectsSelected = (options: Array<string>, bugsCollectQuery: string, ciImpactQuery: string, isJqlQueryValid: validate) => {
         setJiraProjects(options)
-        setQuery(query)
+        setBugsCollectQuery(bugsCollectQuery)
+        setCiImpactQuery(ciImpactQuery)
         setIsJqlQueryValid(isJqlQueryValid)
     }
 
@@ -391,7 +393,7 @@ export const Jira = () => {
                 description: teamDescription,
                 target: state.teams.Team,
                 jira_keys: jiraProjects.join(","),
-                jira_config: generateJiraConfig(query),
+                jira_config: generateJiraConfig(bugsCollectQuery, ciImpactQuery),
             }
             updateTeam(data);
             setIsConfigModalOpen(!isConfigModalOpen);
@@ -525,7 +527,6 @@ export const Jira = () => {
                                     <Card isSelectable onClick={onClick} style={{ textAlign: 'center' }} isSelected={selected.includes(BugsAffectingCI)} id={BugsAffectingCI}>
                                         <CardTitle>
                                             Bugs affecting CI
-                                            {help("Bugs affecting CI (issues that contains 'ci-fail' as label)")}
                                         </CardTitle>
                                         <CardBody>
                                             <Title headingLevel='h1' size="2xl">
@@ -631,7 +632,7 @@ export const Jira = () => {
                             isOpen={isConfigModalOpen}
                             onClose={onClose}
                             actions={[
-                                <Button key="confirm" variant="primary" onClick={onUpdateSubmit} isDisabled={isJqlQueryValid == "error" || query == ""}>
+                                <Button key="confirm" variant="primary" onClick={onUpdateSubmit} isDisabled={isJqlQueryValid == "error" || bugsCollectQuery == ""}>
                                     Confirm
                                 </Button>,
                                 <Button key="cancel" variant="link" onClick={openConfiguration}>

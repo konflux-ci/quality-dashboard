@@ -428,7 +428,7 @@ async function getJobNamesAndTypes(repoName: string, repoOrg: string) {
     throw 'Error fetching data from server. ';
   }
 
-  if(!result.data) {
+  if (!result.data) {
     throw 'No jobs detected in OpenShift CI';
   }
 
@@ -569,9 +569,11 @@ async function getProwJobs(repoName: string, repoOrg: string, rangeDateTime: Dat
   return result.data
 }
 
-async function listBugsAffectingCI(team: string) {
+async function listBugsAffectingCI(team: string, start_date: string, end_date: string) {
   const result: ApiResponse = { code: 0, data: {} };
-  const subPath = '/api/quality/jira/bugs/e2e?team_name=' + team;
+  const subPath = '/api/quality/jira/bugs/e2e?team_name=' + team +
+    '&start_date=' + start_date +
+    '&end_date=' + end_date;
   const uri = API_URL + subPath;
   await axios
     .get(uri)

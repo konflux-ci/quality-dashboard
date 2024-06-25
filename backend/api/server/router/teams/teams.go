@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/andygrunwald/go-jira"
 	configurationV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/configuration/v1alpha1"
 	"github.com/redhat-appstudio/quality-studio/api/types"
 	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
@@ -63,8 +64,7 @@ func (s *teamsRouter) createQualityStudioTeam(ctx context.Context, w http.Respon
 		})
 	}
 
-	jiraCfg := configurationV1Alpha1.JiraConfig{}
-	err := json.Unmarshal([]byte(team.JiraConfig), &jiraCfg)
+	jiraCfg, err := parseJiraConfig(team.JiraConfig)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
@@ -80,20 +80,6 @@ func (s *teamsRouter) createQualityStudioTeam(ctx context.Context, w http.Respon
 		})
 	}
 
-	config := configurationV1Alpha1.Configuration{
-		TeamName:      team.TeamName,
-		JiraConfig:    team.JiraConfig,
-		BugSLOsConfig: "",
-	}
-
-	err = s.Storage.CreateConfiguration(config)
-	if err != nil {
-		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-			Message:    err.Error(),
-			StatusCode: http.StatusInternalServerError,
-		})
-	}
-
 	if teams.JiraKeys != "" {
 		bugs := s.Jira.GetBugsByJQLQuery(jiraCfg.BugsCollectQuery)
 		if err := s.Storage.CreateJiraBug(bugs, teams); err != nil {
@@ -102,6 +88,15 @@ func (s *teamsRouter) createQualityStudioTeam(ctx context.Context, w http.Respon
 				StatusCode: http.StatusInternalServerError,
 			})
 		}
+
+		jiraCfg.CiImpactBugs = extractKeys(s.Jira.GetBugsByJQLQuery(jiraCfg.CiImpactQuery))
+	}
+
+	if err := s.saveConfiguration(team.TeamName, jiraCfg); err != nil {
+		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
+		})
 	}
 
 	return httputils.WriteJSON(w, http.StatusOK, teams)
@@ -180,8 +175,7 @@ func (rp *teamsRouter) updateTeamHandler(ctx context.Context, w http.ResponseWri
 	}
 
 	// parse jira config
-	jiraCfg := configurationV1Alpha1.JiraConfig{}
-	err = json.Unmarshal([]byte(team.JiraConfig), &jiraCfg)
+	jiraCfg, err := parseJiraConfig(team.JiraConfig)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
@@ -203,13 +197,18 @@ func (rp *teamsRouter) updateTeamHandler(ctx context.Context, w http.ResponseWri
 		})
 	}
 
-	// create jira issues
-	bugs := rp.Jira.GetBugsByJQLQuery(jiraCfg.BugsCollectQuery)
-	if err := rp.Storage.CreateJiraBug(bugs, t); err != nil {
-		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-			Message:    err.Error(),
-			StatusCode: http.StatusInternalServerError,
-		})
+	if team.JiraKeys != "" {
+		// create jira issues
+		bugs := rp.Jira.GetBugsByJQLQuery(jiraCfg.BugsCollectQuery)
+		if err := rp.Storage.CreateJiraBug(bugs, t); err != nil {
+			return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
+				Message:    err.Error(),
+				StatusCode: http.StatusInternalServerError,
+			})
+		}
+
+		// get CI Impact bugs
+		jiraCfg.CiImpactBugs = extractKeys(rp.Jira.GetBugsByJQLQuery(jiraCfg.CiImpactQuery))
 	}
 
 	err = rp.Storage.UpdateTeam(
@@ -227,13 +226,7 @@ func (rp *teamsRouter) updateTeamHandler(ctx context.Context, w http.ResponseWri
 		})
 	}
 
-	config := configurationV1Alpha1.Configuration{
-		TeamName:      team.TeamName,
-		JiraConfig:    team.JiraConfig,
-		BugSLOsConfig: "",
-	}
-
-	err = rp.Storage.CreateConfiguration(config)
+	err = rp.saveConfiguration(team.TeamName, jiraCfg)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
@@ -328,4 +321,36 @@ func (s *teamsRouter) getTeam(ctx context.Context, w http.ResponseWriter, r *htt
 	}
 
 	return httputils.WriteJSON(w, http.StatusOK, team)
+}
+
+// parseJiraConfig parses the Jira configuration from a JSON string.
+func parseJiraConfig(configStr string) (configurationV1Alpha1.JiraConfig, error) {
+	var jiraCfg configurationV1Alpha1.JiraConfig
+	err := json.Unmarshal([]byte(configStr), &jiraCfg)
+	return jiraCfg, err
+}
+
+// marshalJiraConfig converts the Jira configuration to a JSON string.
+func marshalJiraConfig(jiraCfg configurationV1Alpha1.JiraConfig) string {
+	cfg, _ := json.Marshal(jiraCfg)
+	return string(cfg)
+}
+
+// extractKeys extracts the keys from a list of issues.
+func extractKeys(bugs []jira.Issue) []string {
+	keys := make([]string, len(bugs))
+	for i, bug := range bugs {
+		keys[i] = bug.Key
+	}
+	return keys
+}
+
+// saveConfiguration saves the configuration for the team
+func (s *teamsRouter) saveConfiguration(teamName string, jiraCfg configurationV1Alpha1.JiraConfig) error {
+	config := configurationV1Alpha1.Configuration{
+		TeamName:      teamName,
+		JiraConfig:    marshalJiraConfig(jiraCfg),
+		BugSLOsConfig: "",
+	}
+	return s.Storage.CreateConfiguration(config)
 }

@@ -12,5 +12,7 @@ type Configuration struct {
 }
 
 type JiraConfig struct {
-	BugsCollectQuery string `json:"bugs_collect_query"`
+	BugsCollectQuery string   `json:"bugs_collect_query"`
+	CiImpactQuery    string   `json:"ci_impact_query"`
+	CiImpactBugs     []string `json:"ci_impact_bugs"`
 }

@@ -46,7 +46,8 @@ export const TeamsWizard = () => {
   type validate = 'success' | 'warning' | 'error' | 'default';
   const [githubUrlValidated, setGithubUrlValidated] = React.useState<validate>();
   const [helperText, setHelperText] = useState<string>("Enter a GitHub Repository URL");
-  const [query, setQuery] = useState<string>("");
+  const [bugsCollectQuery, setBugsCollectQuery] = useState<string>("");
+  const [ciImpactQuery, setCiImpactQuery] = useState<string>("");
   const [isJqlQueryValid, setIsJqlQueryValid] = useState<string>("");
 
   const onSubmit = async () => {
@@ -55,9 +56,10 @@ export const TeamsWizard = () => {
     setCreationLoading(true)
 
     const jiraConfig: JiraConfig = {
-      bugs_collect_query: query,
+      bugs_collect_query: bugsCollectQuery,
+      ci_impact_query: ciImpactQuery,
     }
-    
+
     const data = {
       "team_name": newTeamName,
       "description": newTeamDesc,
@@ -239,9 +241,13 @@ export const TeamsWizard = () => {
             <DescriptionListTerm>Jira Projects</DescriptionListTerm>
             <DescriptionListDescription>{jiraProjects.join(" - ")}</DescriptionListDescription>
           </DescriptionListGroup>
-          <DescriptionListGroup> 
+          <DescriptionListGroup>
             <DescriptionListTerm>JQL Query</DescriptionListTerm>
-            <DescriptionListDescription>{query}</DescriptionListDescription>
+            <DescriptionListDescription>{bugsCollectQuery}</DescriptionListDescription>
+          </DescriptionListGroup>
+          <DescriptionListGroup>
+            <DescriptionListTerm>CI Impact Query</DescriptionListTerm>
+            <DescriptionListDescription>{ciImpactQuery}</DescriptionListDescription>
           </DescriptionListGroup>
         </DescriptionList>
       </div>
@@ -269,9 +275,10 @@ export const TeamsWizard = () => {
 
   }
 
-  const jiraOnChange = (options: Array<string>, query: string, isJqlQueryValid: validate) => {
+  const jiraOnChange = (options: Array<string>, bugsCollectQuery: string, ciImpactQuery: string, isJqlQueryValid: validate) => {
     setJiraProjects(options)
-    setQuery(query)
+    setBugsCollectQuery(bugsCollectQuery)
+    setCiImpactQuery(ciImpactQuery)
     setIsJqlQueryValid(isJqlQueryValid)
   }
 
@@ -348,20 +355,24 @@ const exists = (teamJiraKeys: string | undefined, projectKey: string) => {
 type validate = 'success' | 'warning' | 'error' | 'default';
 
 
-export const JiraProjects: React.FC<{ onChange: (options: Array<string>, query: string, isJqlQueryValid: validate) => void, default?: Array<string>, teamJiraKeys: string | undefined, teamName: string | undefined }> = (props) => { 
+export const JiraProjects: React.FC<{ onChange: (options: Array<string>, bugsCollectQuery: string, ciImpactQuery: string, isJqlQueryValid: validate) => void, default?: Array<string>, teamJiraKeys: string | undefined, teamName: string | undefined }> = (props) => {
   const [availableOptions, setAvailableOptions] = React.useState<React.ReactNode[]>([]);
   const [chosenOptions, setChosenOptions] = React.useState<React.ReactNode[]>([])
-  const [query, setQuery] = useState<string>("");
-  const [queryValidated, setQueryValidated] = React.useState<validate>('success');
+  const [bugsCollectQuery, setBugsCollectQuery] = useState<string>("");
+  const [ciImpactQuery, setCiImpactQuery] = useState<string>("");
+  const [bugsCollectQueryValidated, setBugsCollectQueryValidated] = React.useState<validate>('success');
+  const [ciImpactQueryValidated, setCiImpactQueryValidated] = React.useState<validate>('success');
   const [helperText, setHelperText] = useState<string>("Customize JQL Query");
   const { store } = useContext(ReactReduxContext);
   const state = store.getState();
   const onListChange = (newAvailableOptions: React.ReactNode[], newChosenOptions: React.ReactNode[]) => {
     setAvailableOptions(newAvailableOptions);
     setChosenOptions(newChosenOptions);
-    
+
     var projects = newChosenOptions.map(o => { if (o) return o["key"] }).join(",")
-    setQuery("project in (" + projects + ") AND type = Bug")
+    const query = "project in (" + projects + ") AND type = Bug"
+    setBugsCollectQuery(query)
+    setCiImpactQuery(query + " AND labels=ci-fail")
   };
 
   const available = new Array<React.ReactNode>;
@@ -395,7 +406,8 @@ export const JiraProjects: React.FC<{ onChange: (options: Array<string>, query: 
     if (props.teamName != "") {
       getConfiguration(props.teamName as string).then((config: any) => {
         const jiraCfg: JiraConfig = JSON.parse(config.data.jira_config)
-        setQuery(jiraCfg.bugs_collect_query)
+        setBugsCollectQuery(jiraCfg.bugs_collect_query)
+        setCiImpactQuery(jiraCfg.ci_impact_query)
       })
     }
   }, []);
@@ -407,27 +419,27 @@ export const JiraProjects: React.FC<{ onChange: (options: Array<string>, query: 
 
   useEffect(() => {
     const projects = chosenOptions.map(o => { if (o) return o["key"] })
-    props.onChange(projects, query, queryValidated)
+    props.onChange(projects, bugsCollectQuery, ciImpactQuery, bugsCollectQueryValidated)
   }, [chosenOptions]);
 
 
   const containsProjects = (projects, query) => {
     for (var project of projects) {
-       if (!query.includes(project)){
+      if (!query.includes(project)) {
         return false
-       }
+      }
     }
     return true
   }
 
-  const handleQuery = async (value: string) => {
+  const handleBugsCollectQuery = async (value: string) => {
     setHelperText('');
-    setQuery(value);
-    setQueryValidated('error');
+    setBugsCollectQuery(value);
+    setBugsCollectQueryValidated('error');
 
 
     if (value == "") {
-      setQueryValidated('success');
+      setBugsCollectQueryValidated('success');
     } else {
       // check if has the projects selected before
       var projects = chosenOptions.map(o => { if (o) return o["key"] })
@@ -435,41 +447,74 @@ export const JiraProjects: React.FC<{ onChange: (options: Array<string>, query: 
         // check if it is valid
         isJqlQueryValid(value).then((res) => {
           if (res.code == 200) {
-            setQueryValidated('success');
+            setBugsCollectQueryValidated('success');
             setHelperText('')
-            props.onChange(projects, value, 'success')
+            props.onChange(projects, value, ciImpactQuery, 'success')
           } else {
             setHelperText('JQL query invalid')
-            props.onChange(projects, value, 'error')
+            props.onChange(projects, value, ciImpactQuery, 'error')
           }
         });
       } else {
         setHelperText('JQL query should target all the projects you selected.')
-        props.onChange(projects, value, 'error')
+        props.onChange(projects, value, ciImpactQuery, 'error')
       }
+    }
+  }
+
+  const handleCiImpactQuery = async (value: string) => {
+    setHelperText('');
+    setCiImpactQuery(value);
+    setCiImpactQueryValidated('error');
+
+
+    if (value == "") {
+      setCiImpactQueryValidated('success');
+    } else {
+      // check if has the projects selected before
+      var projects = chosenOptions.map(o => { if (o) return o["key"] })
+      // check if it is valid
+      isJqlQueryValid(value).then((res) => {
+        if (res.code == 200) {
+          setCiImpactQueryValidated('success');
+          setHelperText('')
+          props.onChange(projects, bugsCollectQuery, value, 'success')
+        } else {
+          setHelperText('JQL query invalid')
+          props.onChange(projects, bugsCollectQuery, value, 'error')
+        }
+      });
     }
   }
 
   return (
     <React.Fragment>
-        <Title headingLevel='h4'>Select Jira Projects</Title>
-        <p style={{ marginBottom: '10px' }}>The Jira Projects you select will be associated to the created Team. The projects will be used to gather and display metrics about bugs in the Jira page.</p>
-        <DualListSelector
-          isSearchable
-          availableOptions={availableOptions}
-          chosenOptions={chosenOptions}
-          addAll={onListChange}
-          removeAll={onListChange}
-          addSelected={onListChange}
-          removeSelected={onListChange}
-          filterOption={filterOption}
-          id="dual-list-selector-complex"
-        />
+      <Title headingLevel='h4'>Select Jira Projects</Title>
+      <p style={{ marginBottom: '10px' }}>The Jira Projects you select will be associated to the created Team. The projects will be used to gather and display metrics about bugs in the Jira page.</p>
+      <DualListSelector
+        isSearchable
+        availableOptions={availableOptions}
+        chosenOptions={chosenOptions}
+        addAll={onListChange}
+        removeAll={onListChange}
+        addSelected={onListChange}
+        removeSelected={onListChange}
+        filterOption={filterOption}
+        id="dual-list-selector-complex"
+      />
       <div style={{ marginTop: '10px' }}>
         <Title headingLevel='h4'>Optionally: customize JQL Query</Title>
         <Form>
           <FormGroup fieldId="repo-name" helperText={helperText}>
-            <TextInput validated={queryValidated} value={query} type="text" onChange={(handleQuery)} aria-label="text input example" placeholder="Customize JQL Query" />
+            <TextInput validated={bugsCollectQueryValidated} value={bugsCollectQuery} type="text" onChange={(handleBugsCollectQuery)} aria-label="text input example" placeholder="Customize JQL Query" />
+          </FormGroup>
+        </Form>
+      </div>
+      <div style={{ marginTop: '10px' }}>
+        <Title headingLevel='h4'>Optionally: customize Bugs Affecting CI</Title>
+        <Form>
+          <FormGroup fieldId="repo-name" helperText={helperText}>
+            <TextInput validated={ciImpactQueryValidated} value={ciImpactQuery} type="text" onChange={(handleCiImpactQuery)} aria-label="text input example" placeholder="Customize JQL Query" />
           </FormGroup>
         </Form>
       </div>

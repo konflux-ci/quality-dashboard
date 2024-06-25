@@ -8,11 +8,13 @@ export interface Configuration {
 
 export interface JiraConfig {
     bugs_collect_query: string;
+    ci_impact_query: string;
 }
 
-export const generateJiraConfig = (query) => {
+export const generateJiraConfig = (bugsCollectQuery, ciImpactQuery) => {
     const cfg: JiraConfig = {
-        bugs_collect_query: query
+        bugs_collect_query: bugsCollectQuery,
+        ci_impact_query: ciImpactQuery
     };
     const config = JSON.stringify(cfg);
 
