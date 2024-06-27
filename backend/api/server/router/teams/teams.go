@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/andygrunwald/go-jira"
-	configurationV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/configuration/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/api/types"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
-	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
+	configurationV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/configuration/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/api/types"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/utils/httputils"
 )
 
 type TeamsRequest struct {

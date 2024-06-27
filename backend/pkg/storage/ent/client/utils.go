@@ -5,9 +5,9 @@ import (
 	"math"
 	"time"
 
-	"github.com/redhat-appstudio/quality-studio/pkg/storage"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
-	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	util "github.com/konflux-ci/quality-dashboard/pkg/utils"
 )
 
 func convertDBError(t string, err error) error {

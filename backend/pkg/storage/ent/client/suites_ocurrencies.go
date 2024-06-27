@@ -7,15 +7,15 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/api/apis/prow/v1alpha1"
 
-	//"github.com/redhat-appstudio/quality-studio/pkg/ml"
+	//"github.com/konflux-ci/quality-dashboard/pkg/ml"
 
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
-	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowsuites"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
+	util "github.com/konflux-ci/quality-dashboard/pkg/utils"
 	"k8s.io/utils/strings/slices"
 )
 

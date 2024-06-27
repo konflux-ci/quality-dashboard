@@ -4,18 +4,18 @@ package db
 
 import (
 	"github.com/google/uuid"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/bugs"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/configuration"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/failure"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/users"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/schema"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/bugs"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/codecov"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/failure"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowsuites"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/pullrequests"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/teams"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/users"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/workflows"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/schema"
 )
 
 // The init function reads all schema descriptors with runtime code

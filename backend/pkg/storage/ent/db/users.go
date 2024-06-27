@@ -8,7 +8,7 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/users"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/users"
 )
 
 // Users is the model entity for the Users schema.

@@ -8,8 +8,8 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/workflows"
 )
 
 // Workflows is the model entity for the Workflows schema.

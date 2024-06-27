@@ -6,7 +6,7 @@ import (
 	"time"
 
 	jira "github.com/andygrunwald/go-jira"
-	"github.com/redhat-appstudio/quality-studio/pkg/logger"
+	"github.com/konflux-ci/quality-dashboard/pkg/logger"
 	"go.uber.org/zap"
 )
 

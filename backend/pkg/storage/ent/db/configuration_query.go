@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/configuration"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/teams"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/teams"
 )
 
 // ConfigurationQuery is the builder for querying Configuration entities.

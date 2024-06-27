@@ -6,7 +6,7 @@ import (
 	"os"
 
 	jira "github.com/andygrunwald/go-jira"
-	utils "github.com/redhat-appstudio/quality-studio/pkg/utils"
+	utils "github.com/konflux-ci/quality-dashboard/pkg/utils"
 )
 
 type Jira interface {

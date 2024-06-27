@@ -3,10 +3,10 @@ package client
 import (
 	"context"
 
-	"github.com/redhat-appstudio/quality-studio/api/apis/configuration/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/configuration"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
+	"github.com/konflux-ci/quality-dashboard/api/apis/configuration/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
 )
 
 func (d *Database) CreateConfiguration(c v1alpha1.Configuration) error {

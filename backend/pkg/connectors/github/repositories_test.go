@@ -3,7 +3,7 @@ package github
 import (
 	"testing"
 
-	util "github.com/redhat-appstudio/quality-studio/pkg/utils"
+	util "github.com/konflux-ci/quality-dashboard/pkg/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,7 +20,7 @@ func TestGetGithubRepositoryInformation(t *testing.T) {
 			Name:            "get github repository information successfully",
 			ExpectedError:   "",
 			RepositoryName:  "quality-dashboard",
-			GitOrganization: "redhat-appstudio",
+			GitOrganization: "konflux-ci",
 		},
 		{
 			Name:            "get github repository information unsuccessfully",
@@ -56,7 +56,7 @@ func TestGetRepositoryWorkflows(t *testing.T) {
 			Name:               "get repository workflows successfully",
 			ExpectedError:      "",
 			RepositoryName:     "quality-dashboard",
-			GitOrganization:    "redhat-appstudio",
+			GitOrganization:    "konflux-ci",
 			WorkflowTotalCount: 0,
 		},
 	}
