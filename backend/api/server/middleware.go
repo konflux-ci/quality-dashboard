@@ -1,6 +1,6 @@
 package server
 
-import "github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
+import "github.com/konflux-ci/quality-dashboard/pkg/utils/httputils"
 
 // handlerWithGlobalMiddlewares wraps the handler function for a request with
 // the server's global middlewares. The order of the middlewares is backwards,

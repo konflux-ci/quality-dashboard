@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/redhat-appstudio/quality-studio/api/types"
-	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
+	"github.com/konflux-ci/quality-dashboard/api/types"
+	"github.com/konflux-ci/quality-dashboard/pkg/utils/httputils"
 )
 
 func (d *databaseRouter) getDbConnection(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {

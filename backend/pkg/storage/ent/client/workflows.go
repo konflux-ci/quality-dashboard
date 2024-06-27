@@ -3,9 +3,9 @@ package client
 import (
 	"context"
 
-	repoV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/github/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/workflows"
+	repoV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/workflows"
 )
 
 // CreateWorkflows saves provided workflow information in database.

@@ -13,7 +13,7 @@ spec:
     - name: revision
       value: "{{revision}}"
     - name: output-image
-      value: "quay.io/redhat-appstudio/pull-request-builds:quality-dashboard-frontend-{{revision}}"
+      value: "quay.io/konflux-ci/pull-request-builds:quality-dashboard-frontend-{{revision}}"
     - name: path-context
       value: "frontend"
   pipelineRef:

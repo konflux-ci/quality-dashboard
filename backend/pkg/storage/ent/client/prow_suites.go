@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"entgo.io/ent/dialect/sql"
-	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowsuites"
+	prowV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/prow/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowsuites"
 )
 
 func (d *Database) CreateProwJobSuites(suites prowV1Alpha1.JobSuites, repo_id string) error {

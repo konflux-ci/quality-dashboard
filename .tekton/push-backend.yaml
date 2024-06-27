@@ -13,7 +13,7 @@ spec:
     - name: revision
       value: "{{revision}}"
     - name: output-image
-      value: "quay.io/redhat-appstudio/quality-dashboard-backend:{{revision}}"
+      value: "quay.io/konflux-ci/quality-dashboard-backend:{{revision}}"
     - name: path-context
       value: "backend"
   pipelineRef:

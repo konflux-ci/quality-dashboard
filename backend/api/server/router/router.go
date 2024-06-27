@@ -3,7 +3,7 @@ package router
 import (
 	"net/http"
 
-	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
+	"github.com/konflux-ci/quality-dashboard/pkg/utils/httputils"
 )
 
 // Router defines an interface to specify a group of routes to add to the server.

@@ -9,15 +9,15 @@ import (
 	"regexp"
 	"strings"
 
-	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
+	prowV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/prow/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/prow"
 
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
 	"go.uber.org/zap"
 )
 
 const (
-	RedHatAppStudioOrg = "redhat-appstudio"
+	RedHatAppStudioOrg = "konflux-ci"
 	ProwEndpoint       = "https://prow.ci.openshift.org/prowjobs.js"
 )
 
@@ -266,7 +266,7 @@ func (s *Server) ErrorsUpdateInProwJobs() {
 				prNumber := getPRNumber(pj.JobURL)
 
 				if prNumber != "" {
-					suites, _ = s.cfg.GCS.GetJobJunitContent("redhat-appstudio", "infra-deployments", prNumber,
+					suites, _ = s.cfg.GCS.GetJobJunitContent("konflux-ci", "infra-deployments", prNumber,
 						pj.JobID, pj.JobType, pj.JobName, JunitRegexpSearch)
 				} else {
 					s.cfg.Logger.Sugar().Debug("Failed to get pr number from ", pj.JobURL)

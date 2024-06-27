@@ -2,7 +2,7 @@
 
 Quality Dashboard Frontend is based on Patternfly Seed (an open source build scaffolding utility for web apps). 
 
-<img width="1058" alt="Out of box dashboard view of patternfly seed" src="https://raw.githubusercontent.com/redhat-appstudio/quality-dashboard/main/.github/images/frontend-screenshot.png">
+<img width="1058" alt="Out of box dashboard view of patternfly seed" src="https://raw.githubusercontent.com/konflux-ci/quality-dashboard/main/.github/images/frontend-screenshot.png">
 
 ## Quick-start
 
@@ -14,7 +14,7 @@ In case you are running on a macOS, it is recommended to have Python 3.11+ insta
 
 
 ```bash
-git clone git@github.com:redhat-appstudio/quality-dashboard.git
+git clone git@github.com:konflux-ci/quality-dashboard.git
 cd quality-dashboard/frontend
 yarn install && yarn run start:dev
 ```

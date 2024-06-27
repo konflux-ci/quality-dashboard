@@ -1,7 +1,7 @@
 package server
 
 import (
-	failureV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/failure/v1alpha1"
+	failureV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/failure/v1alpha1"
 )
 
 func (s *Server) UpdateFailuresByTeam() {

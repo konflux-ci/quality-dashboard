@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/predicate"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/pullrequests"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/pullrequests"
 )
 
 // PullRequestsDelete is the builder for deleting a PullRequests entity.

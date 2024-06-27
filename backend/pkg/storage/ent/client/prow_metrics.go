@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/prowjobs"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	prowV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/prow/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/prow"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
 )
 
 func (d *Database) ObtainProwMetricsByJob(gitOrganization string, repositoryName string, jobName string, startDate string, endDate string) (*prowV1Alpha1.JobsMetrics, error) {

@@ -3,9 +3,9 @@ package client
 import (
 	"context"
 
-	coverageV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/codecov/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/codecov"
-	"github.com/redhat-appstudio/quality-studio/pkg/storage/ent/db/repository"
+	coverageV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/codecov/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/codecov"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
 )
 
 // CreateCoverage saves provided coverage information in database.

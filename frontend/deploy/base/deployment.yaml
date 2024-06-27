@@ -71,4 +71,4 @@ spec:
               containerPort: 8080
               protocol: TCP
           imagePullPolicy: Always
-          image: quay.io/redhat-appstudio/quality-dashboard-frontend:latest
+          image: quay.io/konflux-ci/quality-dashboard-frontend:latest
