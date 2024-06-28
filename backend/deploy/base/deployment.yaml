@@ -99,6 +99,3 @@ spec:
               protocol: TCP
           imagePullPolicy: Always
           image: quay.io/konflux-ci/quality-dashboard-backend:latest
-      securityContext:
-        runAsNonRoot: true
-        readOnlyRootFilesystem: true
