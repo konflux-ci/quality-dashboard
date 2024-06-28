@@ -6,6 +6,7 @@ import (
 	"github.com/andygrunwald/go-jira"
 	"github.com/google/uuid"
 	coverageV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/codecov/v1alpha1"
+	configurationV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/configuration/v1alpha1"
 	failureV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/failure/v1alpha1"
 	repoV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
 	jiraV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/jira/v1alpha1"
@@ -81,7 +82,9 @@ type Storage interface {
 	GetAllProwJobs(startDate, endDate string) ([]*db.ProwJobs, error)
 	ListFailedProwJobsByRepository(repo *db.Repository) ([]*db.ProwJobs, error)
 	CreateUser(u userV1Alpha1.User) error
-	GetOpenBugsAffectingCI(t *db.Teams) ([]*db.Bugs, error)
+	GetOpenBugsAffectingCI(t *db.Teams, startDate, endDate string) ([]*db.Bugs, error)
+	CreateConfiguration(c configurationV1Alpha1.Configuration) error
+	GetConfiguration(teamName string) (*db.Configuration, error)
 
 	// Delete
 	DeleteRepository(repositoryName, gitOrganizationName string) error
@@ -89,6 +92,7 @@ type Storage interface {
 	DeleteJiraBugsByProject(projectKey string, team *db.Teams) error
 	DeleteJiraBugByJiraKey(jiraKey string) error
 	DeleteFailure(teamID, failureID uuid.UUID) error
+	DeleteAllJiraBugByTeam(teamName string) error
 }
 
 type RepositoryQualityInfo struct {

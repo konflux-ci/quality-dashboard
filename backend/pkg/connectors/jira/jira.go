@@ -13,6 +13,7 @@ type Jira interface {
 	GetIssueByJQLQuery(JQLQuery string) []jira.Issue
 	GetBugsByJQLQuery(JQLQuery string) []jira.Issue
 	GetJiraProjects() (list *jira.ProjectList, err error)
+	IsJQLQueryValid(jqlQuery string) error
 }
 
 func NewJiraConfig() Jira {

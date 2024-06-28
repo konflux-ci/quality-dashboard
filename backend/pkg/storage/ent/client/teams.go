@@ -33,13 +33,13 @@ func (d *Database) GetAllTeamsFromDB() ([]*db.Teams, error) {
 }
 
 func (d *Database) GetTeamByName(teamName string) (*db.Teams, error) {
-	teams, err := d.client.Teams.Query().Where(teams.TeamName(teamName)).First(context.Background())
+	team, err := d.client.Teams.Query().Where(teams.TeamName(teamName)).First(context.Background())
 
 	if err != nil {
 		return nil, convertDBError("failed to return teams status: %w", err)
 	}
 
-	return teams, nil
+	return team, nil
 }
 
 func (d *Database) DeleteTeam(teamName string) (bool, error) {

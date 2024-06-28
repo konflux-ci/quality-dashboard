@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -9,7 +10,9 @@ import (
 
 	"github.com/andygrunwald/go-jira"
 	coverageV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/codecov/v1alpha1"
+	configurationV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/configuration/v1alpha1"
 	repoV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
 	"go.uber.org/zap"
 )
@@ -57,6 +60,32 @@ func (s *Server) rotate() error {
 		if team.JiraKeys == "" {
 			continue
 		}
+
+		// temporary until previous teams has config defined
+		_, err := s.cfg.Storage.GetConfiguration(team.TeamName)
+		if err != nil && err == storage.ErrNotFound {
+			query := fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys)
+			jiraCfg := configurationV1Alpha1.JiraConfig{
+				BugsCollectQuery: query,
+				CiImpactQuery:    query + " AND labels=ci-fail",
+			}
+			b, err := json.Marshal(jiraCfg)
+			if err != nil {
+				return err
+			}
+
+			config := configurationV1Alpha1.Configuration{
+				TeamName:      team.TeamName,
+				JiraConfig:    string(b),
+				BugSLOsConfig: "",
+			}
+
+			err = s.cfg.Storage.CreateConfiguration(config)
+			if err != nil {
+				return err
+			}
+		}
+
 		s.cfg.Logger.Info(fmt.Sprintf("starting to rotate jira bugs for team %s", team.TeamName))
 		if err := s.rotateJiraBugs(team.JiraKeys, team); err != nil {
 			return err
@@ -89,15 +118,35 @@ func shouldBeDeleted(jiraKey string, bugs []jira.Issue) bool {
 	return true
 }
 
+func remove(l []string, item string) []string {
+	for i, other := range l {
+		if other == item {
+			return append(l[:i], l[i+1:]...)
+		}
+	}
+
+	return l
+}
+
 func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
-	bugs := s.cfg.Jira.GetBugsByJQLQuery(fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys))
+	cfg, err := s.cfg.Storage.GetConfiguration(team.TeamName)
+	if err != nil {
+		return err
+	}
+
+	jiraCfg := configurationV1Alpha1.JiraConfig{}
+	err = json.Unmarshal([]byte(cfg.JiraConfig), &jiraCfg)
+	if err != nil {
+		return err
+	}
+
+	bugs := s.cfg.Jira.GetBugsByJQLQuery(jiraCfg.BugsCollectQuery)
 	if err := s.cfg.Storage.CreateJiraBug(bugs, team); err != nil {
 		return err
 	}
 
 	projects := strings.Split(team.JiraKeys, ",")
 	bugsInDb := make([]*db.Bugs, 0)
-
 	for _, project := range projects {
 		bgs, err := s.cfg.Storage.GetAllJiraBugsByProject(project)
 		if err != nil {
@@ -113,9 +162,25 @@ func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
 			if err := s.cfg.Storage.DeleteJiraBugByJiraKey(bugInDb.JiraKey); err != nil {
 				return err
 			}
+
+			// also clean in CI Impact bugs
+			jiraCfg.CiImpactBugs = remove(jiraCfg.CiImpactBugs, bugInDb.JiraKey)
 		}
 	}
-	return nil
+
+	// update config
+	jiraCfgUpdated, err := json.Marshal(jiraCfg)
+	if err != nil {
+		return err
+	}
+
+	config := configurationV1Alpha1.Configuration{
+		TeamName:      cfg.TeamName,
+		JiraConfig:    string(jiraCfgUpdated),
+		BugSLOsConfig: cfg.JiraConfig,
+	}
+
+	return s.cfg.Storage.CreateConfiguration(config)
 }
 
 func (s *Server) UpdateDataBaseRepoByTeam() error {

@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/bugs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/codecov"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/failure"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
@@ -35,16 +36,17 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeBugs         = "Bugs"
-	TypeCodeCov      = "CodeCov"
-	TypeFailure      = "Failure"
-	TypeProwJobs     = "ProwJobs"
-	TypeProwSuites   = "ProwSuites"
-	TypePullRequests = "PullRequests"
-	TypeRepository   = "Repository"
-	TypeTeams        = "Teams"
-	TypeUsers        = "Users"
-	TypeWorkflows    = "Workflows"
+	TypeBugs          = "Bugs"
+	TypeCodeCov       = "CodeCov"
+	TypeConfiguration = "Configuration"
+	TypeFailure       = "Failure"
+	TypeProwJobs      = "ProwJobs"
+	TypeProwSuites    = "ProwSuites"
+	TypePullRequests  = "PullRequests"
+	TypeRepository    = "Repository"
+	TypeTeams         = "Teams"
+	TypeUsers         = "Users"
+	TypeWorkflows     = "Workflows"
 )
 
 // BugsMutation represents an operation that mutates the Bugs nodes in the graph.
@@ -2809,6 +2811,513 @@ func (m *CodeCovMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown CodeCov edge %s", name)
+}
+
+// ConfigurationMutation represents an operation that mutates the Configuration nodes in the graph.
+type ConfigurationMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	team_name            *string
+	jira_config          *string
+	bug_slos_config      *string
+	clearedFields        map[string]struct{}
+	configuration        *uuid.UUID
+	clearedconfiguration bool
+	done                 bool
+	oldValue             func(context.Context) (*Configuration, error)
+	predicates           []predicate.Configuration
+}
+
+var _ ent.Mutation = (*ConfigurationMutation)(nil)
+
+// configurationOption allows management of the mutation configuration using functional options.
+type configurationOption func(*ConfigurationMutation)
+
+// newConfigurationMutation creates new mutation for the Configuration entity.
+func newConfigurationMutation(c config, op Op, opts ...configurationOption) *ConfigurationMutation {
+	m := &ConfigurationMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeConfiguration,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withConfigurationID sets the ID field of the mutation.
+func withConfigurationID(id uuid.UUID) configurationOption {
+	return func(m *ConfigurationMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Configuration
+		)
+		m.oldValue = func(ctx context.Context) (*Configuration, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Configuration.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withConfiguration sets the old Configuration of the mutation.
+func withConfiguration(node *Configuration) configurationOption {
+	return func(m *ConfigurationMutation) {
+		m.oldValue = func(context.Context) (*Configuration, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ConfigurationMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ConfigurationMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Configuration entities.
+func (m *ConfigurationMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ConfigurationMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ConfigurationMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Configuration.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTeamName sets the "team_name" field.
+func (m *ConfigurationMutation) SetTeamName(s string) {
+	m.team_name = &s
+}
+
+// TeamName returns the value of the "team_name" field in the mutation.
+func (m *ConfigurationMutation) TeamName() (r string, exists bool) {
+	v := m.team_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTeamName returns the old "team_name" field's value of the Configuration entity.
+// If the Configuration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConfigurationMutation) OldTeamName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTeamName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTeamName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTeamName: %w", err)
+	}
+	return oldValue.TeamName, nil
+}
+
+// ResetTeamName resets all changes to the "team_name" field.
+func (m *ConfigurationMutation) ResetTeamName() {
+	m.team_name = nil
+}
+
+// SetJiraConfig sets the "jira_config" field.
+func (m *ConfigurationMutation) SetJiraConfig(s string) {
+	m.jira_config = &s
+}
+
+// JiraConfig returns the value of the "jira_config" field in the mutation.
+func (m *ConfigurationMutation) JiraConfig() (r string, exists bool) {
+	v := m.jira_config
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJiraConfig returns the old "jira_config" field's value of the Configuration entity.
+// If the Configuration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConfigurationMutation) OldJiraConfig(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldJiraConfig is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldJiraConfig requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJiraConfig: %w", err)
+	}
+	return oldValue.JiraConfig, nil
+}
+
+// ResetJiraConfig resets all changes to the "jira_config" field.
+func (m *ConfigurationMutation) ResetJiraConfig() {
+	m.jira_config = nil
+}
+
+// SetBugSlosConfig sets the "bug_slos_config" field.
+func (m *ConfigurationMutation) SetBugSlosConfig(s string) {
+	m.bug_slos_config = &s
+}
+
+// BugSlosConfig returns the value of the "bug_slos_config" field in the mutation.
+func (m *ConfigurationMutation) BugSlosConfig() (r string, exists bool) {
+	v := m.bug_slos_config
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBugSlosConfig returns the old "bug_slos_config" field's value of the Configuration entity.
+// If the Configuration object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ConfigurationMutation) OldBugSlosConfig(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBugSlosConfig is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBugSlosConfig requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBugSlosConfig: %w", err)
+	}
+	return oldValue.BugSlosConfig, nil
+}
+
+// ResetBugSlosConfig resets all changes to the "bug_slos_config" field.
+func (m *ConfigurationMutation) ResetBugSlosConfig() {
+	m.bug_slos_config = nil
+}
+
+// SetConfigurationID sets the "configuration" edge to the Teams entity by id.
+func (m *ConfigurationMutation) SetConfigurationID(id uuid.UUID) {
+	m.configuration = &id
+}
+
+// ClearConfiguration clears the "configuration" edge to the Teams entity.
+func (m *ConfigurationMutation) ClearConfiguration() {
+	m.clearedconfiguration = true
+}
+
+// ConfigurationCleared reports if the "configuration" edge to the Teams entity was cleared.
+func (m *ConfigurationMutation) ConfigurationCleared() bool {
+	return m.clearedconfiguration
+}
+
+// ConfigurationID returns the "configuration" edge ID in the mutation.
+func (m *ConfigurationMutation) ConfigurationID() (id uuid.UUID, exists bool) {
+	if m.configuration != nil {
+		return *m.configuration, true
+	}
+	return
+}
+
+// ConfigurationIDs returns the "configuration" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ConfigurationID instead. It exists only for internal usage by the builders.
+func (m *ConfigurationMutation) ConfigurationIDs() (ids []uuid.UUID) {
+	if id := m.configuration; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetConfiguration resets all changes to the "configuration" edge.
+func (m *ConfigurationMutation) ResetConfiguration() {
+	m.configuration = nil
+	m.clearedconfiguration = false
+}
+
+// Where appends a list predicates to the ConfigurationMutation builder.
+func (m *ConfigurationMutation) Where(ps ...predicate.Configuration) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ConfigurationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ConfigurationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Configuration, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ConfigurationMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ConfigurationMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Configuration).
+func (m *ConfigurationMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ConfigurationMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.team_name != nil {
+		fields = append(fields, configuration.FieldTeamName)
+	}
+	if m.jira_config != nil {
+		fields = append(fields, configuration.FieldJiraConfig)
+	}
+	if m.bug_slos_config != nil {
+		fields = append(fields, configuration.FieldBugSlosConfig)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ConfigurationMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case configuration.FieldTeamName:
+		return m.TeamName()
+	case configuration.FieldJiraConfig:
+		return m.JiraConfig()
+	case configuration.FieldBugSlosConfig:
+		return m.BugSlosConfig()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ConfigurationMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case configuration.FieldTeamName:
+		return m.OldTeamName(ctx)
+	case configuration.FieldJiraConfig:
+		return m.OldJiraConfig(ctx)
+	case configuration.FieldBugSlosConfig:
+		return m.OldBugSlosConfig(ctx)
+	}
+	return nil, fmt.Errorf("unknown Configuration field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ConfigurationMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case configuration.FieldTeamName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTeamName(v)
+		return nil
+	case configuration.FieldJiraConfig:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJiraConfig(v)
+		return nil
+	case configuration.FieldBugSlosConfig:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBugSlosConfig(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Configuration field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ConfigurationMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ConfigurationMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ConfigurationMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Configuration numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ConfigurationMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ConfigurationMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ConfigurationMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Configuration nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ConfigurationMutation) ResetField(name string) error {
+	switch name {
+	case configuration.FieldTeamName:
+		m.ResetTeamName()
+		return nil
+	case configuration.FieldJiraConfig:
+		m.ResetJiraConfig()
+		return nil
+	case configuration.FieldBugSlosConfig:
+		m.ResetBugSlosConfig()
+		return nil
+	}
+	return fmt.Errorf("unknown Configuration field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ConfigurationMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.configuration != nil {
+		edges = append(edges, configuration.EdgeConfiguration)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ConfigurationMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case configuration.EdgeConfiguration:
+		if id := m.configuration; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ConfigurationMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ConfigurationMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ConfigurationMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedconfiguration {
+		edges = append(edges, configuration.EdgeConfiguration)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ConfigurationMutation) EdgeCleared(name string) bool {
+	switch name {
+	case configuration.EdgeConfiguration:
+		return m.clearedconfiguration
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ConfigurationMutation) ClearEdge(name string) error {
+	switch name {
+	case configuration.EdgeConfiguration:
+		m.ClearConfiguration()
+		return nil
+	}
+	return fmt.Errorf("unknown Configuration unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ConfigurationMutation) ResetEdge(name string) error {
+	switch name {
+	case configuration.EdgeConfiguration:
+		m.ResetConfiguration()
+		return nil
+	}
+	return fmt.Errorf("unknown Configuration edge %s", name)
 }
 
 // FailureMutation represents an operation that mutates the Failure nodes in the graph.
@@ -8230,25 +8739,28 @@ func (m *RepositoryMutation) ResetEdge(name string) error {
 // TeamsMutation represents an operation that mutates the Teams nodes in the graph.
 type TeamsMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *uuid.UUID
-	team_name           *string
-	description         *string
-	jira_keys           *string
-	clearedFields       map[string]struct{}
-	repositories        map[string]struct{}
-	removedrepositories map[string]struct{}
-	clearedrepositories bool
-	bugs                map[uuid.UUID]struct{}
-	removedbugs         map[uuid.UUID]struct{}
-	clearedbugs         bool
-	failures            map[uuid.UUID]struct{}
-	removedfailures     map[uuid.UUID]struct{}
-	clearedfailures     bool
-	done                bool
-	oldValue            func(context.Context) (*Teams, error)
-	predicates          []predicate.Teams
+	op                   Op
+	typ                  string
+	id                   *uuid.UUID
+	team_name            *string
+	description          *string
+	jira_keys            *string
+	clearedFields        map[string]struct{}
+	repositories         map[string]struct{}
+	removedrepositories  map[string]struct{}
+	clearedrepositories  bool
+	bugs                 map[uuid.UUID]struct{}
+	removedbugs          map[uuid.UUID]struct{}
+	clearedbugs          bool
+	failures             map[uuid.UUID]struct{}
+	removedfailures      map[uuid.UUID]struct{}
+	clearedfailures      bool
+	configuration        map[uuid.UUID]struct{}
+	removedconfiguration map[uuid.UUID]struct{}
+	clearedconfiguration bool
+	done                 bool
+	oldValue             func(context.Context) (*Teams, error)
+	predicates           []predicate.Teams
 }
 
 var _ ent.Mutation = (*TeamsMutation)(nil)
@@ -8625,6 +9137,60 @@ func (m *TeamsMutation) ResetFailures() {
 	m.removedfailures = nil
 }
 
+// AddConfigurationIDs adds the "configuration" edge to the Configuration entity by ids.
+func (m *TeamsMutation) AddConfigurationIDs(ids ...uuid.UUID) {
+	if m.configuration == nil {
+		m.configuration = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.configuration[ids[i]] = struct{}{}
+	}
+}
+
+// ClearConfiguration clears the "configuration" edge to the Configuration entity.
+func (m *TeamsMutation) ClearConfiguration() {
+	m.clearedconfiguration = true
+}
+
+// ConfigurationCleared reports if the "configuration" edge to the Configuration entity was cleared.
+func (m *TeamsMutation) ConfigurationCleared() bool {
+	return m.clearedconfiguration
+}
+
+// RemoveConfigurationIDs removes the "configuration" edge to the Configuration entity by IDs.
+func (m *TeamsMutation) RemoveConfigurationIDs(ids ...uuid.UUID) {
+	if m.removedconfiguration == nil {
+		m.removedconfiguration = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.configuration, ids[i])
+		m.removedconfiguration[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedConfiguration returns the removed IDs of the "configuration" edge to the Configuration entity.
+func (m *TeamsMutation) RemovedConfigurationIDs() (ids []uuid.UUID) {
+	for id := range m.removedconfiguration {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ConfigurationIDs returns the "configuration" edge IDs in the mutation.
+func (m *TeamsMutation) ConfigurationIDs() (ids []uuid.UUID) {
+	for id := range m.configuration {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetConfiguration resets all changes to the "configuration" edge.
+func (m *TeamsMutation) ResetConfiguration() {
+	m.configuration = nil
+	m.clearedconfiguration = false
+	m.removedconfiguration = nil
+}
+
 // Where appends a list predicates to the TeamsMutation builder.
 func (m *TeamsMutation) Where(ps ...predicate.Teams) {
 	m.predicates = append(m.predicates, ps...)
@@ -8792,7 +9358,7 @@ func (m *TeamsMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *TeamsMutation) AddedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.repositories != nil {
 		edges = append(edges, teams.EdgeRepositories)
 	}
@@ -8801,6 +9367,9 @@ func (m *TeamsMutation) AddedEdges() []string {
 	}
 	if m.failures != nil {
 		edges = append(edges, teams.EdgeFailures)
+	}
+	if m.configuration != nil {
+		edges = append(edges, teams.EdgeConfiguration)
 	}
 	return edges
 }
@@ -8827,13 +9396,19 @@ func (m *TeamsMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case teams.EdgeConfiguration:
+		ids := make([]ent.Value, 0, len(m.configuration))
+		for id := range m.configuration {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *TeamsMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.removedrepositories != nil {
 		edges = append(edges, teams.EdgeRepositories)
 	}
@@ -8842,6 +9417,9 @@ func (m *TeamsMutation) RemovedEdges() []string {
 	}
 	if m.removedfailures != nil {
 		edges = append(edges, teams.EdgeFailures)
+	}
+	if m.removedconfiguration != nil {
+		edges = append(edges, teams.EdgeConfiguration)
 	}
 	return edges
 }
@@ -8868,13 +9446,19 @@ func (m *TeamsMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case teams.EdgeConfiguration:
+		ids := make([]ent.Value, 0, len(m.removedconfiguration))
+		for id := range m.removedconfiguration {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *TeamsMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 3)
+	edges := make([]string, 0, 4)
 	if m.clearedrepositories {
 		edges = append(edges, teams.EdgeRepositories)
 	}
@@ -8883,6 +9467,9 @@ func (m *TeamsMutation) ClearedEdges() []string {
 	}
 	if m.clearedfailures {
 		edges = append(edges, teams.EdgeFailures)
+	}
+	if m.clearedconfiguration {
+		edges = append(edges, teams.EdgeConfiguration)
 	}
 	return edges
 }
@@ -8897,6 +9484,8 @@ func (m *TeamsMutation) EdgeCleared(name string) bool {
 		return m.clearedbugs
 	case teams.EdgeFailures:
 		return m.clearedfailures
+	case teams.EdgeConfiguration:
+		return m.clearedconfiguration
 	}
 	return false
 }
@@ -8921,6 +9510,9 @@ func (m *TeamsMutation) ResetEdge(name string) error {
 		return nil
 	case teams.EdgeFailures:
 		m.ResetFailures()
+		return nil
+	case teams.EdgeConfiguration:
+		m.ResetConfiguration()
 		return nil
 	}
 	return fmt.Errorf("unknown Teams edge %s", name)

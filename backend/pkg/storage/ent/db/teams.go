@@ -35,9 +35,11 @@ type TeamsEdges struct {
 	Bugs []*Bugs `json:"bugs,omitempty"`
 	// Failures holds the value of the failures edge.
 	Failures []*Failure `json:"failures,omitempty"`
+	// Configuration holds the value of the configuration edge.
+	Configuration []*Configuration `json:"configuration,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // RepositoriesOrErr returns the Repositories value or an error if the edge
@@ -65,6 +67,15 @@ func (e TeamsEdges) FailuresOrErr() ([]*Failure, error) {
 		return e.Failures, nil
 	}
 	return nil, &NotLoadedError{edge: "failures"}
+}
+
+// ConfigurationOrErr returns the Configuration value or an error if the edge
+// was not loaded in eager-loading.
+func (e TeamsEdges) ConfigurationOrErr() ([]*Configuration, error) {
+	if e.loadedTypes[3] {
+		return e.Configuration, nil
+	}
+	return nil, &NotLoadedError{edge: "configuration"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -133,6 +144,11 @@ func (t *Teams) QueryBugs() *BugsQuery {
 // QueryFailures queries the "failures" edge of the Teams entity.
 func (t *Teams) QueryFailures() *FailureQuery {
 	return NewTeamsClient(t.config).QueryFailures(t)
+}
+
+// QueryConfiguration queries the "configuration" edge of the Teams entity.
+func (t *Teams) QueryConfiguration() *ConfigurationQuery {
+	return NewTeamsClient(t.config).QueryConfiguration(t)
 }
 
 // Update returns a builder for updating this Teams.

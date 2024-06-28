@@ -14,6 +14,7 @@ import (
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/bugs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/codecov"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/failure"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowsuites"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/pullrequests"
@@ -36,6 +37,8 @@ type Client struct {
 	Bugs *BugsClient
 	// CodeCov is the client for interacting with the CodeCov builders.
 	CodeCov *CodeCovClient
+	// Configuration is the client for interacting with the Configuration builders.
+	Configuration *ConfigurationClient
 	// Failure is the client for interacting with the Failure builders.
 	Failure *FailureClient
 	// ProwJobs is the client for interacting with the ProwJobs builders.
@@ -67,6 +70,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Bugs = NewBugsClient(c.config)
 	c.CodeCov = NewCodeCovClient(c.config)
+	c.Configuration = NewConfigurationClient(c.config)
 	c.Failure = NewFailureClient(c.config)
 	c.ProwJobs = NewProwJobsClient(c.config)
 	c.ProwSuites = NewProwSuitesClient(c.config)
@@ -106,18 +110,19 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		Bugs:         NewBugsClient(cfg),
-		CodeCov:      NewCodeCovClient(cfg),
-		Failure:      NewFailureClient(cfg),
-		ProwJobs:     NewProwJobsClient(cfg),
-		ProwSuites:   NewProwSuitesClient(cfg),
-		PullRequests: NewPullRequestsClient(cfg),
-		Repository:   NewRepositoryClient(cfg),
-		Teams:        NewTeamsClient(cfg),
-		Users:        NewUsersClient(cfg),
-		Workflows:    NewWorkflowsClient(cfg),
+		ctx:           ctx,
+		config:        cfg,
+		Bugs:          NewBugsClient(cfg),
+		CodeCov:       NewCodeCovClient(cfg),
+		Configuration: NewConfigurationClient(cfg),
+		Failure:       NewFailureClient(cfg),
+		ProwJobs:      NewProwJobsClient(cfg),
+		ProwSuites:    NewProwSuitesClient(cfg),
+		PullRequests:  NewPullRequestsClient(cfg),
+		Repository:    NewRepositoryClient(cfg),
+		Teams:         NewTeamsClient(cfg),
+		Users:         NewUsersClient(cfg),
+		Workflows:     NewWorkflowsClient(cfg),
 	}, nil
 }
 
@@ -135,18 +140,19 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		Bugs:         NewBugsClient(cfg),
-		CodeCov:      NewCodeCovClient(cfg),
-		Failure:      NewFailureClient(cfg),
-		ProwJobs:     NewProwJobsClient(cfg),
-		ProwSuites:   NewProwSuitesClient(cfg),
-		PullRequests: NewPullRequestsClient(cfg),
-		Repository:   NewRepositoryClient(cfg),
-		Teams:        NewTeamsClient(cfg),
-		Users:        NewUsersClient(cfg),
-		Workflows:    NewWorkflowsClient(cfg),
+		ctx:           ctx,
+		config:        cfg,
+		Bugs:          NewBugsClient(cfg),
+		CodeCov:       NewCodeCovClient(cfg),
+		Configuration: NewConfigurationClient(cfg),
+		Failure:       NewFailureClient(cfg),
+		ProwJobs:      NewProwJobsClient(cfg),
+		ProwSuites:    NewProwSuitesClient(cfg),
+		PullRequests:  NewPullRequestsClient(cfg),
+		Repository:    NewRepositoryClient(cfg),
+		Teams:         NewTeamsClient(cfg),
+		Users:         NewUsersClient(cfg),
+		Workflows:     NewWorkflowsClient(cfg),
 	}, nil
 }
 
@@ -177,6 +183,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	c.Bugs.Use(hooks...)
 	c.CodeCov.Use(hooks...)
+	c.Configuration.Use(hooks...)
 	c.Failure.Use(hooks...)
 	c.ProwJobs.Use(hooks...)
 	c.ProwSuites.Use(hooks...)
@@ -192,6 +199,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Bugs.Intercept(interceptors...)
 	c.CodeCov.Intercept(interceptors...)
+	c.Configuration.Intercept(interceptors...)
 	c.Failure.Intercept(interceptors...)
 	c.ProwJobs.Intercept(interceptors...)
 	c.ProwSuites.Intercept(interceptors...)
@@ -209,6 +217,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Bugs.mutate(ctx, m)
 	case *CodeCovMutation:
 		return c.CodeCov.mutate(ctx, m)
+	case *ConfigurationMutation:
+		return c.Configuration.mutate(ctx, m)
 	case *FailureMutation:
 		return c.Failure.mutate(ctx, m)
 	case *ProwJobsMutation:
@@ -495,6 +505,140 @@ func (c *CodeCovClient) mutate(ctx context.Context, m *CodeCovMutation) (Value, 
 		return (&CodeCovDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("db: unknown CodeCov mutation op: %q", m.Op())
+	}
+}
+
+// ConfigurationClient is a client for the Configuration schema.
+type ConfigurationClient struct {
+	config
+}
+
+// NewConfigurationClient returns a client for the Configuration from the given config.
+func NewConfigurationClient(c config) *ConfigurationClient {
+	return &ConfigurationClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `configuration.Hooks(f(g(h())))`.
+func (c *ConfigurationClient) Use(hooks ...Hook) {
+	c.hooks.Configuration = append(c.hooks.Configuration, hooks...)
+}
+
+// Use adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `configuration.Intercept(f(g(h())))`.
+func (c *ConfigurationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Configuration = append(c.inters.Configuration, interceptors...)
+}
+
+// Create returns a builder for creating a Configuration entity.
+func (c *ConfigurationClient) Create() *ConfigurationCreate {
+	mutation := newConfigurationMutation(c.config, OpCreate)
+	return &ConfigurationCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Configuration entities.
+func (c *ConfigurationClient) CreateBulk(builders ...*ConfigurationCreate) *ConfigurationCreateBulk {
+	return &ConfigurationCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Configuration.
+func (c *ConfigurationClient) Update() *ConfigurationUpdate {
+	mutation := newConfigurationMutation(c.config, OpUpdate)
+	return &ConfigurationUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ConfigurationClient) UpdateOne(co *Configuration) *ConfigurationUpdateOne {
+	mutation := newConfigurationMutation(c.config, OpUpdateOne, withConfiguration(co))
+	return &ConfigurationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ConfigurationClient) UpdateOneID(id uuid.UUID) *ConfigurationUpdateOne {
+	mutation := newConfigurationMutation(c.config, OpUpdateOne, withConfigurationID(id))
+	return &ConfigurationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Configuration.
+func (c *ConfigurationClient) Delete() *ConfigurationDelete {
+	mutation := newConfigurationMutation(c.config, OpDelete)
+	return &ConfigurationDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ConfigurationClient) DeleteOne(co *Configuration) *ConfigurationDeleteOne {
+	return c.DeleteOneID(co.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ConfigurationClient) DeleteOneID(id uuid.UUID) *ConfigurationDeleteOne {
+	builder := c.Delete().Where(configuration.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ConfigurationDeleteOne{builder}
+}
+
+// Query returns a query builder for Configuration.
+func (c *ConfigurationClient) Query() *ConfigurationQuery {
+	return &ConfigurationQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeConfiguration},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Configuration entity by its id.
+func (c *ConfigurationClient) Get(ctx context.Context, id uuid.UUID) (*Configuration, error) {
+	return c.Query().Where(configuration.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ConfigurationClient) GetX(ctx context.Context, id uuid.UUID) *Configuration {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryConfiguration queries the configuration edge of a Configuration.
+func (c *ConfigurationClient) QueryConfiguration(co *Configuration) *TeamsQuery {
+	query := (&TeamsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := co.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(configuration.Table, configuration.FieldID, id),
+			sqlgraph.To(teams.Table, teams.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, configuration.ConfigurationTable, configuration.ConfigurationColumn),
+		)
+		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ConfigurationClient) Hooks() []Hook {
+	return c.hooks.Configuration
+}
+
+// Interceptors returns the client interceptors.
+func (c *ConfigurationClient) Interceptors() []Interceptor {
+	return c.inters.Configuration
+}
+
+func (c *ConfigurationClient) mutate(ctx context.Context, m *ConfigurationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ConfigurationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ConfigurationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ConfigurationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ConfigurationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Configuration mutation op: %q", m.Op())
 	}
 }
 
@@ -1382,6 +1526,22 @@ func (c *TeamsClient) QueryFailures(t *Teams) *FailureQuery {
 			sqlgraph.From(teams.Table, teams.FieldID, id),
 			sqlgraph.To(failure.Table, failure.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, teams.FailuresTable, teams.FailuresColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryConfiguration queries the configuration edge of a Teams.
+func (c *TeamsClient) QueryConfiguration(t *Teams) *ConfigurationQuery {
+	query := (&ConfigurationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(teams.Table, teams.FieldID, id),
+			sqlgraph.To(configuration.Table, configuration.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, teams.ConfigurationTable, teams.ConfigurationColumn),
 		)
 		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
 		return fromV, nil

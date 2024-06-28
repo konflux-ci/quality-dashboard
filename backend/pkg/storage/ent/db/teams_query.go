@@ -17,18 +17,21 @@ import (
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/teams"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
+
 )
 
 // TeamsQuery is the builder for querying Teams entities.
 type TeamsQuery struct {
 	config
-	ctx              *QueryContext
-	order            []OrderFunc
-	inters           []Interceptor
-	predicates       []predicate.Teams
-	withRepositories *RepositoryQuery
-	withBugs         *BugsQuery
-	withFailures     *FailureQuery
+	ctx               *QueryContext
+	order             []OrderFunc
+	inters            []Interceptor
+	predicates        []predicate.Teams
+	withRepositories  *RepositoryQuery
+	withBugs          *BugsQuery
+	withFailures      *FailureQuery
+	withConfiguration *ConfigurationQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -124,6 +127,28 @@ func (tq *TeamsQuery) QueryFailures() *FailureQuery {
 			sqlgraph.From(teams.Table, teams.FieldID, selector),
 			sqlgraph.To(failure.Table, failure.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, teams.FailuresTable, teams.FailuresColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryConfiguration chains the current query on the "configuration" edge.
+func (tq *TeamsQuery) QueryConfiguration() *ConfigurationQuery {
+	query := (&ConfigurationClient{config: tq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := tq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := tq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(teams.Table, teams.FieldID, selector),
+			sqlgraph.To(configuration.Table, configuration.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, teams.ConfigurationTable, teams.ConfigurationColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 		return fromU, nil
@@ -316,14 +341,15 @@ func (tq *TeamsQuery) Clone() *TeamsQuery {
 		return nil
 	}
 	return &TeamsQuery{
-		config:           tq.config,
-		ctx:              tq.ctx.Clone(),
-		order:            append([]OrderFunc{}, tq.order...),
-		inters:           append([]Interceptor{}, tq.inters...),
-		predicates:       append([]predicate.Teams{}, tq.predicates...),
-		withRepositories: tq.withRepositories.Clone(),
-		withBugs:         tq.withBugs.Clone(),
-		withFailures:     tq.withFailures.Clone(),
+		config:            tq.config,
+		ctx:               tq.ctx.Clone(),
+		order:             append([]OrderFunc{}, tq.order...),
+		inters:            append([]Interceptor{}, tq.inters...),
+		predicates:        append([]predicate.Teams{}, tq.predicates...),
+		withRepositories:  tq.withRepositories.Clone(),
+		withBugs:          tq.withBugs.Clone(),
+		withFailures:      tq.withFailures.Clone(),
+		withConfiguration: tq.withConfiguration.Clone(),
 		// clone intermediate query.
 		sql:  tq.sql.Clone(),
 		path: tq.path,
@@ -360,6 +386,17 @@ func (tq *TeamsQuery) WithFailures(opts ...func(*FailureQuery)) *TeamsQuery {
 		opt(query)
 	}
 	tq.withFailures = query
+	return tq
+}
+
+// WithConfiguration tells the query-builder to eager-load the nodes that are connected to
+// the "configuration" edge. The optional arguments are used to configure the query builder of the edge.
+func (tq *TeamsQuery) WithConfiguration(opts ...func(*ConfigurationQuery)) *TeamsQuery {
+	query := (&ConfigurationClient{config: tq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	tq.withConfiguration = query
 	return tq
 }
 
@@ -441,10 +478,11 @@ func (tq *TeamsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Teams,
 	var (
 		nodes       = []*Teams{}
 		_spec       = tq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [4]bool{
 			tq.withRepositories != nil,
 			tq.withBugs != nil,
 			tq.withFailures != nil,
+			tq.withConfiguration != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -483,6 +521,13 @@ func (tq *TeamsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Teams,
 		if err := tq.loadFailures(ctx, query, nodes,
 			func(n *Teams) { n.Edges.Failures = []*Failure{} },
 			func(n *Teams, e *Failure) { n.Edges.Failures = append(n.Edges.Failures, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := tq.withConfiguration; query != nil {
+		if err := tq.loadConfiguration(ctx, query, nodes,
+			func(n *Teams) { n.Edges.Configuration = []*Configuration{} },
+			func(n *Teams, e *Configuration) { n.Edges.Configuration = append(n.Edges.Configuration, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -577,6 +622,37 @@ func (tq *TeamsQuery) loadFailures(ctx context.Context, query *FailureQuery, nod
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "teams_failures" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (tq *TeamsQuery) loadConfiguration(ctx context.Context, query *ConfigurationQuery, nodes []*Teams, init func(*Teams), assign func(*Teams, *Configuration)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Teams)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.Configuration(func(s *sql.Selector) {
+		s.Where(sql.InValues(teams.ConfigurationColumn, fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.teams_configuration
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "teams_configuration" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "teams_configuration" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

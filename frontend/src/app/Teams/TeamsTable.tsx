@@ -12,9 +12,11 @@ import {
 import { ITeam } from './TeamsSelect';
 import { createUser, deleteInApi, updateTeam } from "@app/utils/APIService";
 import { ReactReduxContext, useSelector } from 'react-redux';
-import { Button, Form, FormGroup, Modal, ModalVariant, TextArea, TextInput } from "@patternfly/react-core";
-import { JiraProjects } from './TeamsOnboarding';
+import { Alert, AlertGroup, AlertVariant, Button, Form, FormGroup, Modal, ModalVariant, TextArea, TextInput } from "@patternfly/react-core";
+import { AlertInfo, JiraProjects } from './TeamsOnboarding';
 import { UserConfig } from "./User";
+import { generateJiraConfig } from "./Configuration";
+import { validate } from "@app/Jira/Jira";
 
 export const TeamsTable: React.FunctionComponent = () => {
     // In real usage, this data would come from some external source like an API via props.
@@ -31,6 +33,11 @@ export const TeamsTable: React.FunctionComponent = () => {
     const [newTeamName, setNewTeamName] = useState<string>("");
     const [newTeamDesc, setNewTeamDesc] = useState<string>("");
     const [jiraProjects, setJiraProjects] = useState<Array<string>>([])
+    const [bugsCollectQuery, setBugsCollectQuery] = useState<string>("");
+    const [ciImpactQuery, setCiImpactQuery] = useState<string>("");
+    const [isJqlQueryValid, setIsJqlQueryValid] = useState<validate>('success')
+    const [alerts, setAlerts] = React.useState<AlertInfo[]>([]);
+    const [isAlertModalOpen, setIsAlertModalOpen] = React.useState(false);
     const { store } = React.useContext(ReactReduxContext);
     const state = store.getState();
     const redux_dispatch = store.dispatch;
@@ -61,19 +68,23 @@ export const TeamsTable: React.FunctionComponent = () => {
     ];
 
     const onUpdateSubmit = async () => {
-        setIsPrimaryLoading(!isPrimaryLoading);
         if (toUpdateTeam != undefined) {
             try {
                 const data = {
                     team_name: newTeamName,
                     description: newTeamDesc,
                     target: toUpdateTeam.team_name,
-                    jira_keys: jiraProjects.join(",")
+                    jira_keys: jiraProjects.join(","),
+                    jira_config: generateJiraConfig(bugsCollectQuery, ciImpactQuery),
                 }
-                await updateTeam(data)
-                setIsPrimaryLoading(!isPrimaryLoading);
-                clear()
-                window.location.reload();
+                updateTeam(data)
+                clear();
+                setAlerts(prevAlertInfo => [...prevAlertInfo, {
+                    title: 'Your changes will be updated in the background. You will need to wait a few minutes until the update is finished.',
+                    variant: AlertVariant.info,
+                    key: "all-created"
+                }]);
+                setIsAlertModalOpen(!isAlertModalOpen);
             }
             catch (error) {
                 console.log(error)
@@ -122,22 +133,18 @@ export const TeamsTable: React.FunctionComponent = () => {
         setNewTeamDesc("")
     }
 
-    const onJiraProjectsSelected = (options: Array<string>) => {
+    const handleAlertModalToggle = () => {
+        setIsAlertModalOpen(!setIsAlertModalOpen);
+        window.location.reload();
+    };
+
+
+    const onJiraProjectsSelected = (options: Array<string>, bugsCollectQuery: string, ciImpactQuery: string, isJqlQueryValid: validate) => {
         setJiraProjects(options)
+        setBugsCollectQuery(bugsCollectQuery)
+        setCiImpactQuery(ciImpactQuery)
+        setIsJqlQueryValid(isJqlQueryValid)
     }
-
-    interface LoadingPropsType {
-        spinnerAriaValueText: string;
-        spinnerAriaLabelledBy?: string;
-        spinnerAriaLabel?: string;
-        isLoading: boolean;
-    }
-
-    const [isPrimaryLoading, setIsPrimaryLoading] = React.useState<boolean>(false);
-    const primaryLoadingProps = {} as LoadingPropsType;
-    primaryLoadingProps.spinnerAriaValueText = 'Loading';
-    primaryLoadingProps.spinnerAriaLabelledBy = 'primary-loading-button';
-    primaryLoadingProps.isLoading = isPrimaryLoading;
 
     return (
         <React.Fragment>
@@ -169,33 +176,58 @@ export const TeamsTable: React.FunctionComponent = () => {
                     })}
                 </Tbody>
             </TableComposable>
-            {isUpdateModalOpen && <Modal
-                variant={ModalVariant.medium}
-                title={"Update team " + toUpdateTeam?.team_name}
-                isOpen={isUpdateModalOpen}
-                onClose={clear}
-                actions={[
-                    <Button key="update" variant="primary" form="modal-with-form-form" onClick={onUpdateSubmit} {...primaryLoadingProps}>
-                        Update
-                    </Button>,
-                    <Button key="cancel" variant="link" onClick={clear}>
-                        Cancel
-                    </Button>
-                ]}
-            >
-                <Form>
-                    <FormGroup label="Team Name" isRequired fieldId="team-name" helperText="Update your team name">
-                        <TextInput value={newTeamName} type="text" onChange={(value) => { setNewTeamName(value) }} aria-label="text input example" placeholder="Update your team name" />
-                    </FormGroup>
-                    <FormGroup label="Description" isRequired fieldId='team-description' helperText="Update your team description">
-                        <TextArea value={newTeamDesc} type="text" onChange={(value) => { setNewTeamDesc(value) }} aria-label="text area example" placeholder="Update your team description" />
-                    </FormGroup>
-                    <FormGroup label="Jira Projects" fieldId='jira-projects' helperText="Update Jira Projects">
-                        <JiraProjects onChange={onJiraProjectsSelected} teamJiraKeys={toUpdateTeam?.jira_keys}></JiraProjects>
-                    </FormGroup>
-                </Form>
-            </Modal>
+            {isUpdateModalOpen &&
+                <Modal
+                    variant={ModalVariant.medium}
+                    title={"Update team " + toUpdateTeam?.team_name}
+                    isOpen={isUpdateModalOpen}
+                    onClose={clear}
+                    actions={[
+                        <Button key="update" variant="primary" form="modal-with-form-form" isDisabled={isJqlQueryValid == "error" || bugsCollectQuery == ""} onClick={onUpdateSubmit}>
+                            Update
+                        </Button>,
+                        <Button key="cancel" variant="link" onClick={clear}>
+                            Cancel
+                        </Button>
+                    ]}
+                >
+                    <Form>
+                        <FormGroup label="Team Name" isRequired fieldId="team-name" helperText="Update your team name">
+                            <TextInput value={newTeamName} type="text" onChange={(value) => { setNewTeamName(value) }} aria-label="text input example" placeholder="Update your team name" />
+                        </FormGroup>
+                        <FormGroup label="Description" isRequired fieldId='team-description' helperText="Update your team description">
+                            <TextArea value={newTeamDesc} type="text" onChange={(value) => { setNewTeamDesc(value) }} aria-label="text area example" placeholder="Update your team description" />
+                        </FormGroup>
+                        <FormGroup label="Jira Projects" fieldId='jira-projects'>
+                            <JiraProjects onChange={onJiraProjectsSelected} teamJiraKeys={toUpdateTeam?.jira_keys} teamName={toUpdateTeam?.team_name}></JiraProjects>
+                        </FormGroup>
+                    </Form>
+                    <div style={{ marginTop: "2em" }}>
+                        <AlertGroup isLiveRegion aria-live="polite" aria-relevant="additions text" aria-atomic="false">
+                            {alerts.map(({ title, variant, key }) => (
+                                <Alert variant={variant} isInline isPlain title={title} key={key} />
+                            ))}
+                        </AlertGroup>
+                    </div>
+                </Modal>
             }
+            <Modal
+                variant={ModalVariant.large}
+                isOpen={isAlertModalOpen}
+                aria-label="No header/footer modal"
+                aria-describedby="modal-no-header-description"
+                onClose={handleAlertModalToggle}
+            >
+                <div style={{ marginTop: "1em" }}>
+                    <AlertGroup>
+                        {
+                            alerts.map(({ title, variant, key }) => (
+                                <Alert variant={variant} isInline isPlain title={title} key={key} />
+                            ))
+                        }
+                    </AlertGroup>
+                </div>
+            </Modal>
             {isDeleteModalOpen && <Modal
                 variant={ModalVariant.small}
                 title={"Delete team " + toDeleteTeam?.team_name}

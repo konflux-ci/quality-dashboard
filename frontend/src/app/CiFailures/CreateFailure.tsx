@@ -15,6 +15,7 @@ import { teamIsNotEmpty } from '@app/utils/utils';
 import { useHistory } from 'react-router-dom';
 import { ReactReduxContext } from 'react-redux';
 import { formatDateTime, getRangeDates } from '@app/Reports/utils';
+import { LoadingPropsType } from '@app/Github/CreateRepository';
 
 interface IModalContext {
   isModalOpen: IModalContextMember;
@@ -97,13 +98,6 @@ export const FormModal = () => {
       setMsgValidated('error');
     }
   };
-
-  interface LoadingPropsType {
-    spinnerAriaValueText: string;
-    spinnerAriaLabelledBy?: string;
-    spinnerAriaLabel?: string;
-    isLoading: boolean;
-  }
 
   const [isPrimaryLoading, setIsPrimaryLoading] = React.useState<boolean>(false);
   const primaryLoadingProps = {} as LoadingPropsType;

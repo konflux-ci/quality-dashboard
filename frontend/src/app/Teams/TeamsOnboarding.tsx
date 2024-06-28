@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { createTeam, createRepository, listJiraProjects, checkGithubRepositoryUrl, checkGithubRepositoryExists } from "@app/utils/APIService";
+import { createTeam, createRepository, listJiraProjects, checkGithubRepositoryUrl, checkGithubRepositoryExists, getConfiguration, isJqlQueryValid } from "@app/utils/APIService";
 import {
   Wizard, PageSection, PageSectionVariants,
   TextInput, FormGroup, Form, TextArea,
@@ -12,6 +12,7 @@ import { getTeams } from '@app/utils/APIService';
 import { PlusIcon } from '@patternfly/react-icons/dist/esm/icons';
 import { ReactReduxContext } from 'react-redux';
 import { TeamsTable } from './TeamsTable';
+import { JiraConfig } from './Configuration';
 
 export interface AlertInfo {
   title: string;
@@ -45,15 +46,25 @@ export const TeamsWizard = () => {
   type validate = 'success' | 'warning' | 'error' | 'default';
   const [githubUrlValidated, setGithubUrlValidated] = React.useState<validate>();
   const [helperText, setHelperText] = useState<string>("Enter a GitHub Repository URL");
+  const [bugsCollectQuery, setBugsCollectQuery] = useState<string>("");
+  const [ciImpactQuery, setCiImpactQuery] = useState<string>("");
+  const [isJqlQueryValid, setIsJqlQueryValid] = useState<string>("");
 
   const onSubmit = async () => {
     // Create a team
     setIsFinishedWizard(true)
     setCreationLoading(true)
+
+    const jiraConfig: JiraConfig = {
+      bugs_collect_query: bugsCollectQuery,
+      ci_impact_query: ciImpactQuery,
+    }
+
     const data = {
       "team_name": newTeamName,
       "description": newTeamDesc,
-      "jira_keys": jiraProjects.join(",")
+      "jira_keys": jiraProjects.join(","),
+      "jira_config": JSON.stringify(jiraConfig)
     }
 
     createTeam(data).then(response => {
@@ -230,6 +241,14 @@ export const TeamsWizard = () => {
             <DescriptionListTerm>Jira Projects</DescriptionListTerm>
             <DescriptionListDescription>{jiraProjects.join(" - ")}</DescriptionListDescription>
           </DescriptionListGroup>
+          <DescriptionListGroup>
+            <DescriptionListTerm>JQL Query</DescriptionListTerm>
+            <DescriptionListDescription>{bugsCollectQuery}</DescriptionListDescription>
+          </DescriptionListGroup>
+          <DescriptionListGroup>
+            <DescriptionListTerm>CI Impact Query</DescriptionListTerm>
+            <DescriptionListDescription>{ciImpactQuery}</DescriptionListDescription>
+          </DescriptionListGroup>
         </DescriptionList>
       </div>
       <div style={{ marginTop: "2em" }}>
@@ -256,14 +275,17 @@ export const TeamsWizard = () => {
 
   }
 
-  const jiraOnChange = (options: Array<string>) => {
+  const jiraOnChange = (options: Array<string>, bugsCollectQuery: string, ciImpactQuery: string, isJqlQueryValid: validate) => {
     setJiraProjects(options)
+    setBugsCollectQuery(bugsCollectQuery)
+    setCiImpactQuery(ciImpactQuery)
+    setIsJqlQueryValid(isJqlQueryValid)
   }
 
   const steps = [
     { id: 'team', name: 'Team Name', component: TeamData, enableNext: ValidateTeam() },
     { id: 'repo', name: 'Add a GitHub repository', component: AddRepo, canJumpTo: ValidateTeam(), enableNext: githubUrlValidated != 'error' },
-    { id: 'jira', name: 'Jira Projects', component: JiraProjects({ onChange: jiraOnChange, teamJiraKeys: "" }), canJumpTo: ValidateTeam(), enableNext: ValidateTeam() },
+    { id: 'jira', name: 'Jira Configuration', component: JiraProjects({ onChange: jiraOnChange, teamJiraKeys: "", teamName: "" }), canJumpTo: ValidateTeam(), enableNext: isJqlQueryValid == 'success' },
     {
       id: 'review',
       name: 'Review',
@@ -330,13 +352,27 @@ const exists = (teamJiraKeys: string | undefined, projectKey: string) => {
   return false
 }
 
-export const JiraProjects: React.FC<{ onChange: (options: Array<string>) => void, default?: Array<string>, teamJiraKeys: string | undefined }> = (props) => {
+type validate = 'success' | 'warning' | 'error' | 'default';
+
+
+export const JiraProjects: React.FC<{ onChange: (options: Array<string>, bugsCollectQuery: string, ciImpactQuery: string, isJqlQueryValid: validate) => void, default?: Array<string>, teamJiraKeys: string | undefined, teamName: string | undefined }> = (props) => {
   const [availableOptions, setAvailableOptions] = React.useState<React.ReactNode[]>([]);
   const [chosenOptions, setChosenOptions] = React.useState<React.ReactNode[]>([])
-
+  const [bugsCollectQuery, setBugsCollectQuery] = useState<string>("");
+  const [ciImpactQuery, setCiImpactQuery] = useState<string>("");
+  const [bugsCollectQueryValidated, setBugsCollectQueryValidated] = React.useState<validate>('success');
+  const [ciImpactQueryValidated, setCiImpactQueryValidated] = React.useState<validate>('success');
+  const [helperText, setHelperText] = useState<string>("Customize JQL Query");
+  const { store } = useContext(ReactReduxContext);
+  const state = store.getState();
   const onListChange = (newAvailableOptions: React.ReactNode[], newChosenOptions: React.ReactNode[]) => {
     setAvailableOptions(newAvailableOptions);
     setChosenOptions(newChosenOptions);
+
+    var projects = newChosenOptions.map(o => { if (o) return o["key"] }).join(",")
+    const query = "project in (" + projects + ") AND type = Bug"
+    setBugsCollectQuery(query)
+    setCiImpactQuery(query + " AND labels=ci-fail")
   };
 
   const available = new Array<React.ReactNode>;
@@ -365,6 +401,15 @@ export const JiraProjects: React.FC<{ onChange: (options: Array<string>) => void
         setChosenOptions(chosen)
       }
     });
+
+    // get config
+    if (props.teamName != "") {
+      getConfiguration(props.teamName as string).then((config: any) => {
+        const jiraCfg: JiraConfig = JSON.parse(config.data.jira_config)
+        setBugsCollectQuery(jiraCfg.bugs_collect_query)
+        setCiImpactQuery(jiraCfg.ci_impact_query)
+      })
+    }
   }, []);
 
 
@@ -373,8 +418,74 @@ export const JiraProjects: React.FC<{ onChange: (options: Array<string>) => void
   }
 
   useEffect(() => {
-    props.onChange(chosenOptions.map(o => { if (o) return o["key"] }))
+    const projects = chosenOptions.map(o => { if (o) return o["key"] })
+    props.onChange(projects, bugsCollectQuery, ciImpactQuery, bugsCollectQueryValidated)
   }, [chosenOptions]);
+
+
+  const containsProjects = (projects, query) => {
+    for (var project of projects) {
+      if (!query.includes(project)) {
+        return false
+      }
+    }
+    return true
+  }
+
+  const handleBugsCollectQuery = async (value: string) => {
+    setHelperText('');
+    setBugsCollectQuery(value);
+    setBugsCollectQueryValidated('error');
+
+
+    if (value == "") {
+      setBugsCollectQueryValidated('success');
+    } else {
+      // check if has the projects selected before
+      var projects = chosenOptions.map(o => { if (o) return o["key"] })
+      if (containsProjects(projects, value)) {
+        // check if it is valid
+        isJqlQueryValid(value).then((res) => {
+          if (res.code == 200) {
+            setBugsCollectQueryValidated('success');
+            setHelperText('')
+            props.onChange(projects, value, ciImpactQuery, 'success')
+          } else {
+            setHelperText('JQL query invalid')
+            props.onChange(projects, value, ciImpactQuery, 'error')
+          }
+        });
+      } else {
+        setHelperText('JQL query should target all the projects you selected.')
+        props.onChange(projects, value, ciImpactQuery, 'error')
+      }
+    }
+  }
+
+  const handleCiImpactQuery = async (value: string) => {
+    setHelperText('');
+    setCiImpactQuery(value);
+    setCiImpactQueryValidated('error');
+
+
+    if (value == "") {
+      setCiImpactQueryValidated('success');
+    } else {
+      // check if has the projects selected before
+      var projects = chosenOptions.map(o => { if (o) return o["key"] })
+      // check if it is valid
+      isJqlQueryValid(value).then((res) => {
+        if (res.code == 200) {
+          setCiImpactQueryValidated('success');
+          setHelperText('')
+          props.onChange(projects, bugsCollectQuery, value, 'success')
+        } else {
+          setHelperText('JQL query invalid')
+          props.onChange(projects, bugsCollectQuery, value, 'error')
+        }
+      });
+    }
+  }
 
   return (
     <React.Fragment>
@@ -391,6 +502,22 @@ export const JiraProjects: React.FC<{ onChange: (options: Array<string>) => void
         filterOption={filterOption}
         id="dual-list-selector-complex"
       />
+      <div style={{ marginTop: '10px' }}>
+        <Title headingLevel='h4'>Optionally: customize JQL Query</Title>
+        <Form>
+          <FormGroup fieldId="repo-name" helperText={helperText}>
+            <TextInput validated={bugsCollectQueryValidated} value={bugsCollectQuery} type="text" onChange={(handleBugsCollectQuery)} aria-label="text input example" placeholder="Customize JQL Query" />
+          </FormGroup>
+        </Form>
+      </div>
+      <div style={{ marginTop: '10px' }}>
+        <Title headingLevel='h4'>Optionally: customize Bugs Affecting CI</Title>
+        <Form>
+          <FormGroup fieldId="repo-name" helperText={helperText}>
+            <TextInput validated={ciImpactQueryValidated} value={ciImpactQuery} type="text" onChange={(handleCiImpactQuery)} aria-label="text input example" placeholder="Customize JQL Query" />
+          </FormGroup>
+        </Form>
+      </div>
     </React.Fragment>
   );
 };

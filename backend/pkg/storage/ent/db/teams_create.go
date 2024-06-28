@@ -16,6 +16,8 @@ import (
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/failure"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/teams"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
+
 )
 
 // TeamsCreate is the builder for creating a Teams entity.
@@ -101,6 +103,21 @@ func (tc *TeamsCreate) AddFailures(f ...*Failure) *TeamsCreate {
 		ids[i] = f[i].ID
 	}
 	return tc.AddFailureIDs(ids...)
+}
+
+// AddConfigurationIDs adds the "configuration" edge to the Configuration entity by IDs.
+func (tc *TeamsCreate) AddConfigurationIDs(ids ...uuid.UUID) *TeamsCreate {
+	tc.mutation.AddConfigurationIDs(ids...)
+	return tc
+}
+
+// AddConfiguration adds the "configuration" edges to the Configuration entity.
+func (tc *TeamsCreate) AddConfiguration(c ...*Configuration) *TeamsCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return tc.AddConfigurationIDs(ids...)
 }
 
 // Mutation returns the TeamsMutation object of the builder.
@@ -258,6 +275,25 @@ func (tc *TeamsCreate) createSpec() (*Teams, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: failure.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := tc.mutation.ConfigurationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.ConfigurationTable,
+			Columns: []string{teams.ConfigurationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: configuration.FieldID,
 				},
 			},
 		}

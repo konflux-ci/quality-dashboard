@@ -18,16 +18,29 @@ import (
 // @Success 200 {object} []jira.Issue
 func (s *jiraRouter) listBugsAffectingCI(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	teamName := r.URL.Query()["team_name"]
+	startDate := r.URL.Query()["start_date"]
+	endDate := r.URL.Query()["end_date"]
+
 	if len(teamName) == 0 {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "team_name value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(startDate) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "start_date value not present in query",
+			StatusCode: 400,
+		})
+	} else if len(endDate) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "end_date value not present in query",
 			StatusCode: 400,
 		})
 	}
 
 	team, err := s.Storage.GetTeamByName(teamName[0])
 	if err != nil {
-		s.Logger.Error("Failed to fetch bugs")
+		s.Logger.Error("Failed to fetch team")
 
 		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
 			Message:    err.Error(),
@@ -35,7 +48,7 @@ func (s *jiraRouter) listBugsAffectingCI(ctx context.Context, w http.ResponseWri
 		})
 	}
 
-	bugs, err := s.Storage.GetOpenBugsAffectingCI(team)
+	bugs, err := s.Storage.GetOpenBugsAffectingCI(team, startDate[0], endDate[0])
 	if err != nil {
 		s.Logger.Error("Failed to fetch bugs")
 
@@ -343,4 +356,24 @@ func (s *jiraRouter) getBugSLIs(ctx context.Context, w http.ResponseWriter, r *h
 	slis := GetBugSLIs(bugs)
 
 	return httputils.WriteJSON(w, http.StatusOK, slis)
+}
+
+func (s *jiraRouter) isJqlQueryValid(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
+	jqlQuery := r.URL.Query()["jql_query"]
+	if len(jqlQuery) == 0 {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    "jql_query value not present in query",
+			StatusCode: 400,
+		})
+	}
+
+	err := s.Jira.IsJQLQueryValid(jqlQuery[0])
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, &types.ErrorResponse{
+			Message:    err.Error(),
+			StatusCode: http.StatusBadRequest,
+		})
+	}
+
+	return httputils.WriteJSON(w, http.StatusOK, true)
 }

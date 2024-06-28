@@ -31,6 +31,9 @@ func NewRouter(s storage.Storage) router.Router {
 		router.NewPostRoute("/teams/create", r.createQualityStudioTeam),
 		router.NewDeleteRoute("/teams/delete", r.deleteTeamHandler),
 		router.NewPutRoute("/teams/put", r.updateTeamHandler),
+		router.NewGetRoute("/teams/get/configuration", r.getConfiguration),
+		router.NewGetRoute("/teams/get/jira_keys", r.getJiraKeys),
+		router.NewGetRoute("/teams/get/team", r.getTeam),
 	}
 
 	return r

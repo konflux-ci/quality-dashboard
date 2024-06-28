@@ -16,6 +16,7 @@ import (
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/teams"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
 )
 
 // TeamsUpdate is the builder for updating Teams entities.
@@ -94,6 +95,21 @@ func (tu *TeamsUpdate) AddFailures(f ...*Failure) *TeamsUpdate {
 	return tu.AddFailureIDs(ids...)
 }
 
+// AddConfigurationIDs adds the "configuration" edge to the Configuration entity by IDs.
+func (tu *TeamsUpdate) AddConfigurationIDs(ids ...uuid.UUID) *TeamsUpdate {
+	tu.mutation.AddConfigurationIDs(ids...)
+	return tu
+}
+
+// AddConfiguration adds the "configuration" edges to the Configuration entity.
+func (tu *TeamsUpdate) AddConfiguration(c ...*Configuration) *TeamsUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return tu.AddConfigurationIDs(ids...)
+}
+
 // Mutation returns the TeamsMutation object of the builder.
 func (tu *TeamsUpdate) Mutation() *TeamsMutation {
 	return tu.mutation
@@ -160,6 +176,27 @@ func (tu *TeamsUpdate) RemoveFailures(f ...*Failure) *TeamsUpdate {
 		ids[i] = f[i].ID
 	}
 	return tu.RemoveFailureIDs(ids...)
+}
+
+// ClearConfiguration clears all "configuration" edges to the Configuration entity.
+func (tu *TeamsUpdate) ClearConfiguration() *TeamsUpdate {
+	tu.mutation.ClearConfiguration()
+	return tu
+}
+
+// RemoveConfigurationIDs removes the "configuration" edge to Configuration entities by IDs.
+func (tu *TeamsUpdate) RemoveConfigurationIDs(ids ...uuid.UUID) *TeamsUpdate {
+	tu.mutation.RemoveConfigurationIDs(ids...)
+	return tu
+}
+
+// RemoveConfiguration removes "configuration" edges to Configuration entities.
+func (tu *TeamsUpdate) RemoveConfiguration(c ...*Configuration) *TeamsUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return tu.RemoveConfigurationIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -378,6 +415,60 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if tu.mutation.ConfigurationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.ConfigurationTable,
+			Columns: []string{teams.ConfigurationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: configuration.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.RemovedConfigurationIDs(); len(nodes) > 0 && !tu.mutation.ConfigurationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.ConfigurationTable,
+			Columns: []string{teams.ConfigurationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: configuration.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tu.mutation.ConfigurationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.ConfigurationTable,
+			Columns: []string{teams.ConfigurationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: configuration.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{teams.Label}
@@ -461,6 +552,21 @@ func (tuo *TeamsUpdateOne) AddFailures(f ...*Failure) *TeamsUpdateOne {
 	return tuo.AddFailureIDs(ids...)
 }
 
+// AddConfigurationIDs adds the "configuration" edge to the Configuration entity by IDs.
+func (tuo *TeamsUpdateOne) AddConfigurationIDs(ids ...uuid.UUID) *TeamsUpdateOne {
+	tuo.mutation.AddConfigurationIDs(ids...)
+	return tuo
+}
+
+// AddConfiguration adds the "configuration" edges to the Configuration entity.
+func (tuo *TeamsUpdateOne) AddConfiguration(c ...*Configuration) *TeamsUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return tuo.AddConfigurationIDs(ids...)
+}
+
 // Mutation returns the TeamsMutation object of the builder.
 func (tuo *TeamsUpdateOne) Mutation() *TeamsMutation {
 	return tuo.mutation
@@ -527,6 +633,27 @@ func (tuo *TeamsUpdateOne) RemoveFailures(f ...*Failure) *TeamsUpdateOne {
 		ids[i] = f[i].ID
 	}
 	return tuo.RemoveFailureIDs(ids...)
+}
+
+// ClearConfiguration clears all "configuration" edges to the Configuration entity.
+func (tuo *TeamsUpdateOne) ClearConfiguration() *TeamsUpdateOne {
+	tuo.mutation.ClearConfiguration()
+	return tuo
+}
+
+// RemoveConfigurationIDs removes the "configuration" edge to Configuration entities by IDs.
+func (tuo *TeamsUpdateOne) RemoveConfigurationIDs(ids ...uuid.UUID) *TeamsUpdateOne {
+	tuo.mutation.RemoveConfigurationIDs(ids...)
+	return tuo
+}
+
+// RemoveConfiguration removes "configuration" edges to Configuration entities.
+func (tuo *TeamsUpdateOne) RemoveConfiguration(c ...*Configuration) *TeamsUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return tuo.RemoveConfigurationIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -761,6 +888,60 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: failure.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if tuo.mutation.ConfigurationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.ConfigurationTable,
+			Columns: []string{teams.ConfigurationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: configuration.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.RemovedConfigurationIDs(); len(nodes) > 0 && !tuo.mutation.ConfigurationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.ConfigurationTable,
+			Columns: []string{teams.ConfigurationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: configuration.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := tuo.mutation.ConfigurationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   teams.ConfigurationTable,
+			Columns: []string{teams.ConfigurationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: configuration.FieldID,
 				},
 			},
 		}
