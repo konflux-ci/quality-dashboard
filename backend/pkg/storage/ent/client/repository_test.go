@@ -14,7 +14,7 @@ var toCreate = s.Repository{
 	ID:   "12345678",
 	Name: "managed-gitops",
 	Owner: s.Owner{
-		Login: "konflux-ci",
+		Login: "redhat-appstudio",
 	},
 	Description: "GitOps Service: Backend/cluster-agent/utility components aiming to provided GitOps services via Kubernetes-controller-managed Argo CD",
 	URL:         "https://github.com/redhat-appstudio/managed-gitops",
