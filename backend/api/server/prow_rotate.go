@@ -266,7 +266,7 @@ func (s *Server) ErrorsUpdateInProwJobs() {
 				prNumber := getPRNumber(pj.JobURL)
 
 				if prNumber != "" {
-					suites, _ = s.cfg.GCS.GetJobJunitContent("konflux-ci", "infra-deployments", prNumber,
+					suites, _ = s.cfg.GCS.GetJobJunitContent("redhat-appstudio", "infra-deployments", prNumber,
 						pj.JobID, pj.JobType, pj.JobName, JunitRegexpSearch)
 				} else {
 					s.cfg.Logger.Sugar().Debug("Failed to get pr number from ", pj.JobURL)
