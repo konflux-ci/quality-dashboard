@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"encoding/xml"
-	prowV1Alpha1 "github.com/redhat-appstudio/quality-studio/api/apis/prow/v1alpha1"
-	"github.com/redhat-appstudio/quality-studio/api/server/router/prow"
-	"github.com/redhat-appstudio/quality-studio/api/types"
-	"github.com/redhat-appstudio/quality-studio/pkg/utils/httputils"
+	"fmt"
+	prowV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/prow/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/prow"
+	"github.com/konflux-ci/quality-dashboard/api/types"
+	"github.com/konflux-ci/quality-dashboard/pkg/utils/httputils"
+
 	"io"
 	"net/http"
 	"regexp"
@@ -57,7 +59,7 @@ func (k *konfluxRouter) receiveMetrics(ctx context.Context, w http.ResponseWrite
 		})
 	}
 
-	var metadata prowV1Alpha1.Job
+	var metadata KonfluxMetadata
 	err = json.Unmarshal(metadataBytes, &metadata)
 	if err != nil {
 		return httputils.WriteJSON(w, http.StatusBadRequest, &types.ErrorResponse{
@@ -66,27 +68,31 @@ func (k *konfluxRouter) receiveMetrics(ctx context.Context, w http.ResponseWrite
 		})
 	}
 
-	totalErrorMessages := ""
+	repoInfo, err := k.storage.GetRepository(metadata.RepositoryName, metadata.GitOrganization)
+	if err != nil {
+		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
+			Message:    fmt.Sprintf("Repository '%s' doesn't exists in quality studio database", metadata.RepositoryName),
+			StatusCode: 400,
+		})
+	}
+
 	for _, suite := range xunit.Suites {
 		for _, testCase := range suite.TestCases {
 			if testCase.FailureOutput == nil {
 				continue
 			}
 
-			errorMsg := testCase.Name + ":\n" + testCase.FailureOutput.Message + "\n\n"
-			totalErrorMessages += errorMsg
-
 			jobSuite := prowV1Alpha1.JobSuites{
-				JobID:                 metadata.JobID,
+				JobID:                 metadata.JobId,
 				JobName:               metadata.JobName,
 				TestCaseName:          testCase.Name,
 				TestCaseStatus:        testCase.Status,
 				TestTiming:            testCase.Duration,
 				JobType:               metadata.JobType,
-				CreatedAt:             metadata.CreatedAt,
 				ErrorMessage:          testCase.FailureOutput.Message,
-				JobURL:                metadata.JobURL,
-				ExternalServiceImpact: metadata.ExternalServiceImpact,
+				JobURL:                metadata.JobUrl,
+				ExternalServiceImpact: metadata.ExternalImpact,
+				CreatedAt:             metadata.CreatedAt,
 			}
 
 			re := regexp.MustCompile(`\[It]\s*\[([^]]+)]`)
@@ -105,15 +111,24 @@ func (k *konfluxRouter) receiveMetrics(ctx context.Context, w http.ResponseWrite
 				continue
 			}
 
-			repoId := ""
-			if len(r.URL.Query()["repo_id"]) > 0 {
-				repoId = r.URL.Query()["repo_id"][0]
-			}
-			err = k.storage.CreateProwJobSuites(jobSuite, repoId)
+			err = k.storage.CreateProwJobSuites(jobSuite, repoInfo.ID)
 			if err != nil {
 				k.logger.Sugar().Info(err)
 			}
 		}
 	}
+
+	if err := k.storage.CreateProwJobResults(prowV1Alpha1.Job{
+		JobID:                 metadata.JobId,
+		CreatedAt:             metadata.CreatedAt,
+		State:                 metadata.State,
+		JobType:               metadata.JobType,
+		JobName:               metadata.JobName,
+		JobURL:                metadata.JobUrl,
+		ExternalServiceImpact: metadata.ExternalImpact,
+	}, repoInfo.ID); err != nil {
+		k.logger.Sugar().Errorf("failed to save prowJob", err)
+	}
+
 	return nil
 }
