@@ -51,7 +51,7 @@ let Reports = () => {
   const { store } = React.useContext(ReactReduxContext);
   const state = store.getState();
 
-  /* 
+  /*
   Toolbar dropdowns logic and helpers
   */
 
@@ -121,8 +121,8 @@ let Reports = () => {
   // Reset rangeDateTime
   const clearRangeDateTime = () => {
     setRangeDateTime(getRangeDates(10))
-  } 
-  
+  }
+
   const onExpand = () => {
     drawerRef.current && drawerRef.current.focus();
   };
@@ -142,7 +142,7 @@ let Reports = () => {
           <TextContent>
             <Title headingLevel="h1">Test Reports</Title>
             <Text>
-              This page aims help you analyze the OpenShift CI prow jobs executions in your team&apos;s GitHub repositories.
+              This page aims help you analyze the CI jobs executions in your team&apos;s GitHub repositories.
             </Text>
             <Title headingLevel="h1">Repositories</Title>
             <Text>
@@ -235,11 +235,11 @@ let Reports = () => {
   const filterJobNames = (value) => {
     if(!jobType || jobType == "" || jobType == null){
       return true
-    } 
+    }
     return jobMeta.filter(j => j.job_type == jobType).map(el => el.job_name).includes(value)
   }
 
-  /* 
+  /*
   ProwJobs logic to populate dashboard
   */
 
@@ -250,7 +250,7 @@ let Reports = () => {
 
   // Get the prow jobs from API
   const getProwJob = async () => {
-    // Hide components and show loading spinner 
+    // Hide components and show loading spinner
     setProwVisible(false)
     setLoadingState(true)
     setNoData(false)
@@ -273,7 +273,7 @@ let Reports = () => {
       setLoadingState(false);
 
       // Show error alert
-      if (e != "No jobs detected in OpenShift CI") {
+      if (e != "No jobs detected in CI") {
         setAlerts(prevAlerts => {
           return [...prevAlerts,
           <Alert
@@ -299,7 +299,7 @@ let Reports = () => {
   }
 
   // Prepare data for the line chart
-  
+
 
   function handleChange(event, from, to) {
     setRangeDateTime([from, to])
@@ -324,7 +324,7 @@ let Reports = () => {
       "FAILED_JOB_RUNS": { data: [], style: { data: { stroke: "rgba(255, 0, 0, 0.6)", strokeWidth: 2 } } },
       "SUCCESS_JOB_RUNS": { data: [], style: { data: { stroke: "rgba(60, 179, 113, 0.6)", strokeWidth: 2 } } },
     };
-    
+
     const beautifiedFailureData: DashboardLineChartData = {
       "EXTERNAL_SERVICES_IMPACT": { data: [], style: { data: { stroke: "rgba(255, 165, 0, 0.7)", strokeWidth: 2 } } },
       "FLAKY_TESTS_IMPACT": { data: [], style: { data: { stroke: "rgba(255, 0, 0, 0.7)", strokeWidth: 2 } } },
@@ -352,7 +352,7 @@ let Reports = () => {
     if (repoName == "infra-deployments") {
       return "RHTAP E2E Tests"
     }
-  
+
     let formattedRepoName = repoName
     formattedRepoName = formattedRepoName.replaceAll("-", " ");
     formattedRepoName = formattedRepoName.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
@@ -434,20 +434,20 @@ let Reports = () => {
                     clearParams()
                     setNoData(true)
                   })
-              } 
+              }
               else {
                 setLoadingState(false)
                 setIsInvalid(true)
               }
 
-            } 
+            }
             else {
               if(data){
                 setRepoName(data[0].Repository.Name)
                 setRepoNameFormatted(getRepoNameFormatted(data[0].Repository.Name))
                 setRepoOrg(data[0].Repository.Owner.Login)
               }
-              setjobType("presubmit") // all repos in OpenShift CI have presubmit type job
+              setjobType("presubmit") // all repos in CI have presubmit type job
 
               getJobNamesAndTypes(data[0].Repository.Name, data[0].Repository.Owner.Login)
                 .then((data: any) => {
@@ -465,7 +465,7 @@ let Reports = () => {
 
               const start_date = formatDateTime(rangeDateTime[0])
               const end_date = formatDateTime(rangeDateTime[1])
-              
+
               if(data){
                 history.push('/reports/test?team=' + currentTeam + '&organization=' + data[0].organization + '&repository=' + data[0].repoName
                   + '&job_type=presubmit' + '&start=' + start_date + '&end=' + end_date)
@@ -495,7 +495,7 @@ let Reports = () => {
       <Header info="Observe the CI metrics of all your CI jobs."></Header>
       <div style={{ padding: 15, background: "white", border: "1px solid lightgrey" }}>
         <Breadcrumb>
-          <BreadcrumbItem>OpenShift CI</BreadcrumbItem>
+          <BreadcrumbItem>CI</BreadcrumbItem>
           <BreadcrumbItem>Tests Reports</BreadcrumbItem>
         </Breadcrumb>
       </div>
@@ -587,7 +587,7 @@ let Reports = () => {
             {!isInvalid && noData && !loadingState && <EmptyState variant={EmptyStateVariant.xl}>
               <EmptyStateIcon icon={ExclamationCircleIcon} />
               <Title headingLevel="h1" size="lg">
-                No jobs detected in OpenShift CI.
+                No jobs detected in CI.
               </Title>
             </EmptyState>
             }
@@ -711,7 +711,7 @@ let Reports = () => {
                                   </Title>
                                 </CardTitle>
                                 <CardBody>
-                                  <Title headingLevel="h1" style={{minHeight: "2em"}}> 
+                                  <Title headingLevel="h1" style={{minHeight: "2em"}}>
                                   {prowJobsStats.jobs_impacts ? prowJobsStats.jobs_impacts.external_services_impact.percentage : "-"}%
                                   </Title>
                                 </CardBody>
@@ -776,7 +776,7 @@ let Reports = () => {
                 }
                 <Grid hasGutter style={{ margin: "20px 0px" }} sm={6} md={4} lg={3} xl2={1}>
                   {
-                  prowJobMetrics !== null && 
+                  prowJobMetrics !== null &&
                     <GridItem span={6} rowSpan={5}>
                       <DashboardLineChart title="Success and Failure percentage" data={prowJobMetrics}></DashboardLineChart>
                     </GridItem>

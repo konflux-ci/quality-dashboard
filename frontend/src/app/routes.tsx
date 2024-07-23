@@ -119,7 +119,7 @@ const routes: AppRouteConfig[] = [
         title: 'Bug CI Impact | Quality Studio',
       },
       {
-        label: 'OpenShift CI',
+        label: 'CI',
         routes: [{
           component: Reports,
           exact: true,

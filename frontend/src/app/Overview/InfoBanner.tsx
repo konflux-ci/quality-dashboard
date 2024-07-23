@@ -52,7 +52,7 @@ export const InfoBanner = () => (
                         </CardTitle>
                         <CardBody>
                             <Bullseye>
-                                Openshift CI metrics
+                                CI metrics
                             </Bullseye>
                         </CardBody>
                     </Card>

@@ -253,7 +253,7 @@ const FlakyTests: React.FunctionComponent = () => {
       <Header info="Observe the impact of the flaky tests that are affecting CI."></Header>
       <div style={{ marginTop: 15, marginBottom: 15, marginLeft: 15 }}>
         <Breadcrumb>
-          <BreadcrumbItem>OpenShift CI</BreadcrumbItem>
+          <BreadcrumbItem>CI</BreadcrumbItem>
           <BreadcrumbItem>Flaky Tests</BreadcrumbItem>
         </Breadcrumb>
       </div>
