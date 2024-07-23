@@ -204,9 +204,11 @@ const FlakyTests: React.FunctionComponent = () => {
   }
 
   const fetchData = () => {
+    const repo = repositories.find(repo => repo.Repository.Name == selectedRepo)
+
     setLoadingSpinner(true)
-    if (startDate && endDate && selectedRepo && selectedRepo) {
-      getFlakyData(currentTeam, selectedJob, selectedRepo, rangeDateTime, "redhat-appstudio").then(res => {
+    if (startDate && endDate && selectedRepo) {
+      getFlakyData(currentTeam, selectedJob, selectedRepo, rangeDateTime, repo.Repository.Owner.Login).then(res => {
         if (res.code == 200) {
           const impact: FlakyObject = res.data
           if (impact && impact.suites) {
@@ -221,7 +223,7 @@ const FlakyTests: React.FunctionComponent = () => {
           console.log("error", res)
         }
       })
-      getGlobalImpactData(currentTeam, selectedJob, selectedRepo, rangeDateTime, "redhat-appstudio").then(res => {
+      getGlobalImpactData(currentTeam, selectedJob, selectedRepo, rangeDateTime, repo.Repository.Owner.Login).then(res => {
         if (res.code == 200) {
           const impact: any = res.data
           if (impact && impact.length > 0) {
@@ -251,7 +253,7 @@ const FlakyTests: React.FunctionComponent = () => {
       <Header info="Observe the impact of the flaky tests that are affecting CI."></Header>
       <div style={{ marginTop: 15, marginBottom: 15, marginLeft: 15 }}>
         <Breadcrumb>
-          <BreadcrumbItem>OpenShift CI</BreadcrumbItem>
+          <BreadcrumbItem>CI</BreadcrumbItem>
           <BreadcrumbItem>Flaky Tests</BreadcrumbItem>
         </Breadcrumb>
       </div>

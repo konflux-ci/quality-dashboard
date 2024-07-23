@@ -160,12 +160,12 @@ let CiFailures = () => {
         <TextContent>
           <Title headingLevel="h1">Bug CI Impact</Title>
           <span>
-            This page aims to help you observe the impact of the bugs that are affecting your team's Openshift CI prow jobs. <br />You can add, update, or delete them. To add a new entry, you need to point out the Jira Key of the bug and the associated error message.
+            This page aims to help you observe the impact of the bugs that are affecting your team's CI jobs. <br />You can add, update, or delete them. To add a new entry, you need to point out the Jira Key of the bug and the associated error message.
           </span>
           <Title headingLevel="h1">How the frequency/impact is measured?</Title>
           <span>
-            To calculate the impact of each bug, in the date time range selected, Quality Dashboard will search for all the team's OpenShift CI prow jobs and verify in how many of them the bug's error message is present.
-            <br /> Note that the only the OpenShift CI prow jobs reports that matches regex &apos;(j?unit|e2e)-?[0-9a-z]+\.xml&apos; are saved on the DB.
+            To calculate the impact of each bug, in the date time range selected, Quality Dashboard will search for all the team's CI jobs and verify in how many of them the bug's error message is present.
+            <br /> Note that the only the CI jobs reports that matches regex &apos;(j?unit|e2e)-?[0-9a-z]+\.xml&apos; are saved on the DB.
           </span>
         </TextContent>
         <DrawerActions>
@@ -179,7 +179,7 @@ let CiFailures = () => {
     <ModalContext.Provider value={defaultModalContext}>
       <React.Fragment>
         {/* page title bar */}
-        <Header info="Observe the impact of the bugs that are affecting your team's Openshift CI prow jobs."></Header>
+        <Header info="Observe the impact of the bugs that are affecting your team's CI jobs."></Header>
         <PageSection variant={PageSectionVariants.light}>
           <Title headingLevel="h3" size={TitleSizes['2xl']}>
             Bug CI Impact

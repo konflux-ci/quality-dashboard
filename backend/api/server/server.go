@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"fmt"
+	"github.com/konflux-ci/quality-dashboard/api/server/router/konflux"
 	"net"
 	"net/http"
 	"strings"
@@ -198,7 +199,8 @@ func (s *Server) InitRouter() {
 		database.NewRouter(s.cfg.Db),
 		suites.NewRouter(s.cfg.Storage),
 		failure.NewRouter(s.cfg.Storage),
-		users.NewRouter(s.cfg.Storage))
+		users.NewRouter(s.cfg.Storage),
+		konflux.NewRouter(s.cfg.Storage))
 }
 
 type pageNotFoundError struct{}
