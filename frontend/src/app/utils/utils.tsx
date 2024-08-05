@@ -84,7 +84,7 @@ export const getLabels = (datum, prefix) => {
 };
 
 export const getTrendSymbol = (trend: number) => {
-  return trend < -0.0 ? <TrendDownIcon/> : (trend > 0.0 ? (<TrendUpIcon/>) : ' ');
+  return trend < 0.0 ? <TrendDownIcon/> : (trend > 0.0 ? (<TrendUpIcon/>) : ' ');
 }
 
 export function sortGlobalSLI(bugs) {

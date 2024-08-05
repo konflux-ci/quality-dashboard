@@ -323,7 +323,7 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
                                     <Td dataLabel={columnNames.retest_before_merge_avg}>{repo.retest_before_merge_avg} {getTrendSymbol(repo.prs.summary.retest_before_merge_trend)}</Td>
                                     <Td dataLabel={columnNames.open_prs}>{repo.open_prs}</Td>
                                     <Td dataLabel={columnNames.merged_prs}>{repo.merged_prs}</Td>
-                                    <Td dataLabel={columnNames.time_to_merge_pr_avg_days}>{repo.time_to_merge_pr_avg_days} {getTrendSymbol(repo.prs.summary.retest_before_merge_trend)}</Td>
+                                    <Td dataLabel={columnNames.time_to_merge_pr_avg_days}>{repo.time_to_merge_pr_avg_days} {getTrendSymbol(repo.prs.summary.merge_time_trend)}</Td>
                                     <Td isActionCell>
                                         {rowActions ? (
                                             <ActionsColumn
