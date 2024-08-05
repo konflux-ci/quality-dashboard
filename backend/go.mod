@@ -1,12 +1,16 @@
 module github.com/konflux-ci/quality-dashboard
 
-go 1.19
+go 1.21
+
+toolchain go1.21.12
 
 require (
 	cloud.google.com/go/storage v1.30.1
 	entgo.io/ent v0.11.7
+	github.com/aclements/go-moremath v0.0.0-20210112150236-f10218a38794
 	github.com/andygrunwald/go-jira v1.16.0
 	github.com/coreos/go-oidc v2.1.0+incompatible
+	github.com/funkygao/gostats v0.0.0-20110716214916-4c434a88b328
 	github.com/google/go-github/v44 v44.1.0
 	github.com/google/uuid v1.4.0
 	github.com/gorilla/mux v1.8.0
@@ -20,7 +24,6 @@ require (
 	github.com/stretchr/testify v1.8.2
 	github.com/swaggo/http-swagger v1.3.3
 	github.com/swaggo/swag v1.8.10
-	github.com/tgulacsi/go v0.27.3
 	go.uber.org/zap v1.24.0
 	golang.org/x/oauth2 v0.13.0
 	google.golang.org/api v0.149.0
@@ -38,8 +41,11 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
+	github.com/kylelemons/godebug v1.1.0 // indirect
+	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/sync v0.4.0 // indirect
 	gonum.org/v1/gonum v0.11.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231016165738-49dd2c1f3d0b // indirect

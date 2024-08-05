@@ -173,6 +173,8 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 			mergeTimes = append(mergeTimes, float64(pr.MergedAt.Unix()))
 		}
 
+		// Use MannWhitney to determine statistical significance
+		// https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
 		mergeResult, err := stats.MannWhitneyUTest(mergeDelays, mergeTimes, 0)
 		if err == nil && mergeResult.P < 0.05 {
 			mergeTimeCoef, _, _, _, _, _ = gostats.LinearRegression(mergeTimes, mergeDelays)
