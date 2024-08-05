@@ -23,9 +23,7 @@ export interface Summary {
   merge_avg: string;
   retest_avg: number;
   retest_before_merge_avg: number;
-
   merge_trend: number;
-  retest_trend: number;
   retest_before_merge_trend: number;
 }
 
