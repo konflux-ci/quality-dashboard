@@ -31,8 +31,6 @@ export interface Metrics {
   date: string;
   created_prs_count: number;
   merged_prs_count: number;
-  created_prs_trend: number;
-  merged_prs_trend: number;
 }
 
 export const help = (desc) => {
@@ -83,8 +81,8 @@ export const PullRequestCard = (props) => {
         </div>
       </CardTitle>
       {props.repo == undefined && (
-        <CardBody> 
-          <div style={{ fontSize: 25 }}>{props.trend} {props.subtitle == 'Selected Time Range' ? getTrendSymbol(props.trend) : ' ' } </div>
+        <CardBody>
+          <div style={{ fontSize: 25 }}>{props.total} {['Time To Merge PR Avg Days','Retest Before Merge Avg'].includes(props.title) ? getTrendSymbol(props.trend) : ' ' } </div>
         </CardBody>
       )}
       {props.repo != undefined && (
