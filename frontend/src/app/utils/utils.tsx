@@ -1,4 +1,6 @@
 import { useSelector } from 'react-redux';
+import { TrendDownIcon, TrendUpIcon } from '@patternfly/react-icons';
+import React from 'react';
 
 export function accessibleRouteChangeHandler() {
   return window.setTimeout(() => {
@@ -80,6 +82,10 @@ export const getLabels = (datum, prefix) => {
 
   return `${datum.x} \n ${datum.name} : ${datum.y}`;
 };
+
+export const getTrendSymbol = (trend: number) => {
+  return trend < 0.0 ? <TrendDownIcon/> : (trend > 0.0 ? (<TrendUpIcon/>) : ' ');
+}
 
 export function sortGlobalSLI(bugs) {
   bugs.sort((a, b) => (a.global_sli > b.global_sli ? 1 : -1));

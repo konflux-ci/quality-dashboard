@@ -6,6 +6,8 @@ import (
 	"math"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/aclements/go-moremath/stats"
+	gostats "github.com/funkygao/gostats"
 	prV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
 	"github.com/konflux-ci/quality-dashboard/pkg/connectors/github"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
@@ -161,6 +163,29 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 		retestBeforeMergeAvg = totalRetestBeforeMerge / float64(len(mergedPullRequestsInTimeRange))
 	}
 
+	var mergeTimeCoef, retestBeforeMergeCoef float64
+	var mergeDelays, retestBeforeMergeCounts, mergeTimes []float64
+
+	if len(mergedPullRequestsInTimeRange) > 1 {
+		for _, pr := range mergedPullRequestsInTimeRange {
+			mergeDelays = append(mergeDelays, float64(pr.MergedAt.Sub(pr.CreatedAt)))
+			retestBeforeMergeCounts = append(retestBeforeMergeCounts, float64(*pr.RetestBeforeMergeCount))
+			mergeTimes = append(mergeTimes, float64(pr.MergedAt.Unix()))
+		}
+
+		// Use MannWhitney to determine statistical significance
+		// https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
+		mergeResult, err := stats.MannWhitneyUTest(mergeDelays, mergeTimes, 0)
+		if err == nil && mergeResult.P < 0.05 {
+			mergeTimeCoef, _, _, _, _, _ = gostats.LinearRegression(mergeTimes, mergeDelays)
+		}
+
+		retestResult, err := stats.MannWhitneyUTest(retestBeforeMergeCounts, mergeTimes, 0)
+		if err == nil && retestResult.P < 0.05 {
+			retestBeforeMergeCoef, _, _, _, _, _ = gostats.LinearRegression(mergeTimes, retestBeforeMergeCounts)
+		}
+	}
+
 	info.Summary = prV1Alpha1.Summary{
 		CreatedPrsCountInTimeRange: len(createdPullRequestsInTimeRange),
 		OpenPrsCount:               len(totalOpenPullRequests),
@@ -169,6 +194,8 @@ func (d *Database) GetPullRequestsByRepository(repositoryName, organization, sta
 		MergeAvg:                   math.Round(totalMergeTime*100) / 100,
 		RetestAvg:                  math.Round(retestAvg*100) / 100,
 		RetestBeforeMergeAvg:       math.Round(retestBeforeMergeAvg*100) / 100,
+		MergeTimeTrend:             mergeTimeCoef,
+		RetestBeforeMergeTrend:     retestBeforeMergeCoef,
 	}
 	info.Metrics = d.getMetrics(repo, startDate, endDate)
 
