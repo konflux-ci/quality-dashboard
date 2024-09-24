@@ -93,7 +93,7 @@
     "@patternfly/react-styles": "^4.92.8",
     "@patternfly/react-table": "^4.113.7",
     "@reduxjs/toolkit": "^1.8.6",
-    "@storybook/builder-webpack5": "^7.6.6",
+    "@storybook/builder-webpack5": "^7.6.20",
     "axios": "^1.6.4",
     "fetch-mw-oauth2": "^1.0.2",
     "jwt-decode": "^4.0.0",
