@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: quay.io/redhat-appstudio-qe/postgres:14
+          image: bitnami/postgresql:16.4.0
           env:
           - name: PGDATA
             value: /work/data
