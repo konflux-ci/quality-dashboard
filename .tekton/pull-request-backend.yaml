@@ -17,8 +17,14 @@ spec:
     - name: path-context
       value: "backend"
   pipelineRef:
-    name: docker-build
-    bundle: quay.io/redhat-appstudio-tekton-catalog/pipeline-core-services-docker-build:latest
+    resolver: bundles
+    params:
+      - name: name
+        value: docker-build
+      - name: bundle
+        value: quay.io/konflux-ci/tekton-catalog/pipeline-core-services-docker-build:latest
+      - name: kind
+        value: Pipeline
   workspaces:
     - name: workspace
       volumeClaimTemplate:

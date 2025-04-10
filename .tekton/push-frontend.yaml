@@ -22,8 +22,14 @@ spec:
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/quality-dashboard/base/dex/kustomization.yaml
         sed -i -E 's/[0-9a-f]{40}/{{ revision }}/g' components/quality-dashboard/base/frontend/kustomization.yaml
   pipelineRef:
-    name: docker-build
-    bundle: quay.io/redhat-appstudio-tekton-catalog/pipeline-core-services-docker-build:latest
+    resolver: bundles
+    params:
+      - name: name
+        value: docker-build
+      - name: bundle
+        value: quay.io/konflux-ci/tekton-catalog/pipeline-core-services-docker-build:latest
+      - name: kind
+        value: Pipeline
   workspaces:
     - name: workspace
       volumeClaimTemplate:
