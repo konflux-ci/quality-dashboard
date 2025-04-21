@@ -10,7 +10,6 @@ import (
 	coverageV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/codecov/v1alpha1"
 	repoV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
 	"github.com/konflux-ci/quality-dashboard/api/types"
-	"github.com/konflux-ci/quality-dashboard/pkg/storage"
 	"github.com/konflux-ci/quality-dashboard/pkg/utils/httputils"
 	"go.uber.org/zap"
 )
@@ -63,19 +62,6 @@ func (rp *repositoryRouter) listAllRepositoriesQuality(ctx context.Context, w ht
 			Message:    err.Error(),
 			StatusCode: http.StatusBadRequest,
 		})
-	}
-	// in the OpenShift CI tab, do not include repos that do not exist in OpenShift CI
-	isOpenShiftCI := r.URL.Query()["openshift_ci"]
-	if len(isOpenShiftCI) != 0 && isOpenShiftCI[0] == "true" {
-		clean := make([]storage.RepositoryQualityInfo, 0)
-		for _, repo := range repos {
-			if rp.Github.CheckIfRepoExistsInOpenshiftCI(repo.GitOrganization, repo.RepositoryName) &&
-				len(rp.Github.GetJobTypes(repo.GitOrganization, repo.RepositoryName)) > 0 {
-
-				clean = append(clean, repo)
-			}
-		}
-		repos = clean
 	}
 
 	return httputils.WriteJSON(w, http.StatusOK, repos)
