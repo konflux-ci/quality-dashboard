@@ -144,60 +144,57 @@ func (s *jobRouter) getLatestSuitesExecution(ctx context.Context, w http.Respons
 // @Success 200 {array} storage.RepositoryQualityInfo
 // @Failure 400 {object} types.ErrorResponse
 func (jb *jobRouter) listProwRepos(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
-	teamName := r.URL.Query()["team_name"]
-
-	if len(teamName) == 0 {
+	teamName := r.URL.Query().Get("team_name")
+	if teamName == "" {
 		return httputils.WriteJSON(w, http.StatusBadRequest, types.ErrorResponse{
 			Message:    "team_name value not present in query",
-			StatusCode: 400,
+			StatusCode: http.StatusBadRequest,
 		})
 	}
 
-	team, err := jb.Storage.GetTeamByName(teamName[0])
+	team, err := jb.Storage.GetTeamByName(teamName)
 	if err != nil {
-		jb.Logger.Error("Failed to fetch team. Make sure the team exists", zap.String("team", teamName[0]), zap.Error(err))
-
-		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-			Message:    err.Error(),
-			StatusCode: http.StatusBadRequest,
+		jb.Logger.Error("Failed to fetch team", zap.String("team", teamName), zap.Error(err))
+		return httputils.WriteJSON(w, http.StatusInternalServerError, types.ErrorResponse{
+			Message:    "Unable to fetch team info",
+			StatusCode: http.StatusInternalServerError,
 		})
 	}
 
 	repos, err := jb.Storage.ListRepositories(team)
 	if err != nil {
-		jb.Logger.Error("Failed to fetch repositories", zap.String("team", teamName[0]), zap.Error(err))
-
-		return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-			Message:    err.Error(),
-			StatusCode: http.StatusBadRequest,
+		jb.Logger.Error("Failed to fetch repositories", zap.String("team", teamName), zap.Error(err))
+		return httputils.WriteJSON(w, http.StatusInternalServerError, types.ErrorResponse{
+			Message:    "Unable to list repositories",
+			StatusCode: http.StatusInternalServerError,
 		})
 	}
 
-	prowRepos := make([]prowv1Alpha1.ProwRepository, 0)
-
+	var prowRepos []prowv1Alpha1.ProwRepository
 	for _, repo := range repos {
 		repoInfo, err := jb.Storage.GetRepository(repo.Name, repo.Owner.Login)
 		if err != nil {
+			jb.Logger.Warn("Skipping repository - details not found", zap.String("repo", repo.Name), zap.Error(err))
 			continue
 		}
 
-		if jb.Github.CheckIfRepoExistsInOpenshiftCI(repo.Owner.Login, repo.Name) {
-			list, err := jb.Storage.GetProwJobsByRepoOrg(repoInfo)
-			if err != nil {
-				jb.Logger.Error("Failed to fetch team. Make sure the team exists", zap.String("team", teamName[0]), zap.Error(err))
-
-				return httputils.WriteJSON(w, http.StatusInternalServerError, &types.ErrorResponse{
-					Message:    err.Error(),
-					StatusCode: http.StatusBadRequest,
-				})
-			}
-
-			prowRepos = append(prowRepos, prowv1Alpha1.ProwRepository{
-				Repository: repo,
-				JobsList:   list,
+		jobs, err := jb.Storage.GetProwJobsByRepoOrg(repoInfo)
+		if err != nil {
+			jb.Logger.Error("Failed to fetch Prow jobs", zap.String("repository", repo.Name), zap.Error(err))
+			return httputils.WriteJSON(w, http.StatusInternalServerError, types.ErrorResponse{
+				Message:    "Error fetching Prow jobs",
+				StatusCode: http.StatusInternalServerError,
 			})
-
 		}
+
+		if len(jobs) == 0 {
+			continue
+		}
+
+		prowRepos = append(prowRepos, prowv1Alpha1.ProwRepository{
+			Repository: repo,
+			JobsList:   jobs,
+		})
 	}
 
 	return httputils.WriteJSON(w, http.StatusOK, prowRepos)

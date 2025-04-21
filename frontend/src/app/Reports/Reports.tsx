@@ -350,14 +350,14 @@ let Reports = () => {
 
   const getRepoNameFormatted = (repoName) => {
     if (repoName == "infra-deployments") {
-      return "RHTAP E2E Tests"
+      return "Konflux E2E Infra Deployments"
     }
 
     let formattedRepoName = repoName
     formattedRepoName = formattedRepoName.replaceAll("-", " ");
     formattedRepoName = formattedRepoName.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     formattedRepoName = formattedRepoName.replace("E2e", "E2E");
-    return "Individual Component - " + formattedRepoName
+    return "Konflux Component - " + formattedRepoName
   }
 
   // when a job name is selected, get the job data from api
