@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
-import { Card, CardBody, CardTitle, Popover, Title } from '@patternfly/react-core';
+import { Card, CardBody, CardTitle, Popover, Title} from '@patternfly/react-core';
 import {
   Chart,
   ChartAxis,
@@ -10,7 +10,7 @@ import {
 } from '@patternfly/react-charts';
 import { DashboardLineChartData } from '@app/utils/sharedComponents';
 import { HelpIcon } from '@patternfly/react-icons';
-import { getLabels } from '@app/utils/utils';
+import { getLabels, getTrendSymbol } from '@app/utils/utils';
 
 export interface PrsStatistics {
   metrics: Metrics[];
@@ -23,6 +23,8 @@ export interface Summary {
   merge_avg: string;
   retest_avg: number;
   retest_before_merge_avg: number;
+  merge_time_trend: number;
+  retest_before_merge_trend: number;
 }
 
 export interface Metrics {
@@ -80,7 +82,7 @@ export const PullRequestCard = (props) => {
       </CardTitle>
       {props.repo == undefined && (
         <CardBody>
-          <div style={{ fontSize: 25 }}>{props.total}</div>
+          <div style={{ fontSize: 25 }}>{props.total} {['Time To Merge PR Avg Days','Retest Before Merge Avg'].includes(props.title) ? getTrendSymbol(props.trend) : ' ' } </div>
         </CardBody>
       )}
       {props.repo != undefined && (

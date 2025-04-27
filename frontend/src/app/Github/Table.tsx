@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Pagination } from '@patternfly/react-core';
+import { TrendDownIcon, TrendUpIcon } from '@patternfly/react-icons';
 import {
     TableComposable,
     Thead,
@@ -16,6 +17,7 @@ import { deleteInApi } from '@app/utils/APIService';
 import { useHistory } from 'react-router-dom';
 import { RepositoryInfo } from './Github';
 import { GetMetrics, MetricsModalContext, useMetricsModalContext, useMetricsModalContextState } from './Metrics';
+import { getTrendSymbol } from '@app/utils/utils'; 
 
 export const fillPopOver = (title, description) => {
     return {
@@ -318,10 +320,10 @@ export const ComposableTable: React.FC<{ repos: any, modal: any }> = ({ repos, m
                                     <Td dataLabel={columnNames.description}>{repo.description}</Td>
                                     <Td dataLabel={columnNames.code_cov}>{repo.code_cov == 'N/A' ? "N/A" : GetCodeCovInfo(repo, 'left')}</Td>
                                     <Td dataLabel={columnNames.retest_avg}>{repo.retest_avg}</Td>
-                                    <Td dataLabel={columnNames.retest_before_merge_avg}>{repo.retest_before_merge_avg}</Td>
+                                    <Td dataLabel={columnNames.retest_before_merge_avg}>{repo.retest_before_merge_avg} {getTrendSymbol(repo.prs.summary.retest_before_merge_trend)}</Td>
                                     <Td dataLabel={columnNames.open_prs}>{repo.open_prs}</Td>
                                     <Td dataLabel={columnNames.merged_prs}>{repo.merged_prs}</Td>
-                                    <Td dataLabel={columnNames.time_to_merge_pr_avg_days}>{repo.time_to_merge_pr_avg_days}</Td>
+                                    <Td dataLabel={columnNames.time_to_merge_pr_avg_days}>{repo.time_to_merge_pr_avg_days} {getTrendSymbol(repo.prs.summary.merge_time_trend)}</Td>
                                     <Td isActionCell>
                                         {rowActions ? (
                                             <ActionsColumn
