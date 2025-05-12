@@ -24,6 +24,7 @@ func (d *Database) ObtainProwMetricsByJob(gitOrganization string, repositoryName
 		Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 		}).
+		Where(prowjobs.Not(prowjobs.State(string(prow.AbortedState)))).
 		All(context.Background())
 	if err != nil {
 		return nil, err
