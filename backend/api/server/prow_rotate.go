@@ -128,7 +128,7 @@ func (s *Server) SaveProwJobsInDatabase(prowJobs []prow.ProwJob, repo *db.Reposi
 			buildErrorLogs = getBuildLogErrors(job.Status.URL)
 		}
 
-		if err := s.cfg.Storage.CreateProwJobResults(prowV1Alpha1.Job{
+		if _, err := s.cfg.Storage.CreateProwJobResults(prowV1Alpha1.Job{
 			JobID:                 job.Status.BuildID,
 			CreatedAt:             job.Status.StartTime,
 			State:                 string(job.Status.State),

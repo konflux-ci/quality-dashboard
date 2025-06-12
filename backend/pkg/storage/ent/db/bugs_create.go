@@ -296,7 +296,7 @@ func (bc *BugsCreate) Mutation() *BugsMutation {
 // Save creates the Bugs in the database.
 func (bc *BugsCreate) Save(ctx context.Context) (*Bugs, error) {
 	bc.defaults()
-	return withHooks[*Bugs, BugsMutation](ctx, bc.sqlSave, bc.mutation, bc.hooks)
+	return withHooks(ctx, bc.sqlSave, bc.mutation, bc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -403,13 +403,7 @@ func (bc *BugsCreate) sqlSave(ctx context.Context) (*Bugs, error) {
 func (bc *BugsCreate) createSpec() (*Bugs, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Bugs{config: bc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: bugs.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: bugs.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(bugs.Table, sqlgraph.NewFieldSpec(bugs.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = bc.conflict
 	if id, ok := bc.mutation.ID(); ok {
@@ -508,10 +502,7 @@ func (bc *BugsCreate) createSpec() (*Bugs, *sqlgraph.CreateSpec) {
 			Columns: []string{bugs.BugsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1441,12 +1432,16 @@ func (u *BugsUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // BugsCreateBulk is the builder for creating many Bugs entities in bulk.
 type BugsCreateBulk struct {
 	config
+	err      error
 	builders []*BugsCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the Bugs entities in the database.
 func (bcb *BugsCreateBulk) Save(ctx context.Context) ([]*Bugs, error) {
+	if bcb.err != nil {
+		return nil, bcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(bcb.builders))
 	nodes := make([]*Bugs, len(bcb.builders))
 	mutators := make([]Mutator, len(bcb.builders))
@@ -1463,8 +1458,8 @@ func (bcb *BugsCreateBulk) Save(ctx context.Context) ([]*Bugs, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, bcb.builders[i+1].mutation)
 				} else {
@@ -2033,6 +2028,9 @@ func (u *BugsUpsertBulk) ClearAge() *BugsUpsertBulk {
 
 // Exec executes the query.
 func (u *BugsUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the BugsCreateBulk instead", i)

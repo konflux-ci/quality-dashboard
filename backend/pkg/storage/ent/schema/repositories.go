@@ -53,6 +53,10 @@ func (Repository) Edges() []ent.Edge {
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,
 			}),
+		edge.To("oci", OCI.Type).
+			Annotations(entsql.Annotation{
+				OnDelete: entsql.Cascade,
+			}),
 		edge.To("prow_suites", ProwSuites.Type).
 			Annotations(entsql.Annotation{
 				OnDelete: entsql.Cascade,

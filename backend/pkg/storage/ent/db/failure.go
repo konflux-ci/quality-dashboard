@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/failure"
@@ -36,6 +37,7 @@ type Failure struct {
 	// The values are being populated by the FailureQuery when eager-loading is set.
 	Edges          FailureEdges `json:"edges"`
 	teams_failures *uuid.UUID
+	selectValues   sql.SelectValues
 }
 
 // FailureEdges holds the relations/edges for other nodes in the graph.
@@ -50,12 +52,10 @@ type FailureEdges struct {
 // FailuresOrErr returns the Failures value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e FailureEdges) FailuresOrErr() (*Teams, error) {
-	if e.loadedTypes[0] {
-		if e.Failures == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: teams.Label}
-		}
+	if e.Failures != nil {
 		return e.Failures, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: teams.Label}
 	}
 	return nil, &NotLoadedError{edge: "failures"}
 }
@@ -74,7 +74,7 @@ func (*Failure) scanValues(columns []string) ([]any, error) {
 		case failure.ForeignKeys[0]: // teams_failures
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Failure", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -147,9 +147,17 @@ func (f *Failure) assignValues(columns []string, values []any) error {
 				f.teams_failures = new(uuid.UUID)
 				*f.teams_failures = *value.S.(*uuid.UUID)
 			}
+		default:
+			f.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Failure.
+// This includes values selected through modifiers, order, etc.
+func (f *Failure) Value(name string) (ent.Value, error) {
+	return f.selectValues.Get(name)
 }
 
 // QueryFailures queries the "failures" edge of the Failure entity.
@@ -214,9 +222,3 @@ func (f *Failure) String() string {
 
 // Failures is a parsable slice of Failure.
 type Failures []*Failure
-
-func (f Failures) config(cfg config) {
-	for _i := range f {
-		f[_i].config = cfg
-	}
-}

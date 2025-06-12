@@ -27,7 +27,7 @@ func (td *TeamsDelete) Where(ps ...predicate.Teams) *TeamsDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (td *TeamsDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, TeamsMutation](ctx, td.sqlExec, td.mutation, td.hooks)
+	return withHooks(ctx, td.sqlExec, td.mutation, td.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (td *TeamsDelete) ExecX(ctx context.Context) int {
 }
 
 func (td *TeamsDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: teams.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: teams.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(teams.Table, sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID))
 	if ps := td.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

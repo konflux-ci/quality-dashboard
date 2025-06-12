@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/codecov"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/oci"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowsuites"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/pullrequests"
@@ -108,6 +109,21 @@ func (rc *RepositoryCreate) AddCodecov(c ...*CodeCov) *RepositoryCreate {
 	return rc.AddCodecovIDs(ids...)
 }
 
+// AddOciIDs adds the "oci" edge to the OCI entity by IDs.
+func (rc *RepositoryCreate) AddOciIDs(ids ...uuid.UUID) *RepositoryCreate {
+	rc.mutation.AddOciIDs(ids...)
+	return rc
+}
+
+// AddOci adds the "oci" edges to the OCI entity.
+func (rc *RepositoryCreate) AddOci(o ...*OCI) *RepositoryCreate {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return rc.AddOciIDs(ids...)
+}
+
 // AddProwSuiteIDs adds the "prow_suites" edge to the ProwSuites entity by IDs.
 func (rc *RepositoryCreate) AddProwSuiteIDs(ids ...int) *RepositoryCreate {
 	rc.mutation.AddProwSuiteIDs(ids...)
@@ -160,7 +176,7 @@ func (rc *RepositoryCreate) Mutation() *RepositoryMutation {
 
 // Save creates the Repository in the database.
 func (rc *RepositoryCreate) Save(ctx context.Context) (*Repository, error) {
-	return withHooks[*Repository, RepositoryMutation](ctx, rc.sqlSave, rc.mutation, rc.hooks)
+	return withHooks(ctx, rc.sqlSave, rc.mutation, rc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -253,13 +269,7 @@ func (rc *RepositoryCreate) sqlSave(ctx context.Context) (*Repository, error) {
 func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Repository{config: rc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: repository.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: repository.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(repository.Table, sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString))
 	)
 	_spec.OnConflict = rc.conflict
 	if id, ok := rc.mutation.ID(); ok {
@@ -290,10 +300,7 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 			Columns: []string{repository.RepositoriesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -310,10 +317,7 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 			Columns: []string{repository.WorkflowsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: workflows.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(workflows.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -329,10 +333,23 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 			Columns: []string{repository.CodecovColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: codecov.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(codecov.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := rc.mutation.OciIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.OciTable,
+			Columns: []string{repository.OciColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(oci.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -348,10 +365,7 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 			Columns: []string{repository.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: prowsuites.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prowsuites.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -367,10 +381,7 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 			Columns: []string{repository.ProwJobsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: prowjobs.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prowjobs.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -386,10 +397,7 @@ func (rc *RepositoryCreate) createSpec() (*Repository, *sqlgraph.CreateSpec) {
 			Columns: []string{repository.PrsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: pullrequests.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(pullrequests.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -642,12 +650,16 @@ func (u *RepositoryUpsertOne) IDX(ctx context.Context) string {
 // RepositoryCreateBulk is the builder for creating many Repository entities in bulk.
 type RepositoryCreateBulk struct {
 	config
+	err      error
 	builders []*RepositoryCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the Repository entities in the database.
 func (rcb *RepositoryCreateBulk) Save(ctx context.Context) ([]*Repository, error) {
+	if rcb.err != nil {
+		return nil, rcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(rcb.builders))
 	nodes := make([]*Repository, len(rcb.builders))
 	mutators := make([]Mutator, len(rcb.builders))
@@ -663,8 +675,8 @@ func (rcb *RepositoryCreateBulk) Save(ctx context.Context) ([]*Repository, error
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, rcb.builders[i+1].mutation)
 				} else {
@@ -869,6 +881,9 @@ func (u *RepositoryUpsertBulk) UpdateGitURL() *RepositoryUpsertBulk {
 
 // Exec executes the query.
 func (u *RepositoryUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the RepositoryCreateBulk instead", i)

@@ -3,6 +3,8 @@
 package teams
 
 import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -87,3 +89,110 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// OrderOption defines the ordering options for the Teams queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByTeamName orders the results by the team_name field.
+func ByTeamName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTeamName, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByJiraKeys orders the results by the jira_keys field.
+func ByJiraKeys(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJiraKeys, opts...).ToFunc()
+}
+
+// ByRepositoriesCount orders the results by repositories count.
+func ByRepositoriesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newRepositoriesStep(), opts...)
+	}
+}
+
+// ByRepositories orders the results by repositories terms.
+func ByRepositories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRepositoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByBugsCount orders the results by bugs count.
+func ByBugsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newBugsStep(), opts...)
+	}
+}
+
+// ByBugs orders the results by bugs terms.
+func ByBugs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newBugsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByFailuresCount orders the results by failures count.
+func ByFailuresCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFailuresStep(), opts...)
+	}
+}
+
+// ByFailures orders the results by failures terms.
+func ByFailures(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFailuresStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByConfigurationCount orders the results by configuration count.
+func ByConfigurationCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newConfigurationStep(), opts...)
+	}
+}
+
+// ByConfiguration orders the results by configuration terms.
+func ByConfiguration(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConfigurationStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newRepositoriesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RepositoriesInverseTable, RepositoryFieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, RepositoriesTable, RepositoriesColumn),
+	)
+}
+func newBugsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(BugsInverseTable, BugsFieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, BugsTable, BugsColumn),
+	)
+}
+func newFailuresStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FailuresInverseTable, FailureFieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FailuresTable, FailuresColumn),
+	)
+}
+func newConfigurationStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConfigurationInverseTable, ConfigurationFieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ConfigurationTable, ConfigurationColumn),
+	)
+}

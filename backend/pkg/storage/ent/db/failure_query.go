@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,7 +21,7 @@ import (
 type FailureQuery struct {
 	config
 	ctx          *QueryContext
-	order        []OrderFunc
+	order        []failure.OrderOption
 	inters       []Interceptor
 	predicates   []predicate.Failure
 	withFailures *TeamsQuery
@@ -56,7 +57,7 @@ func (fq *FailureQuery) Unique(unique bool) *FailureQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (fq *FailureQuery) Order(o ...OrderFunc) *FailureQuery {
+func (fq *FailureQuery) Order(o ...failure.OrderOption) *FailureQuery {
 	fq.order = append(fq.order, o...)
 	return fq
 }
@@ -86,7 +87,7 @@ func (fq *FailureQuery) QueryFailures() *TeamsQuery {
 // First returns the first Failure entity from the query.
 // Returns a *NotFoundError when no Failure was found.
 func (fq *FailureQuery) First(ctx context.Context) (*Failure, error) {
-	nodes, err := fq.Limit(1).All(setContextOp(ctx, fq.ctx, "First"))
+	nodes, err := fq.Limit(1).All(setContextOp(ctx, fq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +110,7 @@ func (fq *FailureQuery) FirstX(ctx context.Context) *Failure {
 // Returns a *NotFoundError when no Failure ID was found.
 func (fq *FailureQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = fq.Limit(1).IDs(setContextOp(ctx, fq.ctx, "FirstID")); err != nil {
+	if ids, err = fq.Limit(1).IDs(setContextOp(ctx, fq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -132,7 +133,7 @@ func (fq *FailureQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one Failure entity is found.
 // Returns a *NotFoundError when no Failure entities are found.
 func (fq *FailureQuery) Only(ctx context.Context) (*Failure, error) {
-	nodes, err := fq.Limit(2).All(setContextOp(ctx, fq.ctx, "Only"))
+	nodes, err := fq.Limit(2).All(setContextOp(ctx, fq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +161,7 @@ func (fq *FailureQuery) OnlyX(ctx context.Context) *Failure {
 // Returns a *NotFoundError when no entities are found.
 func (fq *FailureQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = fq.Limit(2).IDs(setContextOp(ctx, fq.ctx, "OnlyID")); err != nil {
+	if ids, err = fq.Limit(2).IDs(setContextOp(ctx, fq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -185,7 +186,7 @@ func (fq *FailureQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of Failures.
 func (fq *FailureQuery) All(ctx context.Context) ([]*Failure, error) {
-	ctx = setContextOp(ctx, fq.ctx, "All")
+	ctx = setContextOp(ctx, fq.ctx, ent.OpQueryAll)
 	if err := fq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -203,10 +204,12 @@ func (fq *FailureQuery) AllX(ctx context.Context) []*Failure {
 }
 
 // IDs executes the query and returns a list of Failure IDs.
-func (fq *FailureQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, fq.ctx, "IDs")
-	if err := fq.Select(failure.FieldID).Scan(ctx, &ids); err != nil {
+func (fq *FailureQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if fq.ctx.Unique == nil && fq.path != nil {
+		fq.Unique(true)
+	}
+	ctx = setContextOp(ctx, fq.ctx, ent.OpQueryIDs)
+	if err = fq.Select(failure.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -223,7 +226,7 @@ func (fq *FailureQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (fq *FailureQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, fq.ctx, "Count")
+	ctx = setContextOp(ctx, fq.ctx, ent.OpQueryCount)
 	if err := fq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -241,7 +244,7 @@ func (fq *FailureQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (fq *FailureQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, fq.ctx, "Exist")
+	ctx = setContextOp(ctx, fq.ctx, ent.OpQueryExist)
 	switch _, err := fq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -270,7 +273,7 @@ func (fq *FailureQuery) Clone() *FailureQuery {
 	return &FailureQuery{
 		config:       fq.config,
 		ctx:          fq.ctx.Clone(),
-		order:        append([]OrderFunc{}, fq.order...),
+		order:        append([]failure.OrderOption{}, fq.order...),
 		inters:       append([]Interceptor{}, fq.inters...),
 		predicates:   append([]predicate.Failure{}, fq.predicates...),
 		withFailures: fq.withFailures.Clone(),
@@ -450,20 +453,12 @@ func (fq *FailureQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (fq *FailureQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   failure.Table,
-			Columns: failure.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: failure.FieldID,
-			},
-		},
-		From:   fq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(failure.Table, failure.Columns, sqlgraph.NewFieldSpec(failure.FieldID, field.TypeUUID))
+	_spec.From = fq.sql
 	if unique := fq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if fq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := fq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -543,7 +538,7 @@ func (fgb *FailureGroupBy) Aggregate(fns ...AggregateFunc) *FailureGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (fgb *FailureGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, fgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, fgb.build.ctx, ent.OpQueryGroupBy)
 	if err := fgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -591,7 +586,7 @@ func (fs *FailureSelect) Aggregate(fns ...AggregateFunc) *FailureSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (fs *FailureSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, fs.ctx, "Select")
+	ctx = setContextOp(ctx, fs.ctx, ent.OpQuerySelect)
 	if err := fs.prepareQuery(ctx); err != nil {
 		return err
 	}

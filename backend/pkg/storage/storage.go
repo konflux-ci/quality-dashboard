@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"errors"
 
 	"github.com/andygrunwald/go-jira"
@@ -46,6 +47,7 @@ type Storage interface {
 	GetAllJiraBugsByProject(project string) ([]*db.Bugs, error)
 	GetJobsNameAndType(repo *db.Repository) ([]*db.ProwJobs, error)
 	GetMetricsSummaryByDay(repo *db.Repository, job, startDate, endDate string) []*prowV1Alpha1.JobsMetrics
+	GetAllOCIArtifacts() ([]*db.OCI, error)
 
 	// GetAllOpenBugs(dateFrom, dateTo string) ([]*db.Bugs, error)
 	GetAllOpenBugs(project string) ([]*db.Bugs, error)
@@ -63,6 +65,7 @@ type Storage interface {
 	GetProwJobsByRepoOrg(repo *db.Repository) ([]string, error)
 	GetUser(userEmail string) (*db.Users, error)
 	ListAllUsers() ([]*db.Users, error)
+	GetTasksMetrics(startDate string, endDate string) ([]TaskMetrics, error)
 
 	// POST
 	CreateRepository(p repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error)
@@ -70,7 +73,7 @@ type Storage interface {
 	CreateWorkflows(p repoV1Alpha1.Workflow, repo_id string) error
 	CreateCoverage(p coverageV1Alpha1.Coverage, repo_id string) error
 	CreateProwJobSuites(prowJobStatus prowV1Alpha1.JobSuites, repo_id string) error
-	CreateProwJobResults(prowJobStatus prowV1Alpha1.Job, repo_id string) error
+	CreateProwJobResults(job prowV1Alpha1.Job, repo_id string) (*db.ProwJobs, error)
 	ReCreateWorkflow(workflow repoV1Alpha1.Workflow, repoName string) error
 	UpdateCoverage(codecov coverageV1Alpha1.Coverage, repoName string) error
 	CreateJiraBug(bugsArr []jira.Issue, team *db.Teams) error
@@ -85,6 +88,11 @@ type Storage interface {
 	GetOpenBugsAffectingCI(t *db.Teams, startDate, endDate string) ([]*db.Bugs, error)
 	CreateConfiguration(c configurationV1Alpha1.Configuration) error
 	GetConfiguration(teamName string) (*db.Configuration, error)
+	CreateOCIArtifact(ociArtifact *db.OCI, repoID *string) (*db.OCI, error)
+	CreateTektonTasksBulk(tasks []*db.TektonTasks, jobID *int) error
+
+	// Update
+	UpdateOCIArtifact(ctx context.Context, ociArtifact *db.OCI) (*db.OCI, error)
 
 	// Delete
 	DeleteRepository(repositoryName, gitOrganizationName string) error
@@ -93,6 +101,15 @@ type Storage interface {
 	DeleteJiraBugByJiraKey(jiraKey string) error
 	DeleteFailure(teamID, failureID uuid.UUID) error
 	DeleteAllJiraBugByTeam(teamName string) error
+}
+
+// TaskMetrics holds the calculated metrics for a single Tekton task.
+type TaskMetrics struct {
+	TaskName          string  `json:"task_name"`
+	TotalRuns         int     `json:"total_runs"`
+	SuccessPercentage float64 `json:"success_percentage"`
+	FailurePercentage float64 `json:"failure_percentage"`
+	AverageDuration   float64 `json:"average_duration"`
 }
 
 type RepositoryQualityInfo struct {

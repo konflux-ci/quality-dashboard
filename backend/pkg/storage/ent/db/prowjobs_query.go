@@ -4,26 +4,30 @@ package db
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/tektontasks"
 )
 
 // ProwJobsQuery is the builder for querying ProwJobs entities.
 type ProwJobsQuery struct {
 	config
-	ctx          *QueryContext
-	order        []OrderFunc
-	inters       []Interceptor
-	predicates   []predicate.ProwJobs
-	withProwJobs *RepositoryQuery
-	withFKs      bool
+	ctx             *QueryContext
+	order           []prowjobs.OrderOption
+	inters          []Interceptor
+	predicates      []predicate.ProwJobs
+	withProwJobs    *RepositoryQuery
+	withTektonTasks *TektonTasksQuery
+	withFKs         bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -55,7 +59,7 @@ func (pjq *ProwJobsQuery) Unique(unique bool) *ProwJobsQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (pjq *ProwJobsQuery) Order(o ...OrderFunc) *ProwJobsQuery {
+func (pjq *ProwJobsQuery) Order(o ...prowjobs.OrderOption) *ProwJobsQuery {
 	pjq.order = append(pjq.order, o...)
 	return pjq
 }
@@ -82,10 +86,32 @@ func (pjq *ProwJobsQuery) QueryProwJobs() *RepositoryQuery {
 	return query
 }
 
+// QueryTektonTasks chains the current query on the "tekton_tasks" edge.
+func (pjq *ProwJobsQuery) QueryTektonTasks() *TektonTasksQuery {
+	query := (&TektonTasksClient{config: pjq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pjq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pjq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(prowjobs.Table, prowjobs.FieldID, selector),
+			sqlgraph.To(tektontasks.Table, tektontasks.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, prowjobs.TektonTasksTable, prowjobs.TektonTasksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pjq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // First returns the first ProwJobs entity from the query.
 // Returns a *NotFoundError when no ProwJobs was found.
 func (pjq *ProwJobsQuery) First(ctx context.Context) (*ProwJobs, error) {
-	nodes, err := pjq.Limit(1).All(setContextOp(ctx, pjq.ctx, "First"))
+	nodes, err := pjq.Limit(1).All(setContextOp(ctx, pjq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +134,7 @@ func (pjq *ProwJobsQuery) FirstX(ctx context.Context) *ProwJobs {
 // Returns a *NotFoundError when no ProwJobs ID was found.
 func (pjq *ProwJobsQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = pjq.Limit(1).IDs(setContextOp(ctx, pjq.ctx, "FirstID")); err != nil {
+	if ids, err = pjq.Limit(1).IDs(setContextOp(ctx, pjq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -131,7 +157,7 @@ func (pjq *ProwJobsQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one ProwJobs entity is found.
 // Returns a *NotFoundError when no ProwJobs entities are found.
 func (pjq *ProwJobsQuery) Only(ctx context.Context) (*ProwJobs, error) {
-	nodes, err := pjq.Limit(2).All(setContextOp(ctx, pjq.ctx, "Only"))
+	nodes, err := pjq.Limit(2).All(setContextOp(ctx, pjq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +185,7 @@ func (pjq *ProwJobsQuery) OnlyX(ctx context.Context) *ProwJobs {
 // Returns a *NotFoundError when no entities are found.
 func (pjq *ProwJobsQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = pjq.Limit(2).IDs(setContextOp(ctx, pjq.ctx, "OnlyID")); err != nil {
+	if ids, err = pjq.Limit(2).IDs(setContextOp(ctx, pjq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -184,7 +210,7 @@ func (pjq *ProwJobsQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of ProwJobsSlice.
 func (pjq *ProwJobsQuery) All(ctx context.Context) ([]*ProwJobs, error) {
-	ctx = setContextOp(ctx, pjq.ctx, "All")
+	ctx = setContextOp(ctx, pjq.ctx, ent.OpQueryAll)
 	if err := pjq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -202,10 +228,12 @@ func (pjq *ProwJobsQuery) AllX(ctx context.Context) []*ProwJobs {
 }
 
 // IDs executes the query and returns a list of ProwJobs IDs.
-func (pjq *ProwJobsQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	ctx = setContextOp(ctx, pjq.ctx, "IDs")
-	if err := pjq.Select(prowjobs.FieldID).Scan(ctx, &ids); err != nil {
+func (pjq *ProwJobsQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if pjq.ctx.Unique == nil && pjq.path != nil {
+		pjq.Unique(true)
+	}
+	ctx = setContextOp(ctx, pjq.ctx, ent.OpQueryIDs)
+	if err = pjq.Select(prowjobs.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -222,7 +250,7 @@ func (pjq *ProwJobsQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (pjq *ProwJobsQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, pjq.ctx, "Count")
+	ctx = setContextOp(ctx, pjq.ctx, ent.OpQueryCount)
 	if err := pjq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -240,7 +268,7 @@ func (pjq *ProwJobsQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (pjq *ProwJobsQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, pjq.ctx, "Exist")
+	ctx = setContextOp(ctx, pjq.ctx, ent.OpQueryExist)
 	switch _, err := pjq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -267,12 +295,13 @@ func (pjq *ProwJobsQuery) Clone() *ProwJobsQuery {
 		return nil
 	}
 	return &ProwJobsQuery{
-		config:       pjq.config,
-		ctx:          pjq.ctx.Clone(),
-		order:        append([]OrderFunc{}, pjq.order...),
-		inters:       append([]Interceptor{}, pjq.inters...),
-		predicates:   append([]predicate.ProwJobs{}, pjq.predicates...),
-		withProwJobs: pjq.withProwJobs.Clone(),
+		config:          pjq.config,
+		ctx:             pjq.ctx.Clone(),
+		order:           append([]prowjobs.OrderOption{}, pjq.order...),
+		inters:          append([]Interceptor{}, pjq.inters...),
+		predicates:      append([]predicate.ProwJobs{}, pjq.predicates...),
+		withProwJobs:    pjq.withProwJobs.Clone(),
+		withTektonTasks: pjq.withTektonTasks.Clone(),
 		// clone intermediate query.
 		sql:  pjq.sql.Clone(),
 		path: pjq.path,
@@ -287,6 +316,17 @@ func (pjq *ProwJobsQuery) WithProwJobs(opts ...func(*RepositoryQuery)) *ProwJobs
 		opt(query)
 	}
 	pjq.withProwJobs = query
+	return pjq
+}
+
+// WithTektonTasks tells the query-builder to eager-load the nodes that are connected to
+// the "tekton_tasks" edge. The optional arguments are used to configure the query builder of the edge.
+func (pjq *ProwJobsQuery) WithTektonTasks(opts ...func(*TektonTasksQuery)) *ProwJobsQuery {
+	query := (&TektonTasksClient{config: pjq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	pjq.withTektonTasks = query
 	return pjq
 }
 
@@ -369,8 +409,9 @@ func (pjq *ProwJobsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pr
 		nodes       = []*ProwJobs{}
 		withFKs     = pjq.withFKs
 		_spec       = pjq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			pjq.withProwJobs != nil,
+			pjq.withTektonTasks != nil,
 		}
 	)
 	if pjq.withProwJobs != nil {
@@ -400,6 +441,13 @@ func (pjq *ProwJobsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pr
 	if query := pjq.withProwJobs; query != nil {
 		if err := pjq.loadProwJobs(ctx, query, nodes, nil,
 			func(n *ProwJobs, e *Repository) { n.Edges.ProwJobs = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := pjq.withTektonTasks; query != nil {
+		if err := pjq.loadTektonTasks(ctx, query, nodes,
+			func(n *ProwJobs) { n.Edges.TektonTasks = []*TektonTasks{} },
+			func(n *ProwJobs, e *TektonTasks) { n.Edges.TektonTasks = append(n.Edges.TektonTasks, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -438,6 +486,37 @@ func (pjq *ProwJobsQuery) loadProwJobs(ctx context.Context, query *RepositoryQue
 	}
 	return nil
 }
+func (pjq *ProwJobsQuery) loadTektonTasks(ctx context.Context, query *TektonTasksQuery, nodes []*ProwJobs, init func(*ProwJobs), assign func(*ProwJobs, *TektonTasks)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*ProwJobs)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.TektonTasks(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(prowjobs.TektonTasksColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.prow_jobs_tekton_tasks
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "prow_jobs_tekton_tasks" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "prow_jobs_tekton_tasks" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
 
 func (pjq *ProwJobsQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := pjq.querySpec()
@@ -449,20 +528,12 @@ func (pjq *ProwJobsQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (pjq *ProwJobsQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   prowjobs.Table,
-			Columns: prowjobs.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: prowjobs.FieldID,
-			},
-		},
-		From:   pjq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(prowjobs.Table, prowjobs.Columns, sqlgraph.NewFieldSpec(prowjobs.FieldID, field.TypeInt))
+	_spec.From = pjq.sql
 	if unique := pjq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if pjq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := pjq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -542,7 +613,7 @@ func (pjgb *ProwJobsGroupBy) Aggregate(fns ...AggregateFunc) *ProwJobsGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (pjgb *ProwJobsGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, pjgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, pjgb.build.ctx, ent.OpQueryGroupBy)
 	if err := pjgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -590,7 +661,7 @@ func (pjs *ProwJobsSelect) Aggregate(fns ...AggregateFunc) *ProwJobsSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (pjs *ProwJobsSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, pjs.ctx, "Select")
+	ctx = setContextOp(ctx, pjs.ctx, ent.OpQuerySelect)
 	if err := pjs.prepareQuery(ctx); err != nil {
 		return err
 	}

@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/codecov"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/oci"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowsuites"
@@ -40,9 +41,25 @@ func (ru *RepositoryUpdate) SetRepositoryName(s string) *RepositoryUpdate {
 	return ru
 }
 
+// SetNillableRepositoryName sets the "repository_name" field if the given value is not nil.
+func (ru *RepositoryUpdate) SetNillableRepositoryName(s *string) *RepositoryUpdate {
+	if s != nil {
+		ru.SetRepositoryName(*s)
+	}
+	return ru
+}
+
 // SetGitOrganization sets the "git_organization" field.
 func (ru *RepositoryUpdate) SetGitOrganization(s string) *RepositoryUpdate {
 	ru.mutation.SetGitOrganization(s)
+	return ru
+}
+
+// SetNillableGitOrganization sets the "git_organization" field if the given value is not nil.
+func (ru *RepositoryUpdate) SetNillableGitOrganization(s *string) *RepositoryUpdate {
+	if s != nil {
+		ru.SetGitOrganization(*s)
+	}
 	return ru
 }
 
@@ -52,9 +69,25 @@ func (ru *RepositoryUpdate) SetDescription(s string) *RepositoryUpdate {
 	return ru
 }
 
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (ru *RepositoryUpdate) SetNillableDescription(s *string) *RepositoryUpdate {
+	if s != nil {
+		ru.SetDescription(*s)
+	}
+	return ru
+}
+
 // SetGitURL sets the "git_url" field.
 func (ru *RepositoryUpdate) SetGitURL(s string) *RepositoryUpdate {
 	ru.mutation.SetGitURL(s)
+	return ru
+}
+
+// SetNillableGitURL sets the "git_url" field if the given value is not nil.
+func (ru *RepositoryUpdate) SetNillableGitURL(s *string) *RepositoryUpdate {
+	if s != nil {
+		ru.SetGitURL(*s)
+	}
 	return ru
 }
 
@@ -105,6 +138,21 @@ func (ru *RepositoryUpdate) AddCodecov(c ...*CodeCov) *RepositoryUpdate {
 		ids[i] = c[i].ID
 	}
 	return ru.AddCodecovIDs(ids...)
+}
+
+// AddOciIDs adds the "oci" edge to the OCI entity by IDs.
+func (ru *RepositoryUpdate) AddOciIDs(ids ...uuid.UUID) *RepositoryUpdate {
+	ru.mutation.AddOciIDs(ids...)
+	return ru
+}
+
+// AddOci adds the "oci" edges to the OCI entity.
+func (ru *RepositoryUpdate) AddOci(o ...*OCI) *RepositoryUpdate {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return ru.AddOciIDs(ids...)
 }
 
 // AddProwSuiteIDs adds the "prow_suites" edge to the ProwSuites entity by IDs.
@@ -205,6 +253,27 @@ func (ru *RepositoryUpdate) RemoveCodecov(c ...*CodeCov) *RepositoryUpdate {
 	return ru.RemoveCodecovIDs(ids...)
 }
 
+// ClearOci clears all "oci" edges to the OCI entity.
+func (ru *RepositoryUpdate) ClearOci() *RepositoryUpdate {
+	ru.mutation.ClearOci()
+	return ru
+}
+
+// RemoveOciIDs removes the "oci" edge to OCI entities by IDs.
+func (ru *RepositoryUpdate) RemoveOciIDs(ids ...uuid.UUID) *RepositoryUpdate {
+	ru.mutation.RemoveOciIDs(ids...)
+	return ru
+}
+
+// RemoveOci removes "oci" edges to OCI entities.
+func (ru *RepositoryUpdate) RemoveOci(o ...*OCI) *RepositoryUpdate {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return ru.RemoveOciIDs(ids...)
+}
+
 // ClearProwSuites clears all "prow_suites" edges to the ProwSuites entity.
 func (ru *RepositoryUpdate) ClearProwSuites() *RepositoryUpdate {
 	ru.mutation.ClearProwSuites()
@@ -270,7 +339,7 @@ func (ru *RepositoryUpdate) RemovePrs(p ...*PullRequests) *RepositoryUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ru *RepositoryUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, RepositoryMutation](ctx, ru.sqlSave, ru.mutation, ru.hooks)
+	return withHooks(ctx, ru.sqlSave, ru.mutation, ru.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -324,16 +393,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := ru.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   repository.Table,
-			Columns: repository.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: repository.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(repository.Table, repository.Columns, sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString))
 	if ps := ru.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -361,10 +421,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.RepositoriesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -377,10 +434,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.RepositoriesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -396,10 +450,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.WorkflowsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: workflows.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(workflows.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -412,10 +463,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.WorkflowsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: workflows.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(workflows.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -431,10 +479,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.WorkflowsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: workflows.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(workflows.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -450,10 +495,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.CodecovColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: codecov.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(codecov.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -466,10 +508,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.CodecovColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: codecov.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(codecov.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -485,10 +524,52 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.CodecovColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: codecov.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(codecov.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ru.mutation.OciCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.OciTable,
+			Columns: []string{repository.OciColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(oci.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.RemovedOciIDs(); len(nodes) > 0 && !ru.mutation.OciCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.OciTable,
+			Columns: []string{repository.OciColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(oci.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ru.mutation.OciIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.OciTable,
+			Columns: []string{repository.OciColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(oci.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -504,10 +585,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: prowsuites.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prowsuites.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -520,10 +598,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: prowsuites.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prowsuites.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -539,10 +614,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: prowsuites.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prowsuites.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -558,10 +630,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.ProwJobsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: prowjobs.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prowjobs.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -574,10 +643,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.ProwJobsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: prowjobs.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prowjobs.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -593,10 +659,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.ProwJobsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: prowjobs.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prowjobs.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -612,10 +675,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.PrsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: pullrequests.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(pullrequests.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -628,10 +688,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.PrsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: pullrequests.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(pullrequests.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -647,10 +704,7 @@ func (ru *RepositoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{repository.PrsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: pullrequests.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(pullrequests.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -684,9 +738,25 @@ func (ruo *RepositoryUpdateOne) SetRepositoryName(s string) *RepositoryUpdateOne
 	return ruo
 }
 
+// SetNillableRepositoryName sets the "repository_name" field if the given value is not nil.
+func (ruo *RepositoryUpdateOne) SetNillableRepositoryName(s *string) *RepositoryUpdateOne {
+	if s != nil {
+		ruo.SetRepositoryName(*s)
+	}
+	return ruo
+}
+
 // SetGitOrganization sets the "git_organization" field.
 func (ruo *RepositoryUpdateOne) SetGitOrganization(s string) *RepositoryUpdateOne {
 	ruo.mutation.SetGitOrganization(s)
+	return ruo
+}
+
+// SetNillableGitOrganization sets the "git_organization" field if the given value is not nil.
+func (ruo *RepositoryUpdateOne) SetNillableGitOrganization(s *string) *RepositoryUpdateOne {
+	if s != nil {
+		ruo.SetGitOrganization(*s)
+	}
 	return ruo
 }
 
@@ -696,9 +766,25 @@ func (ruo *RepositoryUpdateOne) SetDescription(s string) *RepositoryUpdateOne {
 	return ruo
 }
 
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (ruo *RepositoryUpdateOne) SetNillableDescription(s *string) *RepositoryUpdateOne {
+	if s != nil {
+		ruo.SetDescription(*s)
+	}
+	return ruo
+}
+
 // SetGitURL sets the "git_url" field.
 func (ruo *RepositoryUpdateOne) SetGitURL(s string) *RepositoryUpdateOne {
 	ruo.mutation.SetGitURL(s)
+	return ruo
+}
+
+// SetNillableGitURL sets the "git_url" field if the given value is not nil.
+func (ruo *RepositoryUpdateOne) SetNillableGitURL(s *string) *RepositoryUpdateOne {
+	if s != nil {
+		ruo.SetGitURL(*s)
+	}
 	return ruo
 }
 
@@ -749,6 +835,21 @@ func (ruo *RepositoryUpdateOne) AddCodecov(c ...*CodeCov) *RepositoryUpdateOne {
 		ids[i] = c[i].ID
 	}
 	return ruo.AddCodecovIDs(ids...)
+}
+
+// AddOciIDs adds the "oci" edge to the OCI entity by IDs.
+func (ruo *RepositoryUpdateOne) AddOciIDs(ids ...uuid.UUID) *RepositoryUpdateOne {
+	ruo.mutation.AddOciIDs(ids...)
+	return ruo
+}
+
+// AddOci adds the "oci" edges to the OCI entity.
+func (ruo *RepositoryUpdateOne) AddOci(o ...*OCI) *RepositoryUpdateOne {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return ruo.AddOciIDs(ids...)
 }
 
 // AddProwSuiteIDs adds the "prow_suites" edge to the ProwSuites entity by IDs.
@@ -849,6 +950,27 @@ func (ruo *RepositoryUpdateOne) RemoveCodecov(c ...*CodeCov) *RepositoryUpdateOn
 	return ruo.RemoveCodecovIDs(ids...)
 }
 
+// ClearOci clears all "oci" edges to the OCI entity.
+func (ruo *RepositoryUpdateOne) ClearOci() *RepositoryUpdateOne {
+	ruo.mutation.ClearOci()
+	return ruo
+}
+
+// RemoveOciIDs removes the "oci" edge to OCI entities by IDs.
+func (ruo *RepositoryUpdateOne) RemoveOciIDs(ids ...uuid.UUID) *RepositoryUpdateOne {
+	ruo.mutation.RemoveOciIDs(ids...)
+	return ruo
+}
+
+// RemoveOci removes "oci" edges to OCI entities.
+func (ruo *RepositoryUpdateOne) RemoveOci(o ...*OCI) *RepositoryUpdateOne {
+	ids := make([]uuid.UUID, len(o))
+	for i := range o {
+		ids[i] = o[i].ID
+	}
+	return ruo.RemoveOciIDs(ids...)
+}
+
 // ClearProwSuites clears all "prow_suites" edges to the ProwSuites entity.
 func (ruo *RepositoryUpdateOne) ClearProwSuites() *RepositoryUpdateOne {
 	ruo.mutation.ClearProwSuites()
@@ -912,6 +1034,12 @@ func (ruo *RepositoryUpdateOne) RemovePrs(p ...*PullRequests) *RepositoryUpdateO
 	return ruo.RemovePrIDs(ids...)
 }
 
+// Where appends a list predicates to the RepositoryUpdate builder.
+func (ruo *RepositoryUpdateOne) Where(ps ...predicate.Repository) *RepositoryUpdateOne {
+	ruo.mutation.Where(ps...)
+	return ruo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (ruo *RepositoryUpdateOne) Select(field string, fields ...string) *RepositoryUpdateOne {
@@ -921,7 +1049,7 @@ func (ruo *RepositoryUpdateOne) Select(field string, fields ...string) *Reposito
 
 // Save executes the query and returns the updated Repository entity.
 func (ruo *RepositoryUpdateOne) Save(ctx context.Context) (*Repository, error) {
-	return withHooks[*Repository, RepositoryMutation](ctx, ruo.sqlSave, ruo.mutation, ruo.hooks)
+	return withHooks(ctx, ruo.sqlSave, ruo.mutation, ruo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -975,16 +1103,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 	if err := ruo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   repository.Table,
-			Columns: repository.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: repository.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(repository.Table, repository.Columns, sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString))
 	id, ok := ruo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`db: missing "Repository.id" for update`)}
@@ -1029,10 +1148,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.RepositoriesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1045,10 +1161,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.RepositoriesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1064,10 +1177,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.WorkflowsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: workflows.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(workflows.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1080,10 +1190,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.WorkflowsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: workflows.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(workflows.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1099,10 +1206,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.WorkflowsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: workflows.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(workflows.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1118,10 +1222,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.CodecovColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: codecov.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(codecov.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1134,10 +1235,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.CodecovColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: codecov.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(codecov.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1153,10 +1251,52 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.CodecovColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: codecov.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(codecov.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ruo.mutation.OciCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.OciTable,
+			Columns: []string{repository.OciColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(oci.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.RemovedOciIDs(); len(nodes) > 0 && !ruo.mutation.OciCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.OciTable,
+			Columns: []string{repository.OciColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(oci.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ruo.mutation.OciIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   repository.OciTable,
+			Columns: []string{repository.OciColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(oci.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -1172,10 +1312,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: prowsuites.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prowsuites.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1188,10 +1325,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: prowsuites.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prowsuites.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1207,10 +1341,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: prowsuites.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prowsuites.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1226,10 +1357,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.ProwJobsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: prowjobs.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prowjobs.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1242,10 +1370,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.ProwJobsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: prowjobs.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prowjobs.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1261,10 +1386,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.ProwJobsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: prowjobs.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(prowjobs.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1280,10 +1402,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.PrsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: pullrequests.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(pullrequests.FieldID, field.TypeInt),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1296,10 +1415,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.PrsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: pullrequests.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(pullrequests.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -1315,10 +1431,7 @@ func (ruo *RepositoryUpdateOne) sqlSave(ctx context.Context) (_node *Repository,
 			Columns: []string{repository.PrsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeInt,
-					Column: pullrequests.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(pullrequests.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

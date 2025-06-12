@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/bugs"
@@ -62,8 +63,9 @@ type Bugs struct {
 	Age *string `json:"age,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the BugsQuery when eager-loading is set.
-	Edges      BugsEdges `json:"edges"`
-	teams_bugs *uuid.UUID
+	Edges        BugsEdges `json:"edges"`
+	teams_bugs   *uuid.UUID
+	selectValues sql.SelectValues
 }
 
 // BugsEdges holds the relations/edges for other nodes in the graph.
@@ -78,12 +80,10 @@ type BugsEdges struct {
 // BugsOrErr returns the Bugs value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e BugsEdges) BugsOrErr() (*Teams, error) {
-	if e.loadedTypes[0] {
-		if e.Bugs == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: teams.Label}
-		}
+	if e.Bugs != nil {
 		return e.Bugs, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: teams.Label}
 	}
 	return nil, &NotLoadedError{edge: "bugs"}
 }
@@ -106,7 +106,7 @@ func (*Bugs) scanValues(columns []string) ([]any, error) {
 		case bugs.ForeignKeys[0]: // teams_bugs
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Bugs", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -271,9 +271,17 @@ func (b *Bugs) assignValues(columns []string, values []any) error {
 				b.teams_bugs = new(uuid.UUID)
 				*b.teams_bugs = *value.S.(*uuid.UUID)
 			}
+		default:
+			b.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Bugs.
+// This includes values selected through modifiers, order, etc.
+func (b *Bugs) Value(name string) (ent.Value, error) {
+	return b.selectValues.Get(name)
 }
 
 // QueryBugs queries the "bugs" edge of the Bugs entity.
@@ -396,9 +404,3 @@ func (b *Bugs) String() string {
 
 // BugsSlice is a parsable slice of Bugs.
 type BugsSlice []*Bugs
-
-func (b BugsSlice) config(cfg config) {
-	for _i := range b {
-		b[_i].config = cfg
-	}
-}

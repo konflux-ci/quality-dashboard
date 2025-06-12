@@ -3,6 +3,8 @@
 package failure
 
 import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -79,3 +81,60 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// OrderOption defines the ordering options for the Failure queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByJiraKey orders the results by the jira_key field.
+func ByJiraKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJiraKey, opts...).ToFunc()
+}
+
+// ByJiraStatus orders the results by the jira_status field.
+func ByJiraStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJiraStatus, opts...).ToFunc()
+}
+
+// ByErrorMessage orders the results by the error_message field.
+func ByErrorMessage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldErrorMessage, opts...).ToFunc()
+}
+
+// ByTitleFromJira orders the results by the title_from_jira field.
+func ByTitleFromJira(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTitleFromJira, opts...).ToFunc()
+}
+
+// ByCreatedDate orders the results by the created_date field.
+func ByCreatedDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedDate, opts...).ToFunc()
+}
+
+// ByClosedDate orders the results by the closed_date field.
+func ByClosedDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClosedDate, opts...).ToFunc()
+}
+
+// ByLabels orders the results by the labels field.
+func ByLabels(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLabels, opts...).ToFunc()
+}
+
+// ByFailuresField orders the results by failures field.
+func ByFailuresField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFailuresStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newFailuresStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FailuresInverseTable, TeamsFieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, FailuresTable, FailuresColumn),
+	)
+}

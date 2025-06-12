@@ -2,6 +2,11 @@
 
 package prowsuites
 
+import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+)
+
 const (
 	// Label holds the string label denoting the prowsuites type in the database.
 	Label = "prow_suites"
@@ -80,3 +85,75 @@ var (
 	// DefaultExternalServicesImpact holds the default value on creation for the "external_services_impact" field.
 	DefaultExternalServicesImpact bool
 )
+
+// OrderOption defines the ordering options for the ProwSuites queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByJobID orders the results by the job_id field.
+func ByJobID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJobID, opts...).ToFunc()
+}
+
+// ByJobURL orders the results by the job_url field.
+func ByJobURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJobURL, opts...).ToFunc()
+}
+
+// ByJobName orders the results by the job_name field.
+func ByJobName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJobName, opts...).ToFunc()
+}
+
+// BySuiteName orders the results by the suite_name field.
+func BySuiteName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSuiteName, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByErrorMessage orders the results by the error_message field.
+func ByErrorMessage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldErrorMessage, opts...).ToFunc()
+}
+
+// ByExternalServicesImpact orders the results by the external_services_impact field.
+func ByExternalServicesImpact(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExternalServicesImpact, opts...).ToFunc()
+}
+
+// ByTime orders the results by the time field.
+func ByTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTime, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByProwSuitesField orders the results by prow_suites field.
+func ByProwSuitesField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProwSuitesStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newProwSuitesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProwSuitesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ProwSuitesTable, ProwSuitesColumn),
+	)
+}

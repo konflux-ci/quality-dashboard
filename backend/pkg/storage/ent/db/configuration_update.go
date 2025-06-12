@@ -35,15 +35,39 @@ func (cu *ConfigurationUpdate) SetTeamName(s string) *ConfigurationUpdate {
 	return cu
 }
 
+// SetNillableTeamName sets the "team_name" field if the given value is not nil.
+func (cu *ConfigurationUpdate) SetNillableTeamName(s *string) *ConfigurationUpdate {
+	if s != nil {
+		cu.SetTeamName(*s)
+	}
+	return cu
+}
+
 // SetJiraConfig sets the "jira_config" field.
 func (cu *ConfigurationUpdate) SetJiraConfig(s string) *ConfigurationUpdate {
 	cu.mutation.SetJiraConfig(s)
 	return cu
 }
 
+// SetNillableJiraConfig sets the "jira_config" field if the given value is not nil.
+func (cu *ConfigurationUpdate) SetNillableJiraConfig(s *string) *ConfigurationUpdate {
+	if s != nil {
+		cu.SetJiraConfig(*s)
+	}
+	return cu
+}
+
 // SetBugSlosConfig sets the "bug_slos_config" field.
 func (cu *ConfigurationUpdate) SetBugSlosConfig(s string) *ConfigurationUpdate {
 	cu.mutation.SetBugSlosConfig(s)
+	return cu
+}
+
+// SetNillableBugSlosConfig sets the "bug_slos_config" field if the given value is not nil.
+func (cu *ConfigurationUpdate) SetNillableBugSlosConfig(s *string) *ConfigurationUpdate {
+	if s != nil {
+		cu.SetBugSlosConfig(*s)
+	}
 	return cu
 }
 
@@ -79,7 +103,7 @@ func (cu *ConfigurationUpdate) ClearConfiguration() *ConfigurationUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (cu *ConfigurationUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, ConfigurationMutation](ctx, cu.sqlSave, cu.mutation, cu.hooks)
+	return withHooks(ctx, cu.sqlSave, cu.mutation, cu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -105,16 +129,7 @@ func (cu *ConfigurationUpdate) ExecX(ctx context.Context) {
 }
 
 func (cu *ConfigurationUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   configuration.Table,
-			Columns: configuration.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: configuration.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(configuration.Table, configuration.Columns, sqlgraph.NewFieldSpec(configuration.FieldID, field.TypeUUID))
 	if ps := cu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -139,10 +154,7 @@ func (cu *ConfigurationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{configuration.ConfigurationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -155,10 +167,7 @@ func (cu *ConfigurationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{configuration.ConfigurationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -192,15 +201,39 @@ func (cuo *ConfigurationUpdateOne) SetTeamName(s string) *ConfigurationUpdateOne
 	return cuo
 }
 
+// SetNillableTeamName sets the "team_name" field if the given value is not nil.
+func (cuo *ConfigurationUpdateOne) SetNillableTeamName(s *string) *ConfigurationUpdateOne {
+	if s != nil {
+		cuo.SetTeamName(*s)
+	}
+	return cuo
+}
+
 // SetJiraConfig sets the "jira_config" field.
 func (cuo *ConfigurationUpdateOne) SetJiraConfig(s string) *ConfigurationUpdateOne {
 	cuo.mutation.SetJiraConfig(s)
 	return cuo
 }
 
+// SetNillableJiraConfig sets the "jira_config" field if the given value is not nil.
+func (cuo *ConfigurationUpdateOne) SetNillableJiraConfig(s *string) *ConfigurationUpdateOne {
+	if s != nil {
+		cuo.SetJiraConfig(*s)
+	}
+	return cuo
+}
+
 // SetBugSlosConfig sets the "bug_slos_config" field.
 func (cuo *ConfigurationUpdateOne) SetBugSlosConfig(s string) *ConfigurationUpdateOne {
 	cuo.mutation.SetBugSlosConfig(s)
+	return cuo
+}
+
+// SetNillableBugSlosConfig sets the "bug_slos_config" field if the given value is not nil.
+func (cuo *ConfigurationUpdateOne) SetNillableBugSlosConfig(s *string) *ConfigurationUpdateOne {
+	if s != nil {
+		cuo.SetBugSlosConfig(*s)
+	}
 	return cuo
 }
 
@@ -234,6 +267,12 @@ func (cuo *ConfigurationUpdateOne) ClearConfiguration() *ConfigurationUpdateOne 
 	return cuo
 }
 
+// Where appends a list predicates to the ConfigurationUpdate builder.
+func (cuo *ConfigurationUpdateOne) Where(ps ...predicate.Configuration) *ConfigurationUpdateOne {
+	cuo.mutation.Where(ps...)
+	return cuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (cuo *ConfigurationUpdateOne) Select(field string, fields ...string) *ConfigurationUpdateOne {
@@ -243,7 +282,7 @@ func (cuo *ConfigurationUpdateOne) Select(field string, fields ...string) *Confi
 
 // Save executes the query and returns the updated Configuration entity.
 func (cuo *ConfigurationUpdateOne) Save(ctx context.Context) (*Configuration, error) {
-	return withHooks[*Configuration, ConfigurationMutation](ctx, cuo.sqlSave, cuo.mutation, cuo.hooks)
+	return withHooks(ctx, cuo.sqlSave, cuo.mutation, cuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -269,16 +308,7 @@ func (cuo *ConfigurationUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (cuo *ConfigurationUpdateOne) sqlSave(ctx context.Context) (_node *Configuration, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   configuration.Table,
-			Columns: configuration.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: configuration.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(configuration.Table, configuration.Columns, sqlgraph.NewFieldSpec(configuration.FieldID, field.TypeUUID))
 	id, ok := cuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`db: missing "Configuration.id" for update`)}
@@ -320,10 +350,7 @@ func (cuo *ConfigurationUpdateOne) sqlSave(ctx context.Context) (_node *Configur
 			Columns: []string{configuration.ConfigurationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -336,10 +363,7 @@ func (cuo *ConfigurationUpdateOne) sqlSave(ctx context.Context) (_node *Configur
 			Columns: []string{configuration.ConfigurationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

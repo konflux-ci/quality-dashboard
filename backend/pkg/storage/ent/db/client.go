@@ -7,25 +7,28 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"reflect"
 
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/migrate"
 
+	"entgo.io/ent"
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/bugs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/codecov"
-	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/failure"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/failure"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/oci"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowsuites"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/pullrequests"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/teams"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/tektontasks"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/users"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/workflows"
-
-	"entgo.io/ent/dialect"
-	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -41,6 +44,8 @@ type Client struct {
 	Configuration *ConfigurationClient
 	// Failure is the client for interacting with the Failure builders.
 	Failure *FailureClient
+	// OCI is the client for interacting with the OCI builders.
+	OCI *OCIClient
 	// ProwJobs is the client for interacting with the ProwJobs builders.
 	ProwJobs *ProwJobsClient
 	// ProwSuites is the client for interacting with the ProwSuites builders.
@@ -51,6 +56,8 @@ type Client struct {
 	Repository *RepositoryClient
 	// Teams is the client for interacting with the Teams builders.
 	Teams *TeamsClient
+	// TektonTasks is the client for interacting with the TektonTasks builders.
+	TektonTasks *TektonTasksClient
 	// Users is the client for interacting with the Users builders.
 	Users *UsersClient
 	// Workflows is the client for interacting with the Workflows builders.
@@ -59,9 +66,7 @@ type Client struct {
 
 // NewClient creates a new client configured with the given options.
 func NewClient(opts ...Option) *Client {
-	cfg := config{log: log.Println, hooks: &hooks{}, inters: &inters{}}
-	cfg.options(opts...)
-	client := &Client{config: cfg}
+	client := &Client{config: newConfig(opts...)}
 	client.init()
 	return client
 }
@@ -72,13 +77,71 @@ func (c *Client) init() {
 	c.CodeCov = NewCodeCovClient(c.config)
 	c.Configuration = NewConfigurationClient(c.config)
 	c.Failure = NewFailureClient(c.config)
+	c.OCI = NewOCIClient(c.config)
 	c.ProwJobs = NewProwJobsClient(c.config)
 	c.ProwSuites = NewProwSuitesClient(c.config)
 	c.PullRequests = NewPullRequestsClient(c.config)
 	c.Repository = NewRepositoryClient(c.config)
 	c.Teams = NewTeamsClient(c.config)
+	c.TektonTasks = NewTektonTasksClient(c.config)
 	c.Users = NewUsersClient(c.config)
 	c.Workflows = NewWorkflowsClient(c.config)
+}
+
+type (
+	// config is the configuration for the client and its builder.
+	config struct {
+		// driver used for executing database requests.
+		driver dialect.Driver
+		// debug enable a debug logging.
+		debug bool
+		// log used for logging on debug mode.
+		log func(...any)
+		// hooks to execute on mutations.
+		hooks *hooks
+		// interceptors to execute on queries.
+		inters *inters
+	}
+	// Option function to configure the client.
+	Option func(*config)
+)
+
+// newConfig creates a new config for the client.
+func newConfig(opts ...Option) config {
+	cfg := config{log: log.Println, hooks: &hooks{}, inters: &inters{}}
+	cfg.options(opts...)
+	return cfg
+}
+
+// options applies the options on the config object.
+func (c *config) options(opts ...Option) {
+	for _, opt := range opts {
+		opt(c)
+	}
+	if c.debug {
+		c.driver = dialect.Debug(c.driver, c.log)
+	}
+}
+
+// Debug enables debug logging on the ent.Driver.
+func Debug() Option {
+	return func(c *config) {
+		c.debug = true
+	}
+}
+
+// Log sets the logging function for debug mode.
+func Log(fn func(...any)) Option {
+	return func(c *config) {
+		c.log = fn
+	}
+}
+
+// Driver configures the client driver.
+func Driver(driver dialect.Driver) Option {
+	return func(c *config) {
+		c.driver = driver
+	}
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -97,11 +160,14 @@ func Open(driverName, dataSourceName string, options ...Option) (*Client, error)
 	}
 }
 
+// ErrTxStarted is returned when trying to start a new transaction from a transactional client.
+var ErrTxStarted = errors.New("db: cannot start a transaction within a transaction")
+
 // Tx returns a new transactional client. The provided context
 // is used until the transaction is committed or rolled back.
 func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	if _, ok := c.driver.(*txDriver); ok {
-		return nil, errors.New("db: cannot start a transaction within a transaction")
+		return nil, ErrTxStarted
 	}
 	tx, err := newTx(ctx, c.driver)
 	if err != nil {
@@ -116,11 +182,13 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CodeCov:       NewCodeCovClient(cfg),
 		Configuration: NewConfigurationClient(cfg),
 		Failure:       NewFailureClient(cfg),
+		OCI:           NewOCIClient(cfg),
 		ProwJobs:      NewProwJobsClient(cfg),
 		ProwSuites:    NewProwSuitesClient(cfg),
 		PullRequests:  NewPullRequestsClient(cfg),
 		Repository:    NewRepositoryClient(cfg),
 		Teams:         NewTeamsClient(cfg),
+		TektonTasks:   NewTektonTasksClient(cfg),
 		Users:         NewUsersClient(cfg),
 		Workflows:     NewWorkflowsClient(cfg),
 	}, nil
@@ -146,11 +214,13 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CodeCov:       NewCodeCovClient(cfg),
 		Configuration: NewConfigurationClient(cfg),
 		Failure:       NewFailureClient(cfg),
+		OCI:           NewOCIClient(cfg),
 		ProwJobs:      NewProwJobsClient(cfg),
 		ProwSuites:    NewProwSuitesClient(cfg),
 		PullRequests:  NewPullRequestsClient(cfg),
 		Repository:    NewRepositoryClient(cfg),
 		Teams:         NewTeamsClient(cfg),
+		TektonTasks:   NewTektonTasksClient(cfg),
 		Users:         NewUsersClient(cfg),
 		Workflows:     NewWorkflowsClient(cfg),
 	}, nil
@@ -181,33 +251,23 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Bugs.Use(hooks...)
-	c.CodeCov.Use(hooks...)
-	c.Configuration.Use(hooks...)
-	c.Failure.Use(hooks...)
-	c.ProwJobs.Use(hooks...)
-	c.ProwSuites.Use(hooks...)
-	c.PullRequests.Use(hooks...)
-	c.Repository.Use(hooks...)
-	c.Teams.Use(hooks...)
-	c.Users.Use(hooks...)
-	c.Workflows.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Bugs, c.CodeCov, c.Configuration, c.Failure, c.OCI, c.ProwJobs, c.ProwSuites,
+		c.PullRequests, c.Repository, c.Teams, c.TektonTasks, c.Users, c.Workflows,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Bugs.Intercept(interceptors...)
-	c.CodeCov.Intercept(interceptors...)
-	c.Configuration.Intercept(interceptors...)
-	c.Failure.Intercept(interceptors...)
-	c.ProwJobs.Intercept(interceptors...)
-	c.ProwSuites.Intercept(interceptors...)
-	c.PullRequests.Intercept(interceptors...)
-	c.Repository.Intercept(interceptors...)
-	c.Teams.Intercept(interceptors...)
-	c.Users.Intercept(interceptors...)
-	c.Workflows.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Bugs, c.CodeCov, c.Configuration, c.Failure, c.OCI, c.ProwJobs, c.ProwSuites,
+		c.PullRequests, c.Repository, c.Teams, c.TektonTasks, c.Users, c.Workflows,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
@@ -221,6 +281,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Configuration.mutate(ctx, m)
 	case *FailureMutation:
 		return c.Failure.mutate(ctx, m)
+	case *OCIMutation:
+		return c.OCI.mutate(ctx, m)
 	case *ProwJobsMutation:
 		return c.ProwJobs.mutate(ctx, m)
 	case *ProwSuitesMutation:
@@ -231,6 +293,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Repository.mutate(ctx, m)
 	case *TeamsMutation:
 		return c.Teams.mutate(ctx, m)
+	case *TektonTasksMutation:
+		return c.TektonTasks.mutate(ctx, m)
 	case *UsersMutation:
 		return c.Users.mutate(ctx, m)
 	case *WorkflowsMutation:
@@ -256,7 +320,7 @@ func (c *BugsClient) Use(hooks ...Hook) {
 	c.hooks.Bugs = append(c.hooks.Bugs, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `bugs.Intercept(f(g(h())))`.
 func (c *BugsClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Bugs = append(c.inters.Bugs, interceptors...)
@@ -270,6 +334,21 @@ func (c *BugsClient) Create() *BugsCreate {
 
 // CreateBulk returns a builder for creating a bulk of Bugs entities.
 func (c *BugsClient) CreateBulk(builders ...*BugsCreate) *BugsCreateBulk {
+	return &BugsCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *BugsClient) MapCreateBulk(slice any, setFunc func(*BugsCreate, int)) *BugsCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &BugsCreateBulk{err: fmt.Errorf("calling to BugsClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*BugsCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &BugsCreateBulk{config: c.config, builders: builders}
 }
 
@@ -390,7 +469,7 @@ func (c *CodeCovClient) Use(hooks ...Hook) {
 	c.hooks.CodeCov = append(c.hooks.CodeCov, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `codecov.Intercept(f(g(h())))`.
 func (c *CodeCovClient) Intercept(interceptors ...Interceptor) {
 	c.inters.CodeCov = append(c.inters.CodeCov, interceptors...)
@@ -404,6 +483,21 @@ func (c *CodeCovClient) Create() *CodeCovCreate {
 
 // CreateBulk returns a builder for creating a bulk of CodeCov entities.
 func (c *CodeCovClient) CreateBulk(builders ...*CodeCovCreate) *CodeCovCreateBulk {
+	return &CodeCovCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CodeCovClient) MapCreateBulk(slice any, setFunc func(*CodeCovCreate, int)) *CodeCovCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CodeCovCreateBulk{err: fmt.Errorf("calling to CodeCovClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CodeCovCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &CodeCovCreateBulk{config: c.config, builders: builders}
 }
 
@@ -524,7 +618,7 @@ func (c *ConfigurationClient) Use(hooks ...Hook) {
 	c.hooks.Configuration = append(c.hooks.Configuration, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `configuration.Intercept(f(g(h())))`.
 func (c *ConfigurationClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Configuration = append(c.inters.Configuration, interceptors...)
@@ -538,6 +632,21 @@ func (c *ConfigurationClient) Create() *ConfigurationCreate {
 
 // CreateBulk returns a builder for creating a bulk of Configuration entities.
 func (c *ConfigurationClient) CreateBulk(builders ...*ConfigurationCreate) *ConfigurationCreateBulk {
+	return &ConfigurationCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ConfigurationClient) MapCreateBulk(slice any, setFunc func(*ConfigurationCreate, int)) *ConfigurationCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ConfigurationCreateBulk{err: fmt.Errorf("calling to ConfigurationClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ConfigurationCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &ConfigurationCreateBulk{config: c.config, builders: builders}
 }
 
@@ -658,7 +767,7 @@ func (c *FailureClient) Use(hooks ...Hook) {
 	c.hooks.Failure = append(c.hooks.Failure, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `failure.Intercept(f(g(h())))`.
 func (c *FailureClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Failure = append(c.inters.Failure, interceptors...)
@@ -672,6 +781,21 @@ func (c *FailureClient) Create() *FailureCreate {
 
 // CreateBulk returns a builder for creating a bulk of Failure entities.
 func (c *FailureClient) CreateBulk(builders ...*FailureCreate) *FailureCreateBulk {
+	return &FailureCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *FailureClient) MapCreateBulk(slice any, setFunc func(*FailureCreate, int)) *FailureCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &FailureCreateBulk{err: fmt.Errorf("calling to FailureClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*FailureCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &FailureCreateBulk{config: c.config, builders: builders}
 }
 
@@ -776,6 +900,155 @@ func (c *FailureClient) mutate(ctx context.Context, m *FailureMutation) (Value, 
 	}
 }
 
+// OCIClient is a client for the OCI schema.
+type OCIClient struct {
+	config
+}
+
+// NewOCIClient returns a client for the OCI from the given config.
+func NewOCIClient(c config) *OCIClient {
+	return &OCIClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `oci.Hooks(f(g(h())))`.
+func (c *OCIClient) Use(hooks ...Hook) {
+	c.hooks.OCI = append(c.hooks.OCI, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `oci.Intercept(f(g(h())))`.
+func (c *OCIClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OCI = append(c.inters.OCI, interceptors...)
+}
+
+// Create returns a builder for creating a OCI entity.
+func (c *OCIClient) Create() *OCICreate {
+	mutation := newOCIMutation(c.config, OpCreate)
+	return &OCICreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OCI entities.
+func (c *OCIClient) CreateBulk(builders ...*OCICreate) *OCICreateBulk {
+	return &OCICreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OCIClient) MapCreateBulk(slice any, setFunc func(*OCICreate, int)) *OCICreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OCICreateBulk{err: fmt.Errorf("calling to OCIClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OCICreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OCICreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OCI.
+func (c *OCIClient) Update() *OCIUpdate {
+	mutation := newOCIMutation(c.config, OpUpdate)
+	return &OCIUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OCIClient) UpdateOne(o *OCI) *OCIUpdateOne {
+	mutation := newOCIMutation(c.config, OpUpdateOne, withOCI(o))
+	return &OCIUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OCIClient) UpdateOneID(id uuid.UUID) *OCIUpdateOne {
+	mutation := newOCIMutation(c.config, OpUpdateOne, withOCIID(id))
+	return &OCIUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OCI.
+func (c *OCIClient) Delete() *OCIDelete {
+	mutation := newOCIMutation(c.config, OpDelete)
+	return &OCIDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OCIClient) DeleteOne(o *OCI) *OCIDeleteOne {
+	return c.DeleteOneID(o.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OCIClient) DeleteOneID(id uuid.UUID) *OCIDeleteOne {
+	builder := c.Delete().Where(oci.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OCIDeleteOne{builder}
+}
+
+// Query returns a query builder for OCI.
+func (c *OCIClient) Query() *OCIQuery {
+	return &OCIQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOCI},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OCI entity by its id.
+func (c *OCIClient) Get(ctx context.Context, id uuid.UUID) (*OCI, error) {
+	return c.Query().Where(oci.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OCIClient) GetX(ctx context.Context, id uuid.UUID) *OCI {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryOci queries the oci edge of a OCI.
+func (c *OCIClient) QueryOci(o *OCI) *RepositoryQuery {
+	query := (&RepositoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := o.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(oci.Table, oci.FieldID, id),
+			sqlgraph.To(repository.Table, repository.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, oci.OciTable, oci.OciColumn),
+		)
+		fromV = sqlgraph.Neighbors(o.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *OCIClient) Hooks() []Hook {
+	return c.hooks.OCI
+}
+
+// Interceptors returns the client interceptors.
+func (c *OCIClient) Interceptors() []Interceptor {
+	return c.inters.OCI
+}
+
+func (c *OCIClient) mutate(ctx context.Context, m *OCIMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OCICreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OCIUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OCIUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OCIDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown OCI mutation op: %q", m.Op())
+	}
+}
+
 // ProwJobsClient is a client for the ProwJobs schema.
 type ProwJobsClient struct {
 	config
@@ -792,7 +1065,7 @@ func (c *ProwJobsClient) Use(hooks ...Hook) {
 	c.hooks.ProwJobs = append(c.hooks.ProwJobs, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `prowjobs.Intercept(f(g(h())))`.
 func (c *ProwJobsClient) Intercept(interceptors ...Interceptor) {
 	c.inters.ProwJobs = append(c.inters.ProwJobs, interceptors...)
@@ -806,6 +1079,21 @@ func (c *ProwJobsClient) Create() *ProwJobsCreate {
 
 // CreateBulk returns a builder for creating a bulk of ProwJobs entities.
 func (c *ProwJobsClient) CreateBulk(builders ...*ProwJobsCreate) *ProwJobsCreateBulk {
+	return &ProwJobsCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProwJobsClient) MapCreateBulk(slice any, setFunc func(*ProwJobsCreate, int)) *ProwJobsCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProwJobsCreateBulk{err: fmt.Errorf("calling to ProwJobsClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProwJobsCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &ProwJobsCreateBulk{config: c.config, builders: builders}
 }
 
@@ -885,6 +1173,22 @@ func (c *ProwJobsClient) QueryProwJobs(pj *ProwJobs) *RepositoryQuery {
 	return query
 }
 
+// QueryTektonTasks queries the tekton_tasks edge of a ProwJobs.
+func (c *ProwJobsClient) QueryTektonTasks(pj *ProwJobs) *TektonTasksQuery {
+	query := (&TektonTasksClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pj.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(prowjobs.Table, prowjobs.FieldID, id),
+			sqlgraph.To(tektontasks.Table, tektontasks.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, prowjobs.TektonTasksTable, prowjobs.TektonTasksColumn),
+		)
+		fromV = sqlgraph.Neighbors(pj.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *ProwJobsClient) Hooks() []Hook {
 	return c.hooks.ProwJobs
@@ -926,7 +1230,7 @@ func (c *ProwSuitesClient) Use(hooks ...Hook) {
 	c.hooks.ProwSuites = append(c.hooks.ProwSuites, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `prowsuites.Intercept(f(g(h())))`.
 func (c *ProwSuitesClient) Intercept(interceptors ...Interceptor) {
 	c.inters.ProwSuites = append(c.inters.ProwSuites, interceptors...)
@@ -940,6 +1244,21 @@ func (c *ProwSuitesClient) Create() *ProwSuitesCreate {
 
 // CreateBulk returns a builder for creating a bulk of ProwSuites entities.
 func (c *ProwSuitesClient) CreateBulk(builders ...*ProwSuitesCreate) *ProwSuitesCreateBulk {
+	return &ProwSuitesCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProwSuitesClient) MapCreateBulk(slice any, setFunc func(*ProwSuitesCreate, int)) *ProwSuitesCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProwSuitesCreateBulk{err: fmt.Errorf("calling to ProwSuitesClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProwSuitesCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &ProwSuitesCreateBulk{config: c.config, builders: builders}
 }
 
@@ -1060,7 +1379,7 @@ func (c *PullRequestsClient) Use(hooks ...Hook) {
 	c.hooks.PullRequests = append(c.hooks.PullRequests, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `pullrequests.Intercept(f(g(h())))`.
 func (c *PullRequestsClient) Intercept(interceptors ...Interceptor) {
 	c.inters.PullRequests = append(c.inters.PullRequests, interceptors...)
@@ -1074,6 +1393,21 @@ func (c *PullRequestsClient) Create() *PullRequestsCreate {
 
 // CreateBulk returns a builder for creating a bulk of PullRequests entities.
 func (c *PullRequestsClient) CreateBulk(builders ...*PullRequestsCreate) *PullRequestsCreateBulk {
+	return &PullRequestsCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PullRequestsClient) MapCreateBulk(slice any, setFunc func(*PullRequestsCreate, int)) *PullRequestsCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PullRequestsCreateBulk{err: fmt.Errorf("calling to PullRequestsClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PullRequestsCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &PullRequestsCreateBulk{config: c.config, builders: builders}
 }
 
@@ -1194,7 +1528,7 @@ func (c *RepositoryClient) Use(hooks ...Hook) {
 	c.hooks.Repository = append(c.hooks.Repository, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `repository.Intercept(f(g(h())))`.
 func (c *RepositoryClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Repository = append(c.inters.Repository, interceptors...)
@@ -1208,6 +1542,21 @@ func (c *RepositoryClient) Create() *RepositoryCreate {
 
 // CreateBulk returns a builder for creating a bulk of Repository entities.
 func (c *RepositoryClient) CreateBulk(builders ...*RepositoryCreate) *RepositoryCreateBulk {
+	return &RepositoryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RepositoryClient) MapCreateBulk(slice any, setFunc func(*RepositoryCreate, int)) *RepositoryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RepositoryCreateBulk{err: fmt.Errorf("calling to RepositoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RepositoryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &RepositoryCreateBulk{config: c.config, builders: builders}
 }
 
@@ -1319,6 +1668,22 @@ func (c *RepositoryClient) QueryCodecov(r *Repository) *CodeCovQuery {
 	return query
 }
 
+// QueryOci queries the oci edge of a Repository.
+func (c *RepositoryClient) QueryOci(r *Repository) *OCIQuery {
+	query := (&OCIClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := r.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(repository.Table, repository.FieldID, id),
+			sqlgraph.To(oci.Table, oci.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, repository.OciTable, repository.OciColumn),
+		)
+		fromV = sqlgraph.Neighbors(r.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryProwSuites queries the prow_suites edge of a Repository.
 func (c *RepositoryClient) QueryProwSuites(r *Repository) *ProwSuitesQuery {
 	query := (&ProwSuitesClient{config: c.config}).Query()
@@ -1408,7 +1773,7 @@ func (c *TeamsClient) Use(hooks ...Hook) {
 	c.hooks.Teams = append(c.hooks.Teams, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `teams.Intercept(f(g(h())))`.
 func (c *TeamsClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Teams = append(c.inters.Teams, interceptors...)
@@ -1422,6 +1787,21 @@ func (c *TeamsClient) Create() *TeamsCreate {
 
 // CreateBulk returns a builder for creating a bulk of Teams entities.
 func (c *TeamsClient) CreateBulk(builders ...*TeamsCreate) *TeamsCreateBulk {
+	return &TeamsCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TeamsClient) MapCreateBulk(slice any, setFunc func(*TeamsCreate, int)) *TeamsCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TeamsCreateBulk{err: fmt.Errorf("calling to TeamsClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TeamsCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &TeamsCreateBulk{config: c.config, builders: builders}
 }
 
@@ -1574,6 +1954,155 @@ func (c *TeamsClient) mutate(ctx context.Context, m *TeamsMutation) (Value, erro
 	}
 }
 
+// TektonTasksClient is a client for the TektonTasks schema.
+type TektonTasksClient struct {
+	config
+}
+
+// NewTektonTasksClient returns a client for the TektonTasks from the given config.
+func NewTektonTasksClient(c config) *TektonTasksClient {
+	return &TektonTasksClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tektontasks.Hooks(f(g(h())))`.
+func (c *TektonTasksClient) Use(hooks ...Hook) {
+	c.hooks.TektonTasks = append(c.hooks.TektonTasks, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `tektontasks.Intercept(f(g(h())))`.
+func (c *TektonTasksClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TektonTasks = append(c.inters.TektonTasks, interceptors...)
+}
+
+// Create returns a builder for creating a TektonTasks entity.
+func (c *TektonTasksClient) Create() *TektonTasksCreate {
+	mutation := newTektonTasksMutation(c.config, OpCreate)
+	return &TektonTasksCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TektonTasks entities.
+func (c *TektonTasksClient) CreateBulk(builders ...*TektonTasksCreate) *TektonTasksCreateBulk {
+	return &TektonTasksCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *TektonTasksClient) MapCreateBulk(slice any, setFunc func(*TektonTasksCreate, int)) *TektonTasksCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &TektonTasksCreateBulk{err: fmt.Errorf("calling to TektonTasksClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*TektonTasksCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &TektonTasksCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TektonTasks.
+func (c *TektonTasksClient) Update() *TektonTasksUpdate {
+	mutation := newTektonTasksMutation(c.config, OpUpdate)
+	return &TektonTasksUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TektonTasksClient) UpdateOne(tt *TektonTasks) *TektonTasksUpdateOne {
+	mutation := newTektonTasksMutation(c.config, OpUpdateOne, withTektonTasks(tt))
+	return &TektonTasksUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TektonTasksClient) UpdateOneID(id uuid.UUID) *TektonTasksUpdateOne {
+	mutation := newTektonTasksMutation(c.config, OpUpdateOne, withTektonTasksID(id))
+	return &TektonTasksUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TektonTasks.
+func (c *TektonTasksClient) Delete() *TektonTasksDelete {
+	mutation := newTektonTasksMutation(c.config, OpDelete)
+	return &TektonTasksDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TektonTasksClient) DeleteOne(tt *TektonTasks) *TektonTasksDeleteOne {
+	return c.DeleteOneID(tt.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TektonTasksClient) DeleteOneID(id uuid.UUID) *TektonTasksDeleteOne {
+	builder := c.Delete().Where(tektontasks.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TektonTasksDeleteOne{builder}
+}
+
+// Query returns a query builder for TektonTasks.
+func (c *TektonTasksClient) Query() *TektonTasksQuery {
+	return &TektonTasksQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTektonTasks},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a TektonTasks entity by its id.
+func (c *TektonTasksClient) Get(ctx context.Context, id uuid.UUID) (*TektonTasks, error) {
+	return c.Query().Where(tektontasks.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TektonTasksClient) GetX(ctx context.Context, id uuid.UUID) *TektonTasks {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryTektonTasks queries the tekton_tasks edge of a TektonTasks.
+func (c *TektonTasksClient) QueryTektonTasks(tt *TektonTasks) *ProwJobsQuery {
+	query := (&ProwJobsClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := tt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(tektontasks.Table, tektontasks.FieldID, id),
+			sqlgraph.To(prowjobs.Table, prowjobs.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, tektontasks.TektonTasksTable, tektontasks.TektonTasksColumn),
+		)
+		fromV = sqlgraph.Neighbors(tt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *TektonTasksClient) Hooks() []Hook {
+	return c.hooks.TektonTasks
+}
+
+// Interceptors returns the client interceptors.
+func (c *TektonTasksClient) Interceptors() []Interceptor {
+	return c.inters.TektonTasks
+}
+
+func (c *TektonTasksClient) mutate(ctx context.Context, m *TektonTasksMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TektonTasksCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TektonTasksUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TektonTasksUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TektonTasksDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown TektonTasks mutation op: %q", m.Op())
+	}
+}
+
 // UsersClient is a client for the Users schema.
 type UsersClient struct {
 	config
@@ -1590,7 +2119,7 @@ func (c *UsersClient) Use(hooks ...Hook) {
 	c.hooks.Users = append(c.hooks.Users, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `users.Intercept(f(g(h())))`.
 func (c *UsersClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Users = append(c.inters.Users, interceptors...)
@@ -1604,6 +2133,21 @@ func (c *UsersClient) Create() *UsersCreate {
 
 // CreateBulk returns a builder for creating a bulk of Users entities.
 func (c *UsersClient) CreateBulk(builders ...*UsersCreate) *UsersCreateBulk {
+	return &UsersCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UsersClient) MapCreateBulk(slice any, setFunc func(*UsersCreate, int)) *UsersCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UsersCreateBulk{err: fmt.Errorf("calling to UsersClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UsersCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &UsersCreateBulk{config: c.config, builders: builders}
 }
 
@@ -1708,7 +2252,7 @@ func (c *WorkflowsClient) Use(hooks ...Hook) {
 	c.hooks.Workflows = append(c.hooks.Workflows, hooks...)
 }
 
-// Use adds a list of query interceptors to the interceptors stack.
+// Intercept adds a list of query interceptors to the interceptors stack.
 // A call to `Intercept(f, g, h)` equals to `workflows.Intercept(f(g(h())))`.
 func (c *WorkflowsClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Workflows = append(c.inters.Workflows, interceptors...)
@@ -1722,6 +2266,21 @@ func (c *WorkflowsClient) Create() *WorkflowsCreate {
 
 // CreateBulk returns a builder for creating a bulk of Workflows entities.
 func (c *WorkflowsClient) CreateBulk(builders ...*WorkflowsCreate) *WorkflowsCreateBulk {
+	return &WorkflowsCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *WorkflowsClient) MapCreateBulk(slice any, setFunc func(*WorkflowsCreate, int)) *WorkflowsCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &WorkflowsCreateBulk{err: fmt.Errorf("calling to WorkflowsClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*WorkflowsCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
 	return &WorkflowsCreateBulk{config: c.config, builders: builders}
 }
 
@@ -1825,3 +2384,15 @@ func (c *WorkflowsClient) mutate(ctx context.Context, m *WorkflowsMutation) (Val
 		return nil, fmt.Errorf("db: unknown Workflows mutation op: %q", m.Op())
 	}
 }
+
+// hooks and interceptors per client, for fast access.
+type (
+	hooks struct {
+		Bugs, CodeCov, Configuration, Failure, OCI, ProwJobs, ProwSuites, PullRequests,
+		Repository, Teams, TektonTasks, Users, Workflows []ent.Hook
+	}
+	inters struct {
+		Bugs, CodeCov, Configuration, Failure, OCI, ProwJobs, ProwSuites, PullRequests,
+		Repository, Teams, TektonTasks, Users, Workflows []ent.Interceptor
+	}
+)

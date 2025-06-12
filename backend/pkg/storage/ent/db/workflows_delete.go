@@ -27,7 +27,7 @@ func (wd *WorkflowsDelete) Where(ps ...predicate.Workflows) *WorkflowsDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (wd *WorkflowsDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, WorkflowsMutation](ctx, wd.sqlExec, wd.mutation, wd.hooks)
+	return withHooks(ctx, wd.sqlExec, wd.mutation, wd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (wd *WorkflowsDelete) ExecX(ctx context.Context) int {
 }
 
 func (wd *WorkflowsDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: workflows.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: workflows.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(workflows.Table, sqlgraph.NewFieldSpec(workflows.FieldID, field.TypeInt))
 	if ps := wd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

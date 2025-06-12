@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/users"
@@ -19,7 +20,8 @@ type Users struct {
 	// UserEmail holds the value of the "user_email" field.
 	UserEmail string `json:"user_email,omitempty"`
 	// Config holds the value of the "config" field.
-	Config string `json:"config,omitempty"`
+	Config       string `json:"config,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -32,7 +34,7 @@ func (*Users) scanValues(columns []string) ([]any, error) {
 		case users.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Users", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -64,9 +66,17 @@ func (u *Users) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				u.Config = value.String
 			}
+		default:
+			u.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Users.
+// This includes values selected through modifiers, order, etc.
+func (u *Users) Value(name string) (ent.Value, error) {
+	return u.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this Users.
@@ -103,9 +113,3 @@ func (u *Users) String() string {
 
 // UsersSlice is a parsable slice of Users.
 type UsersSlice []*Users
-
-func (u UsersSlice) config(cfg config) {
-	for _i := range u {
-		u[_i].config = cfg
-	}
-}

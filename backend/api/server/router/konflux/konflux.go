@@ -116,7 +116,7 @@ func (k *konfluxRouter) receiveMetrics(ctx context.Context, w http.ResponseWrite
 		k.logger.Sugar().Info("xunit file not provided; skipping test case parsing")
 	}
 
-	if err := k.storage.CreateProwJobResults(prowV1Alpha1.Job{
+	if _, err := k.storage.CreateProwJobResults(prowV1Alpha1.Job{
 		JobID:                 metadata.JobId,
 		CreatedAt:             metadata.CreatedAt,
 		State:                 metadata.State,

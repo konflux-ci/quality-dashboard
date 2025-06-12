@@ -27,7 +27,7 @@ func (ccd *CodeCovDelete) Where(ps ...predicate.CodeCov) *CodeCovDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ccd *CodeCovDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, CodeCovMutation](ctx, ccd.sqlExec, ccd.mutation, ccd.hooks)
+	return withHooks(ctx, ccd.sqlExec, ccd.mutation, ccd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (ccd *CodeCovDelete) ExecX(ctx context.Context) int {
 }
 
 func (ccd *CodeCovDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: codecov.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: codecov.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(codecov.Table, sqlgraph.NewFieldSpec(codecov.FieldID, field.TypeUUID))
 	if ps := ccd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

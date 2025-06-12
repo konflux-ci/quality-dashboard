@@ -121,6 +121,28 @@ var (
 			},
 		},
 	}
+	// OcIsColumns holds the columns for the "oc_is" table.
+	OcIsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "artifact_url", Type: field.TypeString, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "repository_oci", Type: field.TypeString, Nullable: true, Size: 25},
+	}
+	// OcIsTable holds the schema information for the "oc_is" table.
+	OcIsTable = &schema.Table{
+		Name:       "oc_is",
+		Columns:    OcIsColumns,
+		PrimaryKey: []*schema.Column{OcIsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "oc_is_repositories_oci",
+				Columns:    []*schema.Column{OcIsColumns[4]},
+				RefColumns: []*schema.Column{RepositoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// ProwJobsColumns holds the columns for the "prow_jobs" table.
 	ProwJobsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -252,6 +274,28 @@ var (
 		Columns:    TeamsColumns,
 		PrimaryKey: []*schema.Column{TeamsColumns[0]},
 	}
+	// TektonTasksColumns holds the columns for the "tekton_tasks" table.
+	TektonTasksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "task_name", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "duration_seconds", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "status", Type: field.TypeString, SchemaType: map[string]string{"postgres": "text"}},
+		{Name: "prow_jobs_tekton_tasks", Type: field.TypeInt, Nullable: true},
+	}
+	// TektonTasksTable holds the schema information for the "tekton_tasks" table.
+	TektonTasksTable = &schema.Table{
+		Name:       "tekton_tasks",
+		Columns:    TektonTasksColumns,
+		PrimaryKey: []*schema.Column{TektonTasksColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "tekton_tasks_prow_jobs_tekton_tasks",
+				Columns:    []*schema.Column{TektonTasksColumns[4]},
+				RefColumns: []*schema.Column{ProwJobsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "user_id", Type: field.TypeUUID, Unique: true},
@@ -295,11 +339,13 @@ var (
 		CodeCovsTable,
 		ConfigurationsTable,
 		FailuresTable,
+		OcIsTable,
 		ProwJobsTable,
 		ProwSuitesTable,
 		PullRequestsTable,
 		RepositoriesTable,
 		TeamsTable,
+		TektonTasksTable,
 		UsersTable,
 		WorkflowsTable,
 	}
@@ -310,9 +356,11 @@ func init() {
 	CodeCovsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	ConfigurationsTable.ForeignKeys[0].RefTable = TeamsTable
 	FailuresTable.ForeignKeys[0].RefTable = TeamsTable
+	OcIsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	ProwJobsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	ProwSuitesTable.ForeignKeys[0].RefTable = RepositoriesTable
 	PullRequestsTable.ForeignKeys[0].RefTable = RepositoriesTable
 	RepositoriesTable.ForeignKeys[0].RefTable = TeamsTable
+	TektonTasksTable.ForeignKeys[0].RefTable = ProwJobsTable
 	WorkflowsTable.ForeignKeys[0].RefTable = RepositoriesTable
 }

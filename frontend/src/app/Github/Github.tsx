@@ -57,7 +57,7 @@ export interface RepositoryInfo {
 let GitHub = () => {
   const { store } = React.useContext(ReactReduxContext);
   const state = store.getState();
-  const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(90));
+  const [rangeDateTime, setRangeDateTime] = useState(getRangeDates(15));
   const defaultModalContext = useDefaultModalContextState();
   const modalContext = useModalContext();
   const currentTeam = useSelector((state: any) => state.teams.Team);

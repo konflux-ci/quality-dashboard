@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
@@ -27,6 +28,7 @@ type Configuration struct {
 	// The values are being populated by the ConfigurationQuery when eager-loading is set.
 	Edges               ConfigurationEdges `json:"edges"`
 	teams_configuration *uuid.UUID
+	selectValues        sql.SelectValues
 }
 
 // ConfigurationEdges holds the relations/edges for other nodes in the graph.
@@ -41,12 +43,10 @@ type ConfigurationEdges struct {
 // ConfigurationOrErr returns the Configuration value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ConfigurationEdges) ConfigurationOrErr() (*Teams, error) {
-	if e.loadedTypes[0] {
-		if e.Configuration == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: teams.Label}
-		}
+	if e.Configuration != nil {
 		return e.Configuration, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: teams.Label}
 	}
 	return nil, &NotLoadedError{edge: "configuration"}
 }
@@ -63,7 +63,7 @@ func (*Configuration) scanValues(columns []string) ([]any, error) {
 		case configuration.ForeignKeys[0]: // teams_configuration
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Configuration", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -108,9 +108,17 @@ func (c *Configuration) assignValues(columns []string, values []any) error {
 				c.teams_configuration = new(uuid.UUID)
 				*c.teams_configuration = *value.S.(*uuid.UUID)
 			}
+		default:
+			c.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Configuration.
+// This includes values selected through modifiers, order, etc.
+func (c *Configuration) Value(name string) (ent.Value, error) {
+	return c.selectValues.Get(name)
 }
 
 // QueryConfiguration queries the "configuration" edge of the Configuration entity.
@@ -155,9 +163,3 @@ func (c *Configuration) String() string {
 
 // Configurations is a parsable slice of Configuration.
 type Configurations []*Configuration
-
-func (c Configurations) config(cfg config) {
-	for _i := range c {
-		c[_i].config = cfg
-	}
-}

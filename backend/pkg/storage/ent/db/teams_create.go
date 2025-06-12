@@ -13,11 +13,10 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/bugs"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/failure"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/teams"
-	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
-
 )
 
 // TeamsCreate is the builder for creating a Teams entity.
@@ -128,7 +127,7 @@ func (tc *TeamsCreate) Mutation() *TeamsMutation {
 // Save creates the Teams in the database.
 func (tc *TeamsCreate) Save(ctx context.Context) (*Teams, error) {
 	tc.defaults()
-	return withHooks[*Teams, TeamsMutation](ctx, tc.sqlSave, tc.mutation, tc.hooks)
+	return withHooks(ctx, tc.sqlSave, tc.mutation, tc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -201,13 +200,7 @@ func (tc *TeamsCreate) sqlSave(ctx context.Context) (*Teams, error) {
 func (tc *TeamsCreate) createSpec() (*Teams, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Teams{config: tc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: teams.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: teams.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(teams.Table, sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = tc.conflict
 	if id, ok := tc.mutation.ID(); ok {
@@ -234,10 +227,7 @@ func (tc *TeamsCreate) createSpec() (*Teams, *sqlgraph.CreateSpec) {
 			Columns: []string{teams.RepositoriesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -253,10 +243,7 @@ func (tc *TeamsCreate) createSpec() (*Teams, *sqlgraph.CreateSpec) {
 			Columns: []string{teams.BugsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: bugs.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(bugs.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -272,10 +259,7 @@ func (tc *TeamsCreate) createSpec() (*Teams, *sqlgraph.CreateSpec) {
 			Columns: []string{teams.FailuresColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: failure.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(failure.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -291,10 +275,7 @@ func (tc *TeamsCreate) createSpec() (*Teams, *sqlgraph.CreateSpec) {
 			Columns: []string{teams.ConfigurationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: configuration.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(configuration.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -521,12 +502,16 @@ func (u *TeamsUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // TeamsCreateBulk is the builder for creating many Teams entities in bulk.
 type TeamsCreateBulk struct {
 	config
+	err      error
 	builders []*TeamsCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the Teams entities in the database.
 func (tcb *TeamsCreateBulk) Save(ctx context.Context) ([]*Teams, error) {
+	if tcb.err != nil {
+		return nil, tcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(tcb.builders))
 	nodes := make([]*Teams, len(tcb.builders))
 	mutators := make([]Mutator, len(tcb.builders))
@@ -543,8 +528,8 @@ func (tcb *TeamsCreateBulk) Save(ctx context.Context) ([]*Teams, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, tcb.builders[i+1].mutation)
 				} else {
@@ -735,6 +720,9 @@ func (u *TeamsUpsertBulk) UpdateJiraKeys() *TeamsUpsertBulk {
 
 // Exec executes the query.
 func (u *TeamsUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the TeamsCreateBulk instead", i)

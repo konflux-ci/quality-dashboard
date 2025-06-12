@@ -35,9 +35,25 @@ func (pru *PullRequestsUpdate) SetRepositoryName(s string) *PullRequestsUpdate {
 	return pru
 }
 
+// SetNillableRepositoryName sets the "repository_name" field if the given value is not nil.
+func (pru *PullRequestsUpdate) SetNillableRepositoryName(s *string) *PullRequestsUpdate {
+	if s != nil {
+		pru.SetRepositoryName(*s)
+	}
+	return pru
+}
+
 // SetRepositoryOrganization sets the "repository_organization" field.
 func (pru *PullRequestsUpdate) SetRepositoryOrganization(s string) *PullRequestsUpdate {
 	pru.mutation.SetRepositoryOrganization(s)
+	return pru
+}
+
+// SetNillableRepositoryOrganization sets the "repository_organization" field if the given value is not nil.
+func (pru *PullRequestsUpdate) SetNillableRepositoryOrganization(s *string) *PullRequestsUpdate {
+	if s != nil {
+		pru.SetRepositoryOrganization(*s)
+	}
 	return pru
 }
 
@@ -45,6 +61,14 @@ func (pru *PullRequestsUpdate) SetRepositoryOrganization(s string) *PullRequests
 func (pru *PullRequestsUpdate) SetNumber(i int) *PullRequestsUpdate {
 	pru.mutation.ResetNumber()
 	pru.mutation.SetNumber(i)
+	return pru
+}
+
+// SetNillableNumber sets the "number" field if the given value is not nil.
+func (pru *PullRequestsUpdate) SetNillableNumber(i *int) *PullRequestsUpdate {
+	if i != nil {
+		pru.SetNumber(*i)
+	}
 	return pru
 }
 
@@ -60,9 +84,25 @@ func (pru *PullRequestsUpdate) SetCreatedAt(t time.Time) *PullRequestsUpdate {
 	return pru
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (pru *PullRequestsUpdate) SetNillableCreatedAt(t *time.Time) *PullRequestsUpdate {
+	if t != nil {
+		pru.SetCreatedAt(*t)
+	}
+	return pru
+}
+
 // SetClosedAt sets the "closed_at" field.
 func (pru *PullRequestsUpdate) SetClosedAt(t time.Time) *PullRequestsUpdate {
 	pru.mutation.SetClosedAt(t)
+	return pru
+}
+
+// SetNillableClosedAt sets the "closed_at" field if the given value is not nil.
+func (pru *PullRequestsUpdate) SetNillableClosedAt(t *time.Time) *PullRequestsUpdate {
+	if t != nil {
+		pru.SetClosedAt(*t)
+	}
 	return pru
 }
 
@@ -72,9 +112,25 @@ func (pru *PullRequestsUpdate) SetMergedAt(t time.Time) *PullRequestsUpdate {
 	return pru
 }
 
+// SetNillableMergedAt sets the "merged_at" field if the given value is not nil.
+func (pru *PullRequestsUpdate) SetNillableMergedAt(t *time.Time) *PullRequestsUpdate {
+	if t != nil {
+		pru.SetMergedAt(*t)
+	}
+	return pru
+}
+
 // SetState sets the "state" field.
 func (pru *PullRequestsUpdate) SetState(s string) *PullRequestsUpdate {
 	pru.mutation.SetState(s)
+	return pru
+}
+
+// SetNillableState sets the "state" field if the given value is not nil.
+func (pru *PullRequestsUpdate) SetNillableState(s *string) *PullRequestsUpdate {
+	if s != nil {
+		pru.SetState(*s)
+	}
 	return pru
 }
 
@@ -84,9 +140,25 @@ func (pru *PullRequestsUpdate) SetAuthor(s string) *PullRequestsUpdate {
 	return pru
 }
 
+// SetNillableAuthor sets the "author" field if the given value is not nil.
+func (pru *PullRequestsUpdate) SetNillableAuthor(s *string) *PullRequestsUpdate {
+	if s != nil {
+		pru.SetAuthor(*s)
+	}
+	return pru
+}
+
 // SetTitle sets the "title" field.
 func (pru *PullRequestsUpdate) SetTitle(s string) *PullRequestsUpdate {
 	pru.mutation.SetTitle(s)
+	return pru
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (pru *PullRequestsUpdate) SetNillableTitle(s *string) *PullRequestsUpdate {
+	if s != nil {
+		pru.SetTitle(*s)
+	}
 	return pru
 }
 
@@ -196,7 +268,7 @@ func (pru *PullRequestsUpdate) ClearPrs() *PullRequestsUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (pru *PullRequestsUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, PullRequestsMutation](ctx, pru.sqlSave, pru.mutation, pru.hooks)
+	return withHooks(ctx, pru.sqlSave, pru.mutation, pru.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -222,16 +294,7 @@ func (pru *PullRequestsUpdate) ExecX(ctx context.Context) {
 }
 
 func (pru *PullRequestsUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   pullrequests.Table,
-			Columns: pullrequests.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pullrequests.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(pullrequests.Table, pullrequests.Columns, sqlgraph.NewFieldSpec(pullrequests.FieldID, field.TypeInt))
 	if ps := pru.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -301,10 +364,7 @@ func (pru *PullRequestsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{pullrequests.PrsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -317,10 +377,7 @@ func (pru *PullRequestsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{pullrequests.PrsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -354,9 +411,25 @@ func (pruo *PullRequestsUpdateOne) SetRepositoryName(s string) *PullRequestsUpda
 	return pruo
 }
 
+// SetNillableRepositoryName sets the "repository_name" field if the given value is not nil.
+func (pruo *PullRequestsUpdateOne) SetNillableRepositoryName(s *string) *PullRequestsUpdateOne {
+	if s != nil {
+		pruo.SetRepositoryName(*s)
+	}
+	return pruo
+}
+
 // SetRepositoryOrganization sets the "repository_organization" field.
 func (pruo *PullRequestsUpdateOne) SetRepositoryOrganization(s string) *PullRequestsUpdateOne {
 	pruo.mutation.SetRepositoryOrganization(s)
+	return pruo
+}
+
+// SetNillableRepositoryOrganization sets the "repository_organization" field if the given value is not nil.
+func (pruo *PullRequestsUpdateOne) SetNillableRepositoryOrganization(s *string) *PullRequestsUpdateOne {
+	if s != nil {
+		pruo.SetRepositoryOrganization(*s)
+	}
 	return pruo
 }
 
@@ -364,6 +437,14 @@ func (pruo *PullRequestsUpdateOne) SetRepositoryOrganization(s string) *PullRequ
 func (pruo *PullRequestsUpdateOne) SetNumber(i int) *PullRequestsUpdateOne {
 	pruo.mutation.ResetNumber()
 	pruo.mutation.SetNumber(i)
+	return pruo
+}
+
+// SetNillableNumber sets the "number" field if the given value is not nil.
+func (pruo *PullRequestsUpdateOne) SetNillableNumber(i *int) *PullRequestsUpdateOne {
+	if i != nil {
+		pruo.SetNumber(*i)
+	}
 	return pruo
 }
 
@@ -379,9 +460,25 @@ func (pruo *PullRequestsUpdateOne) SetCreatedAt(t time.Time) *PullRequestsUpdate
 	return pruo
 }
 
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (pruo *PullRequestsUpdateOne) SetNillableCreatedAt(t *time.Time) *PullRequestsUpdateOne {
+	if t != nil {
+		pruo.SetCreatedAt(*t)
+	}
+	return pruo
+}
+
 // SetClosedAt sets the "closed_at" field.
 func (pruo *PullRequestsUpdateOne) SetClosedAt(t time.Time) *PullRequestsUpdateOne {
 	pruo.mutation.SetClosedAt(t)
+	return pruo
+}
+
+// SetNillableClosedAt sets the "closed_at" field if the given value is not nil.
+func (pruo *PullRequestsUpdateOne) SetNillableClosedAt(t *time.Time) *PullRequestsUpdateOne {
+	if t != nil {
+		pruo.SetClosedAt(*t)
+	}
 	return pruo
 }
 
@@ -391,9 +488,25 @@ func (pruo *PullRequestsUpdateOne) SetMergedAt(t time.Time) *PullRequestsUpdateO
 	return pruo
 }
 
+// SetNillableMergedAt sets the "merged_at" field if the given value is not nil.
+func (pruo *PullRequestsUpdateOne) SetNillableMergedAt(t *time.Time) *PullRequestsUpdateOne {
+	if t != nil {
+		pruo.SetMergedAt(*t)
+	}
+	return pruo
+}
+
 // SetState sets the "state" field.
 func (pruo *PullRequestsUpdateOne) SetState(s string) *PullRequestsUpdateOne {
 	pruo.mutation.SetState(s)
+	return pruo
+}
+
+// SetNillableState sets the "state" field if the given value is not nil.
+func (pruo *PullRequestsUpdateOne) SetNillableState(s *string) *PullRequestsUpdateOne {
+	if s != nil {
+		pruo.SetState(*s)
+	}
 	return pruo
 }
 
@@ -403,9 +516,25 @@ func (pruo *PullRequestsUpdateOne) SetAuthor(s string) *PullRequestsUpdateOne {
 	return pruo
 }
 
+// SetNillableAuthor sets the "author" field if the given value is not nil.
+func (pruo *PullRequestsUpdateOne) SetNillableAuthor(s *string) *PullRequestsUpdateOne {
+	if s != nil {
+		pruo.SetAuthor(*s)
+	}
+	return pruo
+}
+
 // SetTitle sets the "title" field.
 func (pruo *PullRequestsUpdateOne) SetTitle(s string) *PullRequestsUpdateOne {
 	pruo.mutation.SetTitle(s)
+	return pruo
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (pruo *PullRequestsUpdateOne) SetNillableTitle(s *string) *PullRequestsUpdateOne {
+	if s != nil {
+		pruo.SetTitle(*s)
+	}
 	return pruo
 }
 
@@ -513,6 +642,12 @@ func (pruo *PullRequestsUpdateOne) ClearPrs() *PullRequestsUpdateOne {
 	return pruo
 }
 
+// Where appends a list predicates to the PullRequestsUpdate builder.
+func (pruo *PullRequestsUpdateOne) Where(ps ...predicate.PullRequests) *PullRequestsUpdateOne {
+	pruo.mutation.Where(ps...)
+	return pruo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (pruo *PullRequestsUpdateOne) Select(field string, fields ...string) *PullRequestsUpdateOne {
@@ -522,7 +657,7 @@ func (pruo *PullRequestsUpdateOne) Select(field string, fields ...string) *PullR
 
 // Save executes the query and returns the updated PullRequests entity.
 func (pruo *PullRequestsUpdateOne) Save(ctx context.Context) (*PullRequests, error) {
-	return withHooks[*PullRequests, PullRequestsMutation](ctx, pruo.sqlSave, pruo.mutation, pruo.hooks)
+	return withHooks(ctx, pruo.sqlSave, pruo.mutation, pruo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -548,16 +683,7 @@ func (pruo *PullRequestsUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (pruo *PullRequestsUpdateOne) sqlSave(ctx context.Context) (_node *PullRequests, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   pullrequests.Table,
-			Columns: pullrequests.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pullrequests.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(pullrequests.Table, pullrequests.Columns, sqlgraph.NewFieldSpec(pullrequests.FieldID, field.TypeInt))
 	id, ok := pruo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`db: missing "PullRequests.id" for update`)}
@@ -644,10 +770,7 @@ func (pruo *PullRequestsUpdateOne) sqlSave(ctx context.Context) (_node *PullRequ
 			Columns: []string{pullrequests.PrsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -660,10 +783,7 @@ func (pruo *PullRequestsUpdateOne) sqlSave(ctx context.Context) (_node *PullRequ
 			Columns: []string{pullrequests.PrsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

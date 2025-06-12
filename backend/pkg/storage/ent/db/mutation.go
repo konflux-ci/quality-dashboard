@@ -9,22 +9,23 @@ import (
 	"sync"
 	"time"
 
+	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/bugs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/codecov"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/failure"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/oci"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowsuites"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/pullrequests"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/teams"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/tektontasks"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/users"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/workflows"
-
-	"entgo.io/ent"
-	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -40,11 +41,13 @@ const (
 	TypeCodeCov       = "CodeCov"
 	TypeConfiguration = "Configuration"
 	TypeFailure       = "Failure"
+	TypeOCI           = "OCI"
 	TypeProwJobs      = "ProwJobs"
 	TypeProwSuites    = "ProwSuites"
 	TypePullRequests  = "PullRequests"
 	TypeRepository    = "Repository"
 	TypeTeams         = "Teams"
+	TypeTektonTasks   = "TektonTasks"
 	TypeUsers         = "Users"
 	TypeWorkflows     = "Workflows"
 )
@@ -4122,6 +4125,535 @@ func (m *FailureMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Failure edge %s", name)
 }
 
+// OCIMutation represents an operation that mutates the OCI nodes in the graph.
+type OCIMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *uuid.UUID
+	artifact_url  *string
+	created_at    *time.Time
+	updated_at    *time.Time
+	clearedFields map[string]struct{}
+	oci           *string
+	clearedoci    bool
+	done          bool
+	oldValue      func(context.Context) (*OCI, error)
+	predicates    []predicate.OCI
+}
+
+var _ ent.Mutation = (*OCIMutation)(nil)
+
+// ociOption allows management of the mutation configuration using functional options.
+type ociOption func(*OCIMutation)
+
+// newOCIMutation creates new mutation for the OCI entity.
+func newOCIMutation(c config, op Op, opts ...ociOption) *OCIMutation {
+	m := &OCIMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeOCI,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withOCIID sets the ID field of the mutation.
+func withOCIID(id uuid.UUID) ociOption {
+	return func(m *OCIMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *OCI
+		)
+		m.oldValue = func(ctx context.Context) (*OCI, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().OCI.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withOCI sets the old OCI of the mutation.
+func withOCI(node *OCI) ociOption {
+	return func(m *OCIMutation) {
+		m.oldValue = func(context.Context) (*OCI, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m OCIMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m OCIMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of OCI entities.
+func (m *OCIMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *OCIMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *OCIMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().OCI.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetArtifactURL sets the "artifact_url" field.
+func (m *OCIMutation) SetArtifactURL(s string) {
+	m.artifact_url = &s
+}
+
+// ArtifactURL returns the value of the "artifact_url" field in the mutation.
+func (m *OCIMutation) ArtifactURL() (r string, exists bool) {
+	v := m.artifact_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldArtifactURL returns the old "artifact_url" field's value of the OCI entity.
+// If the OCI object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OCIMutation) OldArtifactURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldArtifactURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldArtifactURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldArtifactURL: %w", err)
+	}
+	return oldValue.ArtifactURL, nil
+}
+
+// ClearArtifactURL clears the value of the "artifact_url" field.
+func (m *OCIMutation) ClearArtifactURL() {
+	m.artifact_url = nil
+	m.clearedFields[oci.FieldArtifactURL] = struct{}{}
+}
+
+// ArtifactURLCleared returns if the "artifact_url" field was cleared in this mutation.
+func (m *OCIMutation) ArtifactURLCleared() bool {
+	_, ok := m.clearedFields[oci.FieldArtifactURL]
+	return ok
+}
+
+// ResetArtifactURL resets all changes to the "artifact_url" field.
+func (m *OCIMutation) ResetArtifactURL() {
+	m.artifact_url = nil
+	delete(m.clearedFields, oci.FieldArtifactURL)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *OCIMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *OCIMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the OCI entity.
+// If the OCI object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OCIMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *OCIMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *OCIMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *OCIMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the OCI entity.
+// If the OCI object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OCIMutation) OldUpdatedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *OCIMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetOciID sets the "oci" edge to the Repository entity by id.
+func (m *OCIMutation) SetOciID(id string) {
+	m.oci = &id
+}
+
+// ClearOci clears the "oci" edge to the Repository entity.
+func (m *OCIMutation) ClearOci() {
+	m.clearedoci = true
+}
+
+// OciCleared reports if the "oci" edge to the Repository entity was cleared.
+func (m *OCIMutation) OciCleared() bool {
+	return m.clearedoci
+}
+
+// OciID returns the "oci" edge ID in the mutation.
+func (m *OCIMutation) OciID() (id string, exists bool) {
+	if m.oci != nil {
+		return *m.oci, true
+	}
+	return
+}
+
+// OciIDs returns the "oci" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OciID instead. It exists only for internal usage by the builders.
+func (m *OCIMutation) OciIDs() (ids []string) {
+	if id := m.oci; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOci resets all changes to the "oci" edge.
+func (m *OCIMutation) ResetOci() {
+	m.oci = nil
+	m.clearedoci = false
+}
+
+// Where appends a list predicates to the OCIMutation builder.
+func (m *OCIMutation) Where(ps ...predicate.OCI) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the OCIMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *OCIMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.OCI, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *OCIMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *OCIMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (OCI).
+func (m *OCIMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *OCIMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.artifact_url != nil {
+		fields = append(fields, oci.FieldArtifactURL)
+	}
+	if m.created_at != nil {
+		fields = append(fields, oci.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, oci.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *OCIMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case oci.FieldArtifactURL:
+		return m.ArtifactURL()
+	case oci.FieldCreatedAt:
+		return m.CreatedAt()
+	case oci.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *OCIMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case oci.FieldArtifactURL:
+		return m.OldArtifactURL(ctx)
+	case oci.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case oci.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown OCI field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OCIMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case oci.FieldArtifactURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetArtifactURL(v)
+		return nil
+	case oci.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case oci.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown OCI field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *OCIMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *OCIMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *OCIMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown OCI numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *OCIMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(oci.FieldArtifactURL) {
+		fields = append(fields, oci.FieldArtifactURL)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *OCIMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *OCIMutation) ClearField(name string) error {
+	switch name {
+	case oci.FieldArtifactURL:
+		m.ClearArtifactURL()
+		return nil
+	}
+	return fmt.Errorf("unknown OCI nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *OCIMutation) ResetField(name string) error {
+	switch name {
+	case oci.FieldArtifactURL:
+		m.ResetArtifactURL()
+		return nil
+	case oci.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case oci.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown OCI field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *OCIMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.oci != nil {
+		edges = append(edges, oci.EdgeOci)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *OCIMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case oci.EdgeOci:
+		if id := m.oci; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *OCIMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *OCIMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *OCIMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedoci {
+		edges = append(edges, oci.EdgeOci)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *OCIMutation) EdgeCleared(name string) bool {
+	switch name {
+	case oci.EdgeOci:
+		return m.clearedoci
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *OCIMutation) ClearEdge(name string) error {
+	switch name {
+	case oci.EdgeOci:
+		m.ClearOci()
+		return nil
+	}
+	return fmt.Errorf("unknown OCI unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *OCIMutation) ResetEdge(name string) error {
+	switch name {
+	case oci.EdgeOci:
+		m.ResetOci()
+		return nil
+	}
+	return fmt.Errorf("unknown OCI edge %s", name)
+}
+
 // ProwJobsMutation represents an operation that mutates the ProwJobs nodes in the graph.
 type ProwJobsMutation struct {
 	config
@@ -4151,6 +4683,9 @@ type ProwJobsMutation struct {
 	clearedFields            map[string]struct{}
 	prow_jobs                *string
 	clearedprow_jobs         bool
+	tekton_tasks             map[uuid.UUID]struct{}
+	removedtekton_tasks      map[uuid.UUID]struct{}
+	clearedtekton_tasks      bool
 	done                     bool
 	oldValue                 func(context.Context) (*ProwJobs, error)
 	predicates               []predicate.ProwJobs
@@ -5027,6 +5562,60 @@ func (m *ProwJobsMutation) ResetProwJobs() {
 	m.clearedprow_jobs = false
 }
 
+// AddTektonTaskIDs adds the "tekton_tasks" edge to the TektonTasks entity by ids.
+func (m *ProwJobsMutation) AddTektonTaskIDs(ids ...uuid.UUID) {
+	if m.tekton_tasks == nil {
+		m.tekton_tasks = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.tekton_tasks[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTektonTasks clears the "tekton_tasks" edge to the TektonTasks entity.
+func (m *ProwJobsMutation) ClearTektonTasks() {
+	m.clearedtekton_tasks = true
+}
+
+// TektonTasksCleared reports if the "tekton_tasks" edge to the TektonTasks entity was cleared.
+func (m *ProwJobsMutation) TektonTasksCleared() bool {
+	return m.clearedtekton_tasks
+}
+
+// RemoveTektonTaskIDs removes the "tekton_tasks" edge to the TektonTasks entity by IDs.
+func (m *ProwJobsMutation) RemoveTektonTaskIDs(ids ...uuid.UUID) {
+	if m.removedtekton_tasks == nil {
+		m.removedtekton_tasks = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.tekton_tasks, ids[i])
+		m.removedtekton_tasks[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTektonTasks returns the removed IDs of the "tekton_tasks" edge to the TektonTasks entity.
+func (m *ProwJobsMutation) RemovedTektonTasksIDs() (ids []uuid.UUID) {
+	for id := range m.removedtekton_tasks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TektonTasksIDs returns the "tekton_tasks" edge IDs in the mutation.
+func (m *ProwJobsMutation) TektonTasksIDs() (ids []uuid.UUID) {
+	for id := range m.tekton_tasks {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTektonTasks resets all changes to the "tekton_tasks" edge.
+func (m *ProwJobsMutation) ResetTektonTasks() {
+	m.tekton_tasks = nil
+	m.clearedtekton_tasks = false
+	m.removedtekton_tasks = nil
+}
+
 // Where appends a list predicates to the ProwJobsMutation builder.
 func (m *ProwJobsMutation) Where(ps ...predicate.ProwJobs) {
 	m.predicates = append(m.predicates, ps...)
@@ -5506,9 +6095,12 @@ func (m *ProwJobsMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ProwJobsMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.prow_jobs != nil {
 		edges = append(edges, prowjobs.EdgeProwJobs)
+	}
+	if m.tekton_tasks != nil {
+		edges = append(edges, prowjobs.EdgeTektonTasks)
 	}
 	return edges
 }
@@ -5521,27 +6113,47 @@ func (m *ProwJobsMutation) AddedIDs(name string) []ent.Value {
 		if id := m.prow_jobs; id != nil {
 			return []ent.Value{*id}
 		}
+	case prowjobs.EdgeTektonTasks:
+		ids := make([]ent.Value, 0, len(m.tekton_tasks))
+		for id := range m.tekton_tasks {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ProwJobsMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedtekton_tasks != nil {
+		edges = append(edges, prowjobs.EdgeTektonTasks)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *ProwJobsMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case prowjobs.EdgeTektonTasks:
+		ids := make([]ent.Value, 0, len(m.removedtekton_tasks))
+		for id := range m.removedtekton_tasks {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ProwJobsMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedprow_jobs {
 		edges = append(edges, prowjobs.EdgeProwJobs)
+	}
+	if m.clearedtekton_tasks {
+		edges = append(edges, prowjobs.EdgeTektonTasks)
 	}
 	return edges
 }
@@ -5552,6 +6164,8 @@ func (m *ProwJobsMutation) EdgeCleared(name string) bool {
 	switch name {
 	case prowjobs.EdgeProwJobs:
 		return m.clearedprow_jobs
+	case prowjobs.EdgeTektonTasks:
+		return m.clearedtekton_tasks
 	}
 	return false
 }
@@ -5573,6 +6187,9 @@ func (m *ProwJobsMutation) ResetEdge(name string) error {
 	switch name {
 	case prowjobs.EdgeProwJobs:
 		m.ResetProwJobs()
+		return nil
+	case prowjobs.EdgeTektonTasks:
+		m.ResetTektonTasks()
 		return nil
 	}
 	return fmt.Errorf("unknown ProwJobs edge %s", name)
@@ -7777,6 +8394,9 @@ type RepositoryMutation struct {
 	codecov             map[uuid.UUID]struct{}
 	removedcodecov      map[uuid.UUID]struct{}
 	clearedcodecov      bool
+	oci                 map[uuid.UUID]struct{}
+	removedoci          map[uuid.UUID]struct{}
+	clearedoci          bool
 	prow_suites         map[int]struct{}
 	removedprow_suites  map[int]struct{}
 	clearedprow_suites  bool
@@ -8186,6 +8806,60 @@ func (m *RepositoryMutation) ResetCodecov() {
 	m.removedcodecov = nil
 }
 
+// AddOciIDs adds the "oci" edge to the OCI entity by ids.
+func (m *RepositoryMutation) AddOciIDs(ids ...uuid.UUID) {
+	if m.oci == nil {
+		m.oci = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.oci[ids[i]] = struct{}{}
+	}
+}
+
+// ClearOci clears the "oci" edge to the OCI entity.
+func (m *RepositoryMutation) ClearOci() {
+	m.clearedoci = true
+}
+
+// OciCleared reports if the "oci" edge to the OCI entity was cleared.
+func (m *RepositoryMutation) OciCleared() bool {
+	return m.clearedoci
+}
+
+// RemoveOciIDs removes the "oci" edge to the OCI entity by IDs.
+func (m *RepositoryMutation) RemoveOciIDs(ids ...uuid.UUID) {
+	if m.removedoci == nil {
+		m.removedoci = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.oci, ids[i])
+		m.removedoci[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedOci returns the removed IDs of the "oci" edge to the OCI entity.
+func (m *RepositoryMutation) RemovedOciIDs() (ids []uuid.UUID) {
+	for id := range m.removedoci {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// OciIDs returns the "oci" edge IDs in the mutation.
+func (m *RepositoryMutation) OciIDs() (ids []uuid.UUID) {
+	for id := range m.oci {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetOci resets all changes to the "oci" edge.
+func (m *RepositoryMutation) ResetOci() {
+	m.oci = nil
+	m.clearedoci = false
+	m.removedoci = nil
+}
+
 // AddProwSuiteIDs adds the "prow_suites" edge to the ProwSuites entity by ids.
 func (m *RepositoryMutation) AddProwSuiteIDs(ids ...int) {
 	if m.prow_suites == nil {
@@ -8532,7 +9206,7 @@ func (m *RepositoryMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RepositoryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.repositories != nil {
 		edges = append(edges, repository.EdgeRepositories)
 	}
@@ -8541,6 +9215,9 @@ func (m *RepositoryMutation) AddedEdges() []string {
 	}
 	if m.codecov != nil {
 		edges = append(edges, repository.EdgeCodecov)
+	}
+	if m.oci != nil {
+		edges = append(edges, repository.EdgeOci)
 	}
 	if m.prow_suites != nil {
 		edges = append(edges, repository.EdgeProwSuites)
@@ -8574,6 +9251,12 @@ func (m *RepositoryMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case repository.EdgeOci:
+		ids := make([]ent.Value, 0, len(m.oci))
+		for id := range m.oci {
+			ids = append(ids, id)
+		}
+		return ids
 	case repository.EdgeProwSuites:
 		ids := make([]ent.Value, 0, len(m.prow_suites))
 		for id := range m.prow_suites {
@@ -8598,12 +9281,15 @@ func (m *RepositoryMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RepositoryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.removedworkflows != nil {
 		edges = append(edges, repository.EdgeWorkflows)
 	}
 	if m.removedcodecov != nil {
 		edges = append(edges, repository.EdgeCodecov)
+	}
+	if m.removedoci != nil {
+		edges = append(edges, repository.EdgeOci)
 	}
 	if m.removedprow_suites != nil {
 		edges = append(edges, repository.EdgeProwSuites)
@@ -8633,6 +9319,12 @@ func (m *RepositoryMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case repository.EdgeOci:
+		ids := make([]ent.Value, 0, len(m.removedoci))
+		for id := range m.removedoci {
+			ids = append(ids, id)
+		}
+		return ids
 	case repository.EdgeProwSuites:
 		ids := make([]ent.Value, 0, len(m.removedprow_suites))
 		for id := range m.removedprow_suites {
@@ -8657,7 +9349,7 @@ func (m *RepositoryMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RepositoryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 6)
+	edges := make([]string, 0, 7)
 	if m.clearedrepositories {
 		edges = append(edges, repository.EdgeRepositories)
 	}
@@ -8666,6 +9358,9 @@ func (m *RepositoryMutation) ClearedEdges() []string {
 	}
 	if m.clearedcodecov {
 		edges = append(edges, repository.EdgeCodecov)
+	}
+	if m.clearedoci {
+		edges = append(edges, repository.EdgeOci)
 	}
 	if m.clearedprow_suites {
 		edges = append(edges, repository.EdgeProwSuites)
@@ -8689,6 +9384,8 @@ func (m *RepositoryMutation) EdgeCleared(name string) bool {
 		return m.clearedworkflows
 	case repository.EdgeCodecov:
 		return m.clearedcodecov
+	case repository.EdgeOci:
+		return m.clearedoci
 	case repository.EdgeProwSuites:
 		return m.clearedprow_suites
 	case repository.EdgeProwJobs:
@@ -8722,6 +9419,9 @@ func (m *RepositoryMutation) ResetEdge(name string) error {
 		return nil
 	case repository.EdgeCodecov:
 		m.ResetCodecov()
+		return nil
+	case repository.EdgeOci:
+		m.ResetOci()
 		return nil
 	case repository.EdgeProwSuites:
 		m.ResetProwSuites()
@@ -9516,6 +10216,513 @@ func (m *TeamsMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Teams edge %s", name)
+}
+
+// TektonTasksMutation represents an operation that mutates the TektonTasks nodes in the graph.
+type TektonTasksMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	task_name           *string
+	duration_seconds    *string
+	status              *string
+	clearedFields       map[string]struct{}
+	tekton_tasks        *int
+	clearedtekton_tasks bool
+	done                bool
+	oldValue            func(context.Context) (*TektonTasks, error)
+	predicates          []predicate.TektonTasks
+}
+
+var _ ent.Mutation = (*TektonTasksMutation)(nil)
+
+// tektontasksOption allows management of the mutation configuration using functional options.
+type tektontasksOption func(*TektonTasksMutation)
+
+// newTektonTasksMutation creates new mutation for the TektonTasks entity.
+func newTektonTasksMutation(c config, op Op, opts ...tektontasksOption) *TektonTasksMutation {
+	m := &TektonTasksMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTektonTasks,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTektonTasksID sets the ID field of the mutation.
+func withTektonTasksID(id uuid.UUID) tektontasksOption {
+	return func(m *TektonTasksMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *TektonTasks
+		)
+		m.oldValue = func(ctx context.Context) (*TektonTasks, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().TektonTasks.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTektonTasks sets the old TektonTasks of the mutation.
+func withTektonTasks(node *TektonTasks) tektontasksOption {
+	return func(m *TektonTasksMutation) {
+		m.oldValue = func(context.Context) (*TektonTasks, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TektonTasksMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TektonTasksMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of TektonTasks entities.
+func (m *TektonTasksMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TektonTasksMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TektonTasksMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().TektonTasks.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetTaskName sets the "task_name" field.
+func (m *TektonTasksMutation) SetTaskName(s string) {
+	m.task_name = &s
+}
+
+// TaskName returns the value of the "task_name" field in the mutation.
+func (m *TektonTasksMutation) TaskName() (r string, exists bool) {
+	v := m.task_name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaskName returns the old "task_name" field's value of the TektonTasks entity.
+// If the TektonTasks object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TektonTasksMutation) OldTaskName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaskName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaskName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaskName: %w", err)
+	}
+	return oldValue.TaskName, nil
+}
+
+// ResetTaskName resets all changes to the "task_name" field.
+func (m *TektonTasksMutation) ResetTaskName() {
+	m.task_name = nil
+}
+
+// SetDurationSeconds sets the "duration_seconds" field.
+func (m *TektonTasksMutation) SetDurationSeconds(s string) {
+	m.duration_seconds = &s
+}
+
+// DurationSeconds returns the value of the "duration_seconds" field in the mutation.
+func (m *TektonTasksMutation) DurationSeconds() (r string, exists bool) {
+	v := m.duration_seconds
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDurationSeconds returns the old "duration_seconds" field's value of the TektonTasks entity.
+// If the TektonTasks object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TektonTasksMutation) OldDurationSeconds(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDurationSeconds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDurationSeconds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDurationSeconds: %w", err)
+	}
+	return oldValue.DurationSeconds, nil
+}
+
+// ResetDurationSeconds resets all changes to the "duration_seconds" field.
+func (m *TektonTasksMutation) ResetDurationSeconds() {
+	m.duration_seconds = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *TektonTasksMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *TektonTasksMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the TektonTasks entity.
+// If the TektonTasks object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TektonTasksMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *TektonTasksMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetTektonTasksID sets the "tekton_tasks" edge to the ProwJobs entity by id.
+func (m *TektonTasksMutation) SetTektonTasksID(id int) {
+	m.tekton_tasks = &id
+}
+
+// ClearTektonTasks clears the "tekton_tasks" edge to the ProwJobs entity.
+func (m *TektonTasksMutation) ClearTektonTasks() {
+	m.clearedtekton_tasks = true
+}
+
+// TektonTasksCleared reports if the "tekton_tasks" edge to the ProwJobs entity was cleared.
+func (m *TektonTasksMutation) TektonTasksCleared() bool {
+	return m.clearedtekton_tasks
+}
+
+// TektonTasksID returns the "tekton_tasks" edge ID in the mutation.
+func (m *TektonTasksMutation) TektonTasksID() (id int, exists bool) {
+	if m.tekton_tasks != nil {
+		return *m.tekton_tasks, true
+	}
+	return
+}
+
+// TektonTasksIDs returns the "tekton_tasks" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// TektonTasksID instead. It exists only for internal usage by the builders.
+func (m *TektonTasksMutation) TektonTasksIDs() (ids []int) {
+	if id := m.tekton_tasks; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTektonTasks resets all changes to the "tekton_tasks" edge.
+func (m *TektonTasksMutation) ResetTektonTasks() {
+	m.tekton_tasks = nil
+	m.clearedtekton_tasks = false
+}
+
+// Where appends a list predicates to the TektonTasksMutation builder.
+func (m *TektonTasksMutation) Where(ps ...predicate.TektonTasks) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the TektonTasksMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TektonTasksMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.TektonTasks, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *TektonTasksMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TektonTasksMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (TektonTasks).
+func (m *TektonTasksMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TektonTasksMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.task_name != nil {
+		fields = append(fields, tektontasks.FieldTaskName)
+	}
+	if m.duration_seconds != nil {
+		fields = append(fields, tektontasks.FieldDurationSeconds)
+	}
+	if m.status != nil {
+		fields = append(fields, tektontasks.FieldStatus)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TektonTasksMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case tektontasks.FieldTaskName:
+		return m.TaskName()
+	case tektontasks.FieldDurationSeconds:
+		return m.DurationSeconds()
+	case tektontasks.FieldStatus:
+		return m.Status()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TektonTasksMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case tektontasks.FieldTaskName:
+		return m.OldTaskName(ctx)
+	case tektontasks.FieldDurationSeconds:
+		return m.OldDurationSeconds(ctx)
+	case tektontasks.FieldStatus:
+		return m.OldStatus(ctx)
+	}
+	return nil, fmt.Errorf("unknown TektonTasks field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TektonTasksMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case tektontasks.FieldTaskName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaskName(v)
+		return nil
+	case tektontasks.FieldDurationSeconds:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDurationSeconds(v)
+		return nil
+	case tektontasks.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TektonTasks field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TektonTasksMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TektonTasksMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TektonTasksMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown TektonTasks numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TektonTasksMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TektonTasksMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TektonTasksMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown TektonTasks nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TektonTasksMutation) ResetField(name string) error {
+	switch name {
+	case tektontasks.FieldTaskName:
+		m.ResetTaskName()
+		return nil
+	case tektontasks.FieldDurationSeconds:
+		m.ResetDurationSeconds()
+		return nil
+	case tektontasks.FieldStatus:
+		m.ResetStatus()
+		return nil
+	}
+	return fmt.Errorf("unknown TektonTasks field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TektonTasksMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.tekton_tasks != nil {
+		edges = append(edges, tektontasks.EdgeTektonTasks)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TektonTasksMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case tektontasks.EdgeTektonTasks:
+		if id := m.tekton_tasks; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TektonTasksMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TektonTasksMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TektonTasksMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedtekton_tasks {
+		edges = append(edges, tektontasks.EdgeTektonTasks)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TektonTasksMutation) EdgeCleared(name string) bool {
+	switch name {
+	case tektontasks.EdgeTektonTasks:
+		return m.clearedtekton_tasks
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TektonTasksMutation) ClearEdge(name string) error {
+	switch name {
+	case tektontasks.EdgeTektonTasks:
+		m.ClearTektonTasks()
+		return nil
+	}
+	return fmt.Errorf("unknown TektonTasks unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TektonTasksMutation) ResetEdge(name string) error {
+	switch name {
+	case tektontasks.EdgeTektonTasks:
+		m.ResetTektonTasks()
+		return nil
+	}
+	return fmt.Errorf("unknown TektonTasks edge %s", name)
 }
 
 // UsersMutation represents an operation that mutates the Users nodes in the graph.

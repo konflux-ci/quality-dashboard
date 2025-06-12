@@ -53,6 +53,16 @@ func IDLTE(id string) predicate.Repository {
 	return predicate.Repository(sql.FieldLTE(FieldID, id))
 }
 
+// IDEqualFold applies the EqualFold predicate on the ID field.
+func IDEqualFold(id string) predicate.Repository {
+	return predicate.Repository(sql.FieldEqualFold(FieldID, id))
+}
+
+// IDContainsFold applies the ContainsFold predicate on the ID field.
+func IDContainsFold(id string) predicate.Repository {
+	return predicate.Repository(sql.FieldContainsFold(FieldID, id))
+}
+
 // RepositoryName applies equality check predicate on the "repository_name" field. It's identical to RepositoryNameEQ.
 func RepositoryName(v string) predicate.Repository {
 	return predicate.Repository(sql.FieldEQ(FieldRepositoryName, v))
@@ -347,11 +357,7 @@ func HasRepositories() predicate.Repository {
 // HasRepositoriesWith applies the HasEdge predicate on the "repositories" edge with a given conditions (other predicates).
 func HasRepositoriesWith(preds ...predicate.Teams) predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(RepositoriesInverseTable, TeamsFieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, RepositoriesTable, RepositoriesColumn),
-		)
+		step := newRepositoriesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -374,11 +380,7 @@ func HasWorkflows() predicate.Repository {
 // HasWorkflowsWith applies the HasEdge predicate on the "workflows" edge with a given conditions (other predicates).
 func HasWorkflowsWith(preds ...predicate.Workflows) predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(WorkflowsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, WorkflowsTable, WorkflowsColumn),
-		)
+		step := newWorkflowsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -401,11 +403,30 @@ func HasCodecov() predicate.Repository {
 // HasCodecovWith applies the HasEdge predicate on the "codecov" edge with a given conditions (other predicates).
 func HasCodecovWith(preds ...predicate.CodeCov) predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
+		step := newCodecovStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasOci applies the HasEdge predicate on the "oci" edge.
+func HasOci() predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(CodecovInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, CodecovTable, CodecovColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, OciTable, OciColumn),
 		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasOciWith applies the HasEdge predicate on the "oci" edge with a given conditions (other predicates).
+func HasOciWith(preds ...predicate.OCI) predicate.Repository {
+	return predicate.Repository(func(s *sql.Selector) {
+		step := newOciStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -428,11 +449,7 @@ func HasProwSuites() predicate.Repository {
 // HasProwSuitesWith applies the HasEdge predicate on the "prow_suites" edge with a given conditions (other predicates).
 func HasProwSuitesWith(preds ...predicate.ProwSuites) predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ProwSuitesInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ProwSuitesTable, ProwSuitesColumn),
-		)
+		step := newProwSuitesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -455,11 +472,7 @@ func HasProwJobs() predicate.Repository {
 // HasProwJobsWith applies the HasEdge predicate on the "prow_jobs" edge with a given conditions (other predicates).
 func HasProwJobsWith(preds ...predicate.ProwJobs) predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ProwJobsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ProwJobsTable, ProwJobsColumn),
-		)
+		step := newProwJobsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -482,11 +495,7 @@ func HasPrs() predicate.Repository {
 // HasPrsWith applies the HasEdge predicate on the "prs" edge with a given conditions (other predicates).
 func HasPrsWith(preds ...predicate.PullRequests) predicate.Repository {
 	return predicate.Repository(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(PrsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, PrsTable, PrsColumn),
-		)
+		step := newPrsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -497,32 +506,15 @@ func HasPrsWith(preds ...predicate.PullRequests) predicate.Repository {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Repository) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Repository(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.Repository) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Repository(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.Repository) predicate.Repository {
-	return predicate.Repository(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.Repository(sql.NotPredicates(p))
 }

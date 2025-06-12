@@ -11,7 +11,7 @@ import (
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
 )
 
-func (d *Database) CreateProwJobResults(job prowV1Alpha1.Job, repo_id string) error {
+func (d *Database) CreateProwJobResults(job prowV1Alpha1.Job, repo_id string) (*db.ProwJobs, error) {
 	c, err := d.client.ProwJobs.Create().
 		SetJobID(job.JobID).
 		SetState(job.State).
@@ -22,18 +22,20 @@ func (d *Database) CreateProwJobResults(job prowV1Alpha1.Job, repo_id string) er
 		SetCiFailed(job.CIFailed).
 		SetDuration(job.Duration).
 		SetExternalServicesImpact(job.ExternalServiceImpact).
+
 		// E2EFailedTestMessages and BuildErrorLogs are used to get the impact of RHTAPBUGS
 		SetE2eFailedTestMessages(job.E2EFailedTestMessages).
 		SetBuildErrorLogs(job.BuildErrorLogs).
 		Save(context.TODO())
 	if err != nil {
-		return convertDBError("create prow status: %w", err)
+		return nil, convertDBError("create prow status: %w", err)
 	}
 	_, err = d.client.Repository.UpdateOneID(repo_id).AddProwJobs(c).Save(context.TODO())
 	if err != nil {
-		return convertDBError("create prow status: %w", err)
+		return nil, convertDBError("create prow status: %w", err)
 	}
-	return nil
+
+	return c, nil
 }
 
 func (d *Database) GetLatestProwTestExecution(r *db.Repository, jobType string) (*db.ProwJobs, error) {

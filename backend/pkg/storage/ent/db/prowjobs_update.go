@@ -11,9 +11,11 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/tektontasks"
 )
 
 // ProwJobsUpdate is the builder for updating ProwJobs entities.
@@ -35,9 +37,25 @@ func (pju *ProwJobsUpdate) SetJobID(s string) *ProwJobsUpdate {
 	return pju
 }
 
+// SetNillableJobID sets the "job_id" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableJobID(s *string) *ProwJobsUpdate {
+	if s != nil {
+		pju.SetJobID(*s)
+	}
+	return pju
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (pju *ProwJobsUpdate) SetCreatedAt(t time.Time) *ProwJobsUpdate {
 	pju.mutation.SetCreatedAt(t)
+	return pju
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableCreatedAt(t *time.Time) *ProwJobsUpdate {
+	if t != nil {
+		pju.SetCreatedAt(*t)
+	}
 	return pju
 }
 
@@ -45,6 +63,14 @@ func (pju *ProwJobsUpdate) SetCreatedAt(t time.Time) *ProwJobsUpdate {
 func (pju *ProwJobsUpdate) SetDuration(f float64) *ProwJobsUpdate {
 	pju.mutation.ResetDuration()
 	pju.mutation.SetDuration(f)
+	return pju
+}
+
+// SetNillableDuration sets the "duration" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableDuration(f *float64) *ProwJobsUpdate {
+	if f != nil {
+		pju.SetDuration(*f)
+	}
 	return pju
 }
 
@@ -141,9 +167,25 @@ func (pju *ProwJobsUpdate) SetJobName(s string) *ProwJobsUpdate {
 	return pju
 }
 
+// SetNillableJobName sets the "job_name" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableJobName(s *string) *ProwJobsUpdate {
+	if s != nil {
+		pju.SetJobName(*s)
+	}
+	return pju
+}
+
 // SetJobType sets the "job_type" field.
 func (pju *ProwJobsUpdate) SetJobType(s string) *ProwJobsUpdate {
 	pju.mutation.SetJobType(s)
+	return pju
+}
+
+// SetNillableJobType sets the "job_type" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableJobType(s *string) *ProwJobsUpdate {
+	if s != nil {
+		pju.SetJobType(*s)
+	}
 	return pju
 }
 
@@ -153,9 +195,25 @@ func (pju *ProwJobsUpdate) SetState(s string) *ProwJobsUpdate {
 	return pju
 }
 
+// SetNillableState sets the "state" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableState(s *string) *ProwJobsUpdate {
+	if s != nil {
+		pju.SetState(*s)
+	}
+	return pju
+}
+
 // SetJobURL sets the "job_url" field.
 func (pju *ProwJobsUpdate) SetJobURL(s string) *ProwJobsUpdate {
 	pju.mutation.SetJobURL(s)
+	return pju
+}
+
+// SetNillableJobURL sets the "job_url" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableJobURL(s *string) *ProwJobsUpdate {
+	if s != nil {
+		pju.SetJobURL(*s)
+	}
 	return pju
 }
 
@@ -163,6 +221,14 @@ func (pju *ProwJobsUpdate) SetJobURL(s string) *ProwJobsUpdate {
 func (pju *ProwJobsUpdate) SetCiFailed(i int16) *ProwJobsUpdate {
 	pju.mutation.ResetCiFailed()
 	pju.mutation.SetCiFailed(i)
+	return pju
+}
+
+// SetNillableCiFailed sets the "ci_failed" field if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableCiFailed(i *int16) *ProwJobsUpdate {
+	if i != nil {
+		pju.SetCiFailed(*i)
+	}
 	return pju
 }
 
@@ -271,6 +337,21 @@ func (pju *ProwJobsUpdate) SetProwJobs(r *Repository) *ProwJobsUpdate {
 	return pju.SetProwJobsID(r.ID)
 }
 
+// AddTektonTaskIDs adds the "tekton_tasks" edge to the TektonTasks entity by IDs.
+func (pju *ProwJobsUpdate) AddTektonTaskIDs(ids ...uuid.UUID) *ProwJobsUpdate {
+	pju.mutation.AddTektonTaskIDs(ids...)
+	return pju
+}
+
+// AddTektonTasks adds the "tekton_tasks" edges to the TektonTasks entity.
+func (pju *ProwJobsUpdate) AddTektonTasks(t ...*TektonTasks) *ProwJobsUpdate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pju.AddTektonTaskIDs(ids...)
+}
+
 // Mutation returns the ProwJobsMutation object of the builder.
 func (pju *ProwJobsUpdate) Mutation() *ProwJobsMutation {
 	return pju.mutation
@@ -282,9 +363,30 @@ func (pju *ProwJobsUpdate) ClearProwJobs() *ProwJobsUpdate {
 	return pju
 }
 
+// ClearTektonTasks clears all "tekton_tasks" edges to the TektonTasks entity.
+func (pju *ProwJobsUpdate) ClearTektonTasks() *ProwJobsUpdate {
+	pju.mutation.ClearTektonTasks()
+	return pju
+}
+
+// RemoveTektonTaskIDs removes the "tekton_tasks" edge to TektonTasks entities by IDs.
+func (pju *ProwJobsUpdate) RemoveTektonTaskIDs(ids ...uuid.UUID) *ProwJobsUpdate {
+	pju.mutation.RemoveTektonTaskIDs(ids...)
+	return pju
+}
+
+// RemoveTektonTasks removes "tekton_tasks" edges to TektonTasks entities.
+func (pju *ProwJobsUpdate) RemoveTektonTasks(t ...*TektonTasks) *ProwJobsUpdate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pju.RemoveTektonTaskIDs(ids...)
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (pju *ProwJobsUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, ProwJobsMutation](ctx, pju.sqlSave, pju.mutation, pju.hooks)
+	return withHooks(ctx, pju.sqlSave, pju.mutation, pju.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -310,16 +412,7 @@ func (pju *ProwJobsUpdate) ExecX(ctx context.Context) {
 }
 
 func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   prowjobs.Table,
-			Columns: prowjobs.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: prowjobs.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(prowjobs.Table, prowjobs.Columns, sqlgraph.NewFieldSpec(prowjobs.FieldID, field.TypeInt))
 	if ps := pju.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -416,10 +509,7 @@ func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{prowjobs.ProwJobsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -432,10 +522,52 @@ func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{prowjobs.ProwJobsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pju.mutation.TektonTasksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   prowjobs.TektonTasksTable,
+			Columns: []string{prowjobs.TektonTasksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tektontasks.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pju.mutation.RemovedTektonTasksIDs(); len(nodes) > 0 && !pju.mutation.TektonTasksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   prowjobs.TektonTasksTable,
+			Columns: []string{prowjobs.TektonTasksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tektontasks.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pju.mutation.TektonTasksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   prowjobs.TektonTasksTable,
+			Columns: []string{prowjobs.TektonTasksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tektontasks.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -469,9 +601,25 @@ func (pjuo *ProwJobsUpdateOne) SetJobID(s string) *ProwJobsUpdateOne {
 	return pjuo
 }
 
+// SetNillableJobID sets the "job_id" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableJobID(s *string) *ProwJobsUpdateOne {
+	if s != nil {
+		pjuo.SetJobID(*s)
+	}
+	return pjuo
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (pjuo *ProwJobsUpdateOne) SetCreatedAt(t time.Time) *ProwJobsUpdateOne {
 	pjuo.mutation.SetCreatedAt(t)
+	return pjuo
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableCreatedAt(t *time.Time) *ProwJobsUpdateOne {
+	if t != nil {
+		pjuo.SetCreatedAt(*t)
+	}
 	return pjuo
 }
 
@@ -479,6 +627,14 @@ func (pjuo *ProwJobsUpdateOne) SetCreatedAt(t time.Time) *ProwJobsUpdateOne {
 func (pjuo *ProwJobsUpdateOne) SetDuration(f float64) *ProwJobsUpdateOne {
 	pjuo.mutation.ResetDuration()
 	pjuo.mutation.SetDuration(f)
+	return pjuo
+}
+
+// SetNillableDuration sets the "duration" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableDuration(f *float64) *ProwJobsUpdateOne {
+	if f != nil {
+		pjuo.SetDuration(*f)
+	}
 	return pjuo
 }
 
@@ -575,9 +731,25 @@ func (pjuo *ProwJobsUpdateOne) SetJobName(s string) *ProwJobsUpdateOne {
 	return pjuo
 }
 
+// SetNillableJobName sets the "job_name" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableJobName(s *string) *ProwJobsUpdateOne {
+	if s != nil {
+		pjuo.SetJobName(*s)
+	}
+	return pjuo
+}
+
 // SetJobType sets the "job_type" field.
 func (pjuo *ProwJobsUpdateOne) SetJobType(s string) *ProwJobsUpdateOne {
 	pjuo.mutation.SetJobType(s)
+	return pjuo
+}
+
+// SetNillableJobType sets the "job_type" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableJobType(s *string) *ProwJobsUpdateOne {
+	if s != nil {
+		pjuo.SetJobType(*s)
+	}
 	return pjuo
 }
 
@@ -587,9 +759,25 @@ func (pjuo *ProwJobsUpdateOne) SetState(s string) *ProwJobsUpdateOne {
 	return pjuo
 }
 
+// SetNillableState sets the "state" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableState(s *string) *ProwJobsUpdateOne {
+	if s != nil {
+		pjuo.SetState(*s)
+	}
+	return pjuo
+}
+
 // SetJobURL sets the "job_url" field.
 func (pjuo *ProwJobsUpdateOne) SetJobURL(s string) *ProwJobsUpdateOne {
 	pjuo.mutation.SetJobURL(s)
+	return pjuo
+}
+
+// SetNillableJobURL sets the "job_url" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableJobURL(s *string) *ProwJobsUpdateOne {
+	if s != nil {
+		pjuo.SetJobURL(*s)
+	}
 	return pjuo
 }
 
@@ -597,6 +785,14 @@ func (pjuo *ProwJobsUpdateOne) SetJobURL(s string) *ProwJobsUpdateOne {
 func (pjuo *ProwJobsUpdateOne) SetCiFailed(i int16) *ProwJobsUpdateOne {
 	pjuo.mutation.ResetCiFailed()
 	pjuo.mutation.SetCiFailed(i)
+	return pjuo
+}
+
+// SetNillableCiFailed sets the "ci_failed" field if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableCiFailed(i *int16) *ProwJobsUpdateOne {
+	if i != nil {
+		pjuo.SetCiFailed(*i)
+	}
 	return pjuo
 }
 
@@ -705,6 +901,21 @@ func (pjuo *ProwJobsUpdateOne) SetProwJobs(r *Repository) *ProwJobsUpdateOne {
 	return pjuo.SetProwJobsID(r.ID)
 }
 
+// AddTektonTaskIDs adds the "tekton_tasks" edge to the TektonTasks entity by IDs.
+func (pjuo *ProwJobsUpdateOne) AddTektonTaskIDs(ids ...uuid.UUID) *ProwJobsUpdateOne {
+	pjuo.mutation.AddTektonTaskIDs(ids...)
+	return pjuo
+}
+
+// AddTektonTasks adds the "tekton_tasks" edges to the TektonTasks entity.
+func (pjuo *ProwJobsUpdateOne) AddTektonTasks(t ...*TektonTasks) *ProwJobsUpdateOne {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pjuo.AddTektonTaskIDs(ids...)
+}
+
 // Mutation returns the ProwJobsMutation object of the builder.
 func (pjuo *ProwJobsUpdateOne) Mutation() *ProwJobsMutation {
 	return pjuo.mutation
@@ -713,6 +924,33 @@ func (pjuo *ProwJobsUpdateOne) Mutation() *ProwJobsMutation {
 // ClearProwJobs clears the "prow_jobs" edge to the Repository entity.
 func (pjuo *ProwJobsUpdateOne) ClearProwJobs() *ProwJobsUpdateOne {
 	pjuo.mutation.ClearProwJobs()
+	return pjuo
+}
+
+// ClearTektonTasks clears all "tekton_tasks" edges to the TektonTasks entity.
+func (pjuo *ProwJobsUpdateOne) ClearTektonTasks() *ProwJobsUpdateOne {
+	pjuo.mutation.ClearTektonTasks()
+	return pjuo
+}
+
+// RemoveTektonTaskIDs removes the "tekton_tasks" edge to TektonTasks entities by IDs.
+func (pjuo *ProwJobsUpdateOne) RemoveTektonTaskIDs(ids ...uuid.UUID) *ProwJobsUpdateOne {
+	pjuo.mutation.RemoveTektonTaskIDs(ids...)
+	return pjuo
+}
+
+// RemoveTektonTasks removes "tekton_tasks" edges to TektonTasks entities.
+func (pjuo *ProwJobsUpdateOne) RemoveTektonTasks(t ...*TektonTasks) *ProwJobsUpdateOne {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pjuo.RemoveTektonTaskIDs(ids...)
+}
+
+// Where appends a list predicates to the ProwJobsUpdate builder.
+func (pjuo *ProwJobsUpdateOne) Where(ps ...predicate.ProwJobs) *ProwJobsUpdateOne {
+	pjuo.mutation.Where(ps...)
 	return pjuo
 }
 
@@ -725,7 +963,7 @@ func (pjuo *ProwJobsUpdateOne) Select(field string, fields ...string) *ProwJobsU
 
 // Save executes the query and returns the updated ProwJobs entity.
 func (pjuo *ProwJobsUpdateOne) Save(ctx context.Context) (*ProwJobs, error) {
-	return withHooks[*ProwJobs, ProwJobsMutation](ctx, pjuo.sqlSave, pjuo.mutation, pjuo.hooks)
+	return withHooks(ctx, pjuo.sqlSave, pjuo.mutation, pjuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -751,16 +989,7 @@ func (pjuo *ProwJobsUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   prowjobs.Table,
-			Columns: prowjobs.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: prowjobs.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(prowjobs.Table, prowjobs.Columns, sqlgraph.NewFieldSpec(prowjobs.FieldID, field.TypeInt))
 	id, ok := pjuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`db: missing "ProwJobs.id" for update`)}
@@ -874,10 +1103,7 @@ func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, er
 			Columns: []string{prowjobs.ProwJobsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -890,10 +1116,52 @@ func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, er
 			Columns: []string{prowjobs.ProwJobsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pjuo.mutation.TektonTasksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   prowjobs.TektonTasksTable,
+			Columns: []string{prowjobs.TektonTasksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tektontasks.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pjuo.mutation.RemovedTektonTasksIDs(); len(nodes) > 0 && !pjuo.mutation.TektonTasksCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   prowjobs.TektonTasksTable,
+			Columns: []string{prowjobs.TektonTasksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tektontasks.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pjuo.mutation.TektonTasksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   prowjobs.TektonTasksTable,
+			Columns: []string{prowjobs.TektonTasksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tektontasks.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

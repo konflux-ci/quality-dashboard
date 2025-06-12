@@ -57,6 +57,18 @@ func (f FailureFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.FailureMutation", m)
 }
 
+// The OCIFunc type is an adapter to allow the use of ordinary
+// function as OCI mutator.
+type OCIFunc func(context.Context, *db.OCIMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OCIFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.OCIMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.OCIMutation", m)
+}
+
 // The ProwJobsFunc type is an adapter to allow the use of ordinary
 // function as ProwJobs mutator.
 type ProwJobsFunc func(context.Context, *db.ProwJobsMutation) (db.Value, error)
@@ -115,6 +127,18 @@ func (f TeamsFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) 
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TeamsMutation", m)
+}
+
+// The TektonTasksFunc type is an adapter to allow the use of ordinary
+// function as TektonTasks mutator.
+type TektonTasksFunc func(context.Context, *db.TektonTasksMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TektonTasksFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.TektonTasksMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.TektonTasksMutation", m)
 }
 
 // The UsersFunc type is an adapter to allow the use of ordinary

@@ -3,16 +3,20 @@
 package db
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/bugs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/codecov"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/failure"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/oci"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowsuites"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/pullrequests"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/teams"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/tektontasks"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/users"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/workflows"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/schema"
@@ -66,6 +70,20 @@ func init() {
 	failureDescID := failureFields[0].Descriptor()
 	// failure.DefaultID holds the default value on creation for the id field.
 	failure.DefaultID = failureDescID.Default.(func() uuid.UUID)
+	ociFields := schema.OCI{}.Fields()
+	_ = ociFields
+	// ociDescCreatedAt is the schema descriptor for created_at field.
+	ociDescCreatedAt := ociFields[2].Descriptor()
+	// oci.DefaultCreatedAt holds the default value on creation for the created_at field.
+	oci.DefaultCreatedAt = ociDescCreatedAt.Default.(func() time.Time)
+	// ociDescUpdatedAt is the schema descriptor for updated_at field.
+	ociDescUpdatedAt := ociFields[3].Descriptor()
+	// oci.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	oci.DefaultUpdatedAt = ociDescUpdatedAt.Default.(func() time.Time)
+	// ociDescID is the schema descriptor for id field.
+	ociDescID := ociFields[0].Descriptor()
+	// oci.DefaultID holds the default value on creation for the id field.
+	oci.DefaultID = ociDescID.Default.(func() uuid.UUID)
 	prowjobsFields := schema.ProwJobs{}.Fields()
 	_ = prowjobsFields
 	// prowjobsDescExternalServicesImpact is the schema descriptor for external_services_impact field.
@@ -126,6 +144,12 @@ func init() {
 	teamsDescID := teamsFields[0].Descriptor()
 	// teams.DefaultID holds the default value on creation for the id field.
 	teams.DefaultID = teamsDescID.Default.(func() uuid.UUID)
+	tektontasksFields := schema.TektonTasks{}.Fields()
+	_ = tektontasksFields
+	// tektontasksDescID is the schema descriptor for id field.
+	tektontasksDescID := tektontasksFields[0].Descriptor()
+	// tektontasks.DefaultID holds the default value on creation for the id field.
+	tektontasks.DefaultID = tektontasksDescID.Default.(func() uuid.UUID)
 	usersFields := schema.Users{}.Fields()
 	_ = usersFields
 	// usersDescID is the schema descriptor for id field.

@@ -94,7 +94,7 @@ func (wc *WorkflowsCreate) Mutation() *WorkflowsMutation {
 // Save creates the Workflows in the database.
 func (wc *WorkflowsCreate) Save(ctx context.Context) (*Workflows, error) {
 	wc.defaults()
-	return withHooks[*Workflows, WorkflowsMutation](ctx, wc.sqlSave, wc.mutation, wc.hooks)
+	return withHooks(ctx, wc.sqlSave, wc.mutation, wc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -176,13 +176,7 @@ func (wc *WorkflowsCreate) sqlSave(ctx context.Context) (*Workflows, error) {
 func (wc *WorkflowsCreate) createSpec() (*Workflows, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Workflows{config: wc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: workflows.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: workflows.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(workflows.Table, sqlgraph.NewFieldSpec(workflows.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = wc.conflict
 	if value, ok := wc.mutation.WorkflowID(); ok {
@@ -217,10 +211,7 @@ func (wc *WorkflowsCreate) createSpec() (*Workflows, *sqlgraph.CreateSpec) {
 			Columns: []string{workflows.WorkflowsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -513,12 +504,16 @@ func (u *WorkflowsUpsertOne) IDX(ctx context.Context) int {
 // WorkflowsCreateBulk is the builder for creating many Workflows entities in bulk.
 type WorkflowsCreateBulk struct {
 	config
+	err      error
 	builders []*WorkflowsCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the Workflows entities in the database.
 func (wcb *WorkflowsCreateBulk) Save(ctx context.Context) ([]*Workflows, error) {
+	if wcb.err != nil {
+		return nil, wcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(wcb.builders))
 	nodes := make([]*Workflows, len(wcb.builders))
 	mutators := make([]Mutator, len(wcb.builders))
@@ -535,8 +530,8 @@ func (wcb *WorkflowsCreateBulk) Save(ctx context.Context) ([]*Workflows, error) 
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, wcb.builders[i+1].mutation)
 				} else {
@@ -763,6 +758,9 @@ func (u *WorkflowsUpsertBulk) UpdateState() *WorkflowsUpsertBulk {
 
 // Exec executes the query.
 func (u *WorkflowsUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the WorkflowsCreateBulk instead", i)

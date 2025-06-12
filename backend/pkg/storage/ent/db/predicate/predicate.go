@@ -18,6 +18,9 @@ type Configuration func(*sql.Selector)
 // Failure is the predicate function for failure builders.
 type Failure func(*sql.Selector)
 
+// OCI is the predicate function for oci builders.
+type OCI func(*sql.Selector)
+
 // ProwJobs is the predicate function for prowjobs builders.
 type ProwJobs func(*sql.Selector)
 
@@ -32,6 +35,9 @@ type Repository func(*sql.Selector)
 
 // Teams is the predicate function for teams builders.
 type Teams func(*sql.Selector)
+
+// TektonTasks is the predicate function for tektontasks builders.
+type TektonTasks func(*sql.Selector)
 
 // Users is the predicate function for users builders.
 type Users func(*sql.Selector)

@@ -75,6 +75,7 @@ export const FormModal: React.FunctionComponent = () => {
   const modalContext = useModalContext();
   const history = useHistory();
   const [gitRepositoryValue, setGitRepositoryValue] = React.useState('');
+  const [artifactsValue, setArtifactsValue] = React.useState<string[]>([]);
   const [gitOrganizationValue, setGitOrganizationValue] = React.useState('');
   const [monitorGithubActions, setMonitorGithubActions] = React.useState(false);
   const [checked, setChecked] = React.useState('');
@@ -93,6 +94,11 @@ export const FormModal: React.FunctionComponent = () => {
 
   const handleGitOrganizationInput = (value) => {
     setGitOrganizationValue(value);
+  };
+
+  const handleArtifactsValue = (value: string) => {
+    const artifactsArray = value ? value.split(',').map(item => item.trim()) : [];
+    setArtifactsValue(artifactsArray);
   };
 
   const handleGithubActionsMonitor = (value) => {
@@ -122,9 +128,10 @@ export const FormModal: React.FunctionComponent = () => {
             monitor: monitorGithubActions,
           },
         },
-        artifacts: [],
+        artifacts: artifactsValue,
         team_name: state.teams.Team,
       };
+
       await createRepository(data);
       setIsPrimaryLoading(!isPrimaryLoading);
       modalContext.handleModalToggle();
@@ -162,28 +169,34 @@ export const FormModal: React.FunctionComponent = () => {
     }
   });
 
-  const handleGithub = async (value: string) => {
+const handleGithub = async (value: string) => {
+   const githubRegExp = /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/?$/;
+
     setHelperText('')
     setGithubUrl(value);
     setGithubUrlValidated('error');
 
-    // check that matches githubRegExp
-    if (githubRegExp.test(value)) {
-      const repo = value.replace("https://github.com/", "").split("/")
+    // Use .match() to capture the owner and repo from the URL
+    // The regex should have capturing groups: e.g., /^https:\/\/github\.com\/([^/]+)\/([^/]+)/
+    const match = value.match(githubRegExp);
 
+    // check that the URL format is valid and we have our captured values
+    if (match) {
+      const owner = match[1];      // The first captured group (e.g., "org")
+      const repository = match[2]; // The second captured group (e.g., "repo")
 
       // check that gh repo was not already added
-      const resp = await checkGithubRepositoryExists(repo[0], repo[1])
+      const resp = await checkGithubRepositoryExists(owner, repository)
       if (resp != undefined && resp.code == 200) {
         const team = resp.data as string
         setHelperText('Already exists in ' + team + ' team')
       } else {
-        await checkGithubRepositoryUrl(repo[0], repo[1]).then((data: any) => {
+        await checkGithubRepositoryUrl(owner, repository).then((data: any) => {
           if (data != undefined && data.code == 200) {
             setGithubUrlValidated('success');
             // save repo and org
-            setGitOrganizationValue(repo[0]);
-            setGitRepositoryValue(repo[1]);
+            setGitOrganizationValue(owner);
+            setGitRepositoryValue(repository);
             setHelperText('')
           } else {
             setHelperText('Something went wrong. Probably URL is incorrect.')
@@ -301,7 +314,7 @@ export const FormModal: React.FunctionComponent = () => {
               bodyContent={
                 <div>
                   If the repository contain more than one artifact add with coma separated:
-                  quay.io/flacatus:repo1,quay.io/flacatus:repo2
+                  quay.io/team-storage/repo1,quay.io/team-storage/repo2
                 </div>
               }
             >
@@ -319,7 +332,12 @@ export const FormModal: React.FunctionComponent = () => {
           isRequired
           fieldId="modal-with-form-form-address"
         >
-          <TextArea name="horizontal-form-exp" id="horizontal-form-exp" />
+            <TextArea
+            name="horizontal-form-exp"
+            id="horizontal-form-exp"
+            value={artifactsValue.join(', ')} // Set the component's value from state
+            onChange={handleArtifactsValue}   // Call the handler when the user types
+          />
         </FormGroup>
       </Form>
     </Modal>

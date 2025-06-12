@@ -161,7 +161,7 @@ func (prc *PullRequestsCreate) Mutation() *PullRequestsMutation {
 // Save creates the PullRequests in the database.
 func (prc *PullRequestsCreate) Save(ctx context.Context) (*PullRequests, error) {
 	prc.defaults()
-	return withHooks[*PullRequests, PullRequestsMutation](ctx, prc.sqlSave, prc.mutation, prc.hooks)
+	return withHooks(ctx, prc.sqlSave, prc.mutation, prc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -250,13 +250,7 @@ func (prc *PullRequestsCreate) sqlSave(ctx context.Context) (*PullRequests, erro
 func (prc *PullRequestsCreate) createSpec() (*PullRequests, *sqlgraph.CreateSpec) {
 	var (
 		_node = &PullRequests{config: prc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: pullrequests.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pullrequests.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(pullrequests.Table, sqlgraph.NewFieldSpec(pullrequests.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = prc.conflict
 	if value, ok := prc.mutation.PrID(); ok {
@@ -319,10 +313,7 @@ func (prc *PullRequestsCreate) createSpec() (*PullRequests, *sqlgraph.CreateSpec
 			Columns: []string{pullrequests.PrsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -854,12 +845,16 @@ func (u *PullRequestsUpsertOne) IDX(ctx context.Context) int {
 // PullRequestsCreateBulk is the builder for creating many PullRequests entities in bulk.
 type PullRequestsCreateBulk struct {
 	config
+	err      error
 	builders []*PullRequestsCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the PullRequests entities in the database.
 func (prcb *PullRequestsCreateBulk) Save(ctx context.Context) ([]*PullRequests, error) {
+	if prcb.err != nil {
+		return nil, prcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(prcb.builders))
 	nodes := make([]*PullRequests, len(prcb.builders))
 	mutators := make([]Mutator, len(prcb.builders))
@@ -876,8 +871,8 @@ func (prcb *PullRequestsCreateBulk) Save(ctx context.Context) ([]*PullRequests, 
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, prcb.builders[i+1].mutation)
 				} else {
@@ -1237,6 +1232,9 @@ func (u *PullRequestsUpsertBulk) ClearRetestBeforeMergeCount() *PullRequestsUpse
 
 // Exec executes the query.
 func (u *PullRequestsUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the PullRequestsCreateBulk instead", i)

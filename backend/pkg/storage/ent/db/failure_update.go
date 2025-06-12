@@ -36,15 +36,39 @@ func (fu *FailureUpdate) SetJiraKey(s string) *FailureUpdate {
 	return fu
 }
 
+// SetNillableJiraKey sets the "jira_key" field if the given value is not nil.
+func (fu *FailureUpdate) SetNillableJiraKey(s *string) *FailureUpdate {
+	if s != nil {
+		fu.SetJiraKey(*s)
+	}
+	return fu
+}
+
 // SetJiraStatus sets the "jira_status" field.
 func (fu *FailureUpdate) SetJiraStatus(s string) *FailureUpdate {
 	fu.mutation.SetJiraStatus(s)
 	return fu
 }
 
+// SetNillableJiraStatus sets the "jira_status" field if the given value is not nil.
+func (fu *FailureUpdate) SetNillableJiraStatus(s *string) *FailureUpdate {
+	if s != nil {
+		fu.SetJiraStatus(*s)
+	}
+	return fu
+}
+
 // SetErrorMessage sets the "error_message" field.
 func (fu *FailureUpdate) SetErrorMessage(s string) *FailureUpdate {
 	fu.mutation.SetErrorMessage(s)
+	return fu
+}
+
+// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
+func (fu *FailureUpdate) SetNillableErrorMessage(s *string) *FailureUpdate {
+	if s != nil {
+		fu.SetErrorMessage(*s)
+	}
 	return fu
 }
 
@@ -160,7 +184,7 @@ func (fu *FailureUpdate) ClearFailures() *FailureUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (fu *FailureUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, FailureMutation](ctx, fu.sqlSave, fu.mutation, fu.hooks)
+	return withHooks(ctx, fu.sqlSave, fu.mutation, fu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -199,16 +223,7 @@ func (fu *FailureUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := fu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   failure.Table,
-			Columns: failure.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: failure.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(failure.Table, failure.Columns, sqlgraph.NewFieldSpec(failure.FieldID, field.TypeUUID))
 	if ps := fu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -257,10 +272,7 @@ func (fu *FailureUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{failure.FailuresColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -273,10 +285,7 @@ func (fu *FailureUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{failure.FailuresColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -310,15 +319,39 @@ func (fuo *FailureUpdateOne) SetJiraKey(s string) *FailureUpdateOne {
 	return fuo
 }
 
+// SetNillableJiraKey sets the "jira_key" field if the given value is not nil.
+func (fuo *FailureUpdateOne) SetNillableJiraKey(s *string) *FailureUpdateOne {
+	if s != nil {
+		fuo.SetJiraKey(*s)
+	}
+	return fuo
+}
+
 // SetJiraStatus sets the "jira_status" field.
 func (fuo *FailureUpdateOne) SetJiraStatus(s string) *FailureUpdateOne {
 	fuo.mutation.SetJiraStatus(s)
 	return fuo
 }
 
+// SetNillableJiraStatus sets the "jira_status" field if the given value is not nil.
+func (fuo *FailureUpdateOne) SetNillableJiraStatus(s *string) *FailureUpdateOne {
+	if s != nil {
+		fuo.SetJiraStatus(*s)
+	}
+	return fuo
+}
+
 // SetErrorMessage sets the "error_message" field.
 func (fuo *FailureUpdateOne) SetErrorMessage(s string) *FailureUpdateOne {
 	fuo.mutation.SetErrorMessage(s)
+	return fuo
+}
+
+// SetNillableErrorMessage sets the "error_message" field if the given value is not nil.
+func (fuo *FailureUpdateOne) SetNillableErrorMessage(s *string) *FailureUpdateOne {
+	if s != nil {
+		fuo.SetErrorMessage(*s)
+	}
 	return fuo
 }
 
@@ -432,6 +465,12 @@ func (fuo *FailureUpdateOne) ClearFailures() *FailureUpdateOne {
 	return fuo
 }
 
+// Where appends a list predicates to the FailureUpdate builder.
+func (fuo *FailureUpdateOne) Where(ps ...predicate.Failure) *FailureUpdateOne {
+	fuo.mutation.Where(ps...)
+	return fuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (fuo *FailureUpdateOne) Select(field string, fields ...string) *FailureUpdateOne {
@@ -441,7 +480,7 @@ func (fuo *FailureUpdateOne) Select(field string, fields ...string) *FailureUpda
 
 // Save executes the query and returns the updated Failure entity.
 func (fuo *FailureUpdateOne) Save(ctx context.Context) (*Failure, error) {
-	return withHooks[*Failure, FailureMutation](ctx, fuo.sqlSave, fuo.mutation, fuo.hooks)
+	return withHooks(ctx, fuo.sqlSave, fuo.mutation, fuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -480,16 +519,7 @@ func (fuo *FailureUpdateOne) sqlSave(ctx context.Context) (_node *Failure, err e
 	if err := fuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   failure.Table,
-			Columns: failure.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: failure.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(failure.Table, failure.Columns, sqlgraph.NewFieldSpec(failure.FieldID, field.TypeUUID))
 	id, ok := fuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`db: missing "Failure.id" for update`)}
@@ -555,10 +585,7 @@ func (fuo *FailureUpdateOne) sqlSave(ctx context.Context) (_node *Failure, err e
 			Columns: []string{failure.FailuresColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -571,10 +598,7 @@ func (fuo *FailureUpdateOne) sqlSave(ctx context.Context) (_node *Failure, err e
 			Columns: []string{failure.FailuresColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

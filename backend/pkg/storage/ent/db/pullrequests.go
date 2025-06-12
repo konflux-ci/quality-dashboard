@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/pullrequests"
@@ -48,6 +49,7 @@ type PullRequests struct {
 	// The values are being populated by the PullRequestsQuery when eager-loading is set.
 	Edges          PullRequestsEdges `json:"edges"`
 	repository_prs *string
+	selectValues   sql.SelectValues
 }
 
 // PullRequestsEdges holds the relations/edges for other nodes in the graph.
@@ -62,12 +64,10 @@ type PullRequestsEdges struct {
 // PrsOrErr returns the Prs value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e PullRequestsEdges) PrsOrErr() (*Repository, error) {
-	if e.loadedTypes[0] {
-		if e.Prs == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: repository.Label}
-		}
+	if e.Prs != nil {
 		return e.Prs, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: repository.Label}
 	}
 	return nil, &NotLoadedError{edge: "prs"}
 }
@@ -90,7 +90,7 @@ func (*PullRequests) scanValues(columns []string) ([]any, error) {
 		case pullrequests.ForeignKeys[0]: // repository_prs
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type PullRequests", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -198,9 +198,17 @@ func (pr *PullRequests) assignValues(columns []string, values []any) error {
 				pr.repository_prs = new(string)
 				*pr.repository_prs = value.String
 			}
+		default:
+			pr.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the PullRequests.
+// This includes values selected through modifiers, order, etc.
+func (pr *PullRequests) Value(name string) (ent.Value, error) {
+	return pr.selectValues.Get(name)
 }
 
 // QueryPrs queries the "prs" edge of the PullRequests entity.
@@ -281,9 +289,3 @@ func (pr *PullRequests) String() string {
 
 // PullRequestsSlice is a parsable slice of PullRequests.
 type PullRequestsSlice []*PullRequests
-
-func (pr PullRequestsSlice) config(cfg config) {
-	for _i := range pr {
-		pr[_i].config = cfg
-	}
-}

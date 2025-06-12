@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowsuites"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
@@ -41,6 +42,7 @@ type ProwSuites struct {
 	// The values are being populated by the ProwSuitesQuery when eager-loading is set.
 	Edges                  ProwSuitesEdges `json:"edges"`
 	repository_prow_suites *string
+	selectValues           sql.SelectValues
 }
 
 // ProwSuitesEdges holds the relations/edges for other nodes in the graph.
@@ -55,12 +57,10 @@ type ProwSuitesEdges struct {
 // ProwSuitesOrErr returns the ProwSuites value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ProwSuitesEdges) ProwSuitesOrErr() (*Repository, error) {
-	if e.loadedTypes[0] {
-		if e.ProwSuites == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: repository.Label}
-		}
+	if e.ProwSuites != nil {
 		return e.ProwSuites, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: repository.Label}
 	}
 	return nil, &NotLoadedError{edge: "prow_suites"}
 }
@@ -83,7 +83,7 @@ func (*ProwSuites) scanValues(columns []string) ([]any, error) {
 		case prowsuites.ForeignKeys[0]: // repository_prow_suites
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type ProwSuites", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -173,9 +173,17 @@ func (ps *ProwSuites) assignValues(columns []string, values []any) error {
 				ps.repository_prow_suites = new(string)
 				*ps.repository_prow_suites = value.String
 			}
+		default:
+			ps.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the ProwSuites.
+// This includes values selected through modifiers, order, etc.
+func (ps *ProwSuites) Value(name string) (ent.Value, error) {
+	return ps.selectValues.Get(name)
 }
 
 // QueryProwSuites queries the "prow_suites" edge of the ProwSuites entity.
@@ -247,9 +255,3 @@ func (ps *ProwSuites) String() string {
 
 // ProwSuitesSlice is a parsable slice of ProwSuites.
 type ProwSuitesSlice []*ProwSuites
-
-func (ps ProwSuitesSlice) config(cfg config) {
-	for _i := range ps {
-		ps[_i].config = cfg
-	}
-}

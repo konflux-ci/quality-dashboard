@@ -3,6 +3,7 @@
 package users
 
 import (
+	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 )
 
@@ -40,3 +41,21 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// OrderOption defines the ordering options for the Users queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByUserEmail orders the results by the user_email field.
+func ByUserEmail(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserEmail, opts...).ToFunc()
+}
+
+// ByConfig orders the results by the config field.
+func ByConfig(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldConfig, opts...).ToFunc()
+}

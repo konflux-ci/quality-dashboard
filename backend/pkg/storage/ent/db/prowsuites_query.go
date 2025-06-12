@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -19,7 +20,7 @@ import (
 type ProwSuitesQuery struct {
 	config
 	ctx            *QueryContext
-	order          []OrderFunc
+	order          []prowsuites.OrderOption
 	inters         []Interceptor
 	predicates     []predicate.ProwSuites
 	withProwSuites *RepositoryQuery
@@ -55,7 +56,7 @@ func (psq *ProwSuitesQuery) Unique(unique bool) *ProwSuitesQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (psq *ProwSuitesQuery) Order(o ...OrderFunc) *ProwSuitesQuery {
+func (psq *ProwSuitesQuery) Order(o ...prowsuites.OrderOption) *ProwSuitesQuery {
 	psq.order = append(psq.order, o...)
 	return psq
 }
@@ -85,7 +86,7 @@ func (psq *ProwSuitesQuery) QueryProwSuites() *RepositoryQuery {
 // First returns the first ProwSuites entity from the query.
 // Returns a *NotFoundError when no ProwSuites was found.
 func (psq *ProwSuitesQuery) First(ctx context.Context) (*ProwSuites, error) {
-	nodes, err := psq.Limit(1).All(setContextOp(ctx, psq.ctx, "First"))
+	nodes, err := psq.Limit(1).All(setContextOp(ctx, psq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +109,7 @@ func (psq *ProwSuitesQuery) FirstX(ctx context.Context) *ProwSuites {
 // Returns a *NotFoundError when no ProwSuites ID was found.
 func (psq *ProwSuitesQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = psq.Limit(1).IDs(setContextOp(ctx, psq.ctx, "FirstID")); err != nil {
+	if ids, err = psq.Limit(1).IDs(setContextOp(ctx, psq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -131,7 +132,7 @@ func (psq *ProwSuitesQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one ProwSuites entity is found.
 // Returns a *NotFoundError when no ProwSuites entities are found.
 func (psq *ProwSuitesQuery) Only(ctx context.Context) (*ProwSuites, error) {
-	nodes, err := psq.Limit(2).All(setContextOp(ctx, psq.ctx, "Only"))
+	nodes, err := psq.Limit(2).All(setContextOp(ctx, psq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +160,7 @@ func (psq *ProwSuitesQuery) OnlyX(ctx context.Context) *ProwSuites {
 // Returns a *NotFoundError when no entities are found.
 func (psq *ProwSuitesQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = psq.Limit(2).IDs(setContextOp(ctx, psq.ctx, "OnlyID")); err != nil {
+	if ids, err = psq.Limit(2).IDs(setContextOp(ctx, psq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -184,7 +185,7 @@ func (psq *ProwSuitesQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of ProwSuitesSlice.
 func (psq *ProwSuitesQuery) All(ctx context.Context) ([]*ProwSuites, error) {
-	ctx = setContextOp(ctx, psq.ctx, "All")
+	ctx = setContextOp(ctx, psq.ctx, ent.OpQueryAll)
 	if err := psq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -202,10 +203,12 @@ func (psq *ProwSuitesQuery) AllX(ctx context.Context) []*ProwSuites {
 }
 
 // IDs executes the query and returns a list of ProwSuites IDs.
-func (psq *ProwSuitesQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	ctx = setContextOp(ctx, psq.ctx, "IDs")
-	if err := psq.Select(prowsuites.FieldID).Scan(ctx, &ids); err != nil {
+func (psq *ProwSuitesQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if psq.ctx.Unique == nil && psq.path != nil {
+		psq.Unique(true)
+	}
+	ctx = setContextOp(ctx, psq.ctx, ent.OpQueryIDs)
+	if err = psq.Select(prowsuites.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -222,7 +225,7 @@ func (psq *ProwSuitesQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (psq *ProwSuitesQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, psq.ctx, "Count")
+	ctx = setContextOp(ctx, psq.ctx, ent.OpQueryCount)
 	if err := psq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -240,7 +243,7 @@ func (psq *ProwSuitesQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (psq *ProwSuitesQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, psq.ctx, "Exist")
+	ctx = setContextOp(ctx, psq.ctx, ent.OpQueryExist)
 	switch _, err := psq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -269,7 +272,7 @@ func (psq *ProwSuitesQuery) Clone() *ProwSuitesQuery {
 	return &ProwSuitesQuery{
 		config:         psq.config,
 		ctx:            psq.ctx.Clone(),
-		order:          append([]OrderFunc{}, psq.order...),
+		order:          append([]prowsuites.OrderOption{}, psq.order...),
 		inters:         append([]Interceptor{}, psq.inters...),
 		predicates:     append([]predicate.ProwSuites{}, psq.predicates...),
 		withProwSuites: psq.withProwSuites.Clone(),
@@ -449,20 +452,12 @@ func (psq *ProwSuitesQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (psq *ProwSuitesQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   prowsuites.Table,
-			Columns: prowsuites.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: prowsuites.FieldID,
-			},
-		},
-		From:   psq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(prowsuites.Table, prowsuites.Columns, sqlgraph.NewFieldSpec(prowsuites.FieldID, field.TypeInt))
+	_spec.From = psq.sql
 	if unique := psq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if psq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := psq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -542,7 +537,7 @@ func (psgb *ProwSuitesGroupBy) Aggregate(fns ...AggregateFunc) *ProwSuitesGroupB
 
 // Scan applies the selector query and scans the result into the given value.
 func (psgb *ProwSuitesGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, psgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, psgb.build.ctx, ent.OpQueryGroupBy)
 	if err := psgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -590,7 +585,7 @@ func (pss *ProwSuitesSelect) Aggregate(fns ...AggregateFunc) *ProwSuitesSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (pss *ProwSuitesSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, pss.ctx, "Select")
+	ctx = setContextOp(ctx, pss.ctx, ent.OpQuerySelect)
 	if err := pss.prepareQuery(ctx); err != nil {
 		return err
 	}

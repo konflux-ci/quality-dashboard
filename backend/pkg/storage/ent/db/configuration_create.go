@@ -83,7 +83,7 @@ func (cc *ConfigurationCreate) Mutation() *ConfigurationMutation {
 // Save creates the Configuration in the database.
 func (cc *ConfigurationCreate) Save(ctx context.Context) (*Configuration, error) {
 	cc.defaults()
-	return withHooks[*Configuration, ConfigurationMutation](ctx, cc.sqlSave, cc.mutation, cc.hooks)
+	return withHooks(ctx, cc.sqlSave, cc.mutation, cc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -156,13 +156,7 @@ func (cc *ConfigurationCreate) sqlSave(ctx context.Context) (*Configuration, err
 func (cc *ConfigurationCreate) createSpec() (*Configuration, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Configuration{config: cc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: configuration.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: configuration.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(configuration.Table, sqlgraph.NewFieldSpec(configuration.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = cc.conflict
 	if id, ok := cc.mutation.ID(); ok {
@@ -189,10 +183,7 @@ func (cc *ConfigurationCreate) createSpec() (*Configuration, *sqlgraph.CreateSpe
 			Columns: []string{configuration.ConfigurationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -420,12 +411,16 @@ func (u *ConfigurationUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // ConfigurationCreateBulk is the builder for creating many Configuration entities in bulk.
 type ConfigurationCreateBulk struct {
 	config
+	err      error
 	builders []*ConfigurationCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the Configuration entities in the database.
 func (ccb *ConfigurationCreateBulk) Save(ctx context.Context) ([]*Configuration, error) {
+	if ccb.err != nil {
+		return nil, ccb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ccb.builders))
 	nodes := make([]*Configuration, len(ccb.builders))
 	mutators := make([]Mutator, len(ccb.builders))
@@ -442,8 +437,8 @@ func (ccb *ConfigurationCreateBulk) Save(ctx context.Context) ([]*Configuration,
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ccb.builders[i+1].mutation)
 				} else {
@@ -634,6 +629,9 @@ func (u *ConfigurationUpsertBulk) UpdateBugSlosConfig() *ConfigurationUpsertBulk
 
 // Exec executes the query.
 func (u *ConfigurationUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the ConfigurationCreateBulk instead", i)

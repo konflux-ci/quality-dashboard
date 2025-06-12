@@ -21,6 +21,7 @@ func (d *Database) ObtainProwMetricsByJob(gitOrganization string, repositoryName
 
 	dbJobs, err := d.client.Repository.QueryProwJobs(repo).
 		Where(prowjobs.JobName(jobName)).
+		Where(prowjobs.Not(prowjobs.State(string(prow.AbortedState)))).
 		Where(func(s *sql.Selector) { // "created_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 		}).
@@ -185,6 +186,7 @@ func (d *Database) GetNumberOfInfraImpact(repo *db.Repository, jobName string, s
 	return d.client.Repository.QueryProwJobs(repo).
 		Where(prowjobs.JobName(jobName)).
 		Where(prowjobs.State(string(prow.ErrorState))).
+		Where(prowjobs.Not(prowjobs.State(string(prow.AbortedState)))).
 		Where(func(s *sql.Selector) { // "merged_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 		}).
@@ -200,6 +202,7 @@ func (d *Database) GetJobsImpactedByAnExternalService(repo *db.Repository, jobNa
 		Where(prowjobs.ExternalServicesImpact(true)).
 		// Jobs are executed after verifying external service step. That mean an outage can be fixed when run the job and success.
 		Where(prowjobs.Not(prowjobs.State("success"))).
+		Where(prowjobs.Not(prowjobs.State(string(prow.AbortedState)))).
 		Where(func(s *sql.Selector) { // "merged_at BETWEEN ? AND 2022-08-17", "2022-08-16"
 			s.Where(sql.ExprP(fmt.Sprintf("created_at BETWEEN '%s' AND '%s'", startDate, endDate)))
 		}).
