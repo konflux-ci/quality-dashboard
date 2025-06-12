@@ -27,7 +27,7 @@ func (rd *RepositoryDelete) Where(ps ...predicate.Repository) *RepositoryDelete 
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (rd *RepositoryDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, RepositoryMutation](ctx, rd.sqlExec, rd.mutation, rd.hooks)
+	return withHooks(ctx, rd.sqlExec, rd.mutation, rd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (rd *RepositoryDelete) ExecX(ctx context.Context) int {
 }
 
 func (rd *RepositoryDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: repository.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: repository.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(repository.Table, sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString))
 	if ps := rd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

@@ -11,8 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/tektontasks"
 )
 
 // ProwJobsCreate is the builder for creating a ProwJobs entity.
@@ -188,6 +190,21 @@ func (pjc *ProwJobsCreate) SetProwJobs(r *Repository) *ProwJobsCreate {
 	return pjc.SetProwJobsID(r.ID)
 }
 
+// AddTektonTaskIDs adds the "tekton_tasks" edge to the TektonTasks entity by IDs.
+func (pjc *ProwJobsCreate) AddTektonTaskIDs(ids ...uuid.UUID) *ProwJobsCreate {
+	pjc.mutation.AddTektonTaskIDs(ids...)
+	return pjc
+}
+
+// AddTektonTasks adds the "tekton_tasks" edges to the TektonTasks entity.
+func (pjc *ProwJobsCreate) AddTektonTasks(t ...*TektonTasks) *ProwJobsCreate {
+	ids := make([]uuid.UUID, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return pjc.AddTektonTaskIDs(ids...)
+}
+
 // Mutation returns the ProwJobsMutation object of the builder.
 func (pjc *ProwJobsCreate) Mutation() *ProwJobsMutation {
 	return pjc.mutation
@@ -196,7 +213,7 @@ func (pjc *ProwJobsCreate) Mutation() *ProwJobsMutation {
 // Save creates the ProwJobs in the database.
 func (pjc *ProwJobsCreate) Save(ctx context.Context) (*ProwJobs, error) {
 	pjc.defaults()
-	return withHooks[*ProwJobs, ProwJobsMutation](ctx, pjc.sqlSave, pjc.mutation, pjc.hooks)
+	return withHooks(ctx, pjc.sqlSave, pjc.mutation, pjc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -279,13 +296,7 @@ func (pjc *ProwJobsCreate) sqlSave(ctx context.Context) (*ProwJobs, error) {
 func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 	var (
 		_node = &ProwJobs{config: pjc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: prowjobs.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: prowjobs.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(prowjobs.Table, sqlgraph.NewFieldSpec(prowjobs.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = pjc.conflict
 	if value, ok := pjc.mutation.JobID(); ok {
@@ -356,16 +367,29 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 			Columns: []string{prowjobs.ProwJobsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.repository_prow_jobs = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pjc.mutation.TektonTasksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   prowjobs.TektonTasksTable,
+			Columns: []string{prowjobs.TektonTasksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(tektontasks.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
@@ -1042,12 +1066,16 @@ func (u *ProwJobsUpsertOne) IDX(ctx context.Context) int {
 // ProwJobsCreateBulk is the builder for creating many ProwJobs entities in bulk.
 type ProwJobsCreateBulk struct {
 	config
+	err      error
 	builders []*ProwJobsCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the ProwJobs entities in the database.
 func (pjcb *ProwJobsCreateBulk) Save(ctx context.Context) ([]*ProwJobs, error) {
+	if pjcb.err != nil {
+		return nil, pjcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(pjcb.builders))
 	nodes := make([]*ProwJobs, len(pjcb.builders))
 	mutators := make([]Mutator, len(pjcb.builders))
@@ -1064,8 +1092,8 @@ func (pjcb *ProwJobsCreateBulk) Save(ctx context.Context) ([]*ProwJobs, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, pjcb.builders[i+1].mutation)
 				} else {
@@ -1502,6 +1530,9 @@ func (u *ProwJobsUpsertBulk) ClearBuildErrorLogs() *ProwJobsUpsertBulk {
 
 // Exec executes the query.
 func (u *ProwJobsUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the ProwJobsCreateBulk instead", i)

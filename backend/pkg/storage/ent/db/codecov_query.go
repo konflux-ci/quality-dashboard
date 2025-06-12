@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,7 +21,7 @@ import (
 type CodeCovQuery struct {
 	config
 	ctx         *QueryContext
-	order       []OrderFunc
+	order       []codecov.OrderOption
 	inters      []Interceptor
 	predicates  []predicate.CodeCov
 	withCodecov *RepositoryQuery
@@ -56,7 +57,7 @@ func (ccq *CodeCovQuery) Unique(unique bool) *CodeCovQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (ccq *CodeCovQuery) Order(o ...OrderFunc) *CodeCovQuery {
+func (ccq *CodeCovQuery) Order(o ...codecov.OrderOption) *CodeCovQuery {
 	ccq.order = append(ccq.order, o...)
 	return ccq
 }
@@ -86,7 +87,7 @@ func (ccq *CodeCovQuery) QueryCodecov() *RepositoryQuery {
 // First returns the first CodeCov entity from the query.
 // Returns a *NotFoundError when no CodeCov was found.
 func (ccq *CodeCovQuery) First(ctx context.Context) (*CodeCov, error) {
-	nodes, err := ccq.Limit(1).All(setContextOp(ctx, ccq.ctx, "First"))
+	nodes, err := ccq.Limit(1).All(setContextOp(ctx, ccq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +110,7 @@ func (ccq *CodeCovQuery) FirstX(ctx context.Context) *CodeCov {
 // Returns a *NotFoundError when no CodeCov ID was found.
 func (ccq *CodeCovQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = ccq.Limit(1).IDs(setContextOp(ctx, ccq.ctx, "FirstID")); err != nil {
+	if ids, err = ccq.Limit(1).IDs(setContextOp(ctx, ccq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -132,7 +133,7 @@ func (ccq *CodeCovQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one CodeCov entity is found.
 // Returns a *NotFoundError when no CodeCov entities are found.
 func (ccq *CodeCovQuery) Only(ctx context.Context) (*CodeCov, error) {
-	nodes, err := ccq.Limit(2).All(setContextOp(ctx, ccq.ctx, "Only"))
+	nodes, err := ccq.Limit(2).All(setContextOp(ctx, ccq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +161,7 @@ func (ccq *CodeCovQuery) OnlyX(ctx context.Context) *CodeCov {
 // Returns a *NotFoundError when no entities are found.
 func (ccq *CodeCovQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = ccq.Limit(2).IDs(setContextOp(ctx, ccq.ctx, "OnlyID")); err != nil {
+	if ids, err = ccq.Limit(2).IDs(setContextOp(ctx, ccq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -185,7 +186,7 @@ func (ccq *CodeCovQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of CodeCovs.
 func (ccq *CodeCovQuery) All(ctx context.Context) ([]*CodeCov, error) {
-	ctx = setContextOp(ctx, ccq.ctx, "All")
+	ctx = setContextOp(ctx, ccq.ctx, ent.OpQueryAll)
 	if err := ccq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -203,10 +204,12 @@ func (ccq *CodeCovQuery) AllX(ctx context.Context) []*CodeCov {
 }
 
 // IDs executes the query and returns a list of CodeCov IDs.
-func (ccq *CodeCovQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, ccq.ctx, "IDs")
-	if err := ccq.Select(codecov.FieldID).Scan(ctx, &ids); err != nil {
+func (ccq *CodeCovQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if ccq.ctx.Unique == nil && ccq.path != nil {
+		ccq.Unique(true)
+	}
+	ctx = setContextOp(ctx, ccq.ctx, ent.OpQueryIDs)
+	if err = ccq.Select(codecov.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -223,7 +226,7 @@ func (ccq *CodeCovQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (ccq *CodeCovQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, ccq.ctx, "Count")
+	ctx = setContextOp(ctx, ccq.ctx, ent.OpQueryCount)
 	if err := ccq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -241,7 +244,7 @@ func (ccq *CodeCovQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (ccq *CodeCovQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, ccq.ctx, "Exist")
+	ctx = setContextOp(ctx, ccq.ctx, ent.OpQueryExist)
 	switch _, err := ccq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -270,7 +273,7 @@ func (ccq *CodeCovQuery) Clone() *CodeCovQuery {
 	return &CodeCovQuery{
 		config:      ccq.config,
 		ctx:         ccq.ctx.Clone(),
-		order:       append([]OrderFunc{}, ccq.order...),
+		order:       append([]codecov.OrderOption{}, ccq.order...),
 		inters:      append([]Interceptor{}, ccq.inters...),
 		predicates:  append([]predicate.CodeCov{}, ccq.predicates...),
 		withCodecov: ccq.withCodecov.Clone(),
@@ -450,20 +453,12 @@ func (ccq *CodeCovQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (ccq *CodeCovQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   codecov.Table,
-			Columns: codecov.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: codecov.FieldID,
-			},
-		},
-		From:   ccq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(codecov.Table, codecov.Columns, sqlgraph.NewFieldSpec(codecov.FieldID, field.TypeUUID))
+	_spec.From = ccq.sql
 	if unique := ccq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if ccq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := ccq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -543,7 +538,7 @@ func (ccgb *CodeCovGroupBy) Aggregate(fns ...AggregateFunc) *CodeCovGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (ccgb *CodeCovGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ccgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, ccgb.build.ctx, ent.OpQueryGroupBy)
 	if err := ccgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -591,7 +586,7 @@ func (ccs *CodeCovSelect) Aggregate(fns ...AggregateFunc) *CodeCovSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (ccs *CodeCovSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ccs.ctx, "Select")
+	ctx = setContextOp(ctx, ccs.ctx, ent.OpQuerySelect)
 	if err := ccs.prepareQuery(ctx); err != nil {
 		return err
 	}

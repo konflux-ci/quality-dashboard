@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -209,13 +210,13 @@ func (d *Database) GetProwFlakyTrendsMetrics(gitOrg string, repoName string, job
 func (d *Database) GetProwJobsByRepoOrg(repo *db.Repository) ([]string, error) {
 	var flakyJobs []string
 
-	p, err := d.client.Repository.QueryProwSuites(repo).Select(prowsuites.FieldJobName).Unique(true).All(context.Background())
+	p, err := d.client.Repository.QueryProwJobs(repo).Select(prowjobs.FieldJobName).Unique(true).All(context.Background())
 	if err != nil {
 		return nil, convertDBError("get jobs name: %w", err)
 	}
 
 	for _, v := range p {
-		if !slices.Contains(flakyJobs, v.JobName) {
+		if !slices.Contains(flakyJobs, v.JobName) && !strings.Contains(v.JobName, "main-images") {
 			flakyJobs = append(flakyJobs, v.JobName)
 		}
 	}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -19,7 +20,7 @@ import (
 type WorkflowsQuery struct {
 	config
 	ctx           *QueryContext
-	order         []OrderFunc
+	order         []workflows.OrderOption
 	inters        []Interceptor
 	predicates    []predicate.Workflows
 	withWorkflows *RepositoryQuery
@@ -55,7 +56,7 @@ func (wq *WorkflowsQuery) Unique(unique bool) *WorkflowsQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (wq *WorkflowsQuery) Order(o ...OrderFunc) *WorkflowsQuery {
+func (wq *WorkflowsQuery) Order(o ...workflows.OrderOption) *WorkflowsQuery {
 	wq.order = append(wq.order, o...)
 	return wq
 }
@@ -85,7 +86,7 @@ func (wq *WorkflowsQuery) QueryWorkflows() *RepositoryQuery {
 // First returns the first Workflows entity from the query.
 // Returns a *NotFoundError when no Workflows was found.
 func (wq *WorkflowsQuery) First(ctx context.Context) (*Workflows, error) {
-	nodes, err := wq.Limit(1).All(setContextOp(ctx, wq.ctx, "First"))
+	nodes, err := wq.Limit(1).All(setContextOp(ctx, wq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +109,7 @@ func (wq *WorkflowsQuery) FirstX(ctx context.Context) *Workflows {
 // Returns a *NotFoundError when no Workflows ID was found.
 func (wq *WorkflowsQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = wq.Limit(1).IDs(setContextOp(ctx, wq.ctx, "FirstID")); err != nil {
+	if ids, err = wq.Limit(1).IDs(setContextOp(ctx, wq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -131,7 +132,7 @@ func (wq *WorkflowsQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one Workflows entity is found.
 // Returns a *NotFoundError when no Workflows entities are found.
 func (wq *WorkflowsQuery) Only(ctx context.Context) (*Workflows, error) {
-	nodes, err := wq.Limit(2).All(setContextOp(ctx, wq.ctx, "Only"))
+	nodes, err := wq.Limit(2).All(setContextOp(ctx, wq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +160,7 @@ func (wq *WorkflowsQuery) OnlyX(ctx context.Context) *Workflows {
 // Returns a *NotFoundError when no entities are found.
 func (wq *WorkflowsQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = wq.Limit(2).IDs(setContextOp(ctx, wq.ctx, "OnlyID")); err != nil {
+	if ids, err = wq.Limit(2).IDs(setContextOp(ctx, wq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -184,7 +185,7 @@ func (wq *WorkflowsQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of WorkflowsSlice.
 func (wq *WorkflowsQuery) All(ctx context.Context) ([]*Workflows, error) {
-	ctx = setContextOp(ctx, wq.ctx, "All")
+	ctx = setContextOp(ctx, wq.ctx, ent.OpQueryAll)
 	if err := wq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -202,10 +203,12 @@ func (wq *WorkflowsQuery) AllX(ctx context.Context) []*Workflows {
 }
 
 // IDs executes the query and returns a list of Workflows IDs.
-func (wq *WorkflowsQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	ctx = setContextOp(ctx, wq.ctx, "IDs")
-	if err := wq.Select(workflows.FieldID).Scan(ctx, &ids); err != nil {
+func (wq *WorkflowsQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if wq.ctx.Unique == nil && wq.path != nil {
+		wq.Unique(true)
+	}
+	ctx = setContextOp(ctx, wq.ctx, ent.OpQueryIDs)
+	if err = wq.Select(workflows.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -222,7 +225,7 @@ func (wq *WorkflowsQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (wq *WorkflowsQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, wq.ctx, "Count")
+	ctx = setContextOp(ctx, wq.ctx, ent.OpQueryCount)
 	if err := wq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -240,7 +243,7 @@ func (wq *WorkflowsQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (wq *WorkflowsQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, wq.ctx, "Exist")
+	ctx = setContextOp(ctx, wq.ctx, ent.OpQueryExist)
 	switch _, err := wq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -269,7 +272,7 @@ func (wq *WorkflowsQuery) Clone() *WorkflowsQuery {
 	return &WorkflowsQuery{
 		config:        wq.config,
 		ctx:           wq.ctx.Clone(),
-		order:         append([]OrderFunc{}, wq.order...),
+		order:         append([]workflows.OrderOption{}, wq.order...),
 		inters:        append([]Interceptor{}, wq.inters...),
 		predicates:    append([]predicate.Workflows{}, wq.predicates...),
 		withWorkflows: wq.withWorkflows.Clone(),
@@ -449,20 +452,12 @@ func (wq *WorkflowsQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (wq *WorkflowsQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   workflows.Table,
-			Columns: workflows.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: workflows.FieldID,
-			},
-		},
-		From:   wq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(workflows.Table, workflows.Columns, sqlgraph.NewFieldSpec(workflows.FieldID, field.TypeInt))
+	_spec.From = wq.sql
 	if unique := wq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if wq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := wq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -542,7 +537,7 @@ func (wgb *WorkflowsGroupBy) Aggregate(fns ...AggregateFunc) *WorkflowsGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (wgb *WorkflowsGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, wgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, wgb.build.ctx, ent.OpQueryGroupBy)
 	if err := wgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -590,7 +585,7 @@ func (ws *WorkflowsSelect) Aggregate(fns ...AggregateFunc) *WorkflowsSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (ws *WorkflowsSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, ws.ctx, "Select")
+	ctx = setContextOp(ctx, ws.ctx, ent.OpQuerySelect)
 	if err := ws.prepareQuery(ctx); err != nil {
 		return err
 	}

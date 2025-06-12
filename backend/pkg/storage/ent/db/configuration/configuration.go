@@ -3,6 +3,8 @@
 package configuration
 
 import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -65,3 +67,40 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// OrderOption defines the ordering options for the Configuration queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByTeamName orders the results by the team_name field.
+func ByTeamName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTeamName, opts...).ToFunc()
+}
+
+// ByJiraConfig orders the results by the jira_config field.
+func ByJiraConfig(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJiraConfig, opts...).ToFunc()
+}
+
+// ByBugSlosConfig orders the results by the bug_slos_config field.
+func ByBugSlosConfig(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBugSlosConfig, opts...).ToFunc()
+}
+
+// ByConfigurationField orders the results by configuration field.
+func ByConfigurationField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newConfigurationStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newConfigurationStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ConfigurationInverseTable, TeamsFieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ConfigurationTable, ConfigurationColumn),
+	)
+}

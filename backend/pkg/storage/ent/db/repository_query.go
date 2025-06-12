@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/codecov"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/oci"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowsuites"
@@ -26,12 +28,13 @@ import (
 type RepositoryQuery struct {
 	config
 	ctx              *QueryContext
-	order            []OrderFunc
+	order            []repository.OrderOption
 	inters           []Interceptor
 	predicates       []predicate.Repository
 	withRepositories *TeamsQuery
 	withWorkflows    *WorkflowsQuery
 	withCodecov      *CodeCovQuery
+	withOci          *OCIQuery
 	withProwSuites   *ProwSuitesQuery
 	withProwJobs     *ProwJobsQuery
 	withPrs          *PullRequestsQuery
@@ -67,7 +70,7 @@ func (rq *RepositoryQuery) Unique(unique bool) *RepositoryQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (rq *RepositoryQuery) Order(o ...OrderFunc) *RepositoryQuery {
+func (rq *RepositoryQuery) Order(o ...repository.OrderOption) *RepositoryQuery {
 	rq.order = append(rq.order, o...)
 	return rq
 }
@@ -131,6 +134,28 @@ func (rq *RepositoryQuery) QueryCodecov() *CodeCovQuery {
 			sqlgraph.From(repository.Table, repository.FieldID, selector),
 			sqlgraph.To(codecov.Table, codecov.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, repository.CodecovTable, repository.CodecovColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOci chains the current query on the "oci" edge.
+func (rq *RepositoryQuery) QueryOci() *OCIQuery {
+	query := (&OCIClient{config: rq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := rq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := rq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(repository.Table, repository.FieldID, selector),
+			sqlgraph.To(oci.Table, oci.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, repository.OciTable, repository.OciColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(rq.driver.Dialect(), step)
 		return fromU, nil
@@ -207,7 +232,7 @@ func (rq *RepositoryQuery) QueryPrs() *PullRequestsQuery {
 // First returns the first Repository entity from the query.
 // Returns a *NotFoundError when no Repository was found.
 func (rq *RepositoryQuery) First(ctx context.Context) (*Repository, error) {
-	nodes, err := rq.Limit(1).All(setContextOp(ctx, rq.ctx, "First"))
+	nodes, err := rq.Limit(1).All(setContextOp(ctx, rq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +255,7 @@ func (rq *RepositoryQuery) FirstX(ctx context.Context) *Repository {
 // Returns a *NotFoundError when no Repository ID was found.
 func (rq *RepositoryQuery) FirstID(ctx context.Context) (id string, err error) {
 	var ids []string
-	if ids, err = rq.Limit(1).IDs(setContextOp(ctx, rq.ctx, "FirstID")); err != nil {
+	if ids, err = rq.Limit(1).IDs(setContextOp(ctx, rq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -253,7 +278,7 @@ func (rq *RepositoryQuery) FirstIDX(ctx context.Context) string {
 // Returns a *NotSingularError when more than one Repository entity is found.
 // Returns a *NotFoundError when no Repository entities are found.
 func (rq *RepositoryQuery) Only(ctx context.Context) (*Repository, error) {
-	nodes, err := rq.Limit(2).All(setContextOp(ctx, rq.ctx, "Only"))
+	nodes, err := rq.Limit(2).All(setContextOp(ctx, rq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +306,7 @@ func (rq *RepositoryQuery) OnlyX(ctx context.Context) *Repository {
 // Returns a *NotFoundError when no entities are found.
 func (rq *RepositoryQuery) OnlyID(ctx context.Context) (id string, err error) {
 	var ids []string
-	if ids, err = rq.Limit(2).IDs(setContextOp(ctx, rq.ctx, "OnlyID")); err != nil {
+	if ids, err = rq.Limit(2).IDs(setContextOp(ctx, rq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -306,7 +331,7 @@ func (rq *RepositoryQuery) OnlyIDX(ctx context.Context) string {
 
 // All executes the query and returns a list of Repositories.
 func (rq *RepositoryQuery) All(ctx context.Context) ([]*Repository, error) {
-	ctx = setContextOp(ctx, rq.ctx, "All")
+	ctx = setContextOp(ctx, rq.ctx, ent.OpQueryAll)
 	if err := rq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -324,10 +349,12 @@ func (rq *RepositoryQuery) AllX(ctx context.Context) []*Repository {
 }
 
 // IDs executes the query and returns a list of Repository IDs.
-func (rq *RepositoryQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
-	ctx = setContextOp(ctx, rq.ctx, "IDs")
-	if err := rq.Select(repository.FieldID).Scan(ctx, &ids); err != nil {
+func (rq *RepositoryQuery) IDs(ctx context.Context) (ids []string, err error) {
+	if rq.ctx.Unique == nil && rq.path != nil {
+		rq.Unique(true)
+	}
+	ctx = setContextOp(ctx, rq.ctx, ent.OpQueryIDs)
+	if err = rq.Select(repository.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -344,7 +371,7 @@ func (rq *RepositoryQuery) IDsX(ctx context.Context) []string {
 
 // Count returns the count of the given query.
 func (rq *RepositoryQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, rq.ctx, "Count")
+	ctx = setContextOp(ctx, rq.ctx, ent.OpQueryCount)
 	if err := rq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -362,7 +389,7 @@ func (rq *RepositoryQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (rq *RepositoryQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, rq.ctx, "Exist")
+	ctx = setContextOp(ctx, rq.ctx, ent.OpQueryExist)
 	switch _, err := rq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -391,12 +418,13 @@ func (rq *RepositoryQuery) Clone() *RepositoryQuery {
 	return &RepositoryQuery{
 		config:           rq.config,
 		ctx:              rq.ctx.Clone(),
-		order:            append([]OrderFunc{}, rq.order...),
+		order:            append([]repository.OrderOption{}, rq.order...),
 		inters:           append([]Interceptor{}, rq.inters...),
 		predicates:       append([]predicate.Repository{}, rq.predicates...),
 		withRepositories: rq.withRepositories.Clone(),
 		withWorkflows:    rq.withWorkflows.Clone(),
 		withCodecov:      rq.withCodecov.Clone(),
+		withOci:          rq.withOci.Clone(),
 		withProwSuites:   rq.withProwSuites.Clone(),
 		withProwJobs:     rq.withProwJobs.Clone(),
 		withPrs:          rq.withPrs.Clone(),
@@ -436,6 +464,17 @@ func (rq *RepositoryQuery) WithCodecov(opts ...func(*CodeCovQuery)) *RepositoryQ
 		opt(query)
 	}
 	rq.withCodecov = query
+	return rq
+}
+
+// WithOci tells the query-builder to eager-load the nodes that are connected to
+// the "oci" edge. The optional arguments are used to configure the query builder of the edge.
+func (rq *RepositoryQuery) WithOci(opts ...func(*OCIQuery)) *RepositoryQuery {
+	query := (&OCIClient{config: rq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	rq.withOci = query
 	return rq
 }
 
@@ -551,10 +590,11 @@ func (rq *RepositoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*R
 		nodes       = []*Repository{}
 		withFKs     = rq.withFKs
 		_spec       = rq.querySpec()
-		loadedTypes = [6]bool{
+		loadedTypes = [7]bool{
 			rq.withRepositories != nil,
 			rq.withWorkflows != nil,
 			rq.withCodecov != nil,
+			rq.withOci != nil,
 			rq.withProwSuites != nil,
 			rq.withProwJobs != nil,
 			rq.withPrs != nil,
@@ -601,6 +641,13 @@ func (rq *RepositoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*R
 		if err := rq.loadCodecov(ctx, query, nodes,
 			func(n *Repository) { n.Edges.Codecov = []*CodeCov{} },
 			func(n *Repository, e *CodeCov) { n.Edges.Codecov = append(n.Edges.Codecov, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := rq.withOci; query != nil {
+		if err := rq.loadOci(ctx, query, nodes,
+			func(n *Repository) { n.Edges.Oci = []*OCI{} },
+			func(n *Repository, e *OCI) { n.Edges.Oci = append(n.Edges.Oci, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -672,7 +719,7 @@ func (rq *RepositoryQuery) loadWorkflows(ctx context.Context, query *WorkflowsQu
 	}
 	query.withFKs = true
 	query.Where(predicate.Workflows(func(s *sql.Selector) {
-		s.Where(sql.InValues(repository.WorkflowsColumn, fks...))
+		s.Where(sql.InValues(s.C(repository.WorkflowsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -685,7 +732,7 @@ func (rq *RepositoryQuery) loadWorkflows(ctx context.Context, query *WorkflowsQu
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "repository_workflows" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "repository_workflows" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -703,7 +750,7 @@ func (rq *RepositoryQuery) loadCodecov(ctx context.Context, query *CodeCovQuery,
 	}
 	query.withFKs = true
 	query.Where(predicate.CodeCov(func(s *sql.Selector) {
-		s.Where(sql.InValues(repository.CodecovColumn, fks...))
+		s.Where(sql.InValues(s.C(repository.CodecovColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -716,7 +763,38 @@ func (rq *RepositoryQuery) loadCodecov(ctx context.Context, query *CodeCovQuery,
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "repository_codecov" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "repository_codecov" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (rq *RepositoryQuery) loadOci(ctx context.Context, query *OCIQuery, nodes []*Repository, init func(*Repository), assign func(*Repository, *OCI)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[string]*Repository)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.OCI(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(repository.OciColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.repository_oci
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "repository_oci" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "repository_oci" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -734,7 +812,7 @@ func (rq *RepositoryQuery) loadProwSuites(ctx context.Context, query *ProwSuites
 	}
 	query.withFKs = true
 	query.Where(predicate.ProwSuites(func(s *sql.Selector) {
-		s.Where(sql.InValues(repository.ProwSuitesColumn, fks...))
+		s.Where(sql.InValues(s.C(repository.ProwSuitesColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -747,7 +825,7 @@ func (rq *RepositoryQuery) loadProwSuites(ctx context.Context, query *ProwSuites
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "repository_prow_suites" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "repository_prow_suites" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -765,7 +843,7 @@ func (rq *RepositoryQuery) loadProwJobs(ctx context.Context, query *ProwJobsQuer
 	}
 	query.withFKs = true
 	query.Where(predicate.ProwJobs(func(s *sql.Selector) {
-		s.Where(sql.InValues(repository.ProwJobsColumn, fks...))
+		s.Where(sql.InValues(s.C(repository.ProwJobsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -778,7 +856,7 @@ func (rq *RepositoryQuery) loadProwJobs(ctx context.Context, query *ProwJobsQuer
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "repository_prow_jobs" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "repository_prow_jobs" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -796,7 +874,7 @@ func (rq *RepositoryQuery) loadPrs(ctx context.Context, query *PullRequestsQuery
 	}
 	query.withFKs = true
 	query.Where(predicate.PullRequests(func(s *sql.Selector) {
-		s.Where(sql.InValues(repository.PrsColumn, fks...))
+		s.Where(sql.InValues(s.C(repository.PrsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -809,7 +887,7 @@ func (rq *RepositoryQuery) loadPrs(ctx context.Context, query *PullRequestsQuery
 		}
 		node, ok := nodeids[*fk]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "repository_prs" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected referenced foreign-key "repository_prs" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}
@@ -826,20 +904,12 @@ func (rq *RepositoryQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (rq *RepositoryQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   repository.Table,
-			Columns: repository.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
-				Column: repository.FieldID,
-			},
-		},
-		From:   rq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(repository.Table, repository.Columns, sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString))
+	_spec.From = rq.sql
 	if unique := rq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if rq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := rq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -919,7 +989,7 @@ func (rgb *RepositoryGroupBy) Aggregate(fns ...AggregateFunc) *RepositoryGroupBy
 
 // Scan applies the selector query and scans the result into the given value.
 func (rgb *RepositoryGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, rgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, rgb.build.ctx, ent.OpQueryGroupBy)
 	if err := rgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -967,7 +1037,7 @@ func (rs *RepositorySelect) Aggregate(fns ...AggregateFunc) *RepositorySelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (rs *RepositorySelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, rs.ctx, "Select")
+	ctx = setContextOp(ctx, rs.ctx, ent.OpQuerySelect)
 	if err := rs.prepareQuery(ctx); err != nil {
 		return err
 	}

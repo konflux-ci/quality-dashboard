@@ -10,6 +10,7 @@ import (
 	coverageV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/codecov/v1alpha1"
 	repoV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
 	"github.com/konflux-ci/quality-dashboard/api/types"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
 	"github.com/konflux-ci/quality-dashboard/pkg/utils/httputils"
 	"go.uber.org/zap"
 )
@@ -109,6 +110,7 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 	if description == "" {
 		description = "Repository don't contain a description"
 	}
+
 	createdRepo, err := rp.Storage.CreateRepository(repoV1Alpha1.Repository{
 		ID:   fmt.Sprint(githubRepo.GetID()),
 		Name: githubRepo.GetName(),
@@ -123,6 +125,16 @@ func (rp *repositoryRouter) createRepositoryHandler(ctx context.Context, w http.
 			Message:    err.Error(),
 			StatusCode: http.StatusBadRequest,
 		})
+	}
+
+	for _, ociArtifact := range repository.Artifacts {
+		_, err = rp.Storage.CreateOCIArtifact(&db.OCI{
+			ArtifactURL: ociArtifact,
+		}, &createdRepo.ID)
+
+		if err != nil {
+			rp.Logger.Sugar().Errorf("failed to save oci artifact in database: %v", err)
+		}
 	}
 
 	coverage, covTrend, err := rp.CodeCov.GetCodeCovInfo(githubRepo.Owner.GetLogin(), githubRepo.GetName())

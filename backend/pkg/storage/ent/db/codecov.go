@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/codecov"
@@ -33,6 +34,7 @@ type CodeCov struct {
 	// The values are being populated by the CodeCovQuery when eager-loading is set.
 	Edges              CodeCovEdges `json:"edges"`
 	repository_codecov *string
+	selectValues       sql.SelectValues
 }
 
 // CodeCovEdges holds the relations/edges for other nodes in the graph.
@@ -47,12 +49,10 @@ type CodeCovEdges struct {
 // CodecovOrErr returns the Codecov value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e CodeCovEdges) CodecovOrErr() (*Repository, error) {
-	if e.loadedTypes[0] {
-		if e.Codecov == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: repository.Label}
-		}
+	if e.Codecov != nil {
 		return e.Codecov, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: repository.Label}
 	}
 	return nil, &NotLoadedError{edge: "codecov"}
 }
@@ -71,7 +71,7 @@ func (*CodeCov) scanValues(columns []string) ([]any, error) {
 		case codecov.ForeignKeys[0]: // repository_codecov
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type CodeCov", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -137,9 +137,17 @@ func (cc *CodeCov) assignValues(columns []string, values []any) error {
 				cc.repository_codecov = new(string)
 				*cc.repository_codecov = value.String
 			}
+		default:
+			cc.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the CodeCov.
+// This includes values selected through modifiers, order, etc.
+func (cc *CodeCov) Value(name string) (ent.Value, error) {
+	return cc.selectValues.Get(name)
 }
 
 // QueryCodecov queries the "codecov" edge of the CodeCov entity.
@@ -199,9 +207,3 @@ func (cc *CodeCov) String() string {
 
 // CodeCovs is a parsable slice of CodeCov.
 type CodeCovs []*CodeCov
-
-func (cc CodeCovs) config(cfg config) {
-	for _i := range cc {
-		cc[_i].config = cfg
-	}
-}

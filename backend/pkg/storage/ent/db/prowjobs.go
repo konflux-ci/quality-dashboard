@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/prowjobs"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
@@ -51,28 +52,38 @@ type ProwJobs struct {
 	// The values are being populated by the ProwJobsQuery when eager-loading is set.
 	Edges                ProwJobsEdges `json:"edges"`
 	repository_prow_jobs *string
+	selectValues         sql.SelectValues
 }
 
 // ProwJobsEdges holds the relations/edges for other nodes in the graph.
 type ProwJobsEdges struct {
 	// ProwJobs holds the value of the prow_jobs edge.
 	ProwJobs *Repository `json:"prow_jobs,omitempty"`
+	// TektonTasks holds the value of the tekton_tasks edge.
+	TektonTasks []*TektonTasks `json:"tekton_tasks,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // ProwJobsOrErr returns the ProwJobs value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e ProwJobsEdges) ProwJobsOrErr() (*Repository, error) {
-	if e.loadedTypes[0] {
-		if e.ProwJobs == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: repository.Label}
-		}
+	if e.ProwJobs != nil {
 		return e.ProwJobs, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: repository.Label}
 	}
 	return nil, &NotLoadedError{edge: "prow_jobs"}
+}
+
+// TektonTasksOrErr returns the TektonTasks value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProwJobsEdges) TektonTasksOrErr() ([]*TektonTasks, error) {
+	if e.loadedTypes[1] {
+		return e.TektonTasks, nil
+	}
+	return nil, &NotLoadedError{edge: "tekton_tasks"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -93,7 +104,7 @@ func (*ProwJobs) scanValues(columns []string) ([]any, error) {
 		case prowjobs.ForeignKeys[0]: // repository_prow_jobs
 			values[i] = new(sql.NullString)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type ProwJobs", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -217,14 +228,27 @@ func (pj *ProwJobs) assignValues(columns []string, values []any) error {
 				pj.repository_prow_jobs = new(string)
 				*pj.repository_prow_jobs = value.String
 			}
+		default:
+			pj.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
 }
 
+// Value returns the ent.Value that was dynamically selected and assigned to the ProwJobs.
+// This includes values selected through modifiers, order, etc.
+func (pj *ProwJobs) Value(name string) (ent.Value, error) {
+	return pj.selectValues.Get(name)
+}
+
 // QueryProwJobs queries the "prow_jobs" edge of the ProwJobs entity.
 func (pj *ProwJobs) QueryProwJobs() *RepositoryQuery {
 	return NewProwJobsClient(pj.config).QueryProwJobs(pj)
+}
+
+// QueryTektonTasks queries the "tekton_tasks" edge of the ProwJobs entity.
+func (pj *ProwJobs) QueryTektonTasks() *TektonTasksQuery {
+	return NewProwJobsClient(pj.config).QueryTektonTasks(pj)
 }
 
 // Update returns a builder for updating this ProwJobs.
@@ -314,9 +338,3 @@ func (pj *ProwJobs) String() string {
 
 // ProwJobsSlice is a parsable slice of ProwJobs.
 type ProwJobsSlice []*ProwJobs
-
-func (pj ProwJobsSlice) config(cfg config) {
-	for _i := range pj {
-		pj[_i].config = cfg
-	}
-}

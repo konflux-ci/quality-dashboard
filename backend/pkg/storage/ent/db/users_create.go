@@ -57,7 +57,7 @@ func (uc *UsersCreate) Mutation() *UsersMutation {
 // Save creates the Users in the database.
 func (uc *UsersCreate) Save(ctx context.Context) (*Users, error) {
 	uc.defaults()
-	return withHooks[*Users, UsersMutation](ctx, uc.sqlSave, uc.mutation, uc.hooks)
+	return withHooks(ctx, uc.sqlSave, uc.mutation, uc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -127,13 +127,7 @@ func (uc *UsersCreate) sqlSave(ctx context.Context) (*Users, error) {
 func (uc *UsersCreate) createSpec() (*Users, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Users{config: uc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: users.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: users.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(users.Table, sqlgraph.NewFieldSpec(users.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = uc.conflict
 	if id, ok := uc.mutation.ID(); ok {
@@ -341,12 +335,16 @@ func (u *UsersUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // UsersCreateBulk is the builder for creating many Users entities in bulk.
 type UsersCreateBulk struct {
 	config
+	err      error
 	builders []*UsersCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the Users entities in the database.
 func (ucb *UsersCreateBulk) Save(ctx context.Context) ([]*Users, error) {
+	if ucb.err != nil {
+		return nil, ucb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(ucb.builders))
 	nodes := make([]*Users, len(ucb.builders))
 	mutators := make([]Mutator, len(ucb.builders))
@@ -363,8 +361,8 @@ func (ucb *UsersCreateBulk) Save(ctx context.Context) ([]*Users, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ucb.builders[i+1].mutation)
 				} else {
@@ -541,6 +539,9 @@ func (u *UsersUpsertBulk) UpdateConfig() *UsersUpsertBulk {
 
 // Exec executes the query.
 func (u *UsersUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the UsersCreateBulk instead", i)

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -19,7 +20,7 @@ import (
 type PullRequestsQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []pullrequests.OrderOption
 	inters     []Interceptor
 	predicates []predicate.PullRequests
 	withPrs    *RepositoryQuery
@@ -55,7 +56,7 @@ func (prq *PullRequestsQuery) Unique(unique bool) *PullRequestsQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (prq *PullRequestsQuery) Order(o ...OrderFunc) *PullRequestsQuery {
+func (prq *PullRequestsQuery) Order(o ...pullrequests.OrderOption) *PullRequestsQuery {
 	prq.order = append(prq.order, o...)
 	return prq
 }
@@ -85,7 +86,7 @@ func (prq *PullRequestsQuery) QueryPrs() *RepositoryQuery {
 // First returns the first PullRequests entity from the query.
 // Returns a *NotFoundError when no PullRequests was found.
 func (prq *PullRequestsQuery) First(ctx context.Context) (*PullRequests, error) {
-	nodes, err := prq.Limit(1).All(setContextOp(ctx, prq.ctx, "First"))
+	nodes, err := prq.Limit(1).All(setContextOp(ctx, prq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +109,7 @@ func (prq *PullRequestsQuery) FirstX(ctx context.Context) *PullRequests {
 // Returns a *NotFoundError when no PullRequests ID was found.
 func (prq *PullRequestsQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = prq.Limit(1).IDs(setContextOp(ctx, prq.ctx, "FirstID")); err != nil {
+	if ids, err = prq.Limit(1).IDs(setContextOp(ctx, prq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -131,7 +132,7 @@ func (prq *PullRequestsQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one PullRequests entity is found.
 // Returns a *NotFoundError when no PullRequests entities are found.
 func (prq *PullRequestsQuery) Only(ctx context.Context) (*PullRequests, error) {
-	nodes, err := prq.Limit(2).All(setContextOp(ctx, prq.ctx, "Only"))
+	nodes, err := prq.Limit(2).All(setContextOp(ctx, prq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +160,7 @@ func (prq *PullRequestsQuery) OnlyX(ctx context.Context) *PullRequests {
 // Returns a *NotFoundError when no entities are found.
 func (prq *PullRequestsQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = prq.Limit(2).IDs(setContextOp(ctx, prq.ctx, "OnlyID")); err != nil {
+	if ids, err = prq.Limit(2).IDs(setContextOp(ctx, prq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -184,7 +185,7 @@ func (prq *PullRequestsQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of PullRequestsSlice.
 func (prq *PullRequestsQuery) All(ctx context.Context) ([]*PullRequests, error) {
-	ctx = setContextOp(ctx, prq.ctx, "All")
+	ctx = setContextOp(ctx, prq.ctx, ent.OpQueryAll)
 	if err := prq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -202,10 +203,12 @@ func (prq *PullRequestsQuery) AllX(ctx context.Context) []*PullRequests {
 }
 
 // IDs executes the query and returns a list of PullRequests IDs.
-func (prq *PullRequestsQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	ctx = setContextOp(ctx, prq.ctx, "IDs")
-	if err := prq.Select(pullrequests.FieldID).Scan(ctx, &ids); err != nil {
+func (prq *PullRequestsQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if prq.ctx.Unique == nil && prq.path != nil {
+		prq.Unique(true)
+	}
+	ctx = setContextOp(ctx, prq.ctx, ent.OpQueryIDs)
+	if err = prq.Select(pullrequests.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -222,7 +225,7 @@ func (prq *PullRequestsQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (prq *PullRequestsQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, prq.ctx, "Count")
+	ctx = setContextOp(ctx, prq.ctx, ent.OpQueryCount)
 	if err := prq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -240,7 +243,7 @@ func (prq *PullRequestsQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (prq *PullRequestsQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, prq.ctx, "Exist")
+	ctx = setContextOp(ctx, prq.ctx, ent.OpQueryExist)
 	switch _, err := prq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -269,7 +272,7 @@ func (prq *PullRequestsQuery) Clone() *PullRequestsQuery {
 	return &PullRequestsQuery{
 		config:     prq.config,
 		ctx:        prq.ctx.Clone(),
-		order:      append([]OrderFunc{}, prq.order...),
+		order:      append([]pullrequests.OrderOption{}, prq.order...),
 		inters:     append([]Interceptor{}, prq.inters...),
 		predicates: append([]predicate.PullRequests{}, prq.predicates...),
 		withPrs:    prq.withPrs.Clone(),
@@ -449,20 +452,12 @@ func (prq *PullRequestsQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (prq *PullRequestsQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   pullrequests.Table,
-			Columns: pullrequests.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pullrequests.FieldID,
-			},
-		},
-		From:   prq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(pullrequests.Table, pullrequests.Columns, sqlgraph.NewFieldSpec(pullrequests.FieldID, field.TypeInt))
+	_spec.From = prq.sql
 	if unique := prq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if prq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := prq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -542,7 +537,7 @@ func (prgb *PullRequestsGroupBy) Aggregate(fns ...AggregateFunc) *PullRequestsGr
 
 // Scan applies the selector query and scans the result into the given value.
 func (prgb *PullRequestsGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, prgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, prgb.build.ctx, ent.OpQueryGroupBy)
 	if err := prgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -590,7 +585,7 @@ func (prs *PullRequestsSelect) Aggregate(fns ...AggregateFunc) *PullRequestsSele
 
 // Scan applies the selector query and scans the result into the given value.
 func (prs *PullRequestsSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, prs.ctx, "Select")
+	ctx = setContextOp(ctx, prs.ctx, ent.OpQuerySelect)
 	if err := prs.prepareQuery(ctx); err != nil {
 		return err
 	}

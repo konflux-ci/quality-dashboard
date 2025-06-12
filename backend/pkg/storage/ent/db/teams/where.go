@@ -278,11 +278,7 @@ func HasRepositories() predicate.Teams {
 // HasRepositoriesWith applies the HasEdge predicate on the "repositories" edge with a given conditions (other predicates).
 func HasRepositoriesWith(preds ...predicate.Repository) predicate.Teams {
 	return predicate.Teams(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(RepositoriesInverseTable, RepositoryFieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, RepositoriesTable, RepositoriesColumn),
-		)
+		step := newRepositoriesStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -305,11 +301,7 @@ func HasBugs() predicate.Teams {
 // HasBugsWith applies the HasEdge predicate on the "bugs" edge with a given conditions (other predicates).
 func HasBugsWith(preds ...predicate.Bugs) predicate.Teams {
 	return predicate.Teams(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(BugsInverseTable, BugsFieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, BugsTable, BugsColumn),
-		)
+		step := newBugsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -332,11 +324,7 @@ func HasFailures() predicate.Teams {
 // HasFailuresWith applies the HasEdge predicate on the "failures" edge with a given conditions (other predicates).
 func HasFailuresWith(preds ...predicate.Failure) predicate.Teams {
 	return predicate.Teams(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(FailuresInverseTable, FailureFieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, FailuresTable, FailuresColumn),
-		)
+		step := newFailuresStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -359,11 +347,7 @@ func HasConfiguration() predicate.Teams {
 // HasConfigurationWith applies the HasEdge predicate on the "configuration" edge with a given conditions (other predicates).
 func HasConfigurationWith(preds ...predicate.Configuration) predicate.Teams {
 	return predicate.Teams(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ConfigurationInverseTable, ConfigurationFieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, ConfigurationTable, ConfigurationColumn),
-		)
+		step := newConfigurationStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -374,32 +358,15 @@ func HasConfigurationWith(preds ...predicate.Configuration) predicate.Teams {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Teams) predicate.Teams {
-	return predicate.Teams(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Teams(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.Teams) predicate.Teams {
-	return predicate.Teams(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.Teams(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.Teams) predicate.Teams {
-	return predicate.Teams(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.Teams(sql.NotPredicates(p))
 }

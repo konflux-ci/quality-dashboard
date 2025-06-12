@@ -125,7 +125,7 @@ func (ccc *CodeCovCreate) Mutation() *CodeCovMutation {
 // Save creates the CodeCov in the database.
 func (ccc *CodeCovCreate) Save(ctx context.Context) (*CodeCov, error) {
 	ccc.defaults()
-	return withHooks[*CodeCov, CodeCovMutation](ctx, ccc.sqlSave, ccc.mutation, ccc.hooks)
+	return withHooks(ctx, ccc.sqlSave, ccc.mutation, ccc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -203,13 +203,7 @@ func (ccc *CodeCovCreate) sqlSave(ctx context.Context) (*CodeCov, error) {
 func (ccc *CodeCovCreate) createSpec() (*CodeCov, *sqlgraph.CreateSpec) {
 	var (
 		_node = &CodeCov{config: ccc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: codecov.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: codecov.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(codecov.Table, sqlgraph.NewFieldSpec(codecov.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = ccc.conflict
 	if id, ok := ccc.mutation.ID(); ok {
@@ -248,10 +242,7 @@ func (ccc *CodeCovCreate) createSpec() (*CodeCov, *sqlgraph.CreateSpec) {
 			Columns: []string{codecov.CodecovColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -635,12 +626,16 @@ func (u *CodeCovUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // CodeCovCreateBulk is the builder for creating many CodeCov entities in bulk.
 type CodeCovCreateBulk struct {
 	config
+	err      error
 	builders []*CodeCovCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the CodeCov entities in the database.
 func (cccb *CodeCovCreateBulk) Save(ctx context.Context) ([]*CodeCov, error) {
+	if cccb.err != nil {
+		return nil, cccb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(cccb.builders))
 	nodes := make([]*CodeCov, len(cccb.builders))
 	mutators := make([]Mutator, len(cccb.builders))
@@ -657,8 +652,8 @@ func (cccb *CodeCovCreateBulk) Save(ctx context.Context) ([]*CodeCov, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, cccb.builders[i+1].mutation)
 				} else {
@@ -933,6 +928,9 @@ func (u *CodeCovUpsertBulk) ClearCoverageTrend() *CodeCovUpsertBulk {
 
 // Exec executes the query.
 func (u *CodeCovUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the CodeCovCreateBulk instead", i)

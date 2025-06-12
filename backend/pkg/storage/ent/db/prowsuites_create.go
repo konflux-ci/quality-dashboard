@@ -134,7 +134,7 @@ func (psc *ProwSuitesCreate) Mutation() *ProwSuitesMutation {
 // Save creates the ProwSuites in the database.
 func (psc *ProwSuitesCreate) Save(ctx context.Context) (*ProwSuites, error) {
 	psc.defaults()
-	return withHooks[*ProwSuites, ProwSuitesMutation](ctx, psc.sqlSave, psc.mutation, psc.hooks)
+	return withHooks(ctx, psc.sqlSave, psc.mutation, psc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -214,13 +214,7 @@ func (psc *ProwSuitesCreate) sqlSave(ctx context.Context) (*ProwSuites, error) {
 func (psc *ProwSuitesCreate) createSpec() (*ProwSuites, *sqlgraph.CreateSpec) {
 	var (
 		_node = &ProwSuites{config: psc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: prowsuites.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: prowsuites.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(prowsuites.Table, sqlgraph.NewFieldSpec(prowsuites.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = psc.conflict
 	if value, ok := psc.mutation.JobID(); ok {
@@ -271,10 +265,7 @@ func (psc *ProwSuitesCreate) createSpec() (*ProwSuites, *sqlgraph.CreateSpec) {
 			Columns: []string{prowsuites.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -723,12 +714,16 @@ func (u *ProwSuitesUpsertOne) IDX(ctx context.Context) int {
 // ProwSuitesCreateBulk is the builder for creating many ProwSuites entities in bulk.
 type ProwSuitesCreateBulk struct {
 	config
+	err      error
 	builders []*ProwSuitesCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the ProwSuites entities in the database.
 func (pscb *ProwSuitesCreateBulk) Save(ctx context.Context) ([]*ProwSuites, error) {
+	if pscb.err != nil {
+		return nil, pscb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(pscb.builders))
 	nodes := make([]*ProwSuites, len(pscb.builders))
 	mutators := make([]Mutator, len(pscb.builders))
@@ -745,8 +740,8 @@ func (pscb *ProwSuitesCreateBulk) Save(ctx context.Context) ([]*ProwSuites, erro
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, pscb.builders[i+1].mutation)
 				} else {
@@ -1057,6 +1052,9 @@ func (u *ProwSuitesUpsertBulk) ClearCreatedAt() *ProwSuitesUpsertBulk {
 
 // Exec executes the query.
 func (u *ProwSuitesUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the ProwSuitesCreateBulk instead", i)

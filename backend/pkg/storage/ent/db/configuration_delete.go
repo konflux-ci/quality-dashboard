@@ -27,7 +27,7 @@ func (cd *ConfigurationDelete) Where(ps ...predicate.Configuration) *Configurati
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (cd *ConfigurationDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, ConfigurationMutation](ctx, cd.sqlExec, cd.mutation, cd.hooks)
+	return withHooks(ctx, cd.sqlExec, cd.mutation, cd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (cd *ConfigurationDelete) ExecX(ctx context.Context) int {
 }
 
 func (cd *ConfigurationDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: configuration.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: configuration.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(configuration.Table, sqlgraph.NewFieldSpec(configuration.FieldID, field.TypeUUID))
 	if ps := cd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

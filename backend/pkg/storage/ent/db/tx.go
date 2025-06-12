@@ -20,6 +20,8 @@ type Tx struct {
 	Configuration *ConfigurationClient
 	// Failure is the client for interacting with the Failure builders.
 	Failure *FailureClient
+	// OCI is the client for interacting with the OCI builders.
+	OCI *OCIClient
 	// ProwJobs is the client for interacting with the ProwJobs builders.
 	ProwJobs *ProwJobsClient
 	// ProwSuites is the client for interacting with the ProwSuites builders.
@@ -30,6 +32,8 @@ type Tx struct {
 	Repository *RepositoryClient
 	// Teams is the client for interacting with the Teams builders.
 	Teams *TeamsClient
+	// TektonTasks is the client for interacting with the TektonTasks builders.
+	TektonTasks *TektonTasksClient
 	// Users is the client for interacting with the Users builders.
 	Users *UsersClient
 	// Workflows is the client for interacting with the Workflows builders.
@@ -169,11 +173,13 @@ func (tx *Tx) init() {
 	tx.CodeCov = NewCodeCovClient(tx.config)
 	tx.Configuration = NewConfigurationClient(tx.config)
 	tx.Failure = NewFailureClient(tx.config)
+	tx.OCI = NewOCIClient(tx.config)
 	tx.ProwJobs = NewProwJobsClient(tx.config)
 	tx.ProwSuites = NewProwSuitesClient(tx.config)
 	tx.PullRequests = NewPullRequestsClient(tx.config)
 	tx.Repository = NewRepositoryClient(tx.config)
 	tx.Teams = NewTeamsClient(tx.config)
+	tx.TektonTasks = NewTektonTasksClient(tx.config)
 	tx.Users = NewUsersClient(tx.config)
 	tx.Workflows = NewWorkflowsClient(tx.config)
 }

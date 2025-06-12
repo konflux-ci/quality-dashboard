@@ -166,7 +166,7 @@ func GetPostgresConnectionDetails() Postgres {
 			Port:     util.GetPortEnv(PostgresEntPortEnv, 5432),
 		},
 		SSL: SSL{
-			Mode: "disable", // Postgres container doesn't support SSL.
+			Mode: "require", // Postgres container doesn't support SSL.
 		},
 	}
 }

@@ -3,6 +3,8 @@
 package bugs
 
 import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -125,3 +127,130 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// OrderOption defines the ordering options for the Bugs queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByJiraKey orders the results by the jira_key field.
+func ByJiraKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJiraKey, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByResolvedAt orders the results by the resolved_at field.
+func ByResolvedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResolvedAt, opts...).ToFunc()
+}
+
+// ByResolved orders the results by the resolved field.
+func ByResolved(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResolved, opts...).ToFunc()
+}
+
+// ByPriority orders the results by the priority field.
+func ByPriority(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPriority, opts...).ToFunc()
+}
+
+// ByResolutionTime orders the results by the resolution_time field.
+func ByResolutionTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResolutionTime, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// BySummary orders the results by the summary field.
+func BySummary(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSummary, opts...).ToFunc()
+}
+
+// ByURL orders the results by the url field.
+func ByURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldURL, opts...).ToFunc()
+}
+
+// ByProjectKey orders the results by the project_key field.
+func ByProjectKey(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProjectKey, opts...).ToFunc()
+}
+
+// ByAssignmentTime orders the results by the assignment_time field.
+func ByAssignmentTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAssignmentTime, opts...).ToFunc()
+}
+
+// ByPrioritizationTime orders the results by the prioritization_time field.
+func ByPrioritizationTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPrioritizationTime, opts...).ToFunc()
+}
+
+// ByDaysWithoutAssignee orders the results by the days_without_assignee field.
+func ByDaysWithoutAssignee(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDaysWithoutAssignee, opts...).ToFunc()
+}
+
+// ByDaysWithoutPriority orders the results by the days_without_priority field.
+func ByDaysWithoutPriority(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDaysWithoutPriority, opts...).ToFunc()
+}
+
+// ByDaysWithoutResolution orders the results by the days_without_resolution field.
+func ByDaysWithoutResolution(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDaysWithoutResolution, opts...).ToFunc()
+}
+
+// ByDaysWithoutComponent orders the results by the days_without_component field.
+func ByDaysWithoutComponent(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDaysWithoutComponent, opts...).ToFunc()
+}
+
+// ByLabels orders the results by the labels field.
+func ByLabels(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLabels, opts...).ToFunc()
+}
+
+// ByComponent orders the results by the component field.
+func ByComponent(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldComponent, opts...).ToFunc()
+}
+
+// ByAssignee orders the results by the assignee field.
+func ByAssignee(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAssignee, opts...).ToFunc()
+}
+
+// ByAge orders the results by the age field.
+func ByAge(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAge, opts...).ToFunc()
+}
+
+// ByBugsField orders the results by bugs field.
+func ByBugsField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newBugsStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newBugsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(BugsInverseTable, TeamsFieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, BugsTable, BugsColumn),
+	)
+}

@@ -49,9 +49,25 @@ func (wu *WorkflowsUpdate) SetWorkflowName(s string) *WorkflowsUpdate {
 	return wu
 }
 
+// SetNillableWorkflowName sets the "workflow_name" field if the given value is not nil.
+func (wu *WorkflowsUpdate) SetNillableWorkflowName(s *string) *WorkflowsUpdate {
+	if s != nil {
+		wu.SetWorkflowName(*s)
+	}
+	return wu
+}
+
 // SetBadgeURL sets the "badge_url" field.
 func (wu *WorkflowsUpdate) SetBadgeURL(s string) *WorkflowsUpdate {
 	wu.mutation.SetBadgeURL(s)
+	return wu
+}
+
+// SetNillableBadgeURL sets the "badge_url" field if the given value is not nil.
+func (wu *WorkflowsUpdate) SetNillableBadgeURL(s *string) *WorkflowsUpdate {
+	if s != nil {
+		wu.SetBadgeURL(*s)
+	}
 	return wu
 }
 
@@ -61,15 +77,39 @@ func (wu *WorkflowsUpdate) SetHTMLURL(s string) *WorkflowsUpdate {
 	return wu
 }
 
+// SetNillableHTMLURL sets the "html_url" field if the given value is not nil.
+func (wu *WorkflowsUpdate) SetNillableHTMLURL(s *string) *WorkflowsUpdate {
+	if s != nil {
+		wu.SetHTMLURL(*s)
+	}
+	return wu
+}
+
 // SetJobURL sets the "job_url" field.
 func (wu *WorkflowsUpdate) SetJobURL(s string) *WorkflowsUpdate {
 	wu.mutation.SetJobURL(s)
 	return wu
 }
 
+// SetNillableJobURL sets the "job_url" field if the given value is not nil.
+func (wu *WorkflowsUpdate) SetNillableJobURL(s *string) *WorkflowsUpdate {
+	if s != nil {
+		wu.SetJobURL(*s)
+	}
+	return wu
+}
+
 // SetState sets the "state" field.
 func (wu *WorkflowsUpdate) SetState(s string) *WorkflowsUpdate {
 	wu.mutation.SetState(s)
+	return wu
+}
+
+// SetNillableState sets the "state" field if the given value is not nil.
+func (wu *WorkflowsUpdate) SetNillableState(s *string) *WorkflowsUpdate {
+	if s != nil {
+		wu.SetState(*s)
+	}
 	return wu
 }
 
@@ -105,7 +145,7 @@ func (wu *WorkflowsUpdate) ClearWorkflows() *WorkflowsUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (wu *WorkflowsUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, WorkflowsMutation](ctx, wu.sqlSave, wu.mutation, wu.hooks)
+	return withHooks(ctx, wu.sqlSave, wu.mutation, wu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -144,16 +184,7 @@ func (wu *WorkflowsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := wu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   workflows.Table,
-			Columns: workflows.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: workflows.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(workflows.Table, workflows.Columns, sqlgraph.NewFieldSpec(workflows.FieldID, field.TypeInt))
 	if ps := wu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -187,10 +218,7 @@ func (wu *WorkflowsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{workflows.WorkflowsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -203,10 +231,7 @@ func (wu *WorkflowsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{workflows.WorkflowsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -254,9 +279,25 @@ func (wuo *WorkflowsUpdateOne) SetWorkflowName(s string) *WorkflowsUpdateOne {
 	return wuo
 }
 
+// SetNillableWorkflowName sets the "workflow_name" field if the given value is not nil.
+func (wuo *WorkflowsUpdateOne) SetNillableWorkflowName(s *string) *WorkflowsUpdateOne {
+	if s != nil {
+		wuo.SetWorkflowName(*s)
+	}
+	return wuo
+}
+
 // SetBadgeURL sets the "badge_url" field.
 func (wuo *WorkflowsUpdateOne) SetBadgeURL(s string) *WorkflowsUpdateOne {
 	wuo.mutation.SetBadgeURL(s)
+	return wuo
+}
+
+// SetNillableBadgeURL sets the "badge_url" field if the given value is not nil.
+func (wuo *WorkflowsUpdateOne) SetNillableBadgeURL(s *string) *WorkflowsUpdateOne {
+	if s != nil {
+		wuo.SetBadgeURL(*s)
+	}
 	return wuo
 }
 
@@ -266,15 +307,39 @@ func (wuo *WorkflowsUpdateOne) SetHTMLURL(s string) *WorkflowsUpdateOne {
 	return wuo
 }
 
+// SetNillableHTMLURL sets the "html_url" field if the given value is not nil.
+func (wuo *WorkflowsUpdateOne) SetNillableHTMLURL(s *string) *WorkflowsUpdateOne {
+	if s != nil {
+		wuo.SetHTMLURL(*s)
+	}
+	return wuo
+}
+
 // SetJobURL sets the "job_url" field.
 func (wuo *WorkflowsUpdateOne) SetJobURL(s string) *WorkflowsUpdateOne {
 	wuo.mutation.SetJobURL(s)
 	return wuo
 }
 
+// SetNillableJobURL sets the "job_url" field if the given value is not nil.
+func (wuo *WorkflowsUpdateOne) SetNillableJobURL(s *string) *WorkflowsUpdateOne {
+	if s != nil {
+		wuo.SetJobURL(*s)
+	}
+	return wuo
+}
+
 // SetState sets the "state" field.
 func (wuo *WorkflowsUpdateOne) SetState(s string) *WorkflowsUpdateOne {
 	wuo.mutation.SetState(s)
+	return wuo
+}
+
+// SetNillableState sets the "state" field if the given value is not nil.
+func (wuo *WorkflowsUpdateOne) SetNillableState(s *string) *WorkflowsUpdateOne {
+	if s != nil {
+		wuo.SetState(*s)
+	}
 	return wuo
 }
 
@@ -308,6 +373,12 @@ func (wuo *WorkflowsUpdateOne) ClearWorkflows() *WorkflowsUpdateOne {
 	return wuo
 }
 
+// Where appends a list predicates to the WorkflowsUpdate builder.
+func (wuo *WorkflowsUpdateOne) Where(ps ...predicate.Workflows) *WorkflowsUpdateOne {
+	wuo.mutation.Where(ps...)
+	return wuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (wuo *WorkflowsUpdateOne) Select(field string, fields ...string) *WorkflowsUpdateOne {
@@ -317,7 +388,7 @@ func (wuo *WorkflowsUpdateOne) Select(field string, fields ...string) *Workflows
 
 // Save executes the query and returns the updated Workflows entity.
 func (wuo *WorkflowsUpdateOne) Save(ctx context.Context) (*Workflows, error) {
-	return withHooks[*Workflows, WorkflowsMutation](ctx, wuo.sqlSave, wuo.mutation, wuo.hooks)
+	return withHooks(ctx, wuo.sqlSave, wuo.mutation, wuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -356,16 +427,7 @@ func (wuo *WorkflowsUpdateOne) sqlSave(ctx context.Context) (_node *Workflows, e
 	if err := wuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   workflows.Table,
-			Columns: workflows.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: workflows.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(workflows.Table, workflows.Columns, sqlgraph.NewFieldSpec(workflows.FieldID, field.TypeInt))
 	id, ok := wuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`db: missing "Workflows.id" for update`)}
@@ -416,10 +478,7 @@ func (wuo *WorkflowsUpdateOne) sqlSave(ctx context.Context) (_node *Workflows, e
 			Columns: []string{workflows.WorkflowsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -432,10 +491,7 @@ func (wuo *WorkflowsUpdateOne) sqlSave(ctx context.Context) (_node *Workflows, e
 			Columns: []string{workflows.WorkflowsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

@@ -835,11 +835,7 @@ func HasPrs() predicate.PullRequests {
 // HasPrsWith applies the HasEdge predicate on the "prs" edge with a given conditions (other predicates).
 func HasPrsWith(preds ...predicate.Repository) predicate.PullRequests {
 	return predicate.PullRequests(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(PrsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, PrsTable, PrsColumn),
-		)
+		step := newPrsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -850,32 +846,15 @@ func HasPrsWith(preds ...predicate.Repository) predicate.PullRequests {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.PullRequests) predicate.PullRequests {
-	return predicate.PullRequests(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.PullRequests(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.PullRequests) predicate.PullRequests {
-	return predicate.PullRequests(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.PullRequests(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.PullRequests) predicate.PullRequests {
-	return predicate.PullRequests(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.PullRequests(sql.NotPredicates(p))
 }

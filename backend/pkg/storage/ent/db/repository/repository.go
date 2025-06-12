@@ -2,6 +2,11 @@
 
 package repository
 
+import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+)
+
 const (
 	// Label holds the string label denoting the repository type in the database.
 	Label = "repository"
@@ -21,6 +26,8 @@ const (
 	EdgeWorkflows = "workflows"
 	// EdgeCodecov holds the string denoting the codecov edge name in mutations.
 	EdgeCodecov = "codecov"
+	// EdgeOci holds the string denoting the oci edge name in mutations.
+	EdgeOci = "oci"
 	// EdgeProwSuites holds the string denoting the prow_suites edge name in mutations.
 	EdgeProwSuites = "prow_suites"
 	// EdgeProwJobs holds the string denoting the prow_jobs edge name in mutations.
@@ -52,6 +59,13 @@ const (
 	CodecovInverseTable = "code_covs"
 	// CodecovColumn is the table column denoting the codecov relation/edge.
 	CodecovColumn = "repository_codecov"
+	// OciTable is the table that holds the oci relation/edge.
+	OciTable = "oc_is"
+	// OciInverseTable is the table name for the OCI entity.
+	// It exists in this package in order to avoid circular dependency with the "oci" package.
+	OciInverseTable = "oc_is"
+	// OciColumn is the table column denoting the oci relation/edge.
+	OciColumn = "repository_oci"
 	// ProwSuitesTable is the table that holds the prow_suites relation/edge.
 	ProwSuitesTable = "prow_suites"
 	// ProwSuitesInverseTable is the table name for the ProwSuites entity.
@@ -117,3 +131,171 @@ var (
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(string) error
 )
+
+// OrderOption defines the ordering options for the Repository queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByRepositoryName orders the results by the repository_name field.
+func ByRepositoryName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRepositoryName, opts...).ToFunc()
+}
+
+// ByGitOrganization orders the results by the git_organization field.
+func ByGitOrganization(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGitOrganization, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByGitURL orders the results by the git_url field.
+func ByGitURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGitURL, opts...).ToFunc()
+}
+
+// ByRepositoriesField orders the results by repositories field.
+func ByRepositoriesField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newRepositoriesStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByWorkflowsCount orders the results by workflows count.
+func ByWorkflowsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newWorkflowsStep(), opts...)
+	}
+}
+
+// ByWorkflows orders the results by workflows terms.
+func ByWorkflows(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWorkflowsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByCodecovCount orders the results by codecov count.
+func ByCodecovCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newCodecovStep(), opts...)
+	}
+}
+
+// ByCodecov orders the results by codecov terms.
+func ByCodecov(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCodecovStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByOciCount orders the results by oci count.
+func ByOciCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newOciStep(), opts...)
+	}
+}
+
+// ByOci orders the results by oci terms.
+func ByOci(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newOciStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByProwSuitesCount orders the results by prow_suites count.
+func ByProwSuitesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newProwSuitesStep(), opts...)
+	}
+}
+
+// ByProwSuites orders the results by prow_suites terms.
+func ByProwSuites(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProwSuitesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByProwJobsCount orders the results by prow_jobs count.
+func ByProwJobsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newProwJobsStep(), opts...)
+	}
+}
+
+// ByProwJobs orders the results by prow_jobs terms.
+func ByProwJobs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProwJobsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByPrsCount orders the results by prs count.
+func ByPrsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newPrsStep(), opts...)
+	}
+}
+
+// ByPrs orders the results by prs terms.
+func ByPrs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPrsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newRepositoriesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(RepositoriesInverseTable, TeamsFieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, RepositoriesTable, RepositoriesColumn),
+	)
+}
+func newWorkflowsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WorkflowsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, WorkflowsTable, WorkflowsColumn),
+	)
+}
+func newCodecovStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CodecovInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, CodecovTable, CodecovColumn),
+	)
+}
+func newOciStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(OciInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, OciTable, OciColumn),
+	)
+}
+func newProwSuitesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProwSuitesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ProwSuitesTable, ProwSuitesColumn),
+	)
+}
+func newProwJobsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProwJobsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ProwJobsTable, ProwJobsColumn),
+	)
+}
+func newPrsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PrsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, PrsTable, PrsColumn),
+	)
+}

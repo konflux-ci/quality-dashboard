@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,7 +21,7 @@ import (
 type BugsQuery struct {
 	config
 	ctx        *QueryContext
-	order      []OrderFunc
+	order      []bugs.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Bugs
 	withBugs   *TeamsQuery
@@ -56,7 +57,7 @@ func (bq *BugsQuery) Unique(unique bool) *BugsQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (bq *BugsQuery) Order(o ...OrderFunc) *BugsQuery {
+func (bq *BugsQuery) Order(o ...bugs.OrderOption) *BugsQuery {
 	bq.order = append(bq.order, o...)
 	return bq
 }
@@ -86,7 +87,7 @@ func (bq *BugsQuery) QueryBugs() *TeamsQuery {
 // First returns the first Bugs entity from the query.
 // Returns a *NotFoundError when no Bugs was found.
 func (bq *BugsQuery) First(ctx context.Context) (*Bugs, error) {
-	nodes, err := bq.Limit(1).All(setContextOp(ctx, bq.ctx, "First"))
+	nodes, err := bq.Limit(1).All(setContextOp(ctx, bq.ctx, ent.OpQueryFirst))
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +110,7 @@ func (bq *BugsQuery) FirstX(ctx context.Context) *Bugs {
 // Returns a *NotFoundError when no Bugs ID was found.
 func (bq *BugsQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = bq.Limit(1).IDs(setContextOp(ctx, bq.ctx, "FirstID")); err != nil {
+	if ids, err = bq.Limit(1).IDs(setContextOp(ctx, bq.ctx, ent.OpQueryFirstID)); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -132,7 +133,7 @@ func (bq *BugsQuery) FirstIDX(ctx context.Context) uuid.UUID {
 // Returns a *NotSingularError when more than one Bugs entity is found.
 // Returns a *NotFoundError when no Bugs entities are found.
 func (bq *BugsQuery) Only(ctx context.Context) (*Bugs, error) {
-	nodes, err := bq.Limit(2).All(setContextOp(ctx, bq.ctx, "Only"))
+	nodes, err := bq.Limit(2).All(setContextOp(ctx, bq.ctx, ent.OpQueryOnly))
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +161,7 @@ func (bq *BugsQuery) OnlyX(ctx context.Context) *Bugs {
 // Returns a *NotFoundError when no entities are found.
 func (bq *BugsQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
 	var ids []uuid.UUID
-	if ids, err = bq.Limit(2).IDs(setContextOp(ctx, bq.ctx, "OnlyID")); err != nil {
+	if ids, err = bq.Limit(2).IDs(setContextOp(ctx, bq.ctx, ent.OpQueryOnlyID)); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -185,7 +186,7 @@ func (bq *BugsQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 
 // All executes the query and returns a list of BugsSlice.
 func (bq *BugsQuery) All(ctx context.Context) ([]*Bugs, error) {
-	ctx = setContextOp(ctx, bq.ctx, "All")
+	ctx = setContextOp(ctx, bq.ctx, ent.OpQueryAll)
 	if err := bq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -203,10 +204,12 @@ func (bq *BugsQuery) AllX(ctx context.Context) []*Bugs {
 }
 
 // IDs executes the query and returns a list of Bugs IDs.
-func (bq *BugsQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	var ids []uuid.UUID
-	ctx = setContextOp(ctx, bq.ctx, "IDs")
-	if err := bq.Select(bugs.FieldID).Scan(ctx, &ids); err != nil {
+func (bq *BugsQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error) {
+	if bq.ctx.Unique == nil && bq.path != nil {
+		bq.Unique(true)
+	}
+	ctx = setContextOp(ctx, bq.ctx, ent.OpQueryIDs)
+	if err = bq.Select(bugs.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -223,7 +226,7 @@ func (bq *BugsQuery) IDsX(ctx context.Context) []uuid.UUID {
 
 // Count returns the count of the given query.
 func (bq *BugsQuery) Count(ctx context.Context) (int, error) {
-	ctx = setContextOp(ctx, bq.ctx, "Count")
+	ctx = setContextOp(ctx, bq.ctx, ent.OpQueryCount)
 	if err := bq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -241,7 +244,7 @@ func (bq *BugsQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (bq *BugsQuery) Exist(ctx context.Context) (bool, error) {
-	ctx = setContextOp(ctx, bq.ctx, "Exist")
+	ctx = setContextOp(ctx, bq.ctx, ent.OpQueryExist)
 	switch _, err := bq.FirstID(ctx); {
 	case IsNotFound(err):
 		return false, nil
@@ -270,7 +273,7 @@ func (bq *BugsQuery) Clone() *BugsQuery {
 	return &BugsQuery{
 		config:     bq.config,
 		ctx:        bq.ctx.Clone(),
-		order:      append([]OrderFunc{}, bq.order...),
+		order:      append([]bugs.OrderOption{}, bq.order...),
 		inters:     append([]Interceptor{}, bq.inters...),
 		predicates: append([]predicate.Bugs{}, bq.predicates...),
 		withBugs:   bq.withBugs.Clone(),
@@ -450,20 +453,12 @@ func (bq *BugsQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (bq *BugsQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   bugs.Table,
-			Columns: bugs.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: bugs.FieldID,
-			},
-		},
-		From:   bq.sql,
-		Unique: true,
-	}
+	_spec := sqlgraph.NewQuerySpec(bugs.Table, bugs.Columns, sqlgraph.NewFieldSpec(bugs.FieldID, field.TypeUUID))
+	_spec.From = bq.sql
 	if unique := bq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if bq.path != nil {
+		_spec.Unique = true
 	}
 	if fields := bq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
@@ -543,7 +538,7 @@ func (bgb *BugsGroupBy) Aggregate(fns ...AggregateFunc) *BugsGroupBy {
 
 // Scan applies the selector query and scans the result into the given value.
 func (bgb *BugsGroupBy) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, bgb.build.ctx, "GroupBy")
+	ctx = setContextOp(ctx, bgb.build.ctx, ent.OpQueryGroupBy)
 	if err := bgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
@@ -591,7 +586,7 @@ func (bs *BugsSelect) Aggregate(fns ...AggregateFunc) *BugsSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (bs *BugsSelect) Scan(ctx context.Context, v any) error {
-	ctx = setContextOp(ctx, bs.ctx, "Select")
+	ctx = setContextOp(ctx, bs.ctx, ent.OpQuerySelect)
 	if err := bs.prepareQuery(ctx); err != nil {
 		return err
 	}

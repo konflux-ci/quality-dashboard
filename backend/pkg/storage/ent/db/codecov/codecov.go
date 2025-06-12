@@ -3,6 +3,8 @@
 package codecov
 
 import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -74,3 +76,55 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// OrderOption defines the ordering options for the CodeCov queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByRepositoryName orders the results by the repository_name field.
+func ByRepositoryName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRepositoryName, opts...).ToFunc()
+}
+
+// ByGitOrganization orders the results by the git_organization field.
+func ByGitOrganization(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGitOrganization, opts...).ToFunc()
+}
+
+// ByCoveragePercentage orders the results by the coverage_percentage field.
+func ByCoveragePercentage(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCoveragePercentage, opts...).ToFunc()
+}
+
+// ByAverageRetests orders the results by the average_retests field.
+func ByAverageRetests(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAverageRetests, opts...).ToFunc()
+}
+
+// ByAverageRetestsToMerge orders the results by the average_retests_to_merge field.
+func ByAverageRetestsToMerge(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAverageRetestsToMerge, opts...).ToFunc()
+}
+
+// ByCoverageTrend orders the results by the coverage_trend field.
+func ByCoverageTrend(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCoverageTrend, opts...).ToFunc()
+}
+
+// ByCodecovField orders the results by codecov field.
+func ByCodecovField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newCodecovStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newCodecovStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(CodecovInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, CodecovTable, CodecovColumn),
+	)
+}

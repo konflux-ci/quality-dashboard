@@ -23,6 +23,10 @@ spec:
         app.kubernetes.io/name: quality-dashboard
         component: quality-backend
     spec:
+      # A volumes section is added here to define the emptyDir.
+      volumes:
+        - name: oci-storage
+          emptyDir: {}
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       containers:
@@ -33,6 +37,9 @@ spec:
             requests:
               cpu: 500m
               memory: 4Gi
+          volumeMounts:
+            - mountPath: /tmp
+              name: oci-storage
           name: backend
           command: ["/root/server-runtime"]
           env:

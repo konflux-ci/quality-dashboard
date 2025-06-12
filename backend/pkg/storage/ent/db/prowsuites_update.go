@@ -35,9 +35,25 @@ func (psu *ProwSuitesUpdate) SetJobID(s string) *ProwSuitesUpdate {
 	return psu
 }
 
+// SetNillableJobID sets the "job_id" field if the given value is not nil.
+func (psu *ProwSuitesUpdate) SetNillableJobID(s *string) *ProwSuitesUpdate {
+	if s != nil {
+		psu.SetJobID(*s)
+	}
+	return psu
+}
+
 // SetJobURL sets the "job_url" field.
 func (psu *ProwSuitesUpdate) SetJobURL(s string) *ProwSuitesUpdate {
 	psu.mutation.SetJobURL(s)
+	return psu
+}
+
+// SetNillableJobURL sets the "job_url" field if the given value is not nil.
+func (psu *ProwSuitesUpdate) SetNillableJobURL(s *string) *ProwSuitesUpdate {
+	if s != nil {
+		psu.SetJobURL(*s)
+	}
 	return psu
 }
 
@@ -47,9 +63,25 @@ func (psu *ProwSuitesUpdate) SetJobName(s string) *ProwSuitesUpdate {
 	return psu
 }
 
+// SetNillableJobName sets the "job_name" field if the given value is not nil.
+func (psu *ProwSuitesUpdate) SetNillableJobName(s *string) *ProwSuitesUpdate {
+	if s != nil {
+		psu.SetJobName(*s)
+	}
+	return psu
+}
+
 // SetSuiteName sets the "suite_name" field.
 func (psu *ProwSuitesUpdate) SetSuiteName(s string) *ProwSuitesUpdate {
 	psu.mutation.SetSuiteName(s)
+	return psu
+}
+
+// SetNillableSuiteName sets the "suite_name" field if the given value is not nil.
+func (psu *ProwSuitesUpdate) SetNillableSuiteName(s *string) *ProwSuitesUpdate {
+	if s != nil {
+		psu.SetSuiteName(*s)
+	}
 	return psu
 }
 
@@ -59,9 +91,25 @@ func (psu *ProwSuitesUpdate) SetName(s string) *ProwSuitesUpdate {
 	return psu
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (psu *ProwSuitesUpdate) SetNillableName(s *string) *ProwSuitesUpdate {
+	if s != nil {
+		psu.SetName(*s)
+	}
+	return psu
+}
+
 // SetStatus sets the "status" field.
 func (psu *ProwSuitesUpdate) SetStatus(s string) *ProwSuitesUpdate {
 	psu.mutation.SetStatus(s)
+	return psu
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (psu *ProwSuitesUpdate) SetNillableStatus(s *string) *ProwSuitesUpdate {
+	if s != nil {
+		psu.SetStatus(*s)
+	}
 	return psu
 }
 
@@ -109,6 +157,14 @@ func (psu *ProwSuitesUpdate) ClearExternalServicesImpact() *ProwSuitesUpdate {
 func (psu *ProwSuitesUpdate) SetTime(f float64) *ProwSuitesUpdate {
 	psu.mutation.ResetTime()
 	psu.mutation.SetTime(f)
+	return psu
+}
+
+// SetNillableTime sets the "time" field if the given value is not nil.
+func (psu *ProwSuitesUpdate) SetNillableTime(f *float64) *ProwSuitesUpdate {
+	if f != nil {
+		psu.SetTime(*f)
+	}
 	return psu
 }
 
@@ -170,7 +226,7 @@ func (psu *ProwSuitesUpdate) ClearProwSuites() *ProwSuitesUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (psu *ProwSuitesUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, ProwSuitesMutation](ctx, psu.sqlSave, psu.mutation, psu.hooks)
+	return withHooks(ctx, psu.sqlSave, psu.mutation, psu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -196,16 +252,7 @@ func (psu *ProwSuitesUpdate) ExecX(ctx context.Context) {
 }
 
 func (psu *ProwSuitesUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   prowsuites.Table,
-			Columns: prowsuites.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: prowsuites.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(prowsuites.Table, prowsuites.Columns, sqlgraph.NewFieldSpec(prowsuites.FieldID, field.TypeInt))
 	if ps := psu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -263,10 +310,7 @@ func (psu *ProwSuitesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{prowsuites.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -279,10 +323,7 @@ func (psu *ProwSuitesUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{prowsuites.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -316,9 +357,25 @@ func (psuo *ProwSuitesUpdateOne) SetJobID(s string) *ProwSuitesUpdateOne {
 	return psuo
 }
 
+// SetNillableJobID sets the "job_id" field if the given value is not nil.
+func (psuo *ProwSuitesUpdateOne) SetNillableJobID(s *string) *ProwSuitesUpdateOne {
+	if s != nil {
+		psuo.SetJobID(*s)
+	}
+	return psuo
+}
+
 // SetJobURL sets the "job_url" field.
 func (psuo *ProwSuitesUpdateOne) SetJobURL(s string) *ProwSuitesUpdateOne {
 	psuo.mutation.SetJobURL(s)
+	return psuo
+}
+
+// SetNillableJobURL sets the "job_url" field if the given value is not nil.
+func (psuo *ProwSuitesUpdateOne) SetNillableJobURL(s *string) *ProwSuitesUpdateOne {
+	if s != nil {
+		psuo.SetJobURL(*s)
+	}
 	return psuo
 }
 
@@ -328,9 +385,25 @@ func (psuo *ProwSuitesUpdateOne) SetJobName(s string) *ProwSuitesUpdateOne {
 	return psuo
 }
 
+// SetNillableJobName sets the "job_name" field if the given value is not nil.
+func (psuo *ProwSuitesUpdateOne) SetNillableJobName(s *string) *ProwSuitesUpdateOne {
+	if s != nil {
+		psuo.SetJobName(*s)
+	}
+	return psuo
+}
+
 // SetSuiteName sets the "suite_name" field.
 func (psuo *ProwSuitesUpdateOne) SetSuiteName(s string) *ProwSuitesUpdateOne {
 	psuo.mutation.SetSuiteName(s)
+	return psuo
+}
+
+// SetNillableSuiteName sets the "suite_name" field if the given value is not nil.
+func (psuo *ProwSuitesUpdateOne) SetNillableSuiteName(s *string) *ProwSuitesUpdateOne {
+	if s != nil {
+		psuo.SetSuiteName(*s)
+	}
 	return psuo
 }
 
@@ -340,9 +413,25 @@ func (psuo *ProwSuitesUpdateOne) SetName(s string) *ProwSuitesUpdateOne {
 	return psuo
 }
 
+// SetNillableName sets the "name" field if the given value is not nil.
+func (psuo *ProwSuitesUpdateOne) SetNillableName(s *string) *ProwSuitesUpdateOne {
+	if s != nil {
+		psuo.SetName(*s)
+	}
+	return psuo
+}
+
 // SetStatus sets the "status" field.
 func (psuo *ProwSuitesUpdateOne) SetStatus(s string) *ProwSuitesUpdateOne {
 	psuo.mutation.SetStatus(s)
+	return psuo
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (psuo *ProwSuitesUpdateOne) SetNillableStatus(s *string) *ProwSuitesUpdateOne {
+	if s != nil {
+		psuo.SetStatus(*s)
+	}
 	return psuo
 }
 
@@ -390,6 +479,14 @@ func (psuo *ProwSuitesUpdateOne) ClearExternalServicesImpact() *ProwSuitesUpdate
 func (psuo *ProwSuitesUpdateOne) SetTime(f float64) *ProwSuitesUpdateOne {
 	psuo.mutation.ResetTime()
 	psuo.mutation.SetTime(f)
+	return psuo
+}
+
+// SetNillableTime sets the "time" field if the given value is not nil.
+func (psuo *ProwSuitesUpdateOne) SetNillableTime(f *float64) *ProwSuitesUpdateOne {
+	if f != nil {
+		psuo.SetTime(*f)
+	}
 	return psuo
 }
 
@@ -449,6 +546,12 @@ func (psuo *ProwSuitesUpdateOne) ClearProwSuites() *ProwSuitesUpdateOne {
 	return psuo
 }
 
+// Where appends a list predicates to the ProwSuitesUpdate builder.
+func (psuo *ProwSuitesUpdateOne) Where(ps ...predicate.ProwSuites) *ProwSuitesUpdateOne {
+	psuo.mutation.Where(ps...)
+	return psuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (psuo *ProwSuitesUpdateOne) Select(field string, fields ...string) *ProwSuitesUpdateOne {
@@ -458,7 +561,7 @@ func (psuo *ProwSuitesUpdateOne) Select(field string, fields ...string) *ProwSui
 
 // Save executes the query and returns the updated ProwSuites entity.
 func (psuo *ProwSuitesUpdateOne) Save(ctx context.Context) (*ProwSuites, error) {
-	return withHooks[*ProwSuites, ProwSuitesMutation](ctx, psuo.sqlSave, psuo.mutation, psuo.hooks)
+	return withHooks(ctx, psuo.sqlSave, psuo.mutation, psuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -484,16 +587,7 @@ func (psuo *ProwSuitesUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (psuo *ProwSuitesUpdateOne) sqlSave(ctx context.Context) (_node *ProwSuites, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   prowsuites.Table,
-			Columns: prowsuites.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: prowsuites.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(prowsuites.Table, prowsuites.Columns, sqlgraph.NewFieldSpec(prowsuites.FieldID, field.TypeInt))
 	id, ok := psuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`db: missing "ProwSuites.id" for update`)}
@@ -568,10 +662,7 @@ func (psuo *ProwSuitesUpdateOne) sqlSave(ctx context.Context) (_node *ProwSuites
 			Columns: []string{prowsuites.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -584,10 +675,7 @@ func (psuo *ProwSuitesUpdateOne) sqlSave(ctx context.Context) (_node *ProwSuites
 			Columns: []string{prowsuites.ProwSuitesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

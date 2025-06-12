@@ -27,7 +27,7 @@ func (fd *FailureDelete) Where(ps ...predicate.Failure) *FailureDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (fd *FailureDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, FailureMutation](ctx, fd.sqlExec, fd.mutation, fd.hooks)
+	return withHooks(ctx, fd.sqlExec, fd.mutation, fd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (fd *FailureDelete) ExecX(ctx context.Context) int {
 }
 
 func (fd *FailureDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: failure.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: failure.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(failure.Table, sqlgraph.NewFieldSpec(failure.FieldID, field.TypeUUID))
 	if ps := fd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

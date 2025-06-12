@@ -1,4 +1,4 @@
-FROM golang:1.19 AS builder
+FROM golang:1.24 AS builder
 
 WORKDIR /github.com/konflux-ci-qe/qe-dashboard-backend
 COPY . .

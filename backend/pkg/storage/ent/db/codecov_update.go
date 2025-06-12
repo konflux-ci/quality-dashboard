@@ -34,9 +34,25 @@ func (ccu *CodeCovUpdate) SetRepositoryName(s string) *CodeCovUpdate {
 	return ccu
 }
 
+// SetNillableRepositoryName sets the "repository_name" field if the given value is not nil.
+func (ccu *CodeCovUpdate) SetNillableRepositoryName(s *string) *CodeCovUpdate {
+	if s != nil {
+		ccu.SetRepositoryName(*s)
+	}
+	return ccu
+}
+
 // SetGitOrganization sets the "git_organization" field.
 func (ccu *CodeCovUpdate) SetGitOrganization(s string) *CodeCovUpdate {
 	ccu.mutation.SetGitOrganization(s)
+	return ccu
+}
+
+// SetNillableGitOrganization sets the "git_organization" field if the given value is not nil.
+func (ccu *CodeCovUpdate) SetNillableGitOrganization(s *string) *CodeCovUpdate {
+	if s != nil {
+		ccu.SetGitOrganization(*s)
+	}
 	return ccu
 }
 
@@ -44,6 +60,14 @@ func (ccu *CodeCovUpdate) SetGitOrganization(s string) *CodeCovUpdate {
 func (ccu *CodeCovUpdate) SetCoveragePercentage(f float64) *CodeCovUpdate {
 	ccu.mutation.ResetCoveragePercentage()
 	ccu.mutation.SetCoveragePercentage(f)
+	return ccu
+}
+
+// SetNillableCoveragePercentage sets the "coverage_percentage" field if the given value is not nil.
+func (ccu *CodeCovUpdate) SetNillableCoveragePercentage(f *float64) *CodeCovUpdate {
+	if f != nil {
+		ccu.SetCoveragePercentage(*f)
+	}
 	return ccu
 }
 
@@ -159,7 +183,7 @@ func (ccu *CodeCovUpdate) ClearCodecov() *CodeCovUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ccu *CodeCovUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, CodeCovMutation](ctx, ccu.sqlSave, ccu.mutation, ccu.hooks)
+	return withHooks(ctx, ccu.sqlSave, ccu.mutation, ccu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -198,16 +222,7 @@ func (ccu *CodeCovUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := ccu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   codecov.Table,
-			Columns: codecov.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: codecov.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(codecov.Table, codecov.Columns, sqlgraph.NewFieldSpec(codecov.FieldID, field.TypeUUID))
 	if ps := ccu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -259,10 +274,7 @@ func (ccu *CodeCovUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{codecov.CodecovColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -275,10 +287,7 @@ func (ccu *CodeCovUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{codecov.CodecovColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -312,9 +321,25 @@ func (ccuo *CodeCovUpdateOne) SetRepositoryName(s string) *CodeCovUpdateOne {
 	return ccuo
 }
 
+// SetNillableRepositoryName sets the "repository_name" field if the given value is not nil.
+func (ccuo *CodeCovUpdateOne) SetNillableRepositoryName(s *string) *CodeCovUpdateOne {
+	if s != nil {
+		ccuo.SetRepositoryName(*s)
+	}
+	return ccuo
+}
+
 // SetGitOrganization sets the "git_organization" field.
 func (ccuo *CodeCovUpdateOne) SetGitOrganization(s string) *CodeCovUpdateOne {
 	ccuo.mutation.SetGitOrganization(s)
+	return ccuo
+}
+
+// SetNillableGitOrganization sets the "git_organization" field if the given value is not nil.
+func (ccuo *CodeCovUpdateOne) SetNillableGitOrganization(s *string) *CodeCovUpdateOne {
+	if s != nil {
+		ccuo.SetGitOrganization(*s)
+	}
 	return ccuo
 }
 
@@ -322,6 +347,14 @@ func (ccuo *CodeCovUpdateOne) SetGitOrganization(s string) *CodeCovUpdateOne {
 func (ccuo *CodeCovUpdateOne) SetCoveragePercentage(f float64) *CodeCovUpdateOne {
 	ccuo.mutation.ResetCoveragePercentage()
 	ccuo.mutation.SetCoveragePercentage(f)
+	return ccuo
+}
+
+// SetNillableCoveragePercentage sets the "coverage_percentage" field if the given value is not nil.
+func (ccuo *CodeCovUpdateOne) SetNillableCoveragePercentage(f *float64) *CodeCovUpdateOne {
+	if f != nil {
+		ccuo.SetCoveragePercentage(*f)
+	}
 	return ccuo
 }
 
@@ -435,6 +468,12 @@ func (ccuo *CodeCovUpdateOne) ClearCodecov() *CodeCovUpdateOne {
 	return ccuo
 }
 
+// Where appends a list predicates to the CodeCovUpdate builder.
+func (ccuo *CodeCovUpdateOne) Where(ps ...predicate.CodeCov) *CodeCovUpdateOne {
+	ccuo.mutation.Where(ps...)
+	return ccuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (ccuo *CodeCovUpdateOne) Select(field string, fields ...string) *CodeCovUpdateOne {
@@ -444,7 +483,7 @@ func (ccuo *CodeCovUpdateOne) Select(field string, fields ...string) *CodeCovUpd
 
 // Save executes the query and returns the updated CodeCov entity.
 func (ccuo *CodeCovUpdateOne) Save(ctx context.Context) (*CodeCov, error) {
-	return withHooks[*CodeCov, CodeCovMutation](ctx, ccuo.sqlSave, ccuo.mutation, ccuo.hooks)
+	return withHooks(ctx, ccuo.sqlSave, ccuo.mutation, ccuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -483,16 +522,7 @@ func (ccuo *CodeCovUpdateOne) sqlSave(ctx context.Context) (_node *CodeCov, err 
 	if err := ccuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   codecov.Table,
-			Columns: codecov.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: codecov.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(codecov.Table, codecov.Columns, sqlgraph.NewFieldSpec(codecov.FieldID, field.TypeUUID))
 	id, ok := ccuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`db: missing "CodeCov.id" for update`)}
@@ -561,10 +591,7 @@ func (ccuo *CodeCovUpdateOne) sqlSave(ctx context.Context) (_node *CodeCov, err 
 			Columns: []string{codecov.CodecovColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -577,10 +604,7 @@ func (ccuo *CodeCovUpdateOne) sqlSave(ctx context.Context) (_node *CodeCov, err 
 			Columns: []string{codecov.CodecovColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

@@ -5,11 +5,11 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"fmt"
-	"github.com/konflux-ci/quality-dashboard/api/server/router/konflux"
 	"net"
 	"net/http"
 	"strings"
-	"time"
+
+	"github.com/konflux-ci/quality-dashboard/api/server/router/konflux"
 
 	"github.com/gorilla/mux"
 	"github.com/konflux-ci/quality-dashboard/api/server/middleware"
@@ -243,8 +243,7 @@ func (s *Server) createMux() *mux.Router {
 	m.MethodNotAllowedHandler = notFoundHandler
 
 	str := staticRotationStrategy()
-	s.startUpdateStorage(context.TODO(), str, time.Now)
-	s.SendBugSLIAlerts()
+	s.startUpdateStorage(context.TODO(), str)
 
 	return m
 }

@@ -12,11 +12,11 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/bugs"
+	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/failure"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/predicate"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/teams"
-	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/configuration"
 )
 
 // TeamsUpdate is the builder for updating Teams entities.
@@ -38,15 +38,39 @@ func (tu *TeamsUpdate) SetTeamName(s string) *TeamsUpdate {
 	return tu
 }
 
+// SetNillableTeamName sets the "team_name" field if the given value is not nil.
+func (tu *TeamsUpdate) SetNillableTeamName(s *string) *TeamsUpdate {
+	if s != nil {
+		tu.SetTeamName(*s)
+	}
+	return tu
+}
+
 // SetDescription sets the "description" field.
 func (tu *TeamsUpdate) SetDescription(s string) *TeamsUpdate {
 	tu.mutation.SetDescription(s)
 	return tu
 }
 
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (tu *TeamsUpdate) SetNillableDescription(s *string) *TeamsUpdate {
+	if s != nil {
+		tu.SetDescription(*s)
+	}
+	return tu
+}
+
 // SetJiraKeys sets the "jira_keys" field.
 func (tu *TeamsUpdate) SetJiraKeys(s string) *TeamsUpdate {
 	tu.mutation.SetJiraKeys(s)
+	return tu
+}
+
+// SetNillableJiraKeys sets the "jira_keys" field if the given value is not nil.
+func (tu *TeamsUpdate) SetNillableJiraKeys(s *string) *TeamsUpdate {
+	if s != nil {
+		tu.SetJiraKeys(*s)
+	}
 	return tu
 }
 
@@ -201,7 +225,7 @@ func (tu *TeamsUpdate) RemoveConfiguration(c ...*Configuration) *TeamsUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tu *TeamsUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, TeamsMutation](ctx, tu.sqlSave, tu.mutation, tu.hooks)
+	return withHooks(ctx, tu.sqlSave, tu.mutation, tu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -227,16 +251,7 @@ func (tu *TeamsUpdate) ExecX(ctx context.Context) {
 }
 
 func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   teams.Table,
-			Columns: teams.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: teams.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(teams.Table, teams.Columns, sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID))
 	if ps := tu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -261,10 +276,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{teams.RepositoriesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -277,10 +289,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{teams.RepositoriesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -296,10 +305,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{teams.RepositoriesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -315,10 +321,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{teams.BugsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: bugs.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(bugs.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -331,10 +334,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{teams.BugsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: bugs.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(bugs.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -350,10 +350,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{teams.BugsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: bugs.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(bugs.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -369,10 +366,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{teams.FailuresColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: failure.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(failure.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -385,10 +379,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{teams.FailuresColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: failure.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(failure.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -404,10 +395,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{teams.FailuresColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: failure.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(failure.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -423,10 +411,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{teams.ConfigurationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: configuration.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(configuration.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -439,10 +424,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{teams.ConfigurationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: configuration.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(configuration.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -458,10 +440,7 @@ func (tu *TeamsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{teams.ConfigurationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: configuration.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(configuration.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -495,15 +474,39 @@ func (tuo *TeamsUpdateOne) SetTeamName(s string) *TeamsUpdateOne {
 	return tuo
 }
 
+// SetNillableTeamName sets the "team_name" field if the given value is not nil.
+func (tuo *TeamsUpdateOne) SetNillableTeamName(s *string) *TeamsUpdateOne {
+	if s != nil {
+		tuo.SetTeamName(*s)
+	}
+	return tuo
+}
+
 // SetDescription sets the "description" field.
 func (tuo *TeamsUpdateOne) SetDescription(s string) *TeamsUpdateOne {
 	tuo.mutation.SetDescription(s)
 	return tuo
 }
 
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (tuo *TeamsUpdateOne) SetNillableDescription(s *string) *TeamsUpdateOne {
+	if s != nil {
+		tuo.SetDescription(*s)
+	}
+	return tuo
+}
+
 // SetJiraKeys sets the "jira_keys" field.
 func (tuo *TeamsUpdateOne) SetJiraKeys(s string) *TeamsUpdateOne {
 	tuo.mutation.SetJiraKeys(s)
+	return tuo
+}
+
+// SetNillableJiraKeys sets the "jira_keys" field if the given value is not nil.
+func (tuo *TeamsUpdateOne) SetNillableJiraKeys(s *string) *TeamsUpdateOne {
+	if s != nil {
+		tuo.SetJiraKeys(*s)
+	}
 	return tuo
 }
 
@@ -656,6 +659,12 @@ func (tuo *TeamsUpdateOne) RemoveConfiguration(c ...*Configuration) *TeamsUpdate
 	return tuo.RemoveConfigurationIDs(ids...)
 }
 
+// Where appends a list predicates to the TeamsUpdate builder.
+func (tuo *TeamsUpdateOne) Where(ps ...predicate.Teams) *TeamsUpdateOne {
+	tuo.mutation.Where(ps...)
+	return tuo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (tuo *TeamsUpdateOne) Select(field string, fields ...string) *TeamsUpdateOne {
@@ -665,7 +674,7 @@ func (tuo *TeamsUpdateOne) Select(field string, fields ...string) *TeamsUpdateOn
 
 // Save executes the query and returns the updated Teams entity.
 func (tuo *TeamsUpdateOne) Save(ctx context.Context) (*Teams, error) {
-	return withHooks[*Teams, TeamsMutation](ctx, tuo.sqlSave, tuo.mutation, tuo.hooks)
+	return withHooks(ctx, tuo.sqlSave, tuo.mutation, tuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -691,16 +700,7 @@ func (tuo *TeamsUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   teams.Table,
-			Columns: teams.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: teams.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(teams.Table, teams.Columns, sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID))
 	id, ok := tuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`db: missing "Teams.id" for update`)}
@@ -742,10 +742,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Columns: []string{teams.RepositoriesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -758,10 +755,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Columns: []string{teams.RepositoriesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -777,10 +771,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Columns: []string{teams.RepositoriesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: repository.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -796,10 +787,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Columns: []string{teams.BugsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: bugs.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(bugs.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -812,10 +800,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Columns: []string{teams.BugsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: bugs.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(bugs.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -831,10 +816,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Columns: []string{teams.BugsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: bugs.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(bugs.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -850,10 +832,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Columns: []string{teams.FailuresColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: failure.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(failure.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -866,10 +845,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Columns: []string{teams.FailuresColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: failure.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(failure.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -885,10 +861,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Columns: []string{teams.FailuresColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: failure.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(failure.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -904,10 +877,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Columns: []string{teams.ConfigurationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: configuration.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(configuration.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -920,10 +890,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Columns: []string{teams.ConfigurationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: configuration.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(configuration.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -939,10 +906,7 @@ func (tuo *TeamsUpdateOne) sqlSave(ctx context.Context) (_node *Teams, err error
 			Columns: []string{teams.ConfigurationColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: configuration.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(configuration.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

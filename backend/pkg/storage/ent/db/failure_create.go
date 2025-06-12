@@ -140,7 +140,7 @@ func (fc *FailureCreate) Mutation() *FailureMutation {
 // Save creates the Failure in the database.
 func (fc *FailureCreate) Save(ctx context.Context) (*Failure, error) {
 	fc.defaults()
-	return withHooks[*Failure, FailureMutation](ctx, fc.sqlSave, fc.mutation, fc.hooks)
+	return withHooks(ctx, fc.sqlSave, fc.mutation, fc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -218,13 +218,7 @@ func (fc *FailureCreate) sqlSave(ctx context.Context) (*Failure, error) {
 func (fc *FailureCreate) createSpec() (*Failure, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Failure{config: fc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: failure.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: failure.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(failure.Table, sqlgraph.NewFieldSpec(failure.FieldID, field.TypeUUID))
 	)
 	_spec.OnConflict = fc.conflict
 	if id, ok := fc.mutation.ID(); ok {
@@ -267,10 +261,7 @@ func (fc *FailureCreate) createSpec() (*Failure, *sqlgraph.CreateSpec) {
 			Columns: []string{failure.FailuresColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -654,12 +645,16 @@ func (u *FailureUpsertOne) IDX(ctx context.Context) uuid.UUID {
 // FailureCreateBulk is the builder for creating many Failure entities in bulk.
 type FailureCreateBulk struct {
 	config
+	err      error
 	builders []*FailureCreate
 	conflict []sql.ConflictOption
 }
 
 // Save creates the Failure entities in the database.
 func (fcb *FailureCreateBulk) Save(ctx context.Context) ([]*Failure, error) {
+	if fcb.err != nil {
+		return nil, fcb.err
+	}
 	specs := make([]*sqlgraph.CreateSpec, len(fcb.builders))
 	nodes := make([]*Failure, len(fcb.builders))
 	mutators := make([]Mutator, len(fcb.builders))
@@ -676,8 +671,8 @@ func (fcb *FailureCreateBulk) Save(ctx context.Context) ([]*Failure, error) {
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, fcb.builders[i+1].mutation)
 				} else {
@@ -952,6 +947,9 @@ func (u *FailureUpsertBulk) ClearLabels() *FailureUpsertBulk {
 
 // Exec executes the query.
 func (u *FailureUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
 	for i, b := range u.create.builders {
 		if len(b.conflict) != 0 {
 			return fmt.Errorf("db: OnConflict was set for builder %d. Set it on the FailureCreateBulk instead", i)

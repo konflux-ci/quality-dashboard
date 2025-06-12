@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db/repository"
@@ -29,6 +30,7 @@ type Repository struct {
 	// The values are being populated by the RepositoryQuery when eager-loading is set.
 	Edges              RepositoryEdges `json:"edges"`
 	teams_repositories *uuid.UUID
+	selectValues       sql.SelectValues
 }
 
 // RepositoryEdges holds the relations/edges for other nodes in the graph.
@@ -39,6 +41,8 @@ type RepositoryEdges struct {
 	Workflows []*Workflows `json:"workflows,omitempty"`
 	// Codecov holds the value of the codecov edge.
 	Codecov []*CodeCov `json:"codecov,omitempty"`
+	// Oci holds the value of the oci edge.
+	Oci []*OCI `json:"oci,omitempty"`
 	// ProwSuites holds the value of the prow_suites edge.
 	ProwSuites []*ProwSuites `json:"prow_suites,omitempty"`
 	// ProwJobs holds the value of the prow_jobs edge.
@@ -47,18 +51,16 @@ type RepositoryEdges struct {
 	Prs []*PullRequests `json:"prs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [6]bool
+	loadedTypes [7]bool
 }
 
 // RepositoriesOrErr returns the Repositories value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e RepositoryEdges) RepositoriesOrErr() (*Teams, error) {
-	if e.loadedTypes[0] {
-		if e.Repositories == nil {
-			// Edge was loaded but was not found.
-			return nil, &NotFoundError{label: teams.Label}
-		}
+	if e.Repositories != nil {
 		return e.Repositories, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: teams.Label}
 	}
 	return nil, &NotLoadedError{edge: "repositories"}
 }
@@ -81,10 +83,19 @@ func (e RepositoryEdges) CodecovOrErr() ([]*CodeCov, error) {
 	return nil, &NotLoadedError{edge: "codecov"}
 }
 
+// OciOrErr returns the Oci value or an error if the edge
+// was not loaded in eager-loading.
+func (e RepositoryEdges) OciOrErr() ([]*OCI, error) {
+	if e.loadedTypes[3] {
+		return e.Oci, nil
+	}
+	return nil, &NotLoadedError{edge: "oci"}
+}
+
 // ProwSuitesOrErr returns the ProwSuites value or an error if the edge
 // was not loaded in eager-loading.
 func (e RepositoryEdges) ProwSuitesOrErr() ([]*ProwSuites, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.ProwSuites, nil
 	}
 	return nil, &NotLoadedError{edge: "prow_suites"}
@@ -93,7 +104,7 @@ func (e RepositoryEdges) ProwSuitesOrErr() ([]*ProwSuites, error) {
 // ProwJobsOrErr returns the ProwJobs value or an error if the edge
 // was not loaded in eager-loading.
 func (e RepositoryEdges) ProwJobsOrErr() ([]*ProwJobs, error) {
-	if e.loadedTypes[4] {
+	if e.loadedTypes[5] {
 		return e.ProwJobs, nil
 	}
 	return nil, &NotLoadedError{edge: "prow_jobs"}
@@ -102,7 +113,7 @@ func (e RepositoryEdges) ProwJobsOrErr() ([]*ProwJobs, error) {
 // PrsOrErr returns the Prs value or an error if the edge
 // was not loaded in eager-loading.
 func (e RepositoryEdges) PrsOrErr() ([]*PullRequests, error) {
-	if e.loadedTypes[5] {
+	if e.loadedTypes[6] {
 		return e.Prs, nil
 	}
 	return nil, &NotLoadedError{edge: "prs"}
@@ -118,7 +129,7 @@ func (*Repository) scanValues(columns []string) ([]any, error) {
 		case repository.ForeignKeys[0]: // teams_repositories
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Repository", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -169,9 +180,17 @@ func (r *Repository) assignValues(columns []string, values []any) error {
 				r.teams_repositories = new(uuid.UUID)
 				*r.teams_repositories = *value.S.(*uuid.UUID)
 			}
+		default:
+			r.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Repository.
+// This includes values selected through modifiers, order, etc.
+func (r *Repository) Value(name string) (ent.Value, error) {
+	return r.selectValues.Get(name)
 }
 
 // QueryRepositories queries the "repositories" edge of the Repository entity.
@@ -187,6 +206,11 @@ func (r *Repository) QueryWorkflows() *WorkflowsQuery {
 // QueryCodecov queries the "codecov" edge of the Repository entity.
 func (r *Repository) QueryCodecov() *CodeCovQuery {
 	return NewRepositoryClient(r.config).QueryCodecov(r)
+}
+
+// QueryOci queries the "oci" edge of the Repository entity.
+func (r *Repository) QueryOci() *OCIQuery {
+	return NewRepositoryClient(r.config).QueryOci(r)
 }
 
 // QueryProwSuites queries the "prow_suites" edge of the Repository entity.
@@ -244,9 +268,3 @@ func (r *Repository) String() string {
 
 // Repositories is a parsable slice of Repository.
 type Repositories []*Repository
-
-func (r Repositories) config(cfg config) {
-	for _i := range r {
-		r[_i].config = cfg
-	}
-}

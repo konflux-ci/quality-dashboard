@@ -27,7 +27,7 @@ func (prd *PullRequestsDelete) Where(ps ...predicate.PullRequests) *PullRequests
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (prd *PullRequestsDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, PullRequestsMutation](ctx, prd.sqlExec, prd.mutation, prd.hooks)
+	return withHooks(ctx, prd.sqlExec, prd.mutation, prd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -40,15 +40,7 @@ func (prd *PullRequestsDelete) ExecX(ctx context.Context) int {
 }
 
 func (prd *PullRequestsDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: pullrequests.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pullrequests.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(pullrequests.Table, sqlgraph.NewFieldSpec(pullrequests.FieldID, field.TypeInt))
 	if ps := prd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {

@@ -2,6 +2,11 @@
 
 package prowjobs
 
+import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+)
+
 const (
 	// Label holds the string label denoting the prowjobs type in the database.
 	Label = "prow_jobs"
@@ -39,6 +44,8 @@ const (
 	FieldBuildErrorLogs = "build_error_logs"
 	// EdgeProwJobs holds the string denoting the prow_jobs edge name in mutations.
 	EdgeProwJobs = "prow_jobs"
+	// EdgeTektonTasks holds the string denoting the tekton_tasks edge name in mutations.
+	EdgeTektonTasks = "tekton_tasks"
 	// Table holds the table name of the prowjobs in the database.
 	Table = "prow_jobs"
 	// ProwJobsTable is the table that holds the prow_jobs relation/edge.
@@ -48,6 +55,13 @@ const (
 	ProwJobsInverseTable = "repositories"
 	// ProwJobsColumn is the table column denoting the prow_jobs relation/edge.
 	ProwJobsColumn = "repository_prow_jobs"
+	// TektonTasksTable is the table that holds the tekton_tasks relation/edge.
+	TektonTasksTable = "tekton_tasks"
+	// TektonTasksInverseTable is the table name for the TektonTasks entity.
+	// It exists in this package in order to avoid circular dependency with the "tektontasks" package.
+	TektonTasksInverseTable = "tekton_tasks"
+	// TektonTasksColumn is the table column denoting the tekton_tasks relation/edge.
+	TektonTasksColumn = "prow_jobs_tekton_tasks"
 )
 
 // Columns holds all SQL columns for prowjobs fields.
@@ -95,3 +109,121 @@ var (
 	// DefaultExternalServicesImpact holds the default value on creation for the "external_services_impact" field.
 	DefaultExternalServicesImpact bool
 )
+
+// OrderOption defines the ordering options for the ProwJobs queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByJobID orders the results by the job_id field.
+func ByJobID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJobID, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByDuration orders the results by the duration field.
+func ByDuration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDuration, opts...).ToFunc()
+}
+
+// ByTestsCount orders the results by the tests_count field.
+func ByTestsCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTestsCount, opts...).ToFunc()
+}
+
+// ByFailedCount orders the results by the failed_count field.
+func ByFailedCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFailedCount, opts...).ToFunc()
+}
+
+// BySkippedCount orders the results by the skipped_count field.
+func BySkippedCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSkippedCount, opts...).ToFunc()
+}
+
+// ByJobName orders the results by the job_name field.
+func ByJobName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJobName, opts...).ToFunc()
+}
+
+// ByJobType orders the results by the job_type field.
+func ByJobType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJobType, opts...).ToFunc()
+}
+
+// ByState orders the results by the state field.
+func ByState(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldState, opts...).ToFunc()
+}
+
+// ByJobURL orders the results by the job_url field.
+func ByJobURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJobURL, opts...).ToFunc()
+}
+
+// ByCiFailed orders the results by the ci_failed field.
+func ByCiFailed(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCiFailed, opts...).ToFunc()
+}
+
+// ByExternalServicesImpact orders the results by the external_services_impact field.
+func ByExternalServicesImpact(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExternalServicesImpact, opts...).ToFunc()
+}
+
+// ByE2eFailedTestMessages orders the results by the e2e_failed_test_messages field.
+func ByE2eFailedTestMessages(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldE2eFailedTestMessages, opts...).ToFunc()
+}
+
+// BySuitesXMLURL orders the results by the suites_xml_url field.
+func BySuitesXMLURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSuitesXMLURL, opts...).ToFunc()
+}
+
+// ByBuildErrorLogs orders the results by the build_error_logs field.
+func ByBuildErrorLogs(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBuildErrorLogs, opts...).ToFunc()
+}
+
+// ByProwJobsField orders the results by prow_jobs field.
+func ByProwJobsField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProwJobsStep(), sql.OrderByField(field, opts...))
+	}
+}
+
+// ByTektonTasksCount orders the results by tekton_tasks count.
+func ByTektonTasksCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newTektonTasksStep(), opts...)
+	}
+}
+
+// ByTektonTasks orders the results by tekton_tasks terms.
+func ByTektonTasks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newTektonTasksStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newProwJobsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProwJobsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, ProwJobsTable, ProwJobsColumn),
+	)
+}
+func newTektonTasksStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(TektonTasksInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, TektonTasksTable, TektonTasksColumn),
+	)
+}

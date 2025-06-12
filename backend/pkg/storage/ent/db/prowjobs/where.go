@@ -984,11 +984,30 @@ func HasProwJobs() predicate.ProwJobs {
 // HasProwJobsWith applies the HasEdge predicate on the "prow_jobs" edge with a given conditions (other predicates).
 func HasProwJobsWith(preds ...predicate.Repository) predicate.ProwJobs {
 	return predicate.ProwJobs(func(s *sql.Selector) {
+		step := newProwJobsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasTektonTasks applies the HasEdge predicate on the "tekton_tasks" edge.
+func HasTektonTasks() predicate.ProwJobs {
+	return predicate.ProwJobs(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ProwJobsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ProwJobsTable, ProwJobsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, TektonTasksTable, TektonTasksColumn),
 		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTektonTasksWith applies the HasEdge predicate on the "tekton_tasks" edge with a given conditions (other predicates).
+func HasTektonTasksWith(preds ...predicate.TektonTasks) predicate.ProwJobs {
+	return predicate.ProwJobs(func(s *sql.Selector) {
+		step := newTektonTasksStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -999,32 +1018,15 @@ func HasProwJobsWith(preds ...predicate.Repository) predicate.ProwJobs {
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ProwJobs) predicate.ProwJobs {
-	return predicate.ProwJobs(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for _, p := range predicates {
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.ProwJobs(sql.AndPredicates(predicates...))
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.ProwJobs) predicate.ProwJobs {
-	return predicate.ProwJobs(func(s *sql.Selector) {
-		s1 := s.Clone().SetP(nil)
-		for i, p := range predicates {
-			if i > 0 {
-				s1.Or()
-			}
-			p(s1)
-		}
-		s.Where(s1.P())
-	})
+	return predicate.ProwJobs(sql.OrPredicates(predicates...))
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.ProwJobs) predicate.ProwJobs {
-	return predicate.ProwJobs(func(s *sql.Selector) {
-		p(s.Not())
-	})
+	return predicate.ProwJobs(sql.NotPredicates(p))
 }

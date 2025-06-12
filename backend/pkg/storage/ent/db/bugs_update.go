@@ -36,9 +36,25 @@ func (bu *BugsUpdate) SetJiraKey(s string) *BugsUpdate {
 	return bu
 }
 
+// SetNillableJiraKey sets the "jira_key" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableJiraKey(s *string) *BugsUpdate {
+	if s != nil {
+		bu.SetJiraKey(*s)
+	}
+	return bu
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (bu *BugsUpdate) SetCreatedAt(t time.Time) *BugsUpdate {
 	bu.mutation.SetCreatedAt(t)
+	return bu
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableCreatedAt(t *time.Time) *BugsUpdate {
+	if t != nil {
+		bu.SetCreatedAt(*t)
+	}
 	return bu
 }
 
@@ -48,9 +64,25 @@ func (bu *BugsUpdate) SetUpdatedAt(t time.Time) *BugsUpdate {
 	return bu
 }
 
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableUpdatedAt(t *time.Time) *BugsUpdate {
+	if t != nil {
+		bu.SetUpdatedAt(*t)
+	}
+	return bu
+}
+
 // SetResolvedAt sets the "resolved_at" field.
 func (bu *BugsUpdate) SetResolvedAt(t time.Time) *BugsUpdate {
 	bu.mutation.SetResolvedAt(t)
+	return bu
+}
+
+// SetNillableResolvedAt sets the "resolved_at" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableResolvedAt(t *time.Time) *BugsUpdate {
+	if t != nil {
+		bu.SetResolvedAt(*t)
+	}
 	return bu
 }
 
@@ -71,6 +103,14 @@ func (bu *BugsUpdate) SetNillableResolved(b *bool) *BugsUpdate {
 // SetPriority sets the "priority" field.
 func (bu *BugsUpdate) SetPriority(s string) *BugsUpdate {
 	bu.mutation.SetPriority(s)
+	return bu
+}
+
+// SetNillablePriority sets the "priority" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillablePriority(s *string) *BugsUpdate {
+	if s != nil {
+		bu.SetPriority(*s)
+	}
 	return bu
 }
 
@@ -101,15 +141,39 @@ func (bu *BugsUpdate) SetStatus(s string) *BugsUpdate {
 	return bu
 }
 
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableStatus(s *string) *BugsUpdate {
+	if s != nil {
+		bu.SetStatus(*s)
+	}
+	return bu
+}
+
 // SetSummary sets the "summary" field.
 func (bu *BugsUpdate) SetSummary(s string) *BugsUpdate {
 	bu.mutation.SetSummary(s)
 	return bu
 }
 
+// SetNillableSummary sets the "summary" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableSummary(s *string) *BugsUpdate {
+	if s != nil {
+		bu.SetSummary(*s)
+	}
+	return bu
+}
+
 // SetURL sets the "url" field.
 func (bu *BugsUpdate) SetURL(s string) *BugsUpdate {
 	bu.mutation.SetURL(s)
+	return bu
+}
+
+// SetNillableURL sets the "url" field if the given value is not nil.
+func (bu *BugsUpdate) SetNillableURL(s *string) *BugsUpdate {
+	if s != nil {
+		bu.SetURL(*s)
+	}
 	return bu
 }
 
@@ -407,7 +471,7 @@ func (bu *BugsUpdate) ClearBugs() *BugsUpdate {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (bu *BugsUpdate) Save(ctx context.Context) (int, error) {
-	return withHooks[int, BugsMutation](ctx, bu.sqlSave, bu.mutation, bu.hooks)
+	return withHooks(ctx, bu.sqlSave, bu.mutation, bu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -446,16 +510,7 @@ func (bu *BugsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := bu.check(); err != nil {
 		return n, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   bugs.Table,
-			Columns: bugs.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: bugs.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(bugs.Table, bugs.Columns, sqlgraph.NewFieldSpec(bugs.FieldID, field.TypeUUID))
 	if ps := bu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -588,10 +643,7 @@ func (bu *BugsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{bugs.BugsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -604,10 +656,7 @@ func (bu *BugsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: []string{bugs.BugsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -641,9 +690,25 @@ func (buo *BugsUpdateOne) SetJiraKey(s string) *BugsUpdateOne {
 	return buo
 }
 
+// SetNillableJiraKey sets the "jira_key" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableJiraKey(s *string) *BugsUpdateOne {
+	if s != nil {
+		buo.SetJiraKey(*s)
+	}
+	return buo
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (buo *BugsUpdateOne) SetCreatedAt(t time.Time) *BugsUpdateOne {
 	buo.mutation.SetCreatedAt(t)
+	return buo
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableCreatedAt(t *time.Time) *BugsUpdateOne {
+	if t != nil {
+		buo.SetCreatedAt(*t)
+	}
 	return buo
 }
 
@@ -653,9 +718,25 @@ func (buo *BugsUpdateOne) SetUpdatedAt(t time.Time) *BugsUpdateOne {
 	return buo
 }
 
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableUpdatedAt(t *time.Time) *BugsUpdateOne {
+	if t != nil {
+		buo.SetUpdatedAt(*t)
+	}
+	return buo
+}
+
 // SetResolvedAt sets the "resolved_at" field.
 func (buo *BugsUpdateOne) SetResolvedAt(t time.Time) *BugsUpdateOne {
 	buo.mutation.SetResolvedAt(t)
+	return buo
+}
+
+// SetNillableResolvedAt sets the "resolved_at" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableResolvedAt(t *time.Time) *BugsUpdateOne {
+	if t != nil {
+		buo.SetResolvedAt(*t)
+	}
 	return buo
 }
 
@@ -676,6 +757,14 @@ func (buo *BugsUpdateOne) SetNillableResolved(b *bool) *BugsUpdateOne {
 // SetPriority sets the "priority" field.
 func (buo *BugsUpdateOne) SetPriority(s string) *BugsUpdateOne {
 	buo.mutation.SetPriority(s)
+	return buo
+}
+
+// SetNillablePriority sets the "priority" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillablePriority(s *string) *BugsUpdateOne {
+	if s != nil {
+		buo.SetPriority(*s)
+	}
 	return buo
 }
 
@@ -706,15 +795,39 @@ func (buo *BugsUpdateOne) SetStatus(s string) *BugsUpdateOne {
 	return buo
 }
 
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableStatus(s *string) *BugsUpdateOne {
+	if s != nil {
+		buo.SetStatus(*s)
+	}
+	return buo
+}
+
 // SetSummary sets the "summary" field.
 func (buo *BugsUpdateOne) SetSummary(s string) *BugsUpdateOne {
 	buo.mutation.SetSummary(s)
 	return buo
 }
 
+// SetNillableSummary sets the "summary" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableSummary(s *string) *BugsUpdateOne {
+	if s != nil {
+		buo.SetSummary(*s)
+	}
+	return buo
+}
+
 // SetURL sets the "url" field.
 func (buo *BugsUpdateOne) SetURL(s string) *BugsUpdateOne {
 	buo.mutation.SetURL(s)
+	return buo
+}
+
+// SetNillableURL sets the "url" field if the given value is not nil.
+func (buo *BugsUpdateOne) SetNillableURL(s *string) *BugsUpdateOne {
+	if s != nil {
+		buo.SetURL(*s)
+	}
 	return buo
 }
 
@@ -1010,6 +1123,12 @@ func (buo *BugsUpdateOne) ClearBugs() *BugsUpdateOne {
 	return buo
 }
 
+// Where appends a list predicates to the BugsUpdate builder.
+func (buo *BugsUpdateOne) Where(ps ...predicate.Bugs) *BugsUpdateOne {
+	buo.mutation.Where(ps...)
+	return buo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (buo *BugsUpdateOne) Select(field string, fields ...string) *BugsUpdateOne {
@@ -1019,7 +1138,7 @@ func (buo *BugsUpdateOne) Select(field string, fields ...string) *BugsUpdateOne 
 
 // Save executes the query and returns the updated Bugs entity.
 func (buo *BugsUpdateOne) Save(ctx context.Context) (*Bugs, error) {
-	return withHooks[*Bugs, BugsMutation](ctx, buo.sqlSave, buo.mutation, buo.hooks)
+	return withHooks(ctx, buo.sqlSave, buo.mutation, buo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -1058,16 +1177,7 @@ func (buo *BugsUpdateOne) sqlSave(ctx context.Context) (_node *Bugs, err error) 
 	if err := buo.check(); err != nil {
 		return _node, err
 	}
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   bugs.Table,
-			Columns: bugs.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeUUID,
-				Column: bugs.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(bugs.Table, bugs.Columns, sqlgraph.NewFieldSpec(bugs.FieldID, field.TypeUUID))
 	id, ok := buo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`db: missing "Bugs.id" for update`)}
@@ -1217,10 +1327,7 @@ func (buo *BugsUpdateOne) sqlSave(ctx context.Context) (_node *Bugs, err error) 
 			Columns: []string{bugs.BugsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -1233,10 +1340,7 @@ func (buo *BugsUpdateOne) sqlSave(ctx context.Context) (_node *Bugs, err error) 
 			Columns: []string{bugs.BugsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeUUID,
-					Column: teams.FieldID,
-				},
+				IDSpec: sqlgraph.NewFieldSpec(teams.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -2,23 +2,25 @@ package server
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"regexp"
-	"strings"
 	"time"
 
-	"github.com/andygrunwald/go-jira"
 	coverageV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/codecov/v1alpha1"
-	configurationV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/configuration/v1alpha1"
 	repoV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
-	"github.com/konflux-ci/quality-dashboard/pkg/storage"
-	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
+	ociloader "github.com/konflux-ci/quality-dashboard/api/server/oci-loader"
 	"go.uber.org/zap"
 )
 
 // nolint:all
 var RegexpCompiler = regexp.MustCompile("(-main-|-master-)(.*?)(\\/)")
+
+const (
+	// directory to download the oci artifacts blobs
+	OCICache = "/tmp/oci-artifacts"
+
+	// The directory where all the oci artifacts will be extracted
+	ArtifactsDir = "/tmp/oci-cache"
+)
 
 // rotationStrategy describes a strategy for generating server configuration from a file.
 type rotationStrategy struct {
@@ -26,8 +28,8 @@ type rotationStrategy struct {
 	rotationFrequency time.Duration
 }
 
-// startUpdateCache begins repo information rotation in a new goroutine, closing once the context is canceled.
-func (s *Server) startUpdateStorage(ctx context.Context, strategy rotationStrategy, now func() time.Time) {
+// startUpdateStorage begins repo information rotation in a new goroutine, closing once the context is canceled.
+func (s *Server) startUpdateStorage(ctx context.Context, strategy rotationStrategy) {
 	go func() {
 		// Try to rotate immediately so properly configured repositories.
 		if err := s.rotate(); err != nil {
@@ -47,7 +49,7 @@ func (s *Server) startUpdateStorage(ctx context.Context, strategy rotationStrate
 }
 
 func (s *Server) rotate() error {
-	teamArr, err := s.cfg.Storage.GetAllTeamsFromDB()
+	_, err := s.cfg.Storage.GetAllTeamsFromDB()
 	if err != nil {
 		s.cfg.Logger.Sugar().Errorf("Failed to update cache", zap.Error(err))
 		return err
@@ -55,43 +57,17 @@ func (s *Server) rotate() error {
 
 	s.UpdateProwStatusByTeam()
 
-	s.cfg.Logger.Info("starting to rotate jira bugs")
-	for _, team := range teamArr {
-		if team.JiraKeys == "" {
-			continue
-		}
+	loader := ociloader.NewLoader(ociloader.LoaderConfig{
+		NumWorkers:          5,
+		ProcessingThreshold: time.Minute * 45,
+		ArtifactsDir:        "/tmp/oci-artifacts",
+		CacheDir:            "/tmp/oci-cache",
+		CleanupOnCompletion: true,
+	}, s.cfg.Storage)
 
-		// temporary until previous teams has config defined
-		_, err := s.cfg.Storage.GetConfiguration(team.TeamName)
-		if err != nil && err == storage.ErrNotFound {
-			query := fmt.Sprintf("project in (%s) AND type = Bug", team.JiraKeys)
-			jiraCfg := configurationV1Alpha1.JiraConfig{
-				BugsCollectQuery: query,
-				CiImpactQuery:    query + " AND labels=ci-fail",
-			}
-			b, err := json.Marshal(jiraCfg)
-			if err != nil {
-				return err
-			}
-
-			config := configurationV1Alpha1.Configuration{
-				TeamName:      team.TeamName,
-				JiraConfig:    string(b),
-				BugSLOsConfig: "",
-			}
-
-			err = s.cfg.Storage.CreateConfiguration(config)
-			if err != nil {
-				return err
-			}
-		}
-
-		s.cfg.Logger.Info(fmt.Sprintf("starting to rotate jira bugs for team %s", team.TeamName))
-		if err := s.rotateJiraBugs(team.JiraKeys, team); err != nil {
-			return err
-		}
+	if loader.Run(context.Background()) != nil {
+		s.cfg.Logger.Sugar().Errorf("failed to update the oci artifact", zap.Error(err))
 	}
-	s.cfg.Logger.Info("finishing to rotate jira bugs")
 
 	s.UpdateFailuresByTeam()
 	err = s.UpdateDataBaseRepoByTeam()
@@ -105,82 +81,8 @@ func (s *Server) rotate() error {
 
 func staticRotationStrategy() rotationStrategy {
 	return rotationStrategy{
-		rotationFrequency: time.Minute * 90,
+		rotationFrequency: time.Minute * 15,
 	}
-}
-
-func shouldBeDeleted(jiraKey string, bugs []jira.Issue) bool {
-	for _, bug := range bugs {
-		if bug.Key == jiraKey {
-			return false
-		}
-	}
-	return true
-}
-
-func remove(l []string, item string) []string {
-	for i, other := range l {
-		if other == item {
-			return append(l[:i], l[i+1:]...)
-		}
-	}
-
-	return l
-}
-
-func (s *Server) rotateJiraBugs(jiraKeys string, team *db.Teams) error {
-	cfg, err := s.cfg.Storage.GetConfiguration(team.TeamName)
-	if err != nil {
-		return err
-	}
-
-	jiraCfg := configurationV1Alpha1.JiraConfig{}
-	err = json.Unmarshal([]byte(cfg.JiraConfig), &jiraCfg)
-	if err != nil {
-		return err
-	}
-
-	bugs := s.cfg.Jira.GetBugsByJQLQuery(jiraCfg.BugsCollectQuery)
-	if err := s.cfg.Storage.CreateJiraBug(bugs, team); err != nil {
-		return err
-	}
-
-	projects := strings.Split(team.JiraKeys, ",")
-	bugsInDb := make([]*db.Bugs, 0)
-	for _, project := range projects {
-		bgs, err := s.cfg.Storage.GetAllJiraBugsByProject(project)
-		if err != nil {
-			return err
-		}
-		bugsInDb = append(bugsInDb, bgs...)
-	}
-
-	// clean bugs that changed project or jira type
-	for _, bugInDb := range bugsInDb {
-		deleted := shouldBeDeleted(bugInDb.JiraKey, bugs)
-		if deleted {
-			if err := s.cfg.Storage.DeleteJiraBugByJiraKey(bugInDb.JiraKey); err != nil {
-				return err
-			}
-
-			// also clean in CI Impact bugs
-			jiraCfg.CiImpactBugs = remove(jiraCfg.CiImpactBugs, bugInDb.JiraKey)
-		}
-	}
-
-	// update config
-	jiraCfgUpdated, err := json.Marshal(jiraCfg)
-	if err != nil {
-		return err
-	}
-
-	config := configurationV1Alpha1.Configuration{
-		TeamName:      cfg.TeamName,
-		JiraConfig:    string(jiraCfgUpdated),
-		BugSLOsConfig: cfg.JiraConfig,
-	}
-
-	return s.cfg.Storage.CreateConfiguration(config)
 }
 
 func (s *Server) UpdateDataBaseRepoByTeam() error {

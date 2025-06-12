@@ -3,6 +3,8 @@
 package workflows
 
 import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -74,3 +76,55 @@ var (
 	// WorkflowNameValidator is a validator for the "workflow_name" field. It is called by the builders before save.
 	WorkflowNameValidator func(string) error
 )
+
+// OrderOption defines the ordering options for the Workflows queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByWorkflowID orders the results by the workflow_id field.
+func ByWorkflowID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorkflowID, opts...).ToFunc()
+}
+
+// ByWorkflowName orders the results by the workflow_name field.
+func ByWorkflowName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldWorkflowName, opts...).ToFunc()
+}
+
+// ByBadgeURL orders the results by the badge_url field.
+func ByBadgeURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBadgeURL, opts...).ToFunc()
+}
+
+// ByHTMLURL orders the results by the html_url field.
+func ByHTMLURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHTMLURL, opts...).ToFunc()
+}
+
+// ByJobURL orders the results by the job_url field.
+func ByJobURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJobURL, opts...).ToFunc()
+}
+
+// ByState orders the results by the state field.
+func ByState(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldState, opts...).ToFunc()
+}
+
+// ByWorkflowsField orders the results by workflows field.
+func ByWorkflowsField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newWorkflowsStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newWorkflowsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(WorkflowsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, WorkflowsTable, WorkflowsColumn),
+	)
+}

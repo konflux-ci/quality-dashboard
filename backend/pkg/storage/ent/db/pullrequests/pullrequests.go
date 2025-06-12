@@ -3,6 +3,8 @@
 package pullrequests
 
 import (
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -93,3 +95,90 @@ var (
 	// DefaultPrID holds the default value on creation for the "pr_id" field.
 	DefaultPrID func() uuid.UUID
 )
+
+// OrderOption defines the ordering options for the PullRequests queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByPrID orders the results by the pr_id field.
+func ByPrID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPrID, opts...).ToFunc()
+}
+
+// ByRepositoryName orders the results by the repository_name field.
+func ByRepositoryName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRepositoryName, opts...).ToFunc()
+}
+
+// ByRepositoryOrganization orders the results by the repository_organization field.
+func ByRepositoryOrganization(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRepositoryOrganization, opts...).ToFunc()
+}
+
+// ByNumber orders the results by the number field.
+func ByNumber(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldNumber, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByClosedAt orders the results by the closed_at field.
+func ByClosedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldClosedAt, opts...).ToFunc()
+}
+
+// ByMergedAt orders the results by the merged_at field.
+func ByMergedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMergedAt, opts...).ToFunc()
+}
+
+// ByState orders the results by the state field.
+func ByState(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldState, opts...).ToFunc()
+}
+
+// ByAuthor orders the results by the author field.
+func ByAuthor(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAuthor, opts...).ToFunc()
+}
+
+// ByTitle orders the results by the title field.
+func ByTitle(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTitle, opts...).ToFunc()
+}
+
+// ByMergeCommit orders the results by the merge_commit field.
+func ByMergeCommit(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMergeCommit, opts...).ToFunc()
+}
+
+// ByRetestCount orders the results by the retest_count field.
+func ByRetestCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRetestCount, opts...).ToFunc()
+}
+
+// ByRetestBeforeMergeCount orders the results by the retest_before_merge_count field.
+func ByRetestBeforeMergeCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRetestBeforeMergeCount, opts...).ToFunc()
+}
+
+// ByPrsField orders the results by prs field.
+func ByPrsField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newPrsStep(), sql.OrderByField(field, opts...))
+	}
+}
+func newPrsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(PrsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, PrsTable, PrsColumn),
+	)
+}
