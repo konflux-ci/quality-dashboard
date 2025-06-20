@@ -66,7 +66,7 @@ func (ProwJobs) Fields() []ent.Field {
 // Edges of the Password.
 func (ProwJobs) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("prow_jobs", Repository.Type).
+		edge.From("repository", Repository.Type).
 			Ref("prow_jobs").
 			Unique(),
 		edge.To("tekton_tasks", TektonTasks.Type).

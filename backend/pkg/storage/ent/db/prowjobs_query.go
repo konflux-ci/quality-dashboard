@@ -25,7 +25,7 @@ type ProwJobsQuery struct {
 	order           []prowjobs.OrderOption
 	inters          []Interceptor
 	predicates      []predicate.ProwJobs
-	withProwJobs    *RepositoryQuery
+	withRepository  *RepositoryQuery
 	withTektonTasks *TektonTasksQuery
 	withFKs         bool
 	// intermediate query (i.e. traversal path).
@@ -64,8 +64,8 @@ func (pjq *ProwJobsQuery) Order(o ...prowjobs.OrderOption) *ProwJobsQuery {
 	return pjq
 }
 
-// QueryProwJobs chains the current query on the "prow_jobs" edge.
-func (pjq *ProwJobsQuery) QueryProwJobs() *RepositoryQuery {
+// QueryRepository chains the current query on the "repository" edge.
+func (pjq *ProwJobsQuery) QueryRepository() *RepositoryQuery {
 	query := (&RepositoryClient{config: pjq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pjq.prepareQuery(ctx); err != nil {
@@ -78,7 +78,7 @@ func (pjq *ProwJobsQuery) QueryProwJobs() *RepositoryQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(prowjobs.Table, prowjobs.FieldID, selector),
 			sqlgraph.To(repository.Table, repository.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, prowjobs.ProwJobsTable, prowjobs.ProwJobsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, prowjobs.RepositoryTable, prowjobs.RepositoryColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pjq.driver.Dialect(), step)
 		return fromU, nil
@@ -300,7 +300,7 @@ func (pjq *ProwJobsQuery) Clone() *ProwJobsQuery {
 		order:           append([]prowjobs.OrderOption{}, pjq.order...),
 		inters:          append([]Interceptor{}, pjq.inters...),
 		predicates:      append([]predicate.ProwJobs{}, pjq.predicates...),
-		withProwJobs:    pjq.withProwJobs.Clone(),
+		withRepository:  pjq.withRepository.Clone(),
 		withTektonTasks: pjq.withTektonTasks.Clone(),
 		// clone intermediate query.
 		sql:  pjq.sql.Clone(),
@@ -308,14 +308,14 @@ func (pjq *ProwJobsQuery) Clone() *ProwJobsQuery {
 	}
 }
 
-// WithProwJobs tells the query-builder to eager-load the nodes that are connected to
-// the "prow_jobs" edge. The optional arguments are used to configure the query builder of the edge.
-func (pjq *ProwJobsQuery) WithProwJobs(opts ...func(*RepositoryQuery)) *ProwJobsQuery {
+// WithRepository tells the query-builder to eager-load the nodes that are connected to
+// the "repository" edge. The optional arguments are used to configure the query builder of the edge.
+func (pjq *ProwJobsQuery) WithRepository(opts ...func(*RepositoryQuery)) *ProwJobsQuery {
 	query := (&RepositoryClient{config: pjq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	pjq.withProwJobs = query
+	pjq.withRepository = query
 	return pjq
 }
 
@@ -410,11 +410,11 @@ func (pjq *ProwJobsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pr
 		withFKs     = pjq.withFKs
 		_spec       = pjq.querySpec()
 		loadedTypes = [2]bool{
-			pjq.withProwJobs != nil,
+			pjq.withRepository != nil,
 			pjq.withTektonTasks != nil,
 		}
 	)
-	if pjq.withProwJobs != nil {
+	if pjq.withRepository != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -438,9 +438,9 @@ func (pjq *ProwJobsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pr
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := pjq.withProwJobs; query != nil {
-		if err := pjq.loadProwJobs(ctx, query, nodes, nil,
-			func(n *ProwJobs, e *Repository) { n.Edges.ProwJobs = e }); err != nil {
+	if query := pjq.withRepository; query != nil {
+		if err := pjq.loadRepository(ctx, query, nodes, nil,
+			func(n *ProwJobs, e *Repository) { n.Edges.Repository = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -454,7 +454,7 @@ func (pjq *ProwJobsQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Pr
 	return nodes, nil
 }
 
-func (pjq *ProwJobsQuery) loadProwJobs(ctx context.Context, query *RepositoryQuery, nodes []*ProwJobs, init func(*ProwJobs), assign func(*ProwJobs, *Repository)) error {
+func (pjq *ProwJobsQuery) loadRepository(ctx context.Context, query *RepositoryQuery, nodes []*ProwJobs, init func(*ProwJobs), assign func(*ProwJobs, *Repository)) error {
 	ids := make([]string, 0, len(nodes))
 	nodeids := make(map[string][]*ProwJobs)
 	for i := range nodes {

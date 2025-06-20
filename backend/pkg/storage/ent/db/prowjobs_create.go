@@ -171,23 +171,23 @@ func (pjc *ProwJobsCreate) SetNillableBuildErrorLogs(s *string) *ProwJobsCreate 
 	return pjc
 }
 
-// SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
-func (pjc *ProwJobsCreate) SetProwJobsID(id string) *ProwJobsCreate {
-	pjc.mutation.SetProwJobsID(id)
+// SetRepositoryID sets the "repository" edge to the Repository entity by ID.
+func (pjc *ProwJobsCreate) SetRepositoryID(id string) *ProwJobsCreate {
+	pjc.mutation.SetRepositoryID(id)
 	return pjc
 }
 
-// SetNillableProwJobsID sets the "prow_jobs" edge to the Repository entity by ID if the given value is not nil.
-func (pjc *ProwJobsCreate) SetNillableProwJobsID(id *string) *ProwJobsCreate {
+// SetNillableRepositoryID sets the "repository" edge to the Repository entity by ID if the given value is not nil.
+func (pjc *ProwJobsCreate) SetNillableRepositoryID(id *string) *ProwJobsCreate {
 	if id != nil {
-		pjc = pjc.SetProwJobsID(*id)
+		pjc = pjc.SetRepositoryID(*id)
 	}
 	return pjc
 }
 
-// SetProwJobs sets the "prow_jobs" edge to the Repository entity.
-func (pjc *ProwJobsCreate) SetProwJobs(r *Repository) *ProwJobsCreate {
-	return pjc.SetProwJobsID(r.ID)
+// SetRepository sets the "repository" edge to the Repository entity.
+func (pjc *ProwJobsCreate) SetRepository(r *Repository) *ProwJobsCreate {
+	return pjc.SetRepositoryID(r.ID)
 }
 
 // AddTektonTaskIDs adds the "tekton_tasks" edge to the TektonTasks entity by IDs.
@@ -359,12 +359,12 @@ func (pjc *ProwJobsCreate) createSpec() (*ProwJobs, *sqlgraph.CreateSpec) {
 		_spec.SetField(prowjobs.FieldBuildErrorLogs, field.TypeString, value)
 		_node.BuildErrorLogs = &value
 	}
-	if nodes := pjc.mutation.ProwJobsIDs(); len(nodes) > 0 {
+	if nodes := pjc.mutation.RepositoryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   prowjobs.ProwJobsTable,
-			Columns: []string{prowjobs.ProwJobsColumn},
+			Table:   prowjobs.RepositoryTable,
+			Columns: []string{prowjobs.RepositoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),

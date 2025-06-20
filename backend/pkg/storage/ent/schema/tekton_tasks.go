@@ -1,8 +1,6 @@
 package schema
 
 import (
-	"time"
-
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
@@ -32,11 +30,6 @@ func (TektonTasks) Fields() []ent.Field {
 		field.String("duration_seconds").
 			SchemaType(textSchema),
 
-		// indicates when a tekton task was inserted.
-		field.Time("created_at").
-			Default(time.Now).
-			Nillable().
-			Comment("Indicates when a tekton task was inserted."),
 		// Final status of the TaskRun (e.g., "Succeeded", "Failed")
 		field.String("status").
 			SchemaType(textSchema),

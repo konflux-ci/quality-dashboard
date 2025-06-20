@@ -970,21 +970,21 @@ func BuildErrorLogsContainsFold(v string) predicate.ProwJobs {
 	return predicate.ProwJobs(sql.FieldContainsFold(FieldBuildErrorLogs, v))
 }
 
-// HasProwJobs applies the HasEdge predicate on the "prow_jobs" edge.
-func HasProwJobs() predicate.ProwJobs {
+// HasRepository applies the HasEdge predicate on the "repository" edge.
+func HasRepository() predicate.ProwJobs {
 	return predicate.ProwJobs(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ProwJobsTable, ProwJobsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, RepositoryTable, RepositoryColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasProwJobsWith applies the HasEdge predicate on the "prow_jobs" edge with a given conditions (other predicates).
-func HasProwJobsWith(preds ...predicate.Repository) predicate.ProwJobs {
+// HasRepositoryWith applies the HasEdge predicate on the "repository" edge with a given conditions (other predicates).
+func HasRepositoryWith(preds ...predicate.Repository) predicate.ProwJobs {
 	return predicate.ProwJobs(func(s *sql.Selector) {
-		step := newProwJobsStep()
+		step := newRepositoryStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
