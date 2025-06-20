@@ -57,8 +57,8 @@ type ProwJobs struct {
 
 // ProwJobsEdges holds the relations/edges for other nodes in the graph.
 type ProwJobsEdges struct {
-	// ProwJobs holds the value of the prow_jobs edge.
-	ProwJobs *Repository `json:"prow_jobs,omitempty"`
+	// Repository holds the value of the repository edge.
+	Repository *Repository `json:"repository,omitempty"`
 	// TektonTasks holds the value of the tekton_tasks edge.
 	TektonTasks []*TektonTasks `json:"tekton_tasks,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -66,15 +66,15 @@ type ProwJobsEdges struct {
 	loadedTypes [2]bool
 }
 
-// ProwJobsOrErr returns the ProwJobs value or an error if the edge
+// RepositoryOrErr returns the Repository value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
-func (e ProwJobsEdges) ProwJobsOrErr() (*Repository, error) {
-	if e.ProwJobs != nil {
-		return e.ProwJobs, nil
+func (e ProwJobsEdges) RepositoryOrErr() (*Repository, error) {
+	if e.Repository != nil {
+		return e.Repository, nil
 	} else if e.loadedTypes[0] {
 		return nil, &NotFoundError{label: repository.Label}
 	}
-	return nil, &NotLoadedError{edge: "prow_jobs"}
+	return nil, &NotLoadedError{edge: "repository"}
 }
 
 // TektonTasksOrErr returns the TektonTasks value or an error if the edge
@@ -241,9 +241,9 @@ func (pj *ProwJobs) Value(name string) (ent.Value, error) {
 	return pj.selectValues.Get(name)
 }
 
-// QueryProwJobs queries the "prow_jobs" edge of the ProwJobs entity.
-func (pj *ProwJobs) QueryProwJobs() *RepositoryQuery {
-	return NewProwJobsClient(pj.config).QueryProwJobs(pj)
+// QueryRepository queries the "repository" edge of the ProwJobs entity.
+func (pj *ProwJobs) QueryRepository() *RepositoryQuery {
+	return NewProwJobsClient(pj.config).QueryRepository(pj)
 }
 
 // QueryTektonTasks queries the "tekton_tasks" edge of the ProwJobs entity.

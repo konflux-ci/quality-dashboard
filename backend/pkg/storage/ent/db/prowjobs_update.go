@@ -318,23 +318,23 @@ func (pju *ProwJobsUpdate) ClearBuildErrorLogs() *ProwJobsUpdate {
 	return pju
 }
 
-// SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
-func (pju *ProwJobsUpdate) SetProwJobsID(id string) *ProwJobsUpdate {
-	pju.mutation.SetProwJobsID(id)
+// SetRepositoryID sets the "repository" edge to the Repository entity by ID.
+func (pju *ProwJobsUpdate) SetRepositoryID(id string) *ProwJobsUpdate {
+	pju.mutation.SetRepositoryID(id)
 	return pju
 }
 
-// SetNillableProwJobsID sets the "prow_jobs" edge to the Repository entity by ID if the given value is not nil.
-func (pju *ProwJobsUpdate) SetNillableProwJobsID(id *string) *ProwJobsUpdate {
+// SetNillableRepositoryID sets the "repository" edge to the Repository entity by ID if the given value is not nil.
+func (pju *ProwJobsUpdate) SetNillableRepositoryID(id *string) *ProwJobsUpdate {
 	if id != nil {
-		pju = pju.SetProwJobsID(*id)
+		pju = pju.SetRepositoryID(*id)
 	}
 	return pju
 }
 
-// SetProwJobs sets the "prow_jobs" edge to the Repository entity.
-func (pju *ProwJobsUpdate) SetProwJobs(r *Repository) *ProwJobsUpdate {
-	return pju.SetProwJobsID(r.ID)
+// SetRepository sets the "repository" edge to the Repository entity.
+func (pju *ProwJobsUpdate) SetRepository(r *Repository) *ProwJobsUpdate {
+	return pju.SetRepositoryID(r.ID)
 }
 
 // AddTektonTaskIDs adds the "tekton_tasks" edge to the TektonTasks entity by IDs.
@@ -357,9 +357,9 @@ func (pju *ProwJobsUpdate) Mutation() *ProwJobsMutation {
 	return pju.mutation
 }
 
-// ClearProwJobs clears the "prow_jobs" edge to the Repository entity.
-func (pju *ProwJobsUpdate) ClearProwJobs() *ProwJobsUpdate {
-	pju.mutation.ClearProwJobs()
+// ClearRepository clears the "repository" edge to the Repository entity.
+func (pju *ProwJobsUpdate) ClearRepository() *ProwJobsUpdate {
+	pju.mutation.ClearRepository()
 	return pju
 }
 
@@ -501,12 +501,12 @@ func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if pju.mutation.BuildErrorLogsCleared() {
 		_spec.ClearField(prowjobs.FieldBuildErrorLogs, field.TypeString)
 	}
-	if pju.mutation.ProwJobsCleared() {
+	if pju.mutation.RepositoryCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   prowjobs.ProwJobsTable,
-			Columns: []string{prowjobs.ProwJobsColumn},
+			Table:   prowjobs.RepositoryTable,
+			Columns: []string{prowjobs.RepositoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
@@ -514,12 +514,12 @@ func (pju *ProwJobsUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pju.mutation.ProwJobsIDs(); len(nodes) > 0 {
+	if nodes := pju.mutation.RepositoryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   prowjobs.ProwJobsTable,
-			Columns: []string{prowjobs.ProwJobsColumn},
+			Table:   prowjobs.RepositoryTable,
+			Columns: []string{prowjobs.RepositoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
@@ -882,23 +882,23 @@ func (pjuo *ProwJobsUpdateOne) ClearBuildErrorLogs() *ProwJobsUpdateOne {
 	return pjuo
 }
 
-// SetProwJobsID sets the "prow_jobs" edge to the Repository entity by ID.
-func (pjuo *ProwJobsUpdateOne) SetProwJobsID(id string) *ProwJobsUpdateOne {
-	pjuo.mutation.SetProwJobsID(id)
+// SetRepositoryID sets the "repository" edge to the Repository entity by ID.
+func (pjuo *ProwJobsUpdateOne) SetRepositoryID(id string) *ProwJobsUpdateOne {
+	pjuo.mutation.SetRepositoryID(id)
 	return pjuo
 }
 
-// SetNillableProwJobsID sets the "prow_jobs" edge to the Repository entity by ID if the given value is not nil.
-func (pjuo *ProwJobsUpdateOne) SetNillableProwJobsID(id *string) *ProwJobsUpdateOne {
+// SetNillableRepositoryID sets the "repository" edge to the Repository entity by ID if the given value is not nil.
+func (pjuo *ProwJobsUpdateOne) SetNillableRepositoryID(id *string) *ProwJobsUpdateOne {
 	if id != nil {
-		pjuo = pjuo.SetProwJobsID(*id)
+		pjuo = pjuo.SetRepositoryID(*id)
 	}
 	return pjuo
 }
 
-// SetProwJobs sets the "prow_jobs" edge to the Repository entity.
-func (pjuo *ProwJobsUpdateOne) SetProwJobs(r *Repository) *ProwJobsUpdateOne {
-	return pjuo.SetProwJobsID(r.ID)
+// SetRepository sets the "repository" edge to the Repository entity.
+func (pjuo *ProwJobsUpdateOne) SetRepository(r *Repository) *ProwJobsUpdateOne {
+	return pjuo.SetRepositoryID(r.ID)
 }
 
 // AddTektonTaskIDs adds the "tekton_tasks" edge to the TektonTasks entity by IDs.
@@ -921,9 +921,9 @@ func (pjuo *ProwJobsUpdateOne) Mutation() *ProwJobsMutation {
 	return pjuo.mutation
 }
 
-// ClearProwJobs clears the "prow_jobs" edge to the Repository entity.
-func (pjuo *ProwJobsUpdateOne) ClearProwJobs() *ProwJobsUpdateOne {
-	pjuo.mutation.ClearProwJobs()
+// ClearRepository clears the "repository" edge to the Repository entity.
+func (pjuo *ProwJobsUpdateOne) ClearRepository() *ProwJobsUpdateOne {
+	pjuo.mutation.ClearRepository()
 	return pjuo
 }
 
@@ -1095,12 +1095,12 @@ func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, er
 	if pjuo.mutation.BuildErrorLogsCleared() {
 		_spec.ClearField(prowjobs.FieldBuildErrorLogs, field.TypeString)
 	}
-	if pjuo.mutation.ProwJobsCleared() {
+	if pjuo.mutation.RepositoryCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   prowjobs.ProwJobsTable,
-			Columns: []string{prowjobs.ProwJobsColumn},
+			Table:   prowjobs.RepositoryTable,
+			Columns: []string{prowjobs.RepositoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),
@@ -1108,12 +1108,12 @@ func (pjuo *ProwJobsUpdateOne) sqlSave(ctx context.Context) (_node *ProwJobs, er
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pjuo.mutation.ProwJobsIDs(); len(nodes) > 0 {
+	if nodes := pjuo.mutation.RepositoryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   prowjobs.ProwJobsTable,
-			Columns: []string{prowjobs.ProwJobsColumn},
+			Table:   prowjobs.RepositoryTable,
+			Columns: []string{prowjobs.RepositoryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(repository.FieldID, field.TypeString),

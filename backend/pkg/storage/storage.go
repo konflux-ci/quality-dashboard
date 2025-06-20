@@ -11,6 +11,7 @@ import (
 	failureV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/failure/v1alpha1"
 	repoV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/github/v1alpha1"
 	jiraV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/jira/v1alpha1"
+	"github.com/konflux-ci/quality-dashboard/api/apis/prow/v1alpha1"
 	prowV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/prow/v1alpha1"
 	userV1Alpha1 "github.com/konflux-ci/quality-dashboard/api/apis/user/v1alpha1"
 	"github.com/konflux-ci/quality-dashboard/pkg/storage/ent/db"
@@ -60,13 +61,12 @@ type Storage interface {
 	GetAllFailures(team *db.Teams) ([]*db.Failure, error)
 	ListAllRepositories() ([]*db.Repository, error)
 	BugExists(projectKey string, t *db.Teams) (bool, error)
-	GetSuitesFailureFrequency(gitOrg string, repoName string, jobName string, startDate string, endDate string) (*prowV1Alpha1.FlakyFrequency, error)
 	GetProwFlakyTrendsMetrics(gitOrg string, repoName string, jobName string, startDate string, endDate string) []prowV1Alpha1.FlakyMetrics
 	GetProwJobsByRepoOrg(repo *db.Repository) ([]string, error)
 	GetUser(userEmail string) (*db.Users, error)
 	ListAllUsers() ([]*db.Users, error)
 	GetTasksMetrics(startDate string, endDate string) ([]TaskMetrics, error)
-
+	GetSuitesFailureFrequency(gitOrg string, repoName string, jobName string, startDate string, endDate string) (*v1alpha1.FlakyFrequency, error)
 	// POST
 	CreateRepository(p repoV1Alpha1.Repository, team_id uuid.UUID) (*db.Repository, error)
 	CreateQualityStudioTeam(teamName string, description string, jira_keys string) (*db.Teams, error)

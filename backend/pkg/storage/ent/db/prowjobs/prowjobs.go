@@ -42,19 +42,19 @@ const (
 	FieldSuitesXMLURL = "suites_xml_url"
 	// FieldBuildErrorLogs holds the string denoting the build_error_logs field in the database.
 	FieldBuildErrorLogs = "build_error_logs"
-	// EdgeProwJobs holds the string denoting the prow_jobs edge name in mutations.
-	EdgeProwJobs = "prow_jobs"
+	// EdgeRepository holds the string denoting the repository edge name in mutations.
+	EdgeRepository = "repository"
 	// EdgeTektonTasks holds the string denoting the tekton_tasks edge name in mutations.
 	EdgeTektonTasks = "tekton_tasks"
 	// Table holds the table name of the prowjobs in the database.
 	Table = "prow_jobs"
-	// ProwJobsTable is the table that holds the prow_jobs relation/edge.
-	ProwJobsTable = "prow_jobs"
-	// ProwJobsInverseTable is the table name for the Repository entity.
+	// RepositoryTable is the table that holds the repository relation/edge.
+	RepositoryTable = "prow_jobs"
+	// RepositoryInverseTable is the table name for the Repository entity.
 	// It exists in this package in order to avoid circular dependency with the "repository" package.
-	ProwJobsInverseTable = "repositories"
-	// ProwJobsColumn is the table column denoting the prow_jobs relation/edge.
-	ProwJobsColumn = "repository_prow_jobs"
+	RepositoryInverseTable = "repositories"
+	// RepositoryColumn is the table column denoting the repository relation/edge.
+	RepositoryColumn = "repository_prow_jobs"
 	// TektonTasksTable is the table that holds the tekton_tasks relation/edge.
 	TektonTasksTable = "tekton_tasks"
 	// TektonTasksInverseTable is the table name for the TektonTasks entity.
@@ -193,10 +193,10 @@ func ByBuildErrorLogs(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldBuildErrorLogs, opts...).ToFunc()
 }
 
-// ByProwJobsField orders the results by prow_jobs field.
-func ByProwJobsField(field string, opts ...sql.OrderTermOption) OrderOption {
+// ByRepositoryField orders the results by repository field.
+func ByRepositoryField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newProwJobsStep(), sql.OrderByField(field, opts...))
+		sqlgraph.OrderByNeighborTerms(s, newRepositoryStep(), sql.OrderByField(field, opts...))
 	}
 }
 
@@ -213,11 +213,11 @@ func ByTektonTasks(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newTektonTasksStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newProwJobsStep() *sqlgraph.Step {
+func newRepositoryStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ProwJobsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ProwJobsTable, ProwJobsColumn),
+		sqlgraph.To(RepositoryInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, RepositoryTable, RepositoryColumn),
 	)
 }
 func newTektonTasksStep() *sqlgraph.Step {

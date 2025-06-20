@@ -1157,15 +1157,15 @@ func (c *ProwJobsClient) GetX(ctx context.Context, id int) *ProwJobs {
 	return obj
 }
 
-// QueryProwJobs queries the prow_jobs edge of a ProwJobs.
-func (c *ProwJobsClient) QueryProwJobs(pj *ProwJobs) *RepositoryQuery {
+// QueryRepository queries the repository edge of a ProwJobs.
+func (c *ProwJobsClient) QueryRepository(pj *ProwJobs) *RepositoryQuery {
 	query := (&RepositoryClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := pj.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(prowjobs.Table, prowjobs.FieldID, id),
 			sqlgraph.To(repository.Table, repository.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, prowjobs.ProwJobsTable, prowjobs.ProwJobsColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, prowjobs.RepositoryTable, prowjobs.RepositoryColumn),
 		)
 		fromV = sqlgraph.Neighbors(pj.driver.Dialect(), step)
 		return fromV, nil

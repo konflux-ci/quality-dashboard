@@ -4681,8 +4681,8 @@ type ProwJobsMutation struct {
 	suites_xml_url           *string
 	build_error_logs         *string
 	clearedFields            map[string]struct{}
-	prow_jobs                *string
-	clearedprow_jobs         bool
+	repository               *string
+	clearedrepository        bool
 	tekton_tasks             map[uuid.UUID]struct{}
 	removedtekton_tasks      map[uuid.UUID]struct{}
 	clearedtekton_tasks      bool
@@ -5523,43 +5523,43 @@ func (m *ProwJobsMutation) ResetBuildErrorLogs() {
 	delete(m.clearedFields, prowjobs.FieldBuildErrorLogs)
 }
 
-// SetProwJobsID sets the "prow_jobs" edge to the Repository entity by id.
-func (m *ProwJobsMutation) SetProwJobsID(id string) {
-	m.prow_jobs = &id
+// SetRepositoryID sets the "repository" edge to the Repository entity by id.
+func (m *ProwJobsMutation) SetRepositoryID(id string) {
+	m.repository = &id
 }
 
-// ClearProwJobs clears the "prow_jobs" edge to the Repository entity.
-func (m *ProwJobsMutation) ClearProwJobs() {
-	m.clearedprow_jobs = true
+// ClearRepository clears the "repository" edge to the Repository entity.
+func (m *ProwJobsMutation) ClearRepository() {
+	m.clearedrepository = true
 }
 
-// ProwJobsCleared reports if the "prow_jobs" edge to the Repository entity was cleared.
-func (m *ProwJobsMutation) ProwJobsCleared() bool {
-	return m.clearedprow_jobs
+// RepositoryCleared reports if the "repository" edge to the Repository entity was cleared.
+func (m *ProwJobsMutation) RepositoryCleared() bool {
+	return m.clearedrepository
 }
 
-// ProwJobsID returns the "prow_jobs" edge ID in the mutation.
-func (m *ProwJobsMutation) ProwJobsID() (id string, exists bool) {
-	if m.prow_jobs != nil {
-		return *m.prow_jobs, true
+// RepositoryID returns the "repository" edge ID in the mutation.
+func (m *ProwJobsMutation) RepositoryID() (id string, exists bool) {
+	if m.repository != nil {
+		return *m.repository, true
 	}
 	return
 }
 
-// ProwJobsIDs returns the "prow_jobs" edge IDs in the mutation.
+// RepositoryIDs returns the "repository" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// ProwJobsID instead. It exists only for internal usage by the builders.
-func (m *ProwJobsMutation) ProwJobsIDs() (ids []string) {
-	if id := m.prow_jobs; id != nil {
+// RepositoryID instead. It exists only for internal usage by the builders.
+func (m *ProwJobsMutation) RepositoryIDs() (ids []string) {
+	if id := m.repository; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetProwJobs resets all changes to the "prow_jobs" edge.
-func (m *ProwJobsMutation) ResetProwJobs() {
-	m.prow_jobs = nil
-	m.clearedprow_jobs = false
+// ResetRepository resets all changes to the "repository" edge.
+func (m *ProwJobsMutation) ResetRepository() {
+	m.repository = nil
+	m.clearedrepository = false
 }
 
 // AddTektonTaskIDs adds the "tekton_tasks" edge to the TektonTasks entity by ids.
@@ -6096,8 +6096,8 @@ func (m *ProwJobsMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ProwJobsMutation) AddedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.prow_jobs != nil {
-		edges = append(edges, prowjobs.EdgeProwJobs)
+	if m.repository != nil {
+		edges = append(edges, prowjobs.EdgeRepository)
 	}
 	if m.tekton_tasks != nil {
 		edges = append(edges, prowjobs.EdgeTektonTasks)
@@ -6109,8 +6109,8 @@ func (m *ProwJobsMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *ProwJobsMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case prowjobs.EdgeProwJobs:
-		if id := m.prow_jobs; id != nil {
+	case prowjobs.EdgeRepository:
+		if id := m.repository; id != nil {
 			return []ent.Value{*id}
 		}
 	case prowjobs.EdgeTektonTasks:
@@ -6149,8 +6149,8 @@ func (m *ProwJobsMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ProwJobsMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 2)
-	if m.clearedprow_jobs {
-		edges = append(edges, prowjobs.EdgeProwJobs)
+	if m.clearedrepository {
+		edges = append(edges, prowjobs.EdgeRepository)
 	}
 	if m.clearedtekton_tasks {
 		edges = append(edges, prowjobs.EdgeTektonTasks)
@@ -6162,8 +6162,8 @@ func (m *ProwJobsMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *ProwJobsMutation) EdgeCleared(name string) bool {
 	switch name {
-	case prowjobs.EdgeProwJobs:
-		return m.clearedprow_jobs
+	case prowjobs.EdgeRepository:
+		return m.clearedrepository
 	case prowjobs.EdgeTektonTasks:
 		return m.clearedtekton_tasks
 	}
@@ -6174,8 +6174,8 @@ func (m *ProwJobsMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *ProwJobsMutation) ClearEdge(name string) error {
 	switch name {
-	case prowjobs.EdgeProwJobs:
-		m.ClearProwJobs()
+	case prowjobs.EdgeRepository:
+		m.ClearRepository()
 		return nil
 	}
 	return fmt.Errorf("unknown ProwJobs unique edge %s", name)
@@ -6185,8 +6185,8 @@ func (m *ProwJobsMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *ProwJobsMutation) ResetEdge(name string) error {
 	switch name {
-	case prowjobs.EdgeProwJobs:
-		m.ResetProwJobs()
+	case prowjobs.EdgeRepository:
+		m.ResetRepository()
 		return nil
 	case prowjobs.EdgeTektonTasks:
 		m.ResetTektonTasks()
